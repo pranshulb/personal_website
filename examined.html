@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>examined.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #0a0a0c;
+  --surface: #131318;
+  --surface-2: #1a1a22;
+  --text: #e8e4dc;
+  --text-dim: #8a8680;
+  --text-faint: #4a4844;
+  --accent: #c9a84c;
+  --accent-dim: #6b5a2e;
+  --red: #b54a4a;
+  --blue: #4a6fb5;
+  --green: #4ab57a;
+  --purple: #8a4ab5;
+  --teal: #4ab5a8;
+  --orange: #b58a4a;
+  --radius: 12px;
+}
+
+[data-theme="pink"] {
+  --bg: #fff0f3;
+  --surface: #ffe0e6;
+  --surface-2: #ffd1da;
+  --text: #2a1f24;
+  --text-dim: #6b4f58;
+  --text-faint: #b08a94;
+  --accent: #c4447a;
+  --accent-dim: #e8a0bb;
+  --red: #c94a6a;
+  --blue: #6a7fb5;
+  --green: #5aab7a;
+  --purple: #9a5ab5;
+  --teal: #5aaba0;
+  --orange: #b5845a;
+}
+
+[data-theme="pink"] .radar-grid { stroke: var(--text-faint); }
+[data-theme="pink"] .radar-axis { stroke: var(--text-faint); }
+[data-theme="pink"] .radar-shape { fill: var(--accent); fill-opacity: 0.2; stroke: var(--accent); }
+[data-theme="pink"] .radar-label { fill: var(--text-dim); }
+[data-theme="pink"] .community-entry { background: #fff5f7; }
+[data-theme="pink"] .community-input { background: #fff5f7; }
+[data-theme="pink"] .choice:hover { background: #ffd8e0; }
+
+/* ===== PINK MODE: FUNKY PHILOSOPHY ===== */
+
+/* Thinking emoji cursor */
+[data-theme="pink"] {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>🤔</text></svg>") 16 0, auto;
+}
+[data-theme="pink"] .btn,
+[data-theme="pink"] .btn-small,
+[data-theme="pink"] .choice,
+[data-theme="pink"] .path-card,
+[data-theme="pink"] .theme-toggle {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>👆</text></svg>") 16 0, pointer;
+}
+
+/* Animated gradient background */
+[data-theme="pink"] body {
+  background: linear-gradient(-45deg, #fff0f3, #fce4ec, #f8e8ff, #fff0f3, #ffe0e6);
+  background-size: 400% 400%;
+  animation: pinkShift 15s ease infinite;
+}
+
+@keyframes pinkShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Wobble on the title */
+[data-theme="pink"] .intro-title {
+  animation: wobble 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-1deg); }
+  25% { transform: rotate(1.5deg); }
+  50% { transform: rotate(-0.5deg); }
+  75% { transform: rotate(1deg); }
+}
+
+/* Tilted choice cards — scattered notes aesthetic */
+[data-theme="pink"] .choice:nth-child(1) { transform: rotate(-0.8deg); }
+[data-theme="pink"] .choice:nth-child(2) { transform: rotate(0.6deg); }
+[data-theme="pink"] .choice:nth-child(3) { transform: rotate(-0.4deg); }
+[data-theme="pink"] .choice:hover {
+  transform: rotate(0deg) translateX(6px) scale(1.01) !important;
+}
+
+/* Doodle/sketch borders on cards */
+[data-theme="pink"] .choice,
+[data-theme="pink"] .path-card,
+[data-theme="pink"] .axis-card,
+[data-theme="pink"] .portrait,
+[data-theme="pink"] .reading-card,
+[data-theme="pink"] .community-section,
+[data-theme="pink"] .reflection {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+}
+
+/* Bouncy hover on buttons */
+[data-theme="pink"] .btn,
+[data-theme="pink"] .btn-small {
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0px var(--accent);
+  transition: all 0.2s ease;
+}
+[data-theme="pink"] .btn:hover,
+[data-theme="pink"] .btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0px var(--accent);
+  background: var(--accent);
+  color: white;
+}
+[data-theme="pink"] .btn:active,
+[data-theme="pink"] .btn-small:active {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0px var(--accent);
+}
+
+/* Path cards tilt */
+[data-theme="pink"] .path-card:nth-child(1) { transform: rotate(-1deg); }
+[data-theme="pink"] .path-card:nth-child(2) { transform: rotate(1deg); }
+[data-theme="pink"] .path-card:hover { transform: rotate(0deg) scale(1.02) !important; }
+
+/* Bounce animation on selected choice */
+[data-theme="pink"] .choice.selected {
+  animation: selectBounce 0.4s ease;
+  border-color: var(--accent);
+  box-shadow: 4px 4px 0px var(--accent);
+}
+
+@keyframes selectBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.03) rotate(0deg); }
+  60% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* Progress dots are hearts in pink mode */
+[data-theme="pink"] .progress-dot {
+  width: auto; height: auto;
+  background: none !important;
+  font-size: 10px;
+  line-height: 1;
+}
+[data-theme="pink"] .progress-dot::after { content: '○'; color: var(--text-faint); }
+[data-theme="pink"] .progress-dot.done::after { content: '♥'; color: var(--accent); }
+[data-theme="pink"] .progress-dot.current::after { content: '♥'; color: var(--accent); font-size: 14px; }
+[data-theme="pink"] .progress-dot.current {
+  box-shadow: none;
+  transform: scale(1);
+  animation: heartbeat 1s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+/* Reflection box — notebook margin note vibe */
+[data-theme="pink"] .reflection {
+  border-left: 3px solid var(--accent);
+  background: rgba(255,192,203,0.15);
+  position: relative;
+}
+[data-theme="pink"] .reflection::before {
+  content: '✎';
+  position: absolute;
+  top: -10px;
+  left: -12px;
+  font-size: 18px;
+}
+
+/* Radar chart glow */
+[data-theme="pink"] .radar-shape {
+  filter: drop-shadow(0 0 8px rgba(196,68,122,0.4));
+}
+
+/* Tradition badges — sticker look */
+[data-theme="pink"] .tradition-badge {
+  border-radius: 4px;
+  border: 2px solid var(--surface-2);
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+  transform: rotate(-1deg);
+}
+[data-theme="pink"] .tradition-badge.active {
+  border-color: var(--accent);
+  box-shadow: 2px 2px 0px var(--accent-dim);
+  transform: rotate(1deg);
+}
+[data-theme="pink"] .tradition-badge:nth-child(even) { transform: rotate(0.5deg); }
+
+/* Theme toggle in pink mode */
+[data-theme="pink"] .theme-toggle {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  font-size: 1rem;
+}
+
+/* ===== END PINK MODE FUNKY ===== */
+
+[data-theme="pink"] body,
+[data-theme="pink"] .choice,
+[data-theme="pink"] .intro-quote,
+[data-theme="pink"] .intro-desc,
+[data-theme="pink"] .scenario-title,
+[data-theme="pink"] .scenario-body,
+[data-theme="pink"] .scenario-question,
+[data-theme="pink"] .path-card-desc,
+[data-theme="pink"] .portrait-text,
+[data-theme="pink"] .reflection-text,
+[data-theme="pink"] .results-name,
+[data-theme="pink"] .results-subtitle,
+[data-theme="pink"] .reading-book,
+[data-theme="pink"] .reading-why,
+[data-theme="pink"] .community-input,
+[data-theme="pink"] .entry-name,
+[data-theme="pink"] .community-subtitle,
+[data-theme="pink"] .community-empty {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15em;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+::selection { background: var(--accent-dim); color: var(--text); }
+html { font-size: 18px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'EB Garamond', Georgia, serif;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+*, *::before, *::after {
+  transition: background-color 0.4s ease, border-color 0.4s ease, color 0.3s ease;
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 2rem;
+  animation: screenIn 0.6s ease;
+}
+.screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* INTRO */
+.intro-content { max-width: 520px; text-align: center; }
+
+.intro-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.4em;
+  text-transform: lowercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+}
+
+.intro-quote {
+  font-size: 1.4rem;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.intro-attr {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 3rem;
+}
+
+.intro-desc {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+}
+
+.intro-axes {
+  text-align: left;
+  margin: 0 auto 2rem;
+  max-width: 360px;
+}
+
+.intro-axis {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.intro-axis span { color: var(--text-dim); }
+
+.intro-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  margin: 2rem 0 3rem;
+}
+
+.btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: lowercase;
+  padding: 1rem 2.5rem;
+  border: 1px solid var(--accent-dim);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+.btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+/* PATH SELECT */
+.path-content { max-width: 600px; width: 100%; text-align: center; }
+
+.path-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.path-subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-bottom: 2.5rem;
+}
+
+.paths {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.path-card {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.path-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+.path-card.selected { border-color: var(--accent); background: var(--surface-2); }
+
+.path-card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.path-card-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.path-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.path-card-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  margin-top: 0.8rem;
+}
+
+.path-or {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-faint);
+  margin: 1rem 0;
+}
+
+/* SCENARIO */
+.scenario-container { max-width: 600px; width: 100%; }
+
+.scenario-progress { display: flex; gap: 6px; margin-bottom: 3rem; justify-content: center; flex-wrap: wrap; }
+
+.progress-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-faint); transition: all 0.4s ease;
+}
+.progress-dot.done { background: var(--accent); }
+.progress-dot.current { background: var(--accent); box-shadow: 0 0 12px var(--accent-dim); transform: scale(1.3); }
+
+.scenario-chapter {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-faint);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.scenario-tradition {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--accent-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+
+.scenario-title { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; line-height: 1.4; }
+
+.scenario-body {
+  font-size: 1rem; color: var(--text-dim); margin-bottom: 2.5rem; line-height: 1.9;
+}
+.scenario-body em { color: var(--text); font-style: italic; }
+
+.scenario-question { font-size: 1.1rem; font-style: italic; color: var(--text); margin-bottom: 2rem; }
+
+.choices { display: flex; flex-direction: column; gap: 1rem; }
+
+.choice {
+  padding: 1.2rem 1.5rem;
+  border: 1px solid var(--surface-2);
+  background: var(--surface);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  position: relative;
+  overflow: hidden;
+}
+
+.choice::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 3px; height: 100%;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.choice:hover { border-color: var(--accent-dim); color: var(--text); transform: translateX(4px); }
+.choice:hover::before { opacity: 1; }
+.choice.selected { border-color: var(--accent); background: var(--surface-2); color: var(--text); }
+.choice.selected::before { opacity: 1; }
+
+.choice-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.reflection {
+  margin-top: 2rem; padding: 1.5rem;
+  background: var(--surface);
+  border-left: 2px solid var(--accent-dim);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.reflection-text { font-size: 0.9rem; color: var(--text-dim); font-style: italic; line-height: 1.8; margin-bottom: 1rem; }
+.reflection-philosopher { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 0.1em; }
+.next-btn { margin-top: 2rem; align-self: flex-end; }
+
+/* RESULTS */
+.results-container { max-width: 650px; width: 100%; }
+.results-header { text-align: center; margin-bottom: 3rem; }
+
+.results-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.3em;
+  color: var(--accent); margin-bottom: 1rem;
+}
+
+.results-name { font-size: 1.8rem; font-weight: 500; margin-bottom: 0.5rem; }
+.results-subtitle { font-size: 1rem; font-style: italic; color: var(--text-dim); }
+
+.radar-container { display: flex; justify-content: center; margin: 3rem 0; }
+.radar-svg { width: 340px; height: 340px; }
+.radar-grid { stroke: var(--text-faint); stroke-width: 0.5; fill: none; opacity: 0.3; }
+.radar-axis { stroke: var(--text-faint); stroke-width: 0.5; opacity: 0.2; }
+.radar-shape { fill: var(--accent); fill-opacity: 0.15; stroke: var(--accent); stroke-width: 2; animation: radarGrow 1s ease forwards; }
+.radar-point { fill: var(--accent); }
+.radar-label { font-family: 'Space Mono', monospace; font-size: 8px; fill: var(--text-dim); letter-spacing: 0.05em; }
+
+@keyframes radarGrow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.axes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0 3rem; }
+
+.axis-card {
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+}
+
+.axis-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem; color: var(--text-faint);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.axis-bar-track { height: 4px; background: var(--surface-2); border-radius: 2px; margin-bottom: 0.5rem; overflow: hidden; }
+.axis-bar-fill { height: 100%; border-radius: 2px; transition: width 1.5s ease; width: 0; }
+
+.axis-labels {
+  display: flex; justify-content: space-between;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.45rem; color: var(--text-faint); letter-spacing: 0.05em;
+}
+.axis-labels .active-label { color: var(--text-dim); }
+
+.portrait {
+  padding: 2rem; background: var(--surface);
+  border-radius: var(--radius); border: 1px solid var(--surface-2);
+  margin-bottom: 2rem;
+}
+
+.portrait-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--accent);
+  letter-spacing: 0.15em; margin-bottom: 1.5rem;
+}
+
+.portrait-text { font-size: 1rem; color: var(--text-dim); line-height: 1.9; margin-bottom: 1rem; }
+
+.portrait-thinkers {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--text-faint);
+  letter-spacing: 0.05em; margin-top: 1.5rem;
+}
+
+/* Tradition badges */
+.traditions-section { margin-top: 2rem; }
+
+.traditions-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem; color: var(--text-faint);
+  letter-spacing: 0.1em; margin-bottom: 1rem;
+}
+
+.traditions-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.tradition-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid var(--surface-2);
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+.tradition-badge.active { border-color: var(--accent-dim); color: var(--accent); background: rgba(201,168,76,0.08); }
+
+.results-footer {
+  text-align: center; margin-top: 3rem;
+  padding-top: 2rem; border-top: 1px solid var(--surface-2);
+}
+
+.results-footer p { font-size: 0.85rem; color: var(--text-faint); font-style: italic; margin-bottom: 1.5rem; }
+
+.share-row { display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem; }
+
+.btn-small {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.6rem 1.5rem;
+  border: 1px solid var(--surface-2); background: transparent;
+  color: var(--text-dim); cursor: pointer;
+  transition: all 0.3s ease; border-radius: 2px;
+}
+.btn-small:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+/* READINGS */
+.readings-section { margin: 2rem 0; }
+
+.readings-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--accent);
+  letter-spacing: 0.15em; margin-bottom: 1.5rem;
+}
+
+.readings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.reading-card {
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  transition: border-color 0.3s;
+}
+.reading-card:hover { border-color: var(--accent-dim); }
+
+.reading-book {
+  font-size: 0.95rem; font-style: italic;
+  color: var(--text); margin-bottom: 0.2rem;
+}
+
+.reading-author {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem; color: var(--text-dim);
+  letter-spacing: 0.05em; margin-bottom: 0.5rem;
+}
+
+.reading-why {
+  font-size: 0.8rem; color: var(--text-faint);
+  line-height: 1.6;
+}
+
+/* COMMUNITY BOARD */
+.community-section {
+  margin: 3rem 0; padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+}
+
+.community-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--accent);
+  letter-spacing: 0.15em; margin-bottom: 0.5rem;
+}
+
+.community-subtitle {
+  font-size: 0.85rem; color: var(--text-dim);
+  font-style: italic; margin-bottom: 1.5rem;
+}
+
+.community-add {
+  display: flex; gap: 0.8rem;
+  margin-bottom: 2rem; align-items: center;
+}
+
+.community-input {
+  flex: 1; padding: 0.7rem 1rem;
+  background: var(--bg); border: 1px solid var(--surface-2);
+  border-radius: 4px; color: var(--text);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.95rem; outline: none;
+  transition: border-color 0.3s;
+}
+.community-input::placeholder { color: var(--text-faint); }
+.community-input:focus { border-color: var(--accent-dim); }
+
+.community-list {
+  display: flex; flex-direction: column;
+  gap: 0.6rem; max-height: 400px;
+  overflow-y: auto;
+}
+
+.community-entry {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 0.7rem 1rem;
+  background: var(--bg); border-radius: 6px;
+  border: 1px solid transparent;
+  animation: entryIn 0.3s ease;
+}
+.community-entry.self { border-color: var(--accent-dim); }
+
+@keyframes entryIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.entry-name {
+  font-size: 0.95rem; color: var(--text);
+}
+
+.entry-archetype {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem; color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.entry-date {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.45rem; color: var(--text-faint);
+}
+
+.community-empty {
+  font-size: 0.85rem; color: var(--text-faint);
+  font-style: italic; text-align: center;
+  padding: 1.5rem;
+}
+
+.community-loading {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem; color: var(--text-faint);
+  text-align: center; padding: 1rem;
+}
+
+.community-error {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem; color: var(--red);
+  text-align: center; padding: 0.5rem;
+}
+
+/* THEME TOGGLE */
+.theme-toggle {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.2rem;
+  z-index: 100;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--surface-2);
+  background: var(--surface);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.theme-toggle:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+[data-theme="pink"] .theme-toggle {
+  background: rgba(255,208,218,0.7);
+  border-color: var(--accent-dim);
+}
+
+@media (max-width: 600px) {
+  html { font-size: 16px; }
+  .screen { padding: 1.5rem; }
+  .scenario-title { font-size: 1.3rem; }
+  .axes-grid { grid-template-columns: 1fr; }
+  .radar-svg { width: 280px; height: 280px; }
+  .paths { grid-template-columns: 1fr; }
+  .readings-grid { grid-template-columns: 1fr; }
+  .community-add { flex-direction: column; }
+}
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">I'm not boring!</button>
+
+<div class="screen active" id="intro-screen">
+  <div class="intro-content">
+    <div class="intro-title">examined.</div>
+    <p class="intro-quote">"The unexamined life is not worth living."</p>
+    <p class="intro-attr">— Socrates, via Plato's Apology</p>
+    <p class="intro-desc">
+      thought experiments drawn from traditions across the world.<br>
+      no right answers. just a mirror.
+    </p>
+    <div class="intro-axes">
+      <div class="intro-axis"><span>ethics</span> — consequentialist ↔ deontological</div>
+      <div class="intro-axis"><span>self</span> — individual ↔ communal</div>
+      <div class="intro-axis"><span>endurance</span> — stoic ↔ epicurean</div>
+      <div class="intro-axis"><span>method</span> — pragmatist ↔ idealist</div>
+      <div class="intro-axis"><span>freedom</span> — libertarian ↔ determinist</div>
+      <div class="intro-axis"><span>knowledge</span> — rationalist ↔ empiricist</div>
+      <div class="intro-axis"><span>reality</span> — materialist ↔ transcendent</div>
+    </div>
+
+    <button class="btn" onclick="showPaths()">begin</button>
+  </div>
+</div>
+
+<div class="screen" id="path-screen">
+  <div class="path-content">
+    <div class="path-title">choose your path</div>
+    <p class="path-subtitle">or take them all</p>
+    <div class="paths">
+      <div class="path-card" onclick="selectPath('essential')" id="path-essential">
+        <div class="path-card-icon">◯</div>
+        <div class="path-card-name">THE ESSENTIAL</div>
+        <p class="path-card-desc">Ten core dilemmas. Ethics, freedom, meaning, identity. The greatest hits.</p>
+        <div class="path-card-count">10 scenarios · ~5 min</div>
+      </div>
+      <div class="path-card" onclick="selectPath('deep')" id="path-deep">
+        <div class="path-card-icon">◉</div>
+        <div class="path-card-name">THE DEEP CUT</div>
+        <p class="path-card-desc">All eighteen. Adds epistemology, aesthetics, language, ecology, mortality, and non-Western traditions.</p>
+        <div class="path-card-count">18 scenarios · ~10 min</div>
+      </div>
+    </div>
+    <button class="btn" id="path-go-btn" style="display:none" onclick="startExam()">continue</button>
+  </div>
+</div>
+
+<div class="screen" id="scenario-screen">
+  <div class="scenario-container">
+    <div class="scenario-progress" id="progress"></div>
+    <div class="scenario-chapter" id="chapter"></div>
+    <div class="scenario-tradition" id="tradition"></div>
+    <h2 class="scenario-title" id="title"></h2>
+    <div class="scenario-body" id="body"></div>
+    <p class="scenario-question" id="question"></p>
+    <div class="choices" id="choices"></div>
+    <div id="reflection-area"></div>
+  </div>
+</div>
+
+<div class="screen" id="results-screen">
+  <div class="results-container">
+    <div class="results-header">
+      <div class="results-title">your philosophical portrait</div>
+      <h2 class="results-name" id="archetype-name"></h2>
+      <p class="results-subtitle" id="archetype-sub"></p>
+    </div>
+    <div class="radar-container">
+      <svg class="radar-svg" id="radar" viewBox="0 0 340 340"></svg>
+    </div>
+    <div class="axes-grid" id="axes-grid"></div>
+    <div class="portrait" id="portrait"></div>
+    <div class="readings-section" id="readings-section"></div>
+    <div class="community-section" id="community-section">
+      <div class="community-title">THE WALL</div>
+      <div class="community-subtitle">others who've examined themselves</div>
+      <div class="community-add">
+        <input class="community-input" id="name-input" type="text" placeholder="add your name to the wall" maxlength="40">
+        <button class="btn-small" onclick="addToWall()">add</button>
+      </div>
+      <div id="community-list" class="community-list">
+        <div class="community-loading">loading...</div>
+      </div>
+    </div>
+    <div class="results-footer">
+      <p>"know thyself" — inscribed at the Temple of Apollo at Delphi</p>
+      <div class="share-row">
+        <button class="btn-small" onclick="copyResults()">copy result</button>
+        <button class="btn-small" onclick="emailResults()">email to myself</button>
+        <button class="btn-small" onclick="restart()">take again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== THEME =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  if (html.getAttribute('data-theme') === 'pink') {
+    html.removeAttribute('data-theme');
+    btn.textContent = "I'm not boring!";
+    localStorage.setItem('examined-theme', 'dark');
+  } else {
+    html.setAttribute('data-theme', 'pink');
+    btn.textContent = '✿';
+    localStorage.setItem('examined-theme', 'pink');
+  }
+}
+
+// Load saved theme
+(function() {
+  const saved = localStorage.getItem('examined-theme');
+  if (saved === 'pink') {
+    document.documentElement.setAttribute('data-theme', 'pink');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('theme-toggle').textContent = '✿';
+    });
+  }
+})();
+
+const AXES = {
+  consequence: { left: 'deontological', right: 'consequentialist', color: '#c9a84c' },
+  individual: { left: 'communal', right: 'individual', color: '#4a6fb5' },
+  stoic: { left: 'epicurean', right: 'stoic', color: '#b54a4a' },
+  pragmatist: { left: 'idealist', right: 'pragmatist', color: '#4ab57a' },
+  agency: { left: 'determinist', right: 'libertarian', color: '#8a4ab5' },
+  rationalist: { left: 'empiricist', right: 'rationalist', color: '#4ab5a8' },
+  transcendent: { left: 'materialist', right: 'transcendent', color: '#b58a4a' },
+};
+
+const WALL_API = '/api/wall';
+
+const READINGS = {
+  'The Examined Stoic': [
+    { title:'Meditations', author:'Marcus Aurelius', why:'The original field manual for maintaining inner calm while the world burns around you.' },
+    { title:'Letters from a Stoic', author:'Seneca', why:'Practical Stoicism for everyday life — more accessible and human than you\'d expect from a Roman senator.' },
+    { title:'The Myth of Sisyphus', author:'Albert Camus', why:'If the rock never stays at the top, what makes the push worthwhile? Camus\'s answer will reframe how you think about effort.' },
+    { title:'Gravity and Grace', author:'Simone Weil', why:'A mystic\'s Stoicism — attention as the highest form of generosity, suffering as a path to clarity.' },
+  ],
+  'The Reluctant Utilitarian': [
+    { title:'Practical Ethics', author:'Peter Singer', why:'The book that launched effective altruism. Rigorous, uncomfortable, necessary.' },
+    { title:'The Life You Can Save', author:'Peter Singer', why:'A more accessible entry point — what does ethics actually demand of us in a world of extreme inequality?' },
+    { title:'Reasons and Persons', author:'Derek Parfit', why:'Mind-bending work on identity and ethics. Will permanently change how you think about future people.' },
+    { title:'In a Different Voice', author:'Carol Gilligan', why:'A counterweight to pure calculation — what gets lost when we reduce ethics to arithmetic.' },
+  ],
+  'The Existential Pragmatist': [
+    { title:'Pragmatism', author:'William James', why:'Philosophy as a tool for living, not a puzzle to solve. James writes like your smartest friend explaining the world over coffee.' },
+    { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Freedom isn\'t just a right — it\'s a responsibility. de Beauvoir on what it means to act in an uncertain world.' },
+    { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that reads like absurdist comedy. The butterfly dream alone is worth the price of entry.' },
+    { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A pragmatist\'s guide to mortality — stop optimizing time and start living in it.' },
+  ],
+  'The Relational Existentialist': [
+    { title:'I and Thou', author:'Martin Buber', why:'The foundational text on what it means to truly encounter another person. Short, dense, life-altering.' },
+    { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Morality as attention — seeing others clearly is the hardest and most important philosophical work.' },
+    { title:'All About Love', author:'bell hooks', why:'Love as a practice of freedom. hooks dismantles romantic myths and builds something more honest in their place.' },
+    { title:'Totality and Infinity', author:'Emmanuel Levinas', why:'Dense but rewarding — ethics begins with the face of the Other. Changes how you think about responsibility.' },
+  ],
+  'The Radical Individualist': [
+    { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s wild, poetic manifesto for becoming who you are. Not a self-help book — something stranger and better.' },
+    { title:'On Liberty', author:'John Stuart Mill', why:'The clearest case ever made for individual freedom. Still the foundation of liberal thought.' },
+    { title:'Walden', author:'Henry David Thoreau', why:'What happens when you actually try to live by your principles. Part nature writing, part philosophical experiment.' },
+    { title:'Sister Outsider', author:'Audre Lorde', why:'Radical individuality as survival and resistance. Lorde\'s essays burn with clarity.' },
+  ],
+  'The Contemplative Mystic': [
+    { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s translation captures the poetry. 81 short chapters that say more than most 500-page books.' },
+    { title:'The Bezels of Wisdom', author:'Ibn Arabi', why:'Sufi mysticism at its most ambitious — each prophet as a facet of divine truth. Demands slow reading.' },
+    { title:'Tractatus Logico-Philosophicus', author:'Ludwig Wittgenstein', why:'Logic pushed to its absolute limit — until it breaks into silence. The ending will haunt you.' },
+    { title:'Siddhartha', author:'Hermann Hesse', why:'A novel about enlightenment that reads like a river. Hesse translates Buddhist philosophy into something you can feel.' },
+  ],
+  'The Philosophical Warrior': [
+    { title:'The Deliverer from Error', author:'Al-Ghazali', why:'A scholar at the peak of his career demolishes his own framework because truth demanded it. Autobiography as philosophy.' },
+    { title:'Apology', author:'Plato', why:'Socrates on trial for his life, explaining why the examined life is worth dying for. Still electric after 2,400 years.' },
+    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming. Changed the word "paradigm" forever.' },
+    { title:'The Second Sex', author:'Simone de Beauvoir', why:'Courageous, systematic, world-changing. de Beauvoir dismantles centuries of assumptions with surgical precision.' },
+  ],
+  'The Practical Philosopher': [
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous wisdom meets botanical science. Kimmerer shows how reciprocity with the land is both ancient and urgently modern.' },
+    { title:'Caring: A Relational Approach to Ethics', author:'Nel Noddings', why:'Ethics grounded in actual human relationships rather than abstract principles. Quietly revolutionary.' },
+    { title:'The Public and Its Problems', author:'John Dewey', why:'Democracy as a lived practice, not just a system. Dewey\'s vision of collective intelligence still feels radical.' },
+    { title:'Development as Freedom', author:'Amartya Sen', why:'Economics meets philosophy — freedom isn\'t just a value, it\'s the actual mechanism of human development.' },
+  ],
+  'The Poetic Empiricist': [
+    { title:'The Inner Chapters', author:'Zhuangzi', why:'Philosophy as playful storytelling. The Cook Ding chapter alone is a masterclass in embodied knowledge.' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.' },
+    { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Your body knows things your mind doesn\'t. Merleau-Ponty on how perception shapes reality.' },
+    { title:'Selected Letters', author:'John Keats', why:'Negative capability, beauty as truth — Keats\'s letters contain more philosophical insight than most treatises.' },
+  ],
+  'The Communal Builder': [
+    { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Ubuntu in action — how South Africa chose restoration over retribution. A blueprint for collective healing.' },
+    { title:'The Analects', author:'Confucius', why:'Virtue as social practice. 2,500 years old and still the best guide to leading by example.' },
+    { title:'All About Love', author:'bell hooks', why:'Community starts with how we love. hooks rebuilds the concept from the ground up.' },
+    { title:'In a Different Voice', author:'Carol Gilligan', why:'The ethics of care as a legitimate moral framework — not a footnote to justice theory.' },
+  ],
+  'The Philosophical Pluralist': [
+    { title:'The Hedgehog and the Fox', author:'Isaiah Berlin', why:'Are you one big idea or many small ones? Berlin\'s famous essay on intellectual temperament.' },
+    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.' },
+    { title:'Essays', author:'Michel de Montaigne', why:'The original essayist — curious about everything, certain about nothing. Your intellectual ancestor.' },
+    { title:'Pragmatism', author:'William James', why:'Truth as what works. James makes the case for philosophical flexibility with wit and rigor.' },
+  ],
+};
+
+const ESSENTIAL_IDS = [0,1,2,3,4,5,6,7,8];
+const LAST_QUESTION_ID = 9;
+
+const SCENARIOS = [
+  // ===== ORIGINAL 10 (ESSENTIAL) =====
+  {
+    chapter: 'I — duty',
+    tradition: 'Western Ethics',
+    title: 'The Promise',
+    body: `Your closest friend died three weeks ago. Before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you've never met. The envelope came open in your bag. You read it. It's a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from. Delivering it would tear that wound back open. Destroying it breaks a deathbed promise. Your friend is gone. The sister is at peace. And you are standing between two kinds of betrayal.`,
+    question: 'What do you do with the letter?',
+    choices: [
+      { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
+        scores:{consequence:-2,pragmatist:-1,agency:1},
+        reflection:'Kant would nod. A promise made to the dying carries the full weight of moral obligation — consequences be damned. The world holds together because some things are unconditional.',
+        philosopher:'Immanuel Kant, Groundwork of the Metaphysics of Morals' },
+      { label:'b', text:'Burn it. The promise was made to secure peace, not to inflict pain. Your friend could not have wanted this, and the dead do not get to override the living.',
+        scores:{consequence:2,pragmatist:1,individual:-1},
+        reflection:'Mill would agree — the promise was made to secure peace, not pain. When the consequences of a rule clash with its purpose, a thoughtful person adapts.',
+        philosopher:'John Stuart Mill, Utilitarianism' },
+      { label:'c', text:'Deliver it, but stay. Sit with her while she reads it. If you are going to honor a deathbed promise, you owe her your presence when the truth lands. You don\'t get to drop a grenade and walk away.',
+        scores:{pragmatist:2,agency:1,rationalist:-1},
+        reflection:'The pragmatist insists on being present for the consequences of action. You can honor the duty without hiding from its aftermath. Responsibility doesn\'t end at delivery.',
+        philosopher:'William James, Pragmatism' }
+    ]
+  },
+  {
+    chapter: 'II — control',
+    tradition: 'Stoicism & Existentialism',
+    title: 'The Forecast',
+    body: `Your doctor calls on a Tuesday. Something showed up in your bloodwork. Not fatal, not painful, but in one year you will lose your eyesight. Completely. Irreversibly. The rest of your life will be fine, just <em>dark</em>. You have twelve months of seeing left. Twelve months to look at the faces of everyone you love, to watch light move across a room, to read a book with your own eyes. The countdown has already started.`,
+    question: 'How do you spend them?',
+    choices: [
+      { label:'a', text:'Devour everything. Travel, memorize faces, watch every sunrise you can reach. If loss is guaranteed, the only sane response is to <em>flood</em> yourself with what remains.',
+        scores:{stoic:-2,individual:1,agency:-1},
+        reflection:'This is the Epicurean wager — if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
+        philosopher:'Epicurus, Letter to Menoeceus' },
+      { label:'b', text:'Start adapting now. Learn braille, train with a cane, reorganize your life for the dark. Grieving is a luxury. Preparing is a choice you can still make.',
+        scores:{stoic:2,pragmatist:1,individual:1},
+        reflection:'"Begin each day by telling yourself: today I shall meet with interference, ingratitude, insolence." Marcus Aurelius prepared for loss not to prevent feeling, but to keep feeling from destroying judgment.',
+        philosopher:'Marcus Aurelius, Meditations, Book II' },
+      { label:'c', text:'Change nothing. The countdown is a prison only if you let it be one. The moment you rearrange your life around a future loss, you have already lost the present.',
+        scores:{agency:2,stoic:-1,transcendent:-1},
+        reflection:'Sartre would say the diagnosis is irrelevant to how you live today. You are condemned to be free — to choose how you live regardless of what\'s coming. Acting on prophecy is just another form of bad faith.',
+        philosopher:'Jean-Paul Sartre, Being and Nothingness' }
+    ]
+  },
+  {
+    chapter: 'III — honesty',
+    tradition: 'Confucian & Western Ethics',
+    title: 'The Dinner Party',
+    body: `You're at a friend's birthday. Someone pulls you aside in the kitchen and tells you, with proof, screenshots, the whole wretched dossier, that the birthday girl's partner has been cheating on her. The person telling you is leaving the country next week and <em>does not want to be involved</em>. In the next room, the couple is sitting together, happy, celebrating. You now carry a truth that does not belong to you, about a situation that is not yours, and you cannot unknow it.`,
+    question: 'What do you do with what you now know?',
+    choices: [
+      { label:'a', text:'Say nothing. You did not ask for this knowledge. Confidence is sacred. The moment people cannot trust you with secrets, you lose access to truth entirely.',
+        scores:{individual:-1,consequence:-1,stoic:1},
+        reflection:'Trust is the infrastructure of all relationships. Betray a confidence once and you\'ve not just broken one bond — you\'ve signaled that your loyalty is conditional.',
+        philosopher:'Confucius, Analects — on the virtue of trustworthiness (xìn)' },
+      { label:'b', text:'Tell her. Some truths outweigh the promise of privacy. She is building a life on a lie, and your silence makes you part of the architecture.',
+        scores:{consequence:2,individual:-1,pragmatist:1},
+        reflection:'Sometimes the utilitarian calculus is brutal but clear: the harm of silence outweighs the cost of an uncomfortable conversation. The question is whether you can live knowing and saying nothing.',
+        philosopher:'Peter Singer, Practical Ethics' },
+      { label:'c', text:'Go to the partner. Tell them what you know. Give them one chance to come clean. The person who did the wrong thing should be the one to face it.',
+        scores:{agency:1,pragmatist:1,individual:1},
+        reflection:'The virtue ethicist\'s instinct: preserve agency where you can. The person who did the wrong thing should be the one to face it. You\'re not a messenger — you\'re a pressure valve.',
+        philosopher:'Aristotle, Nicomachean Ethics' }
+    ]
+  },
+  {
+    chapter: 'IV — meaning',
+    tradition: 'Existentialism & Absurdism',
+    title: 'The Absurd Commute',
+    body: `Three years into a PhD. You are halfway through a thesis on something you used to care about deeply. Last month, you read a paper that proves your central argument is wrong. Not <em>fixable</em>-wrong, but structurally, irreparably wrong. You could pivot, start over with a new question, and lose two years. You could quit entirely. Or you could push through, knowing the thing you are building rests on a cracked foundation. Your supervisor says finish. Something in you says <em>why?</em>`,
+    question: 'What do you do?',
+    choices: [
+      { label:'a', text:'Walk away. There is no dignity in defending something you know to be false. The courage is not in persisting; it is in admitting the ground has shifted beneath you.',
+        scores:{agency:2,stoic:-1,individual:1,transcendent:-1},
+        reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses — that\'s the point. Choosing to stop is still a choice.',
+        philosopher:'Albert Camus, The Myth of Sisyphus' },
+      { label:'b', text:'Pivot the thesis. The argument is dead, but the community, the process, the questions that led you here: those are still alive. Find a new question within the wreckage.',
+        scores:{individual:-2,consequence:1,pragmatist:1},
+        reflection:'Levinas argued that ethics — our responsibility to the Other — is more fundamental than ontology. You don\'t need the thesis to be right. You need the work to mean something to someone.',
+        philosopher:'Emmanuel Levinas, Totality and Infinity' },
+      { label:'c', text:'Finish it. Being wrong is part of the scholarly record. Write the most rigorous wrong thesis you can, defend it honestly, and let the next person build on the failure.',
+        scores:{pragmatist:2,stoic:1,consequence:1},
+        reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks — not because you\'re naive, but because completion has its own kind of integrity.',
+        philosopher:'Søren Kierkegaard, Fear and Trembling' }
+    ]
+  },
+  {
+    chapter: 'V — justice',
+    tradition: 'Political Philosophy',
+    title: 'The Lottery',
+    body: `Your city runs an experiment. Every household earning over £200,000 is taxed at 70% for one year. The money flows directly, without bureaucracy or intermediaries, into a fund that gives every family below the poverty line £15,000. It <em>works</em>. Child poverty drops by half. Test scores rise. Hospital admissions fall. But the taxed families are furious; some are leaving the city, a few small businesses have closed, and the program is up for renewal. You get a vote.`,
+    question: 'Do you vote to continue it?',
+    choices: [
+      { label:'a', text:'Yes. Half as many children in poverty is not an abstraction; it is thousands of real lives materially improved. The numbers are clear. Renew it.',
+        scores:{consequence:2,individual:-2,pragmatist:1},
+        reflection:'The utilitarian math is clear, but Rawls would ask: would you design this from behind the veil of ignorance? The answer reveals more than the policy.',
+        philosopher:'John Rawls, A Theory of Justice' },
+      { label:'b', text:'No. You cannot take seventy percent of a person\'s income, however noble the cause. That is not taxation; it is confiscation. Rights are not subject to cost-benefit analysis.',
+        scores:{consequence:-2,individual:2,agency:1},
+        reflection:'Nozick would argue: if wealth was justly acquired, taking it is theft regardless of destination. Rights aren\'t subject to cost-benefit analysis.',
+        philosopher:'Robert Nozick, Anarchy, State, and Utopia' },
+      { label:'c', text:'No. Not because the principle is wrong, but because the wealthy are already leaving. A policy that destroys itself in practice is not justice; it is a beautiful failure.',
+        scores:{pragmatist:2,individual:1,agency:-1,rationalist:1},
+        reflection:'Machiavelli would recognize this: the gap between how people should live and how they do live is where idealistic policy goes to die. Sustainable change must account for human nature.',
+        philosopher:'Niccolò Machiavelli, The Prince, Chapter XV' }
+    ]
+  },
+  {
+    chapter: 'VI — identity',
+    tradition: 'Metaphysics & Buddhist Philosophy',
+    title: 'The Ship',
+    body: `You find a box of old journals from when you were seventeen. The person in them is <em>embarrassing</em>: the wild certainty, the opinions held with the force of revelation, the confidence about things they were completely wrong about. But they were also braver than you are now. More open, less guarded, less careful. Your partner reads a page and says, "I wish I'd known this version of you." You haven't been that person in a decade. Maybe longer.`,
+    question: 'Do you owe anything to who you used to be?',
+    choices: [
+      { label:'a', text:'Yes. That person built everything you have now. Continuity matters. You can cringe at your past self, but you do not get to disown them.',
+        scores:{stoic:1,individual:1,agency:-1,transcendent:1},
+        reflection:'Locke grounded identity in memory — the psychological thread connecting past selves to present. To sever that thread isn\'t growth, it\'s amnesia dressed as evolution.',
+        philosopher:'John Locke, Essay Concerning Human Understanding' },
+      { label:'b', text:'No. You grew out of that person for a reason, and nostalgia for who you were is just another way of avoiding who you are. Growth means letting the old self die.',
+        scores:{agency:2,stoic:-1,pragmatist:1},
+        reflection:'Nietzsche celebrated the capacity to outgrow yourself — to say "I was that, but I am not that now" without guilt. The Übermensch doesn\'t look backward.',
+        philosopher:'Friedrich Nietzsche, Thus Spoke Zarathustra' },
+      { label:'c', text:'Read the whole thing aloud to your partner. Every cringeworthy page. Let them see every version of you, including the ones that embarrass you. Identity is not something you protect; it is something you share.',
+        scores:{pragmatist:-1,stoic:1,individual:-1,transcendent:1},
+        reflection:'The Buddhist tradition holds that the self is process, not entity. Clinging to a fixed identity, whether past or present, is the root of suffering. Let the river flow.',
+        philosopher:'Nāgārjuna, Mūlamadhyamakakārikā' }
+    ]
+  },
+  {
+    chapter: 'VII — intimacy',
+    tradition: 'Existentialism & Virtue Ethics',
+    title: 'The Vulnerability Tax',
+    body: `You've been seeing someone for six months. It is good. Maybe the best thing you've had. Last week they asked why you never talk about your family, your past, the things that actually shaped you. You deflected. They noticed. They are not pushing, but you can feel the relationship hitting a ceiling, a glass wall between <em>good</em> and <em>real</em>. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else can. Not that they would. But they <em>could</em>.`,
+    question: 'Do you go deeper?',
+    choices: [
+      { label:'a', text:'Yes, all the way. To be half-known is to be half-loved. If this person matters, they get the full picture, even the parts that make you harder to love.',
+        scores:{stoic:-2,individual:-1,consequence:1},
+        reflection:'Aristotle placed friendship at the center of the good life — not as nice-to-have but as necessary condition. The virtuous life is inherently relational. Partial intimacy is partial living.',
+        philosopher:'Aristotle, Nicomachean Ethics, Books VIII-IX' },
+      { label:'b', text:'Partially. You can be intimate without being transparent. Share the rooms that matter, keep some locked. Not every truth serves a relationship.',
+        scores:{pragmatist:2,stoic:1,individual:1},
+        reflection:'Montaigne loved deeply but maintained the "back shop" — an inner room no one else could enter. Intimacy doesn\'t require total transparency. Some privacy is self-preservation, not dishonesty.',
+        philosopher:'Michel de Montaigne, Essays, "Of Solitude"' },
+      { label:'c', text:'No. You know yourself well enough to know that you would resent them for knowing too much. The relationship is good as it is. Not everything must go to the bottom.',
+        scores:{agency:2,stoic:1,consequence:-1,individual:2},
+        reflection:'Rilke wrote that love is "two solitudes that protect and border and greet each other." Not every connection has to be total. Sometimes the bravest thing is accepting a limit.',
+        philosopher:'Rainer Maria Rilke, Letters to a Young Poet' }
+    ]
+  },
+  {
+    chapter: 'VIII — power',
+    tradition: 'Taoism & Political Philosophy',
+    title: 'The Room',
+    body: `You run a community of about two hundred people, and you are the reason it works. You book the venues, settle the disputes, set the culture, hold the vision. People love it; they tell you all the time. But you have noticed something troubling: when you disappear for a week, <em>nothing happens</em>. Nobody steps up. The space has become an extension of your will, and without you it simply stops. Your competence has quietly replaced everyone else's agency.`,
+    question: 'What do you do?',
+    choices: [
+      { label:'a', text:'Keep running it. If the community dies without you, that means it needs you. The people are happy. Building something people love is not a problem that requires solving.',
+        scores:{consequence:2,individual:-1,agency:-2},
+        reflection:'The benevolent dictator\'s argument. It works — until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
+        philosopher:'John Stuart Mill, On Liberty' },
+      { label:'b', text:'Step away entirely. If it cannot survive without you, it was never a community. It was a performance. Let it find its own legs, or let it fall.',
+        scores:{agency:2,individual:1,stoic:1,transcendent:1},
+        reflection:'"A leader is best when people barely know he exists." The Taoist principle: true influence empowers others to find their own way.',
+        philosopher:'Lao Tzu, Tao Te Ching, Chapter 17' },
+      { label:'c', text:'Start failing on purpose. Miss a booking. Let a small problem fester. Force other people into the gap. It will be messy, but dependency only breaks when the thing it depends on disappears.',
+        scores:{individual:-1,pragmatist:2,consequence:1},
+        reflection:'Dewey\'s democratic instinct: the answer to problems of leadership isn\'t less leadership — it\'s engineered opportunities for others to lead. Sometimes you have to create the vacuum.',
+        philosopher:'John Dewey, The Public and Its Problems' }
+    ]
+  },
+  {
+    chapter: 'IX — time',
+    tradition: 'Existentialism & Phenomenology',
+    title: 'The Four Thousand Weeks',
+    body: `You are twenty-eight. An offer arrives: lead a project that could genuinely transform how education works in your country. It will consume five years, minimum. No weekends, no hobbies, no long dinners with friends. Your relationships will thin to the functional. But if it works, millions of children get a better shot at life. Meanwhile: your best friend just had a baby. Your parents are getting older. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth, and the question is not what to do with them but what to <em>sacrifice</em>.`,
+    question: 'Do you take the offer?',
+    choices: [
+      { label:'a', text:'Yes. This is the kind of thing that justifies a life. The piano and the dinners will still be there. The window for this will not.',
+        scores:{individual:1,agency:1,stoic:-1,transcendent:-1},
+        reflection:'Hannah Arendt called this "natality" — the human capacity to begin something new that outlasts its creator. Action in the public realm is how mortals touch immortality.',
+        philosopher:'Hannah Arendt, The Human Condition' },
+      { label:'b', text:'No. Your parents will not be around forever. The baby will grow up without you noticing. "Changing the world" is what people say when they are afraid to be present in their actual life.',
+        scores:{stoic:1,pragmatist:-1,individual:-1,transcendent:1},
+        reflection:'Burkeman argues we\'ve been conned by productivity culture into treating time as a resource to optimize. The radical act is to just... be here, with the people who are here now.',
+        philosopher:'Oliver Burkeman, Four Thousand Weeks' },
+      { label:'c', text:'Ignore the offer. Build something smaller, on your own terms. The five-year all-consuming project is a trap disguised as purpose. You can change education without sacrificing everything else.',
+        scores:{pragmatist:2,consequence:1,agency:1},
+        reflection:'Illich argued that institutions designed to solve problems often create new dependencies worse than the original condition. Sometimes the most radical act is to refuse the grand project and work at a human scale.',
+        philosopher:'Ivan Illich, Deschooling Society' }
+    ]
+  },
+  {
+    chapter: 'X — the mirror',
+    tradition: 'Socratic Method',
+    title: 'The Last Question',
+    body: `It's late. You're alone with this. You've been making choices for the last few minutes that, if you are honest, you already knew the answers to before you clicked. That is the thing about philosophy: it does not teach you what to think. It makes you <em>admit</em> what you already do. All of this was a mirror. The question is what you see in it.`,
+    question: 'What is the question you are actually trying to answer?',
+    choices: [
+      { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
+        scores:{stoic:1,agency:1,pragmatist:-1},
+        reflection:'This is Socrates\' original challenge. The examined life isn\'t about right answers — it\'s about the courage to notice when you\'re lying to yourself.',
+        philosopher:'Socrates, via Plato\'s Apology' },
+      { label:'b', text:'Am I being good to the people who matter, or too caught up in my own story?',
+        scores:{individual:-2,consequence:1,stoic:-1},
+        reflection:'Iris Murdoch said morality is "the progressive attempt to see things as they really are" — especially other people. The hardest philosophical work is paying attention.',
+        philosopher:'Iris Murdoch, The Sovereignty of Good' },
+      { label:'c', text:'Does any of this matter, and if not, what do I do with that?',
+        scores:{pragmatist:1,agency:1,stoic:1,transcendent:-1},
+        reflection:'The question underneath every question. Nagel called it "the absurd" — the collision between our need for meaning and the universe\'s silence.',
+        philosopher:'Thomas Nagel, "The Absurd"' }
+    ]
+  },
+  // ===== DEEP CUT (11-18) =====
+  {
+    chapter: 'XI — knowledge',
+    tradition: 'Epistemology · East & West',
+    title: 'The Library of Babel',
+    body: `Your child is twelve years old. They have never had to memorize anything. AI does their research, writes their first drafts, checks their arithmetic. They are happy, creative, curious in their own way. But when you ask them to explain <em>why</em> something is true, they shrug and say "the AI said so." Their school wants to ban AI tools entirely. Other parents think this is insane, like banning calculators in the 1980s. You are not sure either side is wrong.`,
+    question: 'Where do you land?',
+    choices: [
+      { label:'a', text:'Let them use it. The world has changed, and teaching children to do what machines do better is nostalgia dressed as pedagogy.',
+        scores:{consequence:1,individual:1,rationalist:-2,pragmatist:1},
+        reflection:'The empiricist\'s position: knowledge is about the world, not about the knower. If the machine gives correct answers, the process of getting there is just friction. Hume would shrug.',
+        philosopher:'David Hume, An Enquiry Concerning Human Understanding' },
+      { label:'b', text:'Ban it. At least until they are older. Thinking is a muscle, and if you never use it, you lose it. No tool can return what atrophy takes.',
+        scores:{rationalist:2,transcendent:1,pragmatist:-1},
+        reflection:'Plato distinguished knowledge from true belief for exactly this reason. Understanding requires the soul\'s own labor — the dialectic, the struggle. A shortcut to answers is a shortcut past wisdom.',
+        philosopher:'Plato, Republic, Book VII (Allegory of the Cave)' },
+      { label:'c', text:'Pull them out of the school. If the institution cannot integrate the tool, the institution is the problem. Teach them yourself, or find one that treats AI as a fact of the world rather than a threat to be managed.',
+        scores:{pragmatist:2,agency:1,individual:-1},
+        reflection:'Confucius emphasized that learning is not the accumulation of facts but the cultivation of character through inquiry. When the institution fails the student, the student must seek learning elsewhere.',
+        philosopher:'Confucius, Analects 2.15: "Learning without thought is labor lost"' }
+    ]
+  },
+  {
+    chapter: 'XII — language',
+    tradition: 'Philosophy of Language · Phenomenology',
+    title: 'The Untranslatable',
+    body: `Your best friend's father died last year. You were close to him too. At the funeral you said all the right things, and your friend thanked you and told you it helped. But last night, drunk and unguarded, they said: <em>"You don't actually understand what this is like."</em> And they are right. You have never lost a parent. You were performing empathy, and doing it well, but something about the performance feels dishonest now. The gap between your compassion and their grief is real, and no amount of language can close it.`,
+    question: 'Can you actually understand someone else\'s pain?',
+    choices: [
+      { label:'a', text:'Yes, but not through language. Sit beside them. Say nothing. Understanding is not something you achieve with the right words; it is something that happens when you stop trying to perform it.',
+        scores:{transcendent:2,rationalist:-1,individual:-1},
+        reflection:'Wittgenstein ended the Tractatus with: "Whereof one cannot speak, thereof one must be silent." Not as defeat, but as recognition that the deepest truths live beyond language.',
+        philosopher:'Ludwig Wittgenstein, Tractatus Logico-Philosophicus' },
+      { label:'b', text:'No. You cannot, and you should stop pretending. Say "I don\'t understand what you\'re going through" and mean it. The honesty will do more for them than any performance of empathy.',
+        scores:{individual:1,stoic:1,transcendent:1},
+        reflection:'The Japanese aesthetic of mono no aware — the pathos of things — suggests that the beauty of connection is inseparable from its incompleteness. Admitting the gap is itself a form of closeness.',
+        philosopher:'Motoori Norinaga, on mono no aware (物の哀れ)' },
+      { label:'c', text:'You understood enough. Perfect empathy is a fantasy. Your friend needed someone there, and you were there. That is not performance. That is love, doing what love can.',
+        scores:{pragmatist:2,consequence:1,stoic:-1},
+        reflection:'Gadamer argued that understanding is always partial, always evolving — a "fusion of horizons" that\'s never complete but always in motion. Imperfect understanding, genuinely offered, is enough.',
+        philosopher:'Hans-Georg Gadamer, Truth and Method' }
+    ]
+  },
+  {
+    chapter: 'XIII — beauty',
+    tradition: 'Aesthetics · African & Western',
+    title: 'The Burning Gallery',
+    body: `A musician you love, someone whose work genuinely <em>changed your life</em>, has just been exposed as a terrible person. Not ambiguously terrible. Concretely, provably, seriously terrible. Their music has not changed. The songs that got you through your worst year still sound exactly as they did. But now you know who made them, and every note carries that knowledge like a watermark you cannot unsee.`,
+    question: 'Can you still listen?',
+    choices: [
+      { label:'a', text:'Yes. The music exists independently of the person who made it. It moved you, it helped you, and that was real. Separating art from artist is not a cop-out. It is the only honest position.',
+        scores:{consequence:2,individual:-1,pragmatist:1,transcendent:-1},
+        reflection:'The Yoruba concept of àṣà holds that art\'s value is communal — once it enters the world, it belongs to everyone who encounters it, not to the person who made it.',
+        philosopher:'Yoruba aesthetic philosophy, via Babatunde Lawal' },
+      { label:'b', text:'No. You cannot unhear who made it. Every listen is now a small act of looking away, and the discomfort is not a flaw in your response. It <em>is</em> the response.',
+        scores:{agency:1,individual:1,transcendent:2,rationalist:-1},
+        reflection:'Keats argued for "negative capability" — dwelling in discomfort without reaching for easy resolution. Sometimes the right response to beauty is to let it become complicated.',
+        philosopher:'John Keats, letter to George & Tom Keats, 1817' },
+      { label:'c', text:'Listen, but don\'t pay. The art is still good; the person does not deserve your money. There is a practical middle that neither purity nor complicity requires you to ignore.',
+        scores:{pragmatist:2,stoic:1,rationalist:-1},
+        reflection:'Zhuangzi would recognize this: a practical response that refuses the false binary. You don\'t have to choose between purity and pleasure if you\'re willing to be creative about it.',
+        philosopher:'Zhuangzi, "The Happy Fish" & Inner Chapters' }
+    ]
+  },
+  {
+    chapter: 'XIV — belonging',
+    tradition: 'Ubuntu · African Philosophy',
+    title: 'The Circle',
+    body: `Your religious community, the one you grew up in, the one your parents still attend, has taken a public stance against something you believe in deeply. It is not ambiguous; they are wrong, and you know it in your bones. But these are also the people who fed your family when you couldn't feed yourselves, who showed up at your door during the worst year of your life, who taught you what kindness <em>looks like</em> in practice. You owe them more than you can articulate. And they are asking you, by staying, to endorse something unconscionable.`,
+    question: 'Do you stay or go?',
+    choices: [
+      { label:'a', text:'Stay. "I am because we are." You do not abandon the people who made you because they are wrong. You stay and fight to change them from the inside.',
+        scores:{individual:-2,agency:-1,consequence:1,transcendent:1},
+        reflection:'Ubuntu philosophy holds that personhood is constituted through community — umuntu ngumuntu ngabantu. To leave is not just to disagree but to diminish yourself.',
+        philosopher:'Desmond Tutu & Ubuntu philosophy' },
+      { label:'b', text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, then staying is complicity wearing a loyalty costume.',
+        scores:{individual:2,agency:2,stoic:1},
+        reflection:'Thoreau walked into the woods — and into jail — because he believed that conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
+        philosopher:'Henry David Thoreau, Civil Disobedience' },
+      { label:'c', text:'Leave publicly. Write the letter, name the reason, make it cost them something. A quiet exit changes nothing; a loud one gives others permission to follow.',
+        scores:{pragmatist:1,agency:1,individual:-1,consequence:1},
+        reflection:'Audre Lorde refused the choice between belonging and truth: "Your silence will not protect you." If you\'re going to leave, leave loudly enough that others know they can too.',
+        philosopher:'Audre Lorde, "The Transformation of Silence into Language and Action"' }
+    ]
+  },
+  {
+    chapter: 'XV — nature',
+    tradition: 'Environmental Philosophy · Indigenous Thought',
+    title: 'The Last Forest',
+    body: `A mining company wants to extract lithium from a valley in Bolivia. The lithium goes into batteries for electric cars, the technology that is supposed to save us from climate collapse. The valley is home to an indigenous community of four hundred people who have lived there for centuries. They do not want to move. The company offers money, new housing, jobs. The community says <em>no</em>. The government is considering eminent domain. The planet is warming. The community is resolute. And you are asked to take a side.`,
+    question: 'Should the mine go ahead?',
+    choices: [
+      { label:'a', text:'Yes. Four hundred people versus millions of tons of carbon. The calculus is brutal, but it is clear. Compensate them generously. Build the mine. Save what can still be saved.',
+        scores:{consequence:2,pragmatist:1,transcendent:-2},
+        reflection:'Singer\'s preference utilitarianism draws a clear line: aggregate suffering reduction outweighs localised disruption, however painful. The numbers don\'t lie.',
+        philosopher:'Peter Singer, Animal Liberation' },
+      { label:'b', text:'No. "We will destroy your home for the greater good" is what colonizers have always said. The community said no. That should be the end of it.',
+        scores:{consequence:-1,transcendent:2,agency:-1,individual:-1},
+        reflection:'Arne Næss\'s deep ecology holds that land and the people who live on it have intrinsic value — not instrumental. You don\'t get to sacrifice someone else\'s home for your clean conscience.',
+        philosopher:'Arne Næss, "The Shallow and the Deep" (1973)' },
+      { label:'c', text:'Only if the community owns the mine. Not compensation. <em>Ownership</em>. Equity, profits, veto power at every stage. If they still say no, you walk away.',
+        scores:{pragmatist:2,consequence:1,rationalist:1},
+        reflection:'Robin Wall Kimmerer, drawing on Potawatomi wisdom, speaks of the "Honorable Harvest" — take only what is given, use it well, give back. Extraction without relationship is just theft with better PR.',
+        philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
+    ]
+  },
+  {
+    chapter: 'XVI — mortality',
+    tradition: 'Existentialism · Buddhist Philosophy',
+    title: 'The Immortality Pill',
+    body: `Gene therapy. One injection, and your telomeres stop shortening. You do not age past your current state. You could live for centuries, perhaps longer. The catch: it is irreversible. You will watch everyone you love die. Every relationship will be temporary for you in a way it is not for them. And the urgency that makes Tuesday mornings and deadlines and <em>"I should call my mum"</em> feel real? That vanishes. There is always tomorrow. There is always <em>forever</em>.`,
+    question: 'Do you take the injection?',
+    choices: [
+      { label:'a', text:'Yes, and I would not want an exit. The irreversibility is the point. A commitment you can undo is not a commitment. I want to see what a human becomes with enough time to actually learn from their mistakes.',
+        scores:{stoic:-2,transcendent:-1,agency:1,pragmatist:1},
+        reflection:'Lucretius argued that the fear of death is the root of all suffering. Remove it entirely and you don\'t lose meaning; you gain the time to find it properly, without the panic.',
+        philosopher:'Lucretius, De Rerum Natura' },
+      { label:'b', text:'No. Mortality is what makes any of this matter. Without the horizon, nothing is urgent, nothing is precious, nothing costs you anything. Infinity is not a gift; it is a sentence.',
+        scores:{stoic:2,transcendent:2,agency:-1},
+        reflection:'Heidegger\'s "being-toward-death" — the awareness that we will die is precisely what allows us to live authentically. Remove the horizon and you remove all urgency.',
+        philosopher:'Martin Heidegger, Being and Time' },
+      { label:'c', text:'Only if I can choose to end it. Immortality as an option is the purest form of freedom. Immortality without an exit is the purest form of a cage.',
+        scores:{agency:2,pragmatist:1,rationalist:1},
+        reflection:'The Buddhist Middle Way applied to mortality itself: neither clinging to life nor romanticizing death. The question is always about attachment — to living or to dying.',
+        philosopher:'The Buddha, Dhammapada — on the Middle Way' }
+    ]
+  },
+  {
+    chapter: 'XVII — knowledge II',
+    tradition: 'Islamic Philosophy · Epistemology',
+    title: 'The Scholar\'s Doubt',
+    body: `You are a published researcher. Your most-cited paper, the one that earned you tenure, that other scholars build upon, that you teach to your students every year, has a flaw. Not a typo. A <em>foundational</em> error in the methodology. You found it last month while reviewing someone else\'s work. Nobody else has noticed. Three PhD students are building their dissertations on your framework. If you publish a correction, your reputation takes a serious hit. If you stay quiet, the error might never surface. Or it might surface in ten years, when someone else catches what you already knew.`,
+    question: 'What do you do?',
+    choices: [
+      { label:'a', text:'Publish the correction immediately. Your reputation is less important than the truth, and a scholar who hides an error is no longer a scholar. The students will adapt.',
+        scores:{rationalist:2,agency:1,stoic:1,pragmatist:-1},
+        reflection:'Al-Ghazali walked away from the most prestigious academic post in the Islamic world because his philosophical framework collapsed in the face of genuine doubt. He called it "the deliverance from error."',
+        philosopher:'Al-Ghazali, The Deliverer from Error (al-Munqidh min al-Dalāl)' },
+      { label:'b', text:'Tell the PhD students first, privately. Help them pivot before you go public. You owe it to the people who trusted your work not to pull the ground out from under them without warning.',
+        scores:{consequence:1,individual:-1,pragmatist:2},
+        reflection:'Kuhn showed that paradigm shifts aren\'t instant conversions — they\'re slow, messy, social processes. Responsible revolution means bringing people with you.',
+        philosopher:'Thomas Kuhn, The Structure of Scientific Revolutions' },
+      { label:'c', text:'Say nothing. If the error is real, someone else will find it eventually. That is how science works: not through individual heroism, but through collective self-correction. You published the best you had at the time.',
+        scores:{transcendent:2,rationalist:-1,pragmatist:-1},
+        reflection:'Ibn Arabi held that truth reveals itself in its own time. "My heart has become capable of every form." Perhaps the flaw is not yours to confess but the field\'s to discover.',
+        philosopher:'Ibn Arabi, Fusus al-Hikam (The Bezels of Wisdom)' }
+    ]
+  },
+  {
+    chapter: 'XVIII — the gift',
+    tradition: 'Feminist Philosophy · Ethics of Care',
+    title: 'The Invisible Labor',
+    body: `You live with three other people. One of them, always the same one, does the dishes, remembers the birthdays, notices when someone is having a bad day, mediates arguments, buys the toilet paper before it runs out. Nobody asked them to. They never complain. But you have started noticing that when they are away for a weekend, the house <em>falls apart</em>. The rest of you are fully functional adults. You simply do not see what needs doing until someone else has already done it.`,
+    question: 'What do you do with that recognition?',
+    choices: [
+      { label:'a', text:'Name it. Explicitly, publicly, in front of everyone. "You are carrying us, and it is not fair." Invisible problems stay invisible until someone makes them awkward.',
+        scores:{consequence:1,agency:1,individual:-1,rationalist:1},
+        reflection:'Carol Gilligan argued that the "ethic of care" is systematically devalued because it\'s coded as natural rather than skilled. Making it visible is a political act.',
+        philosopher:'Carol Gilligan, In a Different Voice' },
+      { label:'b', text:'Skip the speech. Start doing more. Quietly, consistently. Buy the toilet paper first, remember the birthdays, take over the mediation. The ethical response to care is to care <em>back</em>.',
+        scores:{pragmatist:2,stoic:1,individual:-1},
+        reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back — concretely, not abstractly.',
+        philosopher:'Nel Noddings, Caring: A Relational Approach to Ethics' },
+      { label:'c', text:'Talk to them privately. Ask what they actually want. Do not assume you know how to fix something you only just noticed.',
+        scores:{agency:2,individual:1,consequence:-1},
+        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like — not the person who just noticed.',
+        philosopher:'bell hooks, All About Love' }
+    ]
+  },
+];
+
+// ===== SAVE/LOAD =====
+function saveProgress() {
+  const state = {
+    currentScenario,
+    scores,
+    answers,
+    selectedPath,
+    traditions,
+    activeScenarioIndices: activeScenarios.map(s => SCENARIOS.indexOf(s)),
+    screen: document.querySelector('.screen.active')?.id
+  };
+  localStorage.setItem('examined-progress', JSON.stringify(state));
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem('examined-progress');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function clearProgress() {
+  localStorage.removeItem('examined-progress');
+}
+
+// ===== STATE =====
+let currentScenario = 0;
+let activeScenarios = [];
+let scores = {};
+let answers = [];
+let selectedChoice = null;
+let selectedPath = null;
+let traditions = {};
+
+function resetScores() {
+  scores = {};
+  for (const k of Object.keys(AXES)) scores[k] = 0;
+  traditions = {};
+}
+
+function showPaths() { showScreen('path-screen'); }
+
+function selectPath(p) {
+  selectedPath = p;
+  document.querySelectorAll('.path-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('path-' + p).classList.add('selected');
+  document.getElementById('path-go-btn').style.display = '';
+}
+
+function startExam() {
+  resetScores();
+  answers = [];
+  currentScenario = 0;
+  if (selectedPath === 'essential') {
+    activeScenarios = ESSENTIAL_IDS.map(i => SCENARIOS[i]);
+  } else {
+    activeScenarios = SCENARIOS.filter((_, i) => i !== LAST_QUESTION_ID);
+  }
+  // Always end with The Last Question
+  activeScenarios.push(SCENARIOS[LAST_QUESTION_ID]);
+  showScreen('scenario-screen');
+  renderScenario();
+}
+
+function restart() { clearProgress(); showScreen('intro-screen'); selectedPath = null; }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById(id);
+  s.classList.add('active');
+  s.style.animation = 'none'; s.offsetHeight; s.style.animation = '';
+}
+
+function renderScenario() {
+  const s = activeScenarios[currentScenario];
+  selectedChoice = null;
+
+  const prog = document.getElementById('progress');
+  prog.innerHTML = activeScenarios.map((_, i) => {
+    let c = 'progress-dot';
+    if (i < currentScenario) c += ' done';
+    if (i === currentScenario) c += ' current';
+    return `<div class="${c}"></div>`;
+  }).join('');
+
+  document.getElementById('chapter').textContent = s.chapter;
+  document.getElementById('tradition').textContent = s.tradition;
+  document.getElementById('title').textContent = s.title;
+  document.getElementById('body').innerHTML = s.body;
+  document.getElementById('question').textContent = s.question;
+
+  const ch = document.getElementById('choices');
+  ch.innerHTML = s.choices.map((c, i) => `
+    <div class="choice" onclick="selectChoice(${i})">
+      <span class="choice-label">${c.label}</span>
+      ${c.text}
+    </div>
+  `).join('');
+
+  document.getElementById('reflection-area').innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectChoice(idx) {
+  if (selectedChoice !== null) return;
+  selectedChoice = idx;
+  const s = activeScenarios[currentScenario];
+  const c = s.choices[idx];
+
+  for (const [axis, val] of Object.entries(c.scores)) scores[axis] = (scores[axis]||0) + val;
+
+  // Track traditions
+  const t = s.tradition;
+  traditions[t] = (traditions[t]||0) + 1;
+
+  answers.push({ scenario: currentScenario, choice: idx });
+  saveProgress();
+
+  document.querySelectorAll('.choice').forEach((el, i) => {
+    if (i === idx) el.classList.add('selected');
+    else el.style.opacity = '0.4';
+  });
+
+  const area = document.getElementById('reflection-area');
+  area.innerHTML = `
+    <div class="reflection">
+      <p class="reflection-text">${c.reflection}</p>
+      <p class="reflection-philosopher">${c.philosopher}</p>
+    </div>
+    <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
+  `;
+}
+
+function nextScenario() {
+  currentScenario++;
+  if (currentScenario >= activeScenarios.length) showResults();
+  else renderScenario();
+}
+
+// ===== RESULTS =====
+
+function showResults() {
+  showScreen('results-screen');
+  saveProgress();
+
+  const maxP = activeScenarios.length <= 10 ? 6 : 10;
+  const normalized = {};
+  for (const axis of Object.keys(AXES)) {
+    normalized[axis] = Math.max(0, Math.min(1, (scores[axis] + maxP) / (2 * maxP)));
+  }
+
+  const archetype = getArchetype(normalized);
+  document.getElementById('archetype-name').textContent = archetype.name;
+  document.getElementById('archetype-sub').textContent = archetype.subtitle;
+
+  drawRadar(normalized);
+
+  const grid = document.getElementById('axes-grid');
+  grid.innerHTML = Object.entries(AXES).map(([key, axis]) => {
+    const val = normalized[key];
+    return `
+      <div class="axis-card">
+        <div class="axis-name">${axis.left} — ${axis.right}</div>
+        <div class="axis-bar-track">
+          <div class="axis-bar-fill" style="background:${axis.color}" data-width="${val*100}%"></div>
+        </div>
+        <div class="axis-labels">
+          <span class="${val<0.45?'active-label':''}">${axis.left}</span>
+          <span class="${val>0.55?'active-label':''}">${axis.right}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.axis-bar-fill').forEach(b => b.style.width = b.dataset.width);
+  }, 300);
+
+  currentArchetype = archetype;
+  renderReadings(archetype);
+  loadWall();
+
+  const portrait = document.getElementById('portrait');
+  const allTraditions = ['Western Ethics','Stoicism & Existentialism','Confucian & Western Ethics',
+    'Existentialism & Absurdism','Political Philosophy','Metaphysics & Buddhist Philosophy',
+    'Existentialism & Virtue Ethics','Taoism & Political Philosophy','Existentialism & Phenomenology',
+    'Socratic Method','Epistemology · East & West','Philosophy of Language · Phenomenology',
+    'Aesthetics · African & Western','Ubuntu · African Philosophy','Environmental Philosophy · Indigenous Thought',
+    'Existentialism · Buddhist Philosophy','Islamic Philosophy · Epistemology','Feminist Philosophy · Ethics of Care'];
+
+  const activeTraditions = Object.keys(traditions);
+
+  portrait.innerHTML = `
+    <div class="portrait-title">YOUR PORTRAIT</div>
+    <p class="portrait-text">${archetype.portrait}</p>
+    <p class="portrait-thinkers">thinkers you might resonate with: ${archetype.thinkers}</p>
+    <div class="traditions-section">
+      <div class="traditions-title">TRADITIONS EXPLORED</div>
+      <div class="traditions-grid">
+        ${allTraditions.filter(t => activeScenarios.some(s => s.tradition === t)).map(t =>
+          `<span class="tradition-badge ${activeTraditions.includes(t)?'active':''}">${t}</span>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function getArchetype(n) {
+  const hi = (axis) => n[axis] > 0.58;
+  const lo = (axis) => n[axis] < 0.42;
+
+  if (hi('stoic') && hi('agency'))
+    return { name:'The Examined Stoic', subtitle:'disciplined freedom through self-awareness',
+      portrait:'You believe in controlling what you can and releasing what you can\'t — but you don\'t confuse acceptance with passivity. Your instinct is toward inner strength, personal responsibility, and a kind of defiant calm. You\'re drawn to people who\'ve thought seriously about suffering and come out clarified, not hardened. You probably distrust comfort more than pain.',
+      thinkers:'Marcus Aurelius, Epictetus, Simone Weil, Albert Camus, Al-Ghazali' };
+
+  if (hi('consequence') && lo('individual'))
+    return { name:'The Reluctant Utilitarian', subtitle:'pragmatic compassion with philosophical doubt',
+      portrait:'You care more about outcomes than principles — not because principles don\'t matter, but because the world is messy and people are suffering now. You\'d rather do imperfect good than maintain perfect consistency. But you know the dangers of "ends justify means" thinking, and that awareness keeps you honest.',
+      thinkers:'Peter Singer, Derek Parfit, Amartya Sen, William MacAskill, Carol Gilligan' };
+
+  if (hi('agency') && hi('pragmatist'))
+    return { name:'The Existential Pragmatist', subtitle:'meaning through action, not discovery',
+      portrait:'You don\'t wait for the universe to hand you a purpose — you build one. Your philosophy is hands-on: try things, adapt, trust your gut more than abstract frameworks. Identity for you is a verb, not a noun. You\'re suspicious of people who have it all figured out, because certainty is usually just fear wearing a mask.',
+      thinkers:'William James, Simone de Beauvoir, Richard Rorty, Camus, Zhuangzi' };
+
+  if (lo('individual') && lo('stoic'))
+    return { name:'The Relational Existentialist', subtitle:'meaning lives in the space between people',
+      portrait:'You find yourself through others — not codependently, but because ethics, meaning, and identity are fundamentally relational. "What should I do?" always translates to "what do I owe the person in front of me?" You\'re probably a natural host, a connector, someone who builds rooms for others to become themselves in.',
+      thinkers:'Emmanuel Levinas, Martin Buber, Iris Murdoch, bell hooks, Desmond Tutu' };
+
+  if (hi('individual') && hi('agency'))
+    return { name:'The Radical Individualist', subtitle:'freedom as the non-negotiable foundation',
+      portrait:'You place autonomy at the center of everything. Allergic to paternalism, suspicious of systems that claim to know best, deeply committed to the dignity of choice. This isn\'t selfishness — it\'s a philosophical commitment. You believe the most important thing a person can do is think for themselves.',
+      thinkers:'Nietzsche, John Stuart Mill, Thoreau, Sartre, Audre Lorde' };
+
+  if (hi('transcendent') && hi('stoic'))
+    return { name:'The Contemplative Mystic', subtitle:'wisdom through stillness and paradox',
+      portrait:'You\'re drawn to traditions that embrace contradiction rather than resolve it. Rationalism feels too narrow; pure empiricism misses the point. You suspect the deepest truths can\'t be spoken, only pointed at. You probably find more wisdom in poetry and silence than in argument.',
+      thinkers:'Lao Tzu, Nāgārjuna, Ibn Arabi, Wittgenstein, Simone Weil, Keats' };
+
+  if (hi('rationalist') && hi('agency'))
+    return { name:'The Philosophical Warrior', subtitle:'truth-seeking as a form of courage',
+      portrait:'You follow arguments wherever they lead, even when they\'re uncomfortable. Intellectual honesty isn\'t a preference — it\'s a duty. You\'d rather be wrong and know it than right for the wrong reasons. Al-Ghazali would recognize you: willing to demolish your own framework if truth demands it.',
+      thinkers:'Al-Ghazali, Socrates, Nietzsche, Thomas Kuhn, Simone de Beauvoir' };
+
+  if (hi('consequence') && hi('pragmatist'))
+    return { name:'The Practical Philosopher', subtitle:'ideas are only as good as their effects',
+      portrait:'For you, philosophy isn\'t about getting the theory right — it\'s about making things better. You evaluate ideas by their consequences, adapt your frameworks when they stop working, and have limited patience for beautiful theories that produce ugly results.',
+      thinkers:'John Dewey, Nel Noddings, Robin Wall Kimmerer, William James, Amartya Sen' };
+
+  if (hi('transcendent') && lo('rationalist'))
+    return { name:'The Poetic Empiricist', subtitle:'truth through experience, not abstraction',
+      portrait:'You trust sensation, intuition, and direct experience over pure reason. The world reveals itself through attention, not analysis. You probably learn more from a long walk than a lecture, and you\'re skeptical of anyone who claims to have figured life out from behind a desk.',
+      thinkers:'Motoori Norinaga, Zhuangzi, John Keats, Merleau-Ponty, Robin Wall Kimmerer' };
+
+  if (lo('individual') && hi('consequence'))
+    return { name:'The Communal Builder', subtitle:'the good life is a collective project',
+      portrait:'You believe the best things are built together. Individual brilliance matters less than the systems we create for each other. Ubuntu runs deep in you: "I am because we are." You\'re probably the person who stays late to clean up, who remembers birthdays, who builds the infrastructure everyone else takes for granted.',
+      thinkers:'Desmond Tutu, John Dewey, Carol Gilligan, Confucius, bell hooks' };
+
+  return { name:'The Philosophical Pluralist', subtitle:'many frameworks, no single allegiance',
+    portrait:'You resist being pinned down — not from lack of conviction, but because you\'ve found truth in contradictory positions. You argue both sides not as a debate trick but because you actually see both. This can feel like indecision, but it\'s a rare kind of intellectual honesty. The world isn\'t simple enough for one framework.',
+    thinkers:'Isaiah Berlin, Hannah Arendt, William James, Montaigne, Ibn Arabi' };
+}
+
+function drawRadar(normalized) {
+  const svg = document.getElementById('radar');
+  const cx = 170, cy = 170, r = 120;
+  const axes = Object.keys(AXES);
+  const n = axes.length;
+  let html = '';
+
+  for (let i = 1; i <= 4; i++) {
+    const gr = (r/4)*i;
+    const pts = [];
+    for (let j = 0; j < n; j++) {
+      const a = (Math.PI*2*j/n) - Math.PI/2;
+      pts.push(`${cx+gr*Math.cos(a)},${cy+gr*Math.sin(a)}`);
+    }
+    html += `<polygon class="radar-grid" points="${pts.join(' ')}" />`;
+  }
+
+  for (let j = 0; j < n; j++) {
+    const a = (Math.PI*2*j/n) - Math.PI/2;
+    html += `<line class="radar-axis" x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" />`;
+  }
+
+  const dp = [];
+  axes.forEach((axis, j) => {
+    const v = normalized[axis];
+    const a = (Math.PI*2*j/n) - Math.PI/2;
+    dp.push({ x: cx+r*v*Math.cos(a), y: cy+r*v*Math.sin(a) });
+  });
+
+  html += `<polygon class="radar-shape" points="${dp.map(p=>`${p.x},${p.y}`).join(' ')}" />`;
+  dp.forEach(p => html += `<circle class="radar-point" cx="${p.x}" cy="${p.y}" r="4" />`);
+
+  axes.forEach((axis, j) => {
+    const a = (Math.PI*2*j/n) - Math.PI/2;
+    const lx = cx + (r+30)*Math.cos(a);
+    const ly = cy + (r+30)*Math.sin(a);
+    const anchor = lx < cx-10 ? 'end' : lx > cx+10 ? 'start' : 'middle';
+    html += `<text class="radar-label" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${AXES[axis].right}</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ===== COMMUNITY BOARD =====
+let currentArchetype = null;
+let wallLoaded = false;
+
+async function fetchWall() {
+  try {
+    const res = await fetch(WALL_API);
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    return data.entries || [];
+  } catch(e) {
+    console.error('Wall fetch error:', e);
+    return null;
+  }
+}
+
+async function postToWall(name, archetype) {
+  try {
+    const res = await fetch(WALL_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, archetype })
+    });
+    return res.ok;
+  } catch(e) {
+    console.error('Wall save error:', e);
+    return false;
+  }
+}
+
+function renderWall(entries, selfName) {
+  const list = document.getElementById('community-list');
+  if (entries === null) {
+    list.innerHTML = '<div class="community-error">couldn\'t load the wall — try refreshing</div>';
+    return;
+  }
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="community-empty">no one here yet. be the first.</div>';
+    return;
+  }
+  // Show newest first, cap at 50
+  const sorted = [...entries].reverse().slice(0, 50);
+  list.innerHTML = sorted.map(e => `
+    <div class="community-entry${selfName && e.name === selfName ? ' self' : ''}">
+      <div>
+        <div class="entry-name">${escapeHtml(e.name)}</div>
+        <div class="entry-archetype">${escapeHtml(e.archetype)}</div>
+      </div>
+      <div class="entry-date">${e.date || ''}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function loadWall() {
+  const entries = await fetchWall();
+  renderWall(entries);
+  wallLoaded = true;
+}
+
+async function addToWall() {
+  const input = document.getElementById('name-input');
+  const name = input.value.trim();
+  if (!name || !currentArchetype) return;
+  if (name.length > 40) return;
+
+  const btn = document.querySelector('.community-add .btn-small');
+  btn.textContent = 'adding...';
+  btn.style.pointerEvents = 'none';
+
+  const ok = await postToWall(name, currentArchetype.name);
+  if (ok) {
+    btn.textContent = 'added ✓';
+    input.value = '';
+    input.disabled = true;
+    // Refresh the wall
+    const entries = await fetchWall();
+    renderWall(entries, name);
+  } else {
+    btn.textContent = 'error — retry';
+    btn.style.pointerEvents = '';
+  }
+}
+
+function renderReadings(archetype) {
+  const section = document.getElementById('readings-section');
+  const books = READINGS[archetype.name] || READINGS['The Philosophical Pluralist'];
+
+  section.innerHTML = `
+    <div class="readings-title">RECOMMENDED READING</div>
+    <div class="readings-grid">
+      ${books.map(b => `
+        <div class="reading-card">
+          <div class="reading-book">${b.title}</div>
+          <div class="reading-author">${b.author}</div>
+          <div class="reading-why">${b.why}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function copyResults() {
+  const name = document.getElementById('archetype-name').textContent;
+  const sub = document.getElementById('archetype-sub').textContent;
+  const axisText = Object.entries(AXES).map(([k,v]) => {
+    const maxP = activeScenarios.length <= 10 ? 6 : 10;
+    const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
+    return `${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
+  }).join('\n');
+
+  const books = READINGS[name] || READINGS['The Philosophical Pluralist'];
+  const readingText = books.slice(0,3).map(b => `  → ${b.title} — ${b.author}`).join('\n');
+
+  const text = `examined. — philosophical portrait\n\n${name}\n${sub}\n\n${axisText}\n\nreading list:\n${readingText}\n\ntake yours: [link]`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.share-row .btn-small');
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy result', 2000);
+  });
+}
+
+// ===== RESUME ON LOAD =====
+(function resumeIfSaved() {
+  const saved = loadProgress();
+  if (!saved || !saved.screen || !saved.selectedPath) return;
+
+  selectedPath = saved.selectedPath;
+  scores = saved.scores || {};
+  answers = saved.answers || [];
+  traditions = saved.traditions || {};
+  currentScenario = saved.currentScenario || 0;
+
+  // Rebuild activeScenarios from indices
+  if (saved.activeScenarioIndices) {
+    activeScenarios = saved.activeScenarioIndices.map(i => SCENARIOS[i]);
+  } else {
+    // fallback
+    if (selectedPath === 'essential') {
+      activeScenarios = ESSENTIAL_IDS.map(i => SCENARIOS[i]);
+    } else {
+      activeScenarios = SCENARIOS.filter((_, i) => i !== LAST_QUESTION_ID);
+    }
+    activeScenarios.push(SCENARIOS[LAST_QUESTION_ID]);
+  }
+
+  if (saved.screen === 'results-screen') {
+    showResults();
+  } else if (saved.screen === 'scenario-screen') {
+    showScreen('scenario-screen');
+    renderScenario();
+  }
+})();
+
+function emailResults() {
+  const name = document.getElementById('archetype-name').textContent;
+  const sub = document.getElementById('archetype-sub').textContent;
+  const axisText = Object.entries(AXES).map(([k,v]) => {
+    const maxP = activeScenarios.length <= 10 ? 6 : 10;
+    const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
+    return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
+  }).join('%0A');
+
+  const books = READINGS[name] || READINGS['The Philosophical Pluralist'];
+  const readingText = books.map(b => `  → ${b.title} — ${b.author}%0A    ${b.why}`).join('%0A%0A');
+
+  const portrait = currentArchetype ? currentArchetype.portrait : '';
+  const thinkers = currentArchetype ? currentArchetype.thinkers : '';
+
+  const subject = encodeURIComponent(`examined. — ${name}`);
+  const body = encodeURIComponent(
+`examined. — your philosophical portrait
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${name}
+${sub}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+YOUR AXES
+
+${Object.entries(AXES).map(([k,v]) => {
+  const maxP = activeScenarios.length <= 10 ? 6 : 10;
+  const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
+  return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
+}).join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+YOUR PORTRAIT
+
+${portrait}
+
+thinkers you might resonate with: ${thinkers}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RECOMMENDED READING
+
+${books.map(b => `→ ${b.title} — ${b.author}\n  ${b.why}`).join('\n\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"the unexamined life is not worth living."
+— Socrates, via Plato's Apology
+`);
+
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+</script>
+</body>
+</html>
