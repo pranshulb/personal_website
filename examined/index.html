@@ -1012,19 +1012,19 @@ const SCENARIOS = [
     chapter: 'I — duty',
     tradition: 'Western Ethics',
     title: 'The Promise',
-    body: `Your closest friend died three weeks ago. Before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you've never met. The envelope came open in your bag. You read it. It's a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from. Delivering it would tear that wound back open. Destroying it breaks a deathbed promise. Your friend is gone. The sister is at peace. And you are standing between two kinds of betrayal.`,
+    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilt her life around the absence of. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it, on the other hand, would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
     question: 'What do you do with the letter?',
     choices: [
       { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
-        scores:{consequence:-2,pragmatist:-1,agency:1},
+        scores: {consequence: -2, pragmatist: -1, agency: 0, individual: 1},
         reflection:'Kant would nod. A promise made to the dying carries the full weight of moral obligation — consequences be damned. The world holds together because some things are unconditional.',
         philosopher:'Immanuel Kant, Groundwork of the Metaphysics of Morals' },
       { label:'b', text:'Burn it. The promise was made to secure peace, not to inflict pain. Your friend could not have wanted this, and the dead do not get to override the living.',
-        scores:{consequence:2,pragmatist:1,individual:-1},
+        scores: {consequence: 2, pragmatist: 0, individual: -1, agency: 1},
         reflection:'Mill would agree — the promise was made to secure peace, not pain. When the consequences of a rule clash with its purpose, a thoughtful person adapts.',
         philosopher:'John Stuart Mill, Utilitarianism' },
       { label:'c', text:'Deliver it, but stay. Sit with her while she reads it. If you are going to honor a deathbed promise, you owe her your presence when the truth lands. You don\'t get to drop a grenade and walk away.',
-        scores:{pragmatist:2,agency:1,rationalist:-1},
+        scores: {pragmatist: 1, agency: 0, rationalist: -1, individual: -1},
         reflection:'The pragmatist insists on being present for the consequences of action. You can honor the duty without hiding from its aftermath. Responsibility doesn\'t end at delivery.',
         philosopher:'William James, Pragmatism' }
     ]
@@ -1033,19 +1033,19 @@ const SCENARIOS = [
     chapter: 'II — control',
     tradition: 'Stoicism & Existentialism',
     title: 'The Forecast',
-    body: `Your doctor calls on a Tuesday. Something showed up in your bloodwork. Not fatal, not painful, but in one year you will lose your eyesight. Completely. Irreversibly. The rest of your life will be fine, just <em>dark</em>. You have twelve months of seeing left. Twelve months to look at the faces of everyone you love, to watch light move across a room, to read a book with your own eyes. The countdown has already started.`,
+    body: `Your doctor calls on a Tuesday with news that arrives like a stone dropped into still water. Something showed up in your bloodwork, nothing fatal, nothing painful, but in one year you will lose your eyesight completely and irreversibly. The rest of your life will be fine, the doctor assures you, just <em>dark</em>. You have twelve months of seeing left: twelve months to look at the faces of everyone you love, to watch light move across a room at different hours, to read a book with your own eyes and memorize the shape of written words. The countdown has already started, whether you acknowledge it or not, and every morning you wake now is one morning closer to a horizon you cannot push back.`,
     question: 'How do you spend them?',
     choices: [
       { label:'a', text:'Devour everything. Travel, memorize faces, watch every sunrise you can reach. If loss is guaranteed, the only sane response is to <em>flood</em> yourself with what remains.',
-        scores:{stoic:-2,individual:1,agency:-1},
+        scores: {stoic: -2, individual: 1, agency: -1, pragmatist: -1},
         reflection:'This is the Epicurean wager — if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
         philosopher:'Epicurus, Letter to Menoeceus' },
       { label:'b', text:'Start adapting now. Learn braille, train with a cane, reorganize your life for the dark. Grieving is a luxury. Preparing is a choice you can still make.',
-        scores:{stoic:2,pragmatist:1,individual:1},
+        scores: {stoic: 2, pragmatist: -1, individual: 0, agency: 1},
         reflection:'"Begin each day by telling yourself: today I shall meet with interference, ingratitude, insolence." Marcus Aurelius prepared for loss not to prevent feeling, but to keep feeling from destroying judgment.',
         philosopher:'Marcus Aurelius, Meditations, Book II' },
       { label:'c', text:'Change nothing. The countdown is a prison only if you let it be one. The moment you rearrange your life around a future loss, you have already lost the present.',
-        scores:{agency:2,stoic:-1,transcendent:-1},
+        scores: {agency: 1, stoic: 0, transcendent: 0, consequence: -1, individual: 1, rationalist: -1},
         reflection:'Sartre would say the diagnosis is irrelevant to how you live today. You are condemned to be free — to choose how you live regardless of what\'s coming. Acting on prophecy is just another form of bad faith.',
         philosopher:'Jean-Paul Sartre, Being and Nothingness' }
     ]
@@ -1054,19 +1054,19 @@ const SCENARIOS = [
     chapter: 'III — honesty',
     tradition: 'Confucian & Western Ethics',
     title: 'The Dinner Party',
-    body: `You're at a friend's birthday. Someone pulls you aside in the kitchen and tells you, with proof, screenshots, the whole wretched dossier, that the birthday girl's partner has been cheating on her. The person telling you is leaving the country next week and <em>does not want to be involved</em>. In the next room, the couple is sitting together, happy, celebrating. You now carry a truth that does not belong to you, about a situation that is not yours, and you cannot unknow it.`,
+    body: `You are at a friend's birthday celebration when someone pulls you aside in the kitchen and tells you, with proof—screenshots, timestamps, the whole wretched dossier—that the birthday girl's partner has been cheating on her. The person delivering this news is leaving the country next week and makes it clear they <em>do not want to be involved</em>, that they are handing you this knowledge and walking away. In the next room, the couple is sitting together, visibly happy, celebrating surrounded by people who love them. You now carry a truth that does not belong to you, about a situation that is not yours to manage, and you cannot unknow it. The knowledge sits in you like a foreign object, and every moment you stay silent is a choice, whether you intended it or not.`,
     question: 'What do you do with what you now know?',
     choices: [
       { label:'a', text:'Say nothing. You did not ask for this knowledge. Confidence is sacred. The moment people cannot trust you with secrets, you lose access to truth entirely.',
-        scores:{individual:-1,consequence:-1,stoic:1},
+        scores: {individual: 0, consequence: -1, stoic: 0, agency: -1, rationalist: -1},
         reflection:'Trust is the infrastructure of all relationships. Betray a confidence once and you\'ve not just broken one bond — you\'ve signaled that your loyalty is conditional.',
         philosopher:'Confucius, Analects — on the virtue of trustworthiness (xìn)' },
       { label:'b', text:'Tell her. Some truths outweigh the promise of privacy. She is building a life on a lie, and your silence makes you part of the architecture.',
-        scores:{consequence:2,individual:-1,pragmatist:1},
+        scores: {consequence: 2, individual: -1, pragmatist: 0, agency: 1},
         reflection:'Sometimes the utilitarian calculus is brutal but clear: the harm of silence outweighs the cost of an uncomfortable conversation. The question is whether you can live knowing and saying nothing.',
         philosopher:'Peter Singer, Practical Ethics' },
       { label:'c', text:'Go to the partner. Tell them what you know. Give them one chance to come clean. The person who did the wrong thing should be the one to face it.',
-        scores:{agency:1,pragmatist:1,individual:1},
+        scores: {agency: 0, pragmatist: 1, individual: 0, rationalist: 1},
         reflection:'The virtue ethicist\'s instinct: preserve agency where you can. The person who did the wrong thing should be the one to face it. You\'re not a messenger — you\'re a pressure valve.',
         philosopher:'Aristotle, Nicomachean Ethics' }
     ]
@@ -1075,19 +1075,19 @@ const SCENARIOS = [
     chapter: 'IV — meaning',
     tradition: 'Existentialism & Absurdism',
     title: 'The Absurd Commute',
-    body: `Three years into a PhD. You are halfway through a thesis on something you used to care about deeply. Last month, you read a paper that proves your central argument is wrong. Not <em>fixable</em>-wrong, but structurally, irreparably wrong. You could pivot, start over with a new question, and lose two years. You could quit entirely. Or you could push through, knowing the thing you are building rests on a cracked foundation. Your supervisor says finish. Something in you says <em>why?</em>`,
+    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about with the kind of depth that makes a person willing to spend years in a library. Last month you read a paper that proves, beyond reasonable doubt, that your central argument is wrong—not wrong in a way that can be patched or revised, but structurally, irreparably wrong. You could pivot, start over with a new question, and lose two years of work in the process. You could quit entirely and leave with nothing to show for the time you have already spent. Or you could push through to completion, knowing the thing you are building rests on a cracked foundation, that you are producing scholarship you no longer believe in. Your supervisor says finish, that this is normal, that no thesis is perfect. But something in you keeps asking <em>why?</em> and the answer is not coming easily.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Walk away. There is no dignity in defending something you know to be false. The courage is not in persisting; it is in admitting the ground has shifted beneath you.',
-        scores:{agency:2,stoic:-1,individual:1,transcendent:-1},
+        scores: {agency: 1, stoic: 0, individual: 1, transcendent: -1, consequence: -1},
         reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses — that\'s the point. Choosing to stop is still a choice.',
         philosopher:'Albert Camus, The Myth of Sisyphus' },
-      { label:'b', text:'Pivot the thesis. The argument is dead, but the community, the process, the questions that led you here: those are still alive. Find a new question within the wreckage.',
-        scores:{individual:-2,consequence:1,pragmatist:1},
+      { label:'b', text:'Pivot, but be honest about why. Tell your supervisor the original argument collapsed. Salvage what you can — the research, the methods, the instincts that got you here — and build something that actually holds. Two years lost is cheaper than a career built on something you don\'t believe in.',
+        scores: {individual: -2, consequence: 0, pragmatist: 1, rationalist: -1},
         reflection:'Levinas argued that ethics — our responsibility to the Other — is more fundamental than ontology. You don\'t need the thesis to be right. You need the work to mean something to someone.',
         philosopher:'Emmanuel Levinas, Totality and Infinity' },
       { label:'c', text:'Finish it. Being wrong is part of the scholarly record. Write the most rigorous wrong thesis you can, defend it honestly, and let the next person build on the failure.',
-        scores:{pragmatist:2,stoic:1,consequence:1},
+        scores: {pragmatist: 0, stoic: 1, consequence: -1, agency: 1, individual: 1},
         reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks — not because you\'re naive, but because completion has its own kind of integrity.',
         philosopher:'Søren Kierkegaard, Fear and Trembling' }
     ]
@@ -1100,15 +1100,15 @@ const SCENARIOS = [
     question: 'Do you vote to continue it?',
     choices: [
       { label:'a', text:'Yes. Half as many children in poverty is not an abstraction; it is thousands of real lives materially improved. The numbers are clear. Renew it.',
-        scores:{consequence:2,individual:-2,pragmatist:1},
+        scores: {consequence: 2, individual: -2, pragmatist: 0, rationalist: 1},
         reflection:'The utilitarian math is clear, but Rawls would ask: would you design this from behind the veil of ignorance? The answer reveals more than the policy.',
         philosopher:'John Rawls, A Theory of Justice' },
       { label:'b', text:'No. You cannot take seventy percent of a person\'s income, however noble the cause. That is not taxation; it is confiscation. Rights are not subject to cost-benefit analysis.',
-        scores:{consequence:-2,individual:2,agency:1},
+        scores: {consequence: -2, individual: 2, agency: 0, rationalist: 1},
         reflection:'Nozick would argue: if wealth was justly acquired, taking it is theft regardless of destination. Rights aren\'t subject to cost-benefit analysis.',
         philosopher:'Robert Nozick, Anarchy, State, and Utopia' },
       { label:'c', text:'No. Not because the principle is wrong, but because the wealthy are already leaving. A policy that destroys itself in practice is not justice; it is a beautiful failure.',
-        scores:{pragmatist:2,individual:1,agency:-1,rationalist:1},
+        scores: {pragmatist: 2, individual: 0, agency: 0, rationalist: 0, consequence: 1},
         reflection:'Machiavelli would recognize this: the gap between how people should live and how they do live is where idealistic policy goes to die. Sustainable change must account for human nature.',
         philosopher:'Niccolò Machiavelli, The Prince, Chapter XV' }
     ]
@@ -1117,19 +1117,19 @@ const SCENARIOS = [
     chapter: 'VI — identity',
     tradition: 'Metaphysics & Buddhist Philosophy',
     title: 'The Ship',
-    body: `You find a box of old journals from when you were seventeen. The person in them is <em>embarrassing</em>: the wild certainty, the opinions held with the force of revelation, the confidence about things they were completely wrong about. But they were also braver than you are now. More open, less guarded, less careful. Your partner reads a page and says, "I wish I'd known this version of you." You haven't been that person in a decade. Maybe longer.`,
+    body: `You find a box of old journals from when you were seventeen, and the person in them is <em>embarrassing</em> in that particular way that only past selves can be: the wild certainty, the opinions held with the force of revelation, the absolute confidence about things they were completely wrong about. But they were also braver than you are now, more open to experience, less guarded, less careful about protecting themselves from disappointment. Your partner reads a page over your shoulder and says, quietly, "I wish I'd known this version of you." You have not been that person in a decade, maybe longer, and you are not entirely sure you would want to be again. The question that lingers is whether you owe anything to who you used to be, or whether growing up means letting that self die without guilt.`,
     question: 'Do you owe anything to who you used to be?',
     choices: [
       { label:'a', text:'Yes. That person built everything you have now. Continuity matters. You can cringe at your past self, but you do not get to disown them.',
-        scores:{stoic:1,individual:1,agency:-1,transcendent:1},
+        scores: {stoic: 0, individual: 1, agency: -1, transcendent: 0, rationalist: 1},
         reflection:'Locke grounded identity in memory — the psychological thread connecting past selves to present. To sever that thread isn\'t growth, it\'s amnesia dressed as evolution.',
         philosopher:'John Locke, Essay Concerning Human Understanding' },
       { label:'b', text:'No. You grew out of that person for a reason, and nostalgia for who you were is just another way of avoiding who you are. Growth means letting the old self die.',
-        scores:{agency:2,stoic:-1,pragmatist:1},
+        scores: {agency: 1, stoic: 0, pragmatist: 0, individual: 1, transcendent: -1},
         reflection:'Nietzsche celebrated the capacity to outgrow yourself — to say "I was that, but I am not that now" without guilt. The Übermensch doesn\'t look backward.',
         philosopher:'Friedrich Nietzsche, Thus Spoke Zarathustra' },
       { label:'c', text:'Read the whole thing aloud to your partner. Every cringeworthy page. Let them see every version of you, including the ones that embarrass you. Identity is not something you protect; it is something you share.',
-        scores:{pragmatist:-1,stoic:1,individual:-1,transcendent:1},
+        scores: {pragmatist: -1, stoic: 0, individual: 0, transcendent: 2, agency: -1},
         reflection:'The Buddhist tradition holds that the self is process, not entity. Clinging to a fixed identity, whether past or present, is the root of suffering. Let the river flow.',
         philosopher:'Nāgārjuna, Mūlamadhyamakakārikā' }
     ]
@@ -1138,19 +1138,19 @@ const SCENARIOS = [
     chapter: 'VII — intimacy',
     tradition: 'Existentialism & Virtue Ethics',
     title: 'The Vulnerability Tax',
-    body: `You've been seeing someone for six months. It is good. Maybe the best thing you've had. Last week they asked why you never talk about your family, your past, the things that actually shaped you. You deflected. They noticed. They are not pushing, but you can feel the relationship hitting a ceiling, a glass wall between <em>good</em> and <em>real</em>. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else can. Not that they would. But they <em>could</em>.`,
+    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good—perhaps the most honest and easeful connection you've had with another person. Last week they asked, with the kind of careful gentleness that suggested they'd been thinking about it for some time, why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed the deflection, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without transformation. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper would mean handing someone the exact knowledge they would need to hurt you in ways no one else could—not that they would, not that you have any reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
     question: 'Do you go deeper?',
     choices: [
       { label:'a', text:'Yes, all the way. To be half-known is to be half-loved. If this person matters, they get the full picture, even the parts that make you harder to love.',
-        scores:{stoic:-2,individual:-1,consequence:1},
+        scores: {stoic: -2, individual: -2, consequence: 0, agency: 1},
         reflection:'Aristotle placed friendship at the center of the good life — not as nice-to-have but as necessary condition. The virtuous life is inherently relational. Partial intimacy is partial living.',
         philosopher:'Aristotle, Nicomachean Ethics, Books VIII-IX' },
       { label:'b', text:'Partially. You can be intimate without being transparent. Share the rooms that matter, keep some locked. Not every truth serves a relationship.',
-        scores:{pragmatist:2,stoic:1,individual:1},
+        scores: {pragmatist: 1, stoic: 0, individual: 2, rationalist: 1},
         reflection:'Montaigne loved deeply but maintained the "back shop" — an inner room no one else could enter. Intimacy doesn\'t require total transparency. Some privacy is self-preservation, not dishonesty.',
         philosopher:'Michel de Montaigne, Essays, "Of Solitude"' },
       { label:'c', text:'No. You know yourself well enough to know that you would resent them for knowing too much. The relationship is good as it is. Not everything must go to the bottom.',
-        scores:{agency:2,stoic:1,consequence:-1,individual:2},
+        scores: {agency: 0, stoic: 1, consequence: -1, individual: 2, transcendent: 0},
         reflection:'Rilke wrote that love is "two solitudes that protect and border and greet each other." Not every connection has to be total. Sometimes the bravest thing is accepting a limit.',
         philosopher:'Rainer Maria Rilke, Letters to a Young Poet' }
     ]
@@ -1159,19 +1159,19 @@ const SCENARIOS = [
     chapter: 'VIII — power',
     tradition: 'Taoism & Political Philosophy',
     title: 'The Room',
-    body: `You run a community of about two hundred people, and you are the reason it works. You book the venues, settle the disputes, set the culture, hold the vision. People love it; they tell you all the time. But you have noticed something troubling: when you disappear for a week, <em>nothing happens</em>. Nobody steps up. The space has become an extension of your will, and without you it simply stops. Your competence has quietly replaced everyone else's agency.`,
+    body: `You run a community of about two hundred people, and if you are honest with yourself, you are the reason it works. You book the venues, mediate the disputes, set the tone, hold the vision steady when others lose sight of it, and people tell you constantly how much it means to them. But recently you have noticed something troubling: whenever you step away for a week, the entire operation simply stops. Nobody schedules anything, nobody resolves conflicts, nobody takes initiative—the space becomes inert in your absence, as though the community were not a living organism but an extension of your own will. Your competence, which you cultivated with care and good intentions, has quietly eroded everyone else's sense of agency, and now you are not sure whether you are leading a community or performing one.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Keep running it. If the community dies without you, that means it needs you. The people are happy. Building something people love is not a problem that requires solving.',
-        scores:{consequence:2,individual:-1,agency:-2},
+        scores: {consequence: 1, individual: -1, agency: -2, pragmatist: 1},
         reflection:'The benevolent dictator\'s argument. It works — until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
         philosopher:'John Stuart Mill, On Liberty' },
       { label:'b', text:'Step away entirely. If it cannot survive without you, it was never a community. It was a performance. Let it find its own legs, or let it fall.',
-        scores:{agency:2,individual:1,stoic:1,transcendent:1},
+        scores: {agency: -1, individual: 0, stoic: 0, transcendent: 2, consequence: -1},
         reflection:'"A leader is best when people barely know he exists." The Taoist principle: true influence empowers others to find their own way.',
         philosopher:'Lao Tzu, Tao Te Ching, Chapter 17' },
       { label:'c', text:'Start failing on purpose. Miss a booking. Let a small problem fester. Force other people into the gap. It will be messy, but dependency only breaks when the thing it depends on disappears.',
-        scores:{individual:-1,pragmatist:2,consequence:1},
+        scores: {individual: -2, pragmatist: 1, consequence: 0, agency: 1, rationalist: 1},
         reflection:'Dewey\'s democratic instinct: the answer to problems of leadership isn\'t less leadership — it\'s engineered opportunities for others to lead. Sometimes you have to create the vacuum.',
         philosopher:'John Dewey, The Public and Its Problems' }
     ]
@@ -1180,19 +1180,19 @@ const SCENARIOS = [
     chapter: 'IX — time',
     tradition: 'Existentialism & Phenomenology',
     title: 'The Four Thousand Weeks',
-    body: `You are twenty-eight. An offer arrives: lead a project that could genuinely transform how education works in your country. It will consume five years, minimum. No weekends, no hobbies, no long dinners with friends. Your relationships will thin to the functional. But if it works, millions of children get a better shot at life. Meanwhile: your best friend just had a baby. Your parents are getting older. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth, and the question is not what to do with them but what to <em>sacrifice</em>.`,
+    body: `You are twenty-eight years old when the offer arrives: an opportunity to lead a project that could genuinely reshape how education works in your country, the kind of systemic intervention that might give millions of children a better foundation than they would otherwise have. The work will consume at least five years of your life—no weekends, no sustained hobbies, no long dinners with friends that stretch past midnight. Your relationships will narrow to the functional, your attention will become a scarce resource rationed among competing urgencies, and the texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss, your parents are entering the stage of life where time with them has begun to feel finite, and you have been meaning to learn piano for a decade but keep deferring it to some imagined future with more breathing room. You have roughly <em>four thousand weeks</em> on this earth if you are lucky, and the question is not what to do with them but what to sacrifice, because every choice forecloses a dozen others.`,
     question: 'Do you take the offer?',
     choices: [
       { label:'a', text:'Yes. This is the kind of thing that justifies a life. The piano and the dinners will still be there. The window for this will not.',
-        scores:{individual:1,agency:1,stoic:-1,transcendent:-1},
+        scores: {individual: 0, agency: 1, stoic: -1, transcendent: -1, consequence: 1},
         reflection:'Hannah Arendt called this "natality" — the human capacity to begin something new that outlasts its creator. Action in the public realm is how mortals touch immortality.',
         philosopher:'Hannah Arendt, The Human Condition' },
       { label:'b', text:'No. Your parents will not be around forever. The baby will grow up without you noticing. "Changing the world" is what people say when they are afraid to be present in their actual life.',
-        scores:{stoic:1,pragmatist:-1,individual:-1,transcendent:1},
+        scores: {stoic: 1, pragmatist: -2, individual: -2, transcendent: 1, agency: -1},
         reflection:'Burkeman argues we\'ve been conned by productivity culture into treating time as a resource to optimize. The radical act is to just... be here, with the people who are here now.',
         philosopher:'Oliver Burkeman, Four Thousand Weeks' },
       { label:'c', text:'Ignore the offer. Build something smaller, on your own terms. The five-year all-consuming project is a trap disguised as purpose. You can change education without sacrificing everything else.',
-        scores:{pragmatist:2,consequence:1,agency:1},
+        scores: {pragmatist: 1, consequence: 0, agency: 1, individual: -1, rationalist: -1},
         reflection:'Illich argued that institutions designed to solve problems often create new dependencies worse than the original condition. Sometimes the most radical act is to refuse the grand project and work at a human scale.',
         philosopher:'Ivan Illich, Deschooling Society' }
     ]
@@ -1201,19 +1201,19 @@ const SCENARIOS = [
     chapter: 'X — the mirror',
     tradition: 'Socratic Method',
     title: 'The Last Question',
-    body: `It's late. You're alone with this. You've been making choices for the last few minutes that, if you are honest, you already knew the answers to before you clicked. That is the thing about philosophy: it does not teach you what to think. It makes you <em>admit</em> what you already do. All of this was a mirror. The question is what you see in it.`,
+    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that, if you are honest with yourself, you already knew the answers to before you clicked—perhaps you have known them for years but never articulated them clearly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think so much as it forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror, and the question now is not whether the reflection is flattering but whether it is true, and whether you have the courage to sit with what it shows you.`,
     question: 'What is the question you are actually trying to answer?',
     choices: [
       { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
-        scores:{stoic:1,agency:1,pragmatist:-1},
+        scores: {stoic: 0, agency: 1, pragmatist: -1, rationalist: 1, individual: 1},
         reflection:'This is Socrates\' original challenge. The examined life isn\'t about right answers — it\'s about the courage to notice when you\'re lying to yourself.',
         philosopher:'Socrates, via Plato\'s Apology' },
       { label:'b', text:'Am I being good to the people who matter, or too caught up in my own story?',
-        scores:{individual:-2,consequence:1,stoic:-1},
+        scores: {individual: -2, consequence: 0, stoic: 0, transcendent: 0},
         reflection:'Iris Murdoch said morality is "the progressive attempt to see things as they really are" — especially other people. The hardest philosophical work is paying attention.',
         philosopher:'Iris Murdoch, The Sovereignty of Good' },
       { label:'c', text:'Does any of this matter, and if not, what do I do with that?',
-        scores:{pragmatist:1,agency:1,stoic:1,transcendent:-1},
+        scores: {pragmatist: 0, agency: 0, stoic: 0, transcendent: -1, rationalist: 1, individual: 1},
         reflection:'The question underneath every question. Nagel called it "the absurd" — the collision between our need for meaning and the universe\'s silence.',
         philosopher:'Thomas Nagel, "The Absurd"' }
     ]
@@ -1223,19 +1223,19 @@ const SCENARIOS = [
     chapter: 'XI — knowledge',
     tradition: 'Epistemology · East & West',
     title: 'The Library of Babel',
-    body: `Your child is twelve years old. They have never had to memorize anything. AI does their research, writes their first drafts, checks their arithmetic. They are happy, creative, curious in their own way. But when you ask them to explain <em>why</em> something is true, they shrug and say "the AI said so." Their school wants to ban AI tools entirely. Other parents think this is insane, like banning calculators in the 1980s. You are not sure either side is wrong.`,
+    body: `Your child is twelve years old and has never had to memorize anything substantial, because artificial intelligence does their research, drafts their essays, checks their arithmetic, and offers explanations whenever they ask. They are genuinely happy and curious in their own way, engaged with ideas and projects that interest them, but when you ask them to explain <em>why</em> something is true—not just what the answer is but how one arrives at it—they shrug with complete comfort and say "the AI told me." Their school has proposed banning these tools entirely, returning to a pedagogy built on struggle and retention, and other parents think this is absurd, a reactionary impulse no different from banning calculators in the 1980s when the world had already changed. You find yourself uncertain whether either side has fully grasped what is at stake, or whether the future of learning is something neither camp has yet imagined.`,
     question: 'Where do you land?',
     choices: [
       { label:'a', text:'Let them use it. The world has changed, and teaching children to do what machines do better is nostalgia dressed as pedagogy.',
-        scores:{consequence:1,individual:1,rationalist:-2,pragmatist:1},
+        scores: {consequence: 1, individual: 0, rationalist: -2, pragmatist: 1, transcendent: -1},
         reflection:'The empiricist\'s position: knowledge is about the world, not about the knower. If the machine gives correct answers, the process of getting there is just friction. Hume would shrug.',
         philosopher:'David Hume, An Enquiry Concerning Human Understanding' },
       { label:'b', text:'Ban it. At least until they are older. Thinking is a muscle, and if you never use it, you lose it. No tool can return what atrophy takes.',
-        scores:{rationalist:2,transcendent:1,pragmatist:-1},
+        scores: {rationalist: 2, transcendent: 0, pragmatist: -2, consequence: -1},
         reflection:'Plato distinguished knowledge from true belief for exactly this reason. Understanding requires the soul\'s own labor — the dialectic, the struggle. A shortcut to answers is a shortcut past wisdom.',
         philosopher:'Plato, Republic, Book VII (Allegory of the Cave)' },
       { label:'c', text:'Pull them out of the school. If the institution cannot integrate the tool, the institution is the problem. Teach them yourself, or find one that treats AI as a fact of the world rather than a threat to be managed.',
-        scores:{pragmatist:2,agency:1,individual:-1},
+        scores: {pragmatist: 1, agency: 1, individual: 0, consequence: 1},
         reflection:'Confucius emphasized that learning is not the accumulation of facts but the cultivation of character through inquiry. When the institution fails the student, the student must seek learning elsewhere.',
         philosopher:'Confucius, Analects 2.15: "Learning without thought is labor lost"' }
     ]
@@ -1244,19 +1244,19 @@ const SCENARIOS = [
     chapter: 'XII — language',
     tradition: 'Philosophy of Language · Phenomenology',
     title: 'The Untranslatable',
-    body: `Your best friend's father died last year. You were close to him too. At the funeral you said all the right things, and your friend thanked you and told you it helped. But last night, drunk and unguarded, they said: <em>"You don't actually understand what this is like."</em> And they are right. You have never lost a parent. You were performing empathy, and doing it well, but something about the performance feels dishonest now. The gap between your compassion and their grief is real, and no amount of language can close it.`,
+    body: `Your best friend's father died last year, someone you were close to as well, and at the funeral you said all the things one is supposed to say—quiet condolences, memories offered carefully, presence maintained with steady attention. Your friend thanked you afterward and told you it had helped, and you believed them. But last night, unguarded and several drinks past sober, they said something that has been sitting heavy in your chest ever since: <em>"You don't actually understand what this is like."</em> And they are right—you have never lost a parent, never stood in that particular valley of grief, and what you offered was compassion filtered through imagination rather than lived knowledge. You were performing empathy, and performing it well enough that it seemed real to both of you, but now the gap between your goodwill and their suffering feels unbridgeable, and you are not sure whether language was ever capable of closing it or whether you have been asking it to do something it was never designed for.`,
     question: 'Can you actually understand someone else\'s pain?',
     choices: [
       { label:'a', text:'Yes, but not through language. Sit beside them. Say nothing. Understanding is not something you achieve with the right words; it is something that happens when you stop trying to perform it.',
-        scores:{transcendent:2,rationalist:-1,individual:-1},
+        scores: {transcendent: 2, rationalist: -2, individual: -1, agency: -1},
         reflection:'Wittgenstein ended the Tractatus with: "Whereof one cannot speak, thereof one must be silent." Not as defeat, but as recognition that the deepest truths live beyond language.',
         philosopher:'Ludwig Wittgenstein, Tractatus Logico-Philosophicus' },
       { label:'b', text:'No. You cannot, and you should stop pretending. Say "I don\'t understand what you\'re going through" and mean it. The honesty will do more for them than any performance of empathy.',
-        scores:{individual:1,stoic:1,transcendent:1},
+        scores: {individual: 1, stoic: 1, transcendent: 0, pragmatist: -1},
         reflection:'The Japanese aesthetic of mono no aware — the pathos of things — suggests that the beauty of connection is inseparable from its incompleteness. Admitting the gap is itself a form of closeness.',
         philosopher:'Motoori Norinaga, on mono no aware (物の哀れ)' },
       { label:'c', text:'You understood enough. Perfect empathy is a fantasy. Your friend needed someone there, and you were there. That is not performance. That is love, doing what love can.',
-        scores:{pragmatist:2,consequence:1,stoic:-1},
+        scores: {pragmatist: 1, consequence: 0, stoic: 0, individual: -1},
         reflection:'Gadamer argued that understanding is always partial, always evolving — a "fusion of horizons" that\'s never complete but always in motion. Imperfect understanding, genuinely offered, is enough.',
         philosopher:'Hans-Georg Gadamer, Truth and Method' }
     ]
@@ -1265,19 +1265,19 @@ const SCENARIOS = [
     chapter: 'XIII — beauty',
     tradition: 'Aesthetics · African & Western',
     title: 'The Burning Gallery',
-    body: `A musician you love, someone whose work genuinely <em>changed your life</em>, has just been exposed as a terrible person. Not ambiguously terrible. Concretely, provably, seriously terrible. Their music has not changed. The songs that got you through your worst year still sound exactly as they did. But now you know who made them, and every note carries that knowledge like a watermark you cannot unsee.`,
+    body: `A musician you love, someone whose work genuinely changed your life in ways you can still trace through the architecture of who you became, has just been exposed as a terrible person — not ambiguously terrible in the way that allows for generous interpretation, but concretely, provably, seriously terrible in ways that resist any charitable reading. Their music has not changed; the songs that got you through your worst year still sound exactly as they did, every note and phrase intact, but now you know who made them, and that knowledge sits inside the music like a watermark you cannot unsee. You find yourself wondering whether beauty can be separated from its maker, whether the thing that moved you was ever really yours, or whether it always belonged to the person whose hands shaped it, tainted now by everything those hands have done.`,
     question: 'Can you still listen?',
     choices: [
       { label:'a', text:'Yes. The music exists independently of the person who made it. It moved you, it helped you, and that was real. Separating art from artist is not a cop-out. It is the only honest position.',
-        scores:{consequence:2,individual:-1,pragmatist:1,transcendent:-1},
+        scores: {consequence: 1, individual: -1, pragmatist: 1, transcendent: -1, rationalist: -1},
         reflection:'The Yoruba concept of àṣà holds that art\'s value is communal — once it enters the world, it belongs to everyone who encounters it, not to the person who made it.',
         philosopher:'Yoruba aesthetic philosophy, via Babatunde Lawal' },
       { label:'b', text:'No. You cannot unhear who made it. Every listen is now a small act of looking away, and the discomfort is not a flaw in your response. It <em>is</em> the response.',
-        scores:{agency:1,individual:1,transcendent:2,rationalist:-1},
+        scores: {agency: 0, individual: 1, transcendent: 1, rationalist: -1, stoic: 0},
         reflection:'Keats argued for "negative capability" — dwelling in discomfort without reaching for easy resolution. Sometimes the right response to beauty is to let it become complicated.',
         philosopher:'John Keats, letter to George & Tom Keats, 1817' },
       { label:'c', text:'Listen, but don\'t pay. The art is still good; the person does not deserve your money. There is a practical middle that neither purity nor complicity requires you to ignore.',
-        scores:{pragmatist:2,stoic:1,rationalist:-1},
+        scores: {pragmatist: 2, stoic: 0, rationalist: -1, consequence: 1},
         reflection:'Zhuangzi would recognize this: a practical response that refuses the false binary. You don\'t have to choose between purity and pleasure if you\'re willing to be creative about it.',
         philosopher:'Zhuangzi, "The Happy Fish" & Inner Chapters' }
     ]
@@ -1286,19 +1286,19 @@ const SCENARIOS = [
     chapter: 'XIV — belonging',
     tradition: 'Ubuntu · African Philosophy',
     title: 'The Circle',
-    body: `Your religious community, the one you grew up in, the one your parents still attend, has taken a public stance against something you believe in deeply. It is not ambiguous; they are wrong, and you know it in your bones. But these are also the people who fed your family when you couldn't feed yourselves, who showed up at your door during the worst year of your life, who taught you what kindness <em>looks like</em> in practice. You owe them more than you can articulate. And they are asking you, by staying, to endorse something unconscionable.`,
+    body: `Your religious community, the one you grew up in, the one your parents still attend with a fidelity that moves you even when it frustrates you, has taken a public stance against something you believe in deeply — not as a matter of preference or politics, but as a moral conviction you hold in your bones with the same certainty they claim for their position. It is not ambiguous and it is not negotiable; they are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves, who showed up at your door during the worst year of your life without being asked, who taught you by example what kindness looks like in practice rather than in principle. You owe them more than you can articulate, a debt made of presence and care that cannot be reduced to gratitude or obligation. And yet they are asking you, simply by staying, to endorse something unconscionable, or at least to be complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
     question: 'Do you stay or go?',
     choices: [
       { label:'a', text:'Stay. "I am because we are." You do not abandon the people who made you because they are wrong. You stay and fight to change them from the inside.',
-        scores:{individual:-2,agency:-1,consequence:1,transcendent:1},
+        scores: {individual: -2, agency: -1, consequence: 0, transcendent: 0, stoic: 0},
         reflection:'Ubuntu philosophy holds that personhood is constituted through community — umuntu ngumuntu ngabantu. To leave is not just to disagree but to diminish yourself.',
         philosopher:'Desmond Tutu & Ubuntu philosophy' },
       { label:'b', text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, then staying is complicity wearing a loyalty costume.',
-        scores:{individual:2,agency:2,stoic:1},
+        scores: {individual: 2, agency: 1, stoic: 0, consequence: -1, rationalist: 1},
         reflection:'Thoreau walked into the woods — and into jail — because he believed that conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
         philosopher:'Henry David Thoreau, Civil Disobedience' },
       { label:'c', text:'Leave publicly. Write the letter, name the reason, make it cost them something. A quiet exit changes nothing; a loud one gives others permission to follow.',
-        scores:{pragmatist:1,agency:1,individual:-1,consequence:1},
+        scores: {pragmatist: 0, agency: 1, individual: -1, consequence: 1, rationalist: 1},
         reflection:'Audre Lorde refused the choice between belonging and truth: "Your silence will not protect you." If you\'re going to leave, leave loudly enough that others know they can too.',
         philosopher:'Audre Lorde, "The Transformation of Silence into Language and Action"' }
     ]
@@ -1307,19 +1307,19 @@ const SCENARIOS = [
     chapter: 'XV — nature',
     tradition: 'Environmental Philosophy · Indigenous Thought',
     title: 'The Last Forest',
-    body: `A mining company wants to extract lithium from a valley in Bolivia. The lithium goes into batteries for electric cars, the technology that is supposed to save us from climate collapse. The valley is home to an indigenous community of four hundred people who have lived there for centuries. They do not want to move. The company offers money, new housing, jobs. The community says <em>no</em>. The government is considering eminent domain. The planet is warming. The community is resolute. And you are asked to take a side.`,
+    body: `A mining company wants to extract lithium from a valley in Bolivia, the kind of lithium that goes into batteries for electric cars, which is to say the technology that is supposed to save us from the slow catastrophe of climate collapse that we have finally, belatedly, begun to take seriously. The valley is home to an indigenous community of four hundred people who have lived there for centuries, whose relationship to that land is not ownership in any sense the company's lawyers would recognize but something closer to kinship, and they do not want to move. The company offers money, new housing, jobs in the mine itself, all the things that are supposed to compensate for displacement, and the community says <em>no</em> — not because the offer is inadequate, but because the premise is unacceptable. The government is considering eminent domain, the legal apparatus that allows a state to override individual refusal in the name of collective need. The planet is warming, the carbon clock is ticking, millions of lives hang in the balance of whether we can decarbonize fast enough, and the community is resolute in its refusal. You are asked to take a side, to weigh four hundred people who will lose their home against the aggregate suffering reduction of millions who might not have to flee theirs.`,
     question: 'Should the mine go ahead?',
     choices: [
       { label:'a', text:'Yes. Four hundred people versus millions of tons of carbon. The calculus is brutal, but it is clear. Compensate them generously. Build the mine. Save what can still be saved.',
-        scores:{consequence:2,pragmatist:1,transcendent:-2},
+        scores: {consequence: 2, pragmatist: 0, transcendent: -2, individual: -1},
         reflection:'Singer\'s preference utilitarianism draws a clear line: aggregate suffering reduction outweighs localised disruption, however painful. The numbers don\'t lie.',
         philosopher:'Peter Singer, Animal Liberation' },
       { label:'b', text:'No. "We will destroy your home for the greater good" is what colonizers have always said. The community said no. That should be the end of it.',
-        scores:{consequence:-1,transcendent:2,agency:-1,individual:-1},
+        scores: {consequence: -2, transcendent: 2, agency: -1, individual: -1, rationalist: 1},
         reflection:'Arne Næss\'s deep ecology holds that land and the people who live on it have intrinsic value — not instrumental. You don\'t get to sacrifice someone else\'s home for your clean conscience.',
         philosopher:'Arne Næss, "The Shallow and the Deep" (1973)' },
       { label:'c', text:'Only if the community owns the mine. Not compensation. <em>Ownership</em>. Equity, profits, veto power at every stage. If they still say no, you walk away.',
-        scores:{pragmatist:2,consequence:1,rationalist:1},
+        scores: {pragmatist: 2, consequence: 0, rationalist: 0, individual: -1, agency: 1},
         reflection:'Robin Wall Kimmerer, drawing on Potawatomi wisdom, speaks of the "Honorable Harvest" — take only what is given, use it well, give back. Extraction without relationship is just theft with better PR.',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
@@ -1328,19 +1328,19 @@ const SCENARIOS = [
     chapter: 'XVI — mortality',
     tradition: 'Existentialism · Buddhist Philosophy',
     title: 'The Immortality Pill',
-    body: `Gene therapy. One injection, and your telomeres stop shortening. You do not age past your current state. You could live for centuries, perhaps longer. The catch: it is irreversible. You will watch everyone you love die. Every relationship will be temporary for you in a way it is not for them. And the urgency that makes Tuesday mornings and deadlines and <em>"I should call my mum"</em> feel real? That vanishes. There is always tomorrow. There is always <em>forever</em>.`,
+    body: `Gene therapy, a single injection, and your telomeres stop shortening, the biological clock that counts down to your body's obsolescence simply halted mid-tick. You do not age past your current state; you could live for centuries, perhaps longer, watching the future unfold in ways no one else will ever witness. The catch is that it is irreversible — once you take it, there is no going back, no exit clause, no way to change your mind when the weight of time becomes unbearable. You will watch everyone you love die, all of them, again and again, a procession of endings that you alone will carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left behind. And the urgency that makes Tuesday mornings and looming deadlines and the thought <em>"I should call my mother"</em> feel real, that animal awareness that time is running out and you cannot afford to waste it — that vanishes. There is always tomorrow, and the day after that, and a thousand years of days after that, a horizon so distant it stops functioning as one.`,
     question: 'Do you take the injection?',
     choices: [
       { label:'a', text:'Yes, and I would not want an exit. The irreversibility is the point. A commitment you can undo is not a commitment. I want to see what a human becomes with enough time to actually learn from their mistakes.',
-        scores:{stoic:-2,transcendent:-1,agency:1,pragmatist:1},
+        scores: {stoic: -1, transcendent: -1, agency: 1, pragmatist: 0, consequence: 1},
         reflection:'Lucretius argued that the fear of death is the root of all suffering. Remove it entirely and you don\'t lose meaning; you gain the time to find it properly, without the panic.',
         philosopher:'Lucretius, De Rerum Natura' },
       { label:'b', text:'No. Mortality is what makes any of this matter. Without the horizon, nothing is urgent, nothing is precious, nothing costs you anything. Infinity is not a gift; it is a sentence.',
-        scores:{stoic:2,transcendent:2,agency:-1},
+        scores: {stoic: 2, transcendent: 1, agency: -1, rationalist: 1},
         reflection:'Heidegger\'s "being-toward-death" — the awareness that we will die is precisely what allows us to live authentically. Remove the horizon and you remove all urgency.',
         philosopher:'Martin Heidegger, Being and Time' },
       { label:'c', text:'Only if I can choose to end it. Immortality as an option is the purest form of freedom. Immortality without an exit is the purest form of a cage.',
-        scores:{agency:2,pragmatist:1,rationalist:1},
+        scores: {agency: 1, pragmatist: 1, rationalist: 0, stoic: 0, individual: 1},
         reflection:'The Buddhist Middle Way applied to mortality itself: neither clinging to life nor romanticizing death. The question is always about attachment — to living or to dying.',
         philosopher:'The Buddha, Dhammapada — on the Middle Way' }
     ]
@@ -1349,19 +1349,19 @@ const SCENARIOS = [
     chapter: 'XVII — knowledge II',
     tradition: 'Islamic Philosophy · Epistemology',
     title: 'The Scholar\'s Doubt',
-    body: `You are a published researcher. Your most-cited paper, the one that earned you tenure, that other scholars build upon, that you teach to your students every year, has a flaw. Not a typo. A <em>foundational</em> error in the methodology. You found it last month while reviewing someone else\'s work. Nobody else has noticed. Three PhD students are building their dissertations on your framework. If you publish a correction, your reputation takes a serious hit. If you stay quiet, the error might never surface. Or it might surface in ten years, when someone else catches what you already knew.`,
+    body: `You are a published researcher with a career built on work that other people trust, and your most-cited paper — the one that earned you tenure, that other scholars build upon, that you teach to your students every year with the authority of someone who knows their field — has a flaw. Not a typo, not a rounding error, but a foundational error in the methodology that undermines the central claim in ways that cannot be patched or explained away. You found it last month while reviewing someone else's work, a moment of recognition that arrived with the sick clarity of watching a bridge collapse in slow motion, and nobody else has noticed. Three PhD students are currently building their dissertations on your framework, their entire academic futures staked on the assumption that your work is sound. If you publish a correction, your reputation takes a serious hit, the kind of hit that changes how people introduce you at conferences, that turns your name into a cautionary tale about rigor. If you stay quiet, the error might never surface — or it might surface in ten years when someone else catches what you already know, and then the question will not be whether you were wrong, but whether you knew you were wrong and said nothing.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Publish the correction immediately. Your reputation is less important than the truth, and a scholar who hides an error is no longer a scholar. The students will adapt.',
-        scores:{rationalist:2,agency:1,stoic:1,pragmatist:-1},
+        scores: {rationalist: 2, agency: 1, stoic: 0, pragmatist: -1, consequence: -1, individual: 1},
         reflection:'Al-Ghazali walked away from the most prestigious academic post in the Islamic world because his philosophical framework collapsed in the face of genuine doubt. He called it "the deliverance from error."',
         philosopher:'Al-Ghazali, The Deliverer from Error (al-Munqidh min al-Dalāl)' },
       { label:'b', text:'Tell the PhD students first, privately. Help them pivot before you go public. You owe it to the people who trusted your work not to pull the ground out from under them without warning.',
-        scores:{consequence:1,individual:-1,pragmatist:2},
+        scores: {consequence: 0, individual: -1, pragmatist: 1, agency: 1},
         reflection:'Kuhn showed that paradigm shifts aren\'t instant conversions — they\'re slow, messy, social processes. Responsible revolution means bringing people with you.',
         philosopher:'Thomas Kuhn, The Structure of Scientific Revolutions' },
       { label:'c', text:'Quietly fix it in your next paper. Don\'t make a public spectacle — weave the correction into new work that supersedes the old. The academic system rewards confessions less than it rewards progress. Game the system.',
-        scores:{transcendent:2,rationalist:-1,pragmatist:-1},
+        scores: {transcendent: 1, rationalist: -2, pragmatist: 0, stoic: 0},
         reflection:'Ibn Arabi held that truth reveals itself in its own time. "My heart has become capable of every form." Perhaps the flaw is not yours to confess but the field\'s to discover.',
         philosopher:'Ibn Arabi, Fusus al-Hikam (The Bezels of Wisdom)' }
     ]
@@ -1370,19 +1370,19 @@ const SCENARIOS = [
     chapter: 'XVIII — the gift',
     tradition: 'Feminist Philosophy · Ethics of Care',
     title: 'The Invisible Labor',
-    body: `You live with three other people. One of them, always the same one, does the dishes, remembers the birthdays, notices when someone is having a bad day, mediates arguments, buys the toilet paper before it runs out. Nobody asked them to. They never complain. But you have started noticing that when they are away for a weekend, the house <em>falls apart</em>. The rest of you are fully functional adults. You simply do not see what needs doing until someone else has already done it.`,
+    body: `You live with three other people, all of you adults with functional lives and careers, and one of them — always the same one, you realize now that you are paying attention — does the dishes without being asked, remembers the birthdays, notices when someone is having a bad day and quietly adjusts the mood of the house, mediates arguments before they calcify into resentment, buys the toilet paper before it runs out so that no one else ever has to think about it. Nobody asked them to do this, and they never complain; it simply happens, the way weather happens, invisible until you stop to notice it. But you have started noticing, particularly when they are away for a weekend and the house falls apart in small, accumulating ways that reveal just how much was being held together by someone else's constant, unremarked attention. The rest of you are fully functional adults, capable of seeing what needs doing, but you simply do not see it until someone else has already done it, and the recognition lands with the uncomfortable weight of realizing you have been complicit in something you did not mean to endorse.`,
     question: 'What do you do with that recognition?',
     choices: [
       { label:'a', text:'Name it. Explicitly, publicly, in front of everyone. "You are carrying us, and it is not fair." Invisible problems stay invisible until someone makes them awkward.',
-        scores:{consequence:1,agency:1,individual:-1,rationalist:1},
+        scores: {consequence: 0, agency: 1, individual: -1, rationalist: 1, pragmatist: -1},
         reflection:'Carol Gilligan argued that the "ethic of care" is systematically devalued because it\'s coded as natural rather than skilled. Making it visible is a political act.',
         philosopher:'Carol Gilligan, In a Different Voice' },
       { label:'b', text:'Skip the speech. Start doing more. Quietly, consistently. Buy the toilet paper first, remember the birthdays, take over the mediation. The ethical response to care is to care <em>back</em>.',
-        scores:{pragmatist:2,stoic:1,individual:-1},
+        scores: {pragmatist: 1, stoic: 0, individual: -2, agency: 1, consequence: 1},
         reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back — concretely, not abstractly.',
         philosopher:'Nel Noddings, Caring: A Relational Approach to Ethics' },
       { label:'c', text:'Talk to them privately. Ask what they actually want. Do not assume you know how to fix something you only just noticed.',
-        scores:{agency:2,individual:1,consequence:-1},
+        scores: {agency: 0, individual: -1, consequence: -1, rationalist: -1, transcendent: 0},
         reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like — not the person who just noticed.',
         philosopher:'bell hooks, All About Love' }
     ]
@@ -1544,7 +1544,6 @@ const goBackMessages = [
 function tryGoBack() {
   const msg = goBackMessages[Math.min(goBackAttempts, goBackMessages.length - 1)];
   goBackAttempts++;
-  // Show message overlay
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:pointer;padding:2rem;';
   overlay.innerHTML = '<p style="font-family:EB Garamond,Georgia,serif;font-size:1.3rem;color:#e8e4dc;text-align:center;max-width:500px;line-height:1.8;font-style:italic;">' + msg + '</p>';
@@ -1566,9 +1565,23 @@ function showResults() {
   saveProgress();
 
   const maxP = activeScenarios.length <= 10 ? 6 : 10;
-  const normalized = {};
+  // Raw normalization
+  const raw = {};
   for (const axis of Object.keys(AXES)) {
-    normalized[axis] = Math.max(0, Math.min(1, (scores[axis] + maxP) / (2 * maxP)));
+    raw[axis] = Math.max(0, Math.min(1, (scores[axis] + maxP) / (2 * maxP)));
+  }
+  // Schwartz centering — subtract mean to show RELATIVE priorities
+  const axes = Object.keys(AXES);
+  const mean = axes.reduce((s, a) => s + raw[a], 0) / axes.length;
+  const centered = {};
+  for (const a of axes) { centered[a] = raw[a] - mean; }
+  // Re-normalize centered values to 0-1 range
+  const vals = axes.map(a => centered[a]);
+  const cMin = Math.min(...vals), cMax = Math.max(...vals);
+  const cRange = cMax - cMin || 1;
+  const normalized = {};
+  for (const a of axes) {
+    normalized[a] = (centered[a] - cMin) / cRange;
   }
 
   const archetype = getArchetype(normalized);
@@ -1626,63 +1639,68 @@ function showResults() {
   `;
 }
 
-function getArchetype(n) {
-  const hi = (axis) => n[axis] > 0.58;
-  const lo = (axis) => n[axis] < 0.42;
-
-  if (hi('stoic') && hi('agency'))
-    return { name:'The Examined Stoic', subtitle:'disciplined freedom through self-awareness',
-      portrait:'You believe in controlling what you can and releasing what you can\'t — but you don\'t confuse acceptance with passivity. Your instinct is toward inner strength, personal responsibility, and a kind of defiant calm. You\'re drawn to people who\'ve thought seriously about suffering and come out clarified, not hardened. You probably distrust comfort more than pain.',
-      thinkers:'Marcus Aurelius, Epictetus, Simone Weil, Albert Camus, Al-Ghazali' };
-
-  if (hi('consequence') && lo('individual'))
-    return { name:'The Reluctant Utilitarian', subtitle:'pragmatic compassion with philosophical doubt',
-      portrait:'You care more about outcomes than principles — not because principles don\'t matter, but because the world is messy and people are suffering now. You\'d rather do imperfect good than maintain perfect consistency. But you know the dangers of "ends justify means" thinking, and that awareness keeps you honest.',
-      thinkers:'Peter Singer, Derek Parfit, Amartya Sen, William MacAskill, Carol Gilligan' };
-
-  if (hi('agency') && hi('pragmatist'))
-    return { name:'The Existential Pragmatist', subtitle:'meaning through action, not discovery',
-      portrait:'You don\'t wait for the universe to hand you a purpose — you build one. Your philosophy is hands-on: try things, adapt, trust your gut more than abstract frameworks. Identity for you is a verb, not a noun. You\'re suspicious of people who have it all figured out, because certainty is usually just fear wearing a mask.',
-      thinkers:'William James, Simone de Beauvoir, Richard Rorty, Camus, Zhuangzi' };
-
-  if (lo('individual') && lo('stoic'))
-    return { name:'The Relational Existentialist', subtitle:'meaning lives in the space between people',
-      portrait:'You find yourself through others — not codependently, but because ethics, meaning, and identity are fundamentally relational. "What should I do?" always translates to "what do I owe the person in front of me?" You\'re probably a natural host, a connector, someone who builds rooms for others to become themselves in.',
-      thinkers:'Emmanuel Levinas, Martin Buber, Iris Murdoch, bell hooks, Desmond Tutu' };
-
-  if (hi('individual') && hi('agency'))
-    return { name:'The Radical Individualist', subtitle:'freedom as the non-negotiable foundation',
-      portrait:'You place autonomy at the center of everything. Allergic to paternalism, suspicious of systems that claim to know best, deeply committed to the dignity of choice. This isn\'t selfishness — it\'s a philosophical commitment. You believe the most important thing a person can do is think for themselves.',
-      thinkers:'Nietzsche, John Stuart Mill, Thoreau, Sartre, Audre Lorde' };
-
-  if (hi('transcendent') && hi('stoic'))
-    return { name:'The Contemplative Mystic', subtitle:'wisdom through stillness and paradox',
-      portrait:'You\'re drawn to traditions that embrace contradiction rather than resolve it. Rationalism feels too narrow; pure empiricism misses the point. You suspect the deepest truths can\'t be spoken, only pointed at. You probably find more wisdom in poetry and silence than in argument.',
-      thinkers:'Lao Tzu, Nāgārjuna, Ibn Arabi, Wittgenstein, Simone Weil, Keats' };
-
-  if (hi('rationalist') && hi('agency'))
-    return { name:'The Philosophical Warrior', subtitle:'truth-seeking as a form of courage',
-      portrait:'You follow arguments wherever they lead, even when they\'re uncomfortable. Intellectual honesty isn\'t a preference — it\'s a duty. You\'d rather be wrong and know it than right for the wrong reasons. Al-Ghazali would recognize you: willing to demolish your own framework if truth demands it.',
-      thinkers:'Al-Ghazali, Socrates, Nietzsche, Thomas Kuhn, Simone de Beauvoir' };
-
-  if (hi('consequence') && hi('pragmatist'))
-    return { name:'The Practical Philosopher', subtitle:'ideas are only as good as their effects',
-      portrait:'For you, philosophy isn\'t about getting the theory right — it\'s about making things better. You evaluate ideas by their consequences, adapt your frameworks when they stop working, and have limited patience for beautiful theories that produce ugly results.',
-      thinkers:'John Dewey, Nel Noddings, Robin Wall Kimmerer, William James, Amartya Sen' };
-
-  if (hi('transcendent') && lo('rationalist'))
-    return { name:'The Poetic Empiricist', subtitle:'truth through experience, not abstraction',
-      portrait:'You trust sensation, intuition, and direct experience over pure reason. The world reveals itself through attention, not analysis. You probably learn more from a long walk than a lecture, and you\'re skeptical of anyone who claims to have figured life out from behind a desk.',
-      thinkers:'Motoori Norinaga, Zhuangzi, John Keats, Merleau-Ponty, Robin Wall Kimmerer' };
-
-  if (lo('individual') && hi('consequence'))
-    return { name:'The Communal Builder', subtitle:'the good life is a collective project',
-      portrait:'You believe the best things are built together. Individual brilliance matters less than the systems we create for each other. Ubuntu runs deep in you: "I am because we are." You\'re probably the person who stays late to clean up, who remembers birthdays, who builds the infrastructure everyone else takes for granted.',
-      thinkers:'Desmond Tutu, John Dewey, Carol Gilligan, Confucius, bell hooks' };
-
-  return { name:'The Philosophical Pluralist', subtitle:'many frameworks, no single allegiance',
+// Archetype profiles — ideal normalized scores for each type
+const ARCHETYPES = [
+  { name:'The Examined Stoic', subtitle:'disciplined freedom through self-awareness',
+    ideal:{consequence:0.5,individual:0.5,stoic:0.85,pragmatist:0.45,agency:0.75,rationalist:0.6,transcendent:0.4},
+    portrait:'You believe in controlling what you can and releasing what you can\'t — but you don\'t confuse acceptance with passivity. Your instinct is toward inner strength, personal responsibility, and a kind of defiant calm. You\'re drawn to people who\'ve thought seriously about suffering and come out clarified, not hardened. You probably distrust comfort more than pain.',
+    thinkers:'Marcus Aurelius, Epictetus, Simone Weil, Albert Camus, Al-Ghazali' },
+  { name:'The Reluctant Utilitarian', subtitle:'pragmatic compassion with philosophical doubt',
+    ideal:{consequence:0.8,individual:0.25,stoic:0.4,pragmatist:0.65,agency:0.5,rationalist:0.6,transcendent:0.3},
+    portrait:'You care more about outcomes than principles — not because principles don\'t matter, but because the world is messy and people are suffering now. You\'d rather do imperfect good than maintain perfect consistency. But you know the dangers of "ends justify means" thinking, and that awareness keeps you honest.',
+    thinkers:'Peter Singer, Derek Parfit, Amartya Sen, William MacAskill, Carol Gilligan' },
+  { name:'The Existential Pragmatist', subtitle:'meaning through action, not discovery',
+    ideal:{consequence:0.5,individual:0.6,stoic:0.4,pragmatist:0.8,agency:0.8,rationalist:0.45,transcendent:0.3},
+    portrait:'You don\'t wait for the universe to hand you a purpose — you build one. Your philosophy is hands-on: try things, adapt, trust your gut more than abstract frameworks. Identity for you is a verb, not a noun. You\'re suspicious of people who have it all figured out, because certainty is usually just fear wearing a mask.',
+    thinkers:'William James, Simone de Beauvoir, Richard Rorty, Camus, Zhuangzi' },
+  { name:'The Relational Existentialist', subtitle:'meaning lives in the space between people',
+    ideal:{consequence:0.55,individual:0.2,stoic:0.3,pragmatist:0.5,agency:0.5,rationalist:0.4,transcendent:0.55},
+    portrait:'You find yourself through others — not codependently, but because ethics, meaning, and identity are fundamentally relational. "What should I do?" always translates to "what do I owe the person in front of me?" You\'re probably a natural host, a connector, someone who builds rooms for others to become themselves in.',
+    thinkers:'Emmanuel Levinas, Martin Buber, Iris Murdoch, bell hooks, Desmond Tutu' },
+  { name:'The Radical Individualist', subtitle:'freedom as the non-negotiable foundation',
+    ideal:{consequence:0.35,individual:0.85,stoic:0.5,pragmatist:0.45,agency:0.8,rationalist:0.5,transcendent:0.35},
+    portrait:'You place autonomy at the center of everything. Allergic to paternalism, suspicious of systems that claim to know best, deeply committed to the dignity of choice. This isn\'t selfishness — it\'s a philosophical commitment. You believe the most important thing a person can do is think for themselves.',
+    thinkers:'Nietzsche, John Stuart Mill, Thoreau, Sartre, Audre Lorde' },
+  { name:'The Contemplative Mystic', subtitle:'wisdom through stillness and paradox',
+    ideal:{consequence:0.4,individual:0.4,stoic:0.7,pragmatist:0.3,agency:0.35,rationalist:0.25,transcendent:0.85},
+    portrait:'You\'re drawn to traditions that embrace contradiction rather than resolve it. Rationalism feels too narrow; pure empiricism misses the point. You suspect the deepest truths can\'t be spoken, only pointed at. You probably find more wisdom in poetry and silence than in argument.',
+    thinkers:'Lao Tzu, Nāgārjuna, Ibn Arabi, Wittgenstein, Simone Weil, Keats' },
+  { name:'The Philosophical Warrior', subtitle:'truth-seeking as a form of courage',
+    ideal:{consequence:0.5,individual:0.6,stoic:0.55,pragmatist:0.4,agency:0.75,rationalist:0.85,transcendent:0.3},
+    portrait:'You follow arguments wherever they lead, even when they\'re uncomfortable. Intellectual honesty isn\'t a preference — it\'s a duty. You\'d rather be wrong and know it than right for the wrong reasons. Al-Ghazali would recognize you: willing to demolish your own framework if truth demands it.',
+    thinkers:'Al-Ghazali, Socrates, Nietzsche, Thomas Kuhn, Simone de Beauvoir' },
+  { name:'The Practical Philosopher', subtitle:'ideas are only as good as their effects',
+    ideal:{consequence:0.75,individual:0.45,stoic:0.45,pragmatist:0.8,agency:0.6,rationalist:0.5,transcendent:0.3},
+    portrait:'For you, philosophy isn\'t about getting the theory right — it\'s about making things better. You evaluate ideas by their consequences, adapt your frameworks when they stop working, and have limited patience for beautiful theories that produce ugly results.',
+    thinkers:'John Dewey, Nel Noddings, Robin Wall Kimmerer, William James, Amartya Sen' },
+  { name:'The Poetic Empiricist', subtitle:'truth through experience, not abstraction',
+    ideal:{consequence:0.45,individual:0.5,stoic:0.4,pragmatist:0.5,agency:0.45,rationalist:0.2,transcendent:0.8},
+    portrait:'You trust sensation, intuition, and direct experience over pure reason. The world reveals itself through attention, not analysis. You probably learn more from a long walk than a lecture, and you\'re skeptical of anyone who claims to have figured life out from behind a desk.',
+    thinkers:'Motoori Norinaga, Zhuangzi, John Keats, Merleau-Ponty, Robin Wall Kimmerer' },
+  { name:'The Communal Builder', subtitle:'the good life is a collective project',
+    ideal:{consequence:0.7,individual:0.2,stoic:0.45,pragmatist:0.65,agency:0.55,rationalist:0.45,transcendent:0.45},
+    portrait:'You believe the best things are built together. Individual brilliance matters less than the systems we create for each other. Ubuntu runs deep in you: "I am because we are." You\'re probably the person who stays late to clean up, who remembers birthdays, who builds the infrastructure everyone else takes for granted.',
+    thinkers:'Desmond Tutu, John Dewey, Carol Gilligan, Confucius, bell hooks' },
+  { name:'The Philosophical Pluralist', subtitle:'many frameworks, no single allegiance',
+    ideal:{consequence:0.5,individual:0.5,stoic:0.5,pragmatist:0.5,agency:0.5,rationalist:0.5,transcendent:0.5},
     portrait:'You resist being pinned down — not from lack of conviction, but because you\'ve found truth in contradictory positions. You argue both sides not as a debate trick but because you actually see both. This can feel like indecision, but it\'s a rare kind of intellectual honesty. The world isn\'t simple enough for one framework.',
-    thinkers:'Isaiah Berlin, Hannah Arendt, William James, Montaigne, Ibn Arabi' };
+    thinkers:'Isaiah Berlin, Hannah Arendt, William James, Montaigne, Ibn Arabi' }
+];
+
+function getArchetype(n) {
+  // Distance-based matching — find closest archetype profile
+  const axes = Object.keys(AXES);
+  let best = null, bestDist = Infinity;
+  for (const arch of ARCHETYPES) {
+    let dist = 0;
+    for (const axis of axes) {
+      const diff = (n[axis] || 0.5) - arch.ideal[axis];
+      dist += diff * diff;
+    }
+    dist = Math.sqrt(dist);
+    if (dist < bestDist) { bestDist = dist; best = arch; }
+  }
+  return best;
 }
 
 function drawRadar(normalized) {
