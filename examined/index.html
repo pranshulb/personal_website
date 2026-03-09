@@ -1518,8 +1518,8 @@ function selectChoice(idx) {
       <p class="reflection-text">${c.reflection}</p>
       <p class="reflection-philosopher">${c.philosopher}</p>
     </div>
-    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-      ${currentScenario > 0 ? '<button class="btn" onclick="tryGoBack()" style="opacity:0.5">go back</button>' : ''}
+    <div style="display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+      ${currentScenario > 0 ? '<span onclick="tryGoBack()" style="cursor:pointer;opacity:0.25;font-size:1.4rem;padding:0.3rem 0.6rem;user-select:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.4" onmouseout="this.style.opacity=0.25">‹</span>' : ''}
       <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
     </div>
   `;
