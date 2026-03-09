@@ -1518,8 +1518,33 @@ function selectChoice(idx) {
       <p class="reflection-text">${c.reflection}</p>
       <p class="reflection-philosopher">${c.philosopher}</p>
     </div>
-    <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+      ${currentScenario > 0 ? '<button class="btn" onclick="tryGoBack()" style="opacity:0.5">go back</button>' : ''}
+      <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
+    </div>
   `;
+}
+
+let goBackAttempts = 0;
+const goBackMessages = [
+  "philosophy does not permit do-overs. neither does this.",
+  "you chose. the choice is yours now. sit with it.",
+  "Kierkegaard said life can only be understood backwards, but must be lived forwards. keep moving.",
+  "the unexamined choice is not worth revisiting. the examined one doesn't need to be.",
+  "you cannot step into the same river twice — and you cannot unchose what you've already chosen.",
+  "nice try."
+];
+
+function tryGoBack() {
+  const msg = goBackMessages[Math.min(goBackAttempts, goBackMessages.length - 1)];
+  goBackAttempts++;
+  // Show message overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:pointer;padding:2rem;';
+  overlay.innerHTML = '<p style="font-family:EB Garamond,Georgia,serif;font-size:1.3rem;color:#e8e4dc;text-align:center;max-width:500px;line-height:1.8;font-style:italic;">' + msg + '</p>';
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+  setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 4000);
 }
 
 function nextScenario() {
