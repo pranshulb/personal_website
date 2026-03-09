@@ -849,6 +849,7 @@ body {
 <div class="screen" id="scenario-screen">
   <div class="scenario-container">
     <div class="scenario-progress" id="progress"></div>
+    <div id="go-back-arrow"></div>
     <div class="scenario-chapter" id="chapter"></div>
     <div class="scenario-tradition" id="tradition"></div>
     <h2 class="scenario-title" id="title"></h2>
@@ -1474,6 +1475,7 @@ function renderScenario() {
     return `<div class="${c}"></div>`;
   }).join('');
 
+  document.getElementById('go-back-arrow').innerHTML = currentScenario > 0 ? '<span onclick="tryGoBack()" style="cursor:pointer;opacity:0.2;font-size:1.2rem;display:inline-block;margin-bottom:0.5rem;user-select:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.35" onmouseout="this.style.opacity=0.2">←</span>' : '';
   document.getElementById('chapter').textContent = s.chapter;
   document.getElementById('tradition').textContent = s.tradition;
   document.getElementById('title').textContent = s.title;
@@ -1518,10 +1520,7 @@ function selectChoice(idx) {
       <p class="reflection-text">${c.reflection}</p>
       <p class="reflection-philosopher">${c.philosopher}</p>
     </div>
-    <div style="display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
-      ${currentScenario > 0 ? '<span onclick="tryGoBack()" style="cursor:pointer;opacity:0.25;font-size:1.4rem;padding:0.3rem 0.6rem;user-select:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.4" onmouseout="this.style.opacity=0.25">‹</span>' : ''}
-      <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
-    </div>
+    <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
   `;
 }
 
