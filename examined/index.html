@@ -1711,7 +1711,13 @@ async function postToWall(name, archetype) {
     const res = await fetch(WALL_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, archetype })
+      body: JSON.stringify({
+        name,
+        archetype,
+        scores: scores,
+        answers: answers,
+        path: selectedPath
+      })
     });
     return res.ok;
   } catch(e) {

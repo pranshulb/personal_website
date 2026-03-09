@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       const data = await current.json();
       const entries = data.entries || [];
 
-      const { name, archetype } = req.body;
+      const { name, archetype, scores, answers, path } = req.body;
       if (!name || !archetype || typeof name !== 'string' || typeof archetype !== 'string') {
         return res.status(400).json({ error: 'name and archetype required' });
       }
@@ -37,12 +37,19 @@ export default async function handler(req, res) {
       const clean = (s) => s.replace(/[<>&"']/g, '');
 
       const now = new Date();
-      entries.push({
+      const entry = {
         name: clean(name),
         archetype: clean(archetype),
         date: now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         ts: now.getTime()
-      });
+      };
+
+      // Store full quiz data if provided
+      if (scores && typeof scores === 'object') entry.scores = scores;
+      if (answers && Array.isArray(answers)) entry.answers = answers;
+      if (path && typeof path === 'string') entry.path = clean(path);
+
+      entries.push(entry);
 
       const trimmed = entries.slice(-500);
 
