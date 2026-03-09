@@ -527,7 +527,7 @@ body {
 .results-subtitle { font-size: 1rem; font-style: italic; color: var(--text-dim); }
 
 .radar-container { display: flex; justify-content: center; margin: 3rem 0; }
-.radar-svg { width: 340px; height: 340px; }
+.radar-svg { width: 400px; height: 400px; }
 .radar-grid { stroke: var(--text-faint); stroke-width: 0.5; fill: none; opacity: 0.3; }
 .radar-axis { stroke: var(--text-faint); stroke-width: 0.5; opacity: 0.2; }
 .radar-shape { fill: var(--accent); fill-opacity: 0.15; stroke: var(--accent); stroke-width: 2; animation: radarGrow 1s ease forwards; }
@@ -783,7 +783,7 @@ body {
   .screen { padding: 1.5rem; }
   .scenario-title { font-size: 1.3rem; }
   .axes-grid { grid-template-columns: 1fr; }
-  .radar-svg { width: 280px; height: 280px; }
+  .radar-svg { width: 340px; height: 340px; }
   .paths { grid-template-columns: 1fr; }
   .readings-grid { grid-template-columns: 1fr; }
   .community-add { flex-direction: column; }
@@ -860,7 +860,7 @@ body {
       <p class="results-subtitle" id="archetype-sub"></p>
     </div>
     <div class="radar-container">
-      <svg class="radar-svg" id="radar" viewBox="0 0 340 340"></svg>
+      <svg class="radar-svg" id="radar" viewBox="0 0 400 400"></svg>
     </div>
     <div class="axes-grid" id="axes-grid"></div>
     <div class="portrait" id="portrait"></div>
@@ -1649,7 +1649,7 @@ function getArchetype(n) {
 
 function drawRadar(normalized) {
   const svg = document.getElementById('radar');
-  const cx = 170, cy = 170, r = 120;
+  const cx = 200, cy = 200, r = 120;
   const axes = Object.keys(AXES);
   const n = axes.length;
   let html = '';
