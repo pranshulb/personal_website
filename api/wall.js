@@ -2,7 +2,7 @@
 // Uses a simple JSON file approach via Vercel KV-like pattern
 // For simplicity, we use jsonblob as backend but proxy through this to avoid CORS
 
-const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019cbe7f-bfe6-77bf-9e60-d2f0c5aabdba';
+const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019ccfe8-62ea-77c6-9365-621dbecdbdf8';
 
 export default async function handler(req, res) {
   // CORS headers
