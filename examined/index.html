@@ -786,296 +786,51 @@ body {
 }
 
 /* ===== RARITY BADGE ===== */
-.rarity-badge {
-  margin-top: 1.5rem;
-  padding: 0.8rem 1.5rem;
-  background: rgba(201, 168, 76, 0.08);
-  border: 1px solid var(--accent-dim);
-  border-radius: 4px;
-  text-align: center;
-  display: inline-block;
-  animation: rarityFadeIn 0.6s ease 0.3s both;
-}
-
-@keyframes rarityFadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.rarity-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  display: block;
-  margin-bottom: 0.3rem;
-  font-weight: 700;
-}
-
-.rarity-description {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
-  line-height: 1.6;
-}
-
-.rarity-badge[data-rarity="rare"] {
-  border-color: var(--accent);
-  background: rgba(201, 168, 76, 0.12);
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
-}
-
-[data-theme="pink"] .rarity-badge {
-  border: 2px solid var(--accent);
-  border-radius: 2px 8px 2px 12px;
-  box-shadow: 3px 3px 0px var(--accent-dim);
-  background: rgba(196, 68, 122, 0.08);
-}
+.rarity-badge { margin-top:1.5rem; padding:0.8rem 1.5rem; background:rgba(201,168,76,0.08); border:1px solid var(--accent-dim); border-radius:4px; text-align:center; display:inline-block; animation:rarityFadeIn 0.6s ease 0.3s both; }
+@keyframes rarityFadeIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+.rarity-label { font-family:'Space Mono',monospace; font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:0.3rem; font-weight:700; }
+.rarity-description { font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.05em; color:var(--text-dim); line-height:1.6; }
+.rarity-badge[data-rarity="rare"] { border-color:var(--accent); background:rgba(201,168,76,0.12); box-shadow:0 0 20px rgba(201,168,76,0.15); }
+[data-theme="pink"] .rarity-badge { border:2px solid var(--accent); border-radius:2px 8px 2px 12px; box-shadow:3px 3px 0px var(--accent-dim); background:rgba(196,68,122,0.08); }
 
 /* ===== PHILOSOPHER MATCH ===== */
-.philosopher-section {
-  margin: 3rem 0;
-  padding: 2.5rem;
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--surface-2);
-}
-
-.philosopher-title {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  color: var(--accent);
-  letter-spacing: 0.15em;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.philosopher-primary { text-align: center; margin-bottom: 3rem; }
-
-.philosopher-primary-name {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-}
-
-.philosopher-primary-dates {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-}
-
-.philosopher-primary-desc {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 1.1rem;
-  font-style: italic;
-  color: var(--text-dim);
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.philosopher-match-bar {
-  max-width: 400px;
-  margin: 0 auto;
-  height: 32px;
-  background: var(--surface-2);
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-}
-
-.philosopher-match-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  transition: width 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 1rem;
-}
-
-.philosopher-match-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--bg);
-  letter-spacing: 0.05em;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.philosopher-runners { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--surface-2); }
-
-.philosopher-runner-title {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.5rem;
-  color: var(--text-faint);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.philosopher-runners-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-
-.philosopher-runner {
-  padding: 1.5rem;
-  background: var(--bg);
-  border-radius: var(--radius);
-  border: 1px solid var(--surface-2);
-  transition: border-color 0.3s ease;
-}
-
-.philosopher-runner:hover { border-color: var(--accent-dim); }
-
-.philosopher-runner-name {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 0.3rem;
-}
-
-.philosopher-runner-dates {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.5rem;
-  color: var(--text-faint);
-  letter-spacing: 0.05em;
-  margin-bottom: 0.8rem;
-}
-
-.philosopher-runner-desc {
-  font-family: 'EB Garamond', Georgia, serif;
-  font-size: 0.9rem;
-  font-style: italic;
-  color: var(--text-dim);
-  line-height: 1.6;
-  margin-bottom: 0.8rem;
-}
-
-.philosopher-runner-match {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--accent);
-  letter-spacing: 0.05em;
-  font-weight: 700;
-}
-
-[data-theme="pink"] .philosopher-section {
-  border: 2px solid var(--accent);
-  border-radius: 2px 8px 2px 12px;
-  box-shadow: 3px 3px 0px var(--accent-dim);
-}
-
-[data-theme="pink"] .philosopher-runner {
-  border: 2px solid var(--surface-2);
-  border-radius: 4px;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
-  transform: rotate(-0.5deg);
-}
-
-[data-theme="pink"] .philosopher-runner:nth-child(2) { transform: rotate(0.5deg); }
-
-[data-theme="pink"] .philosopher-runner:hover {
-  transform: rotate(0deg) scale(1.02);
-  box-shadow: 3px 3px 0px var(--accent-dim);
-}
+.philosopher-section { margin:3rem 0; padding:2.5rem; background:var(--surface); border-radius:var(--radius); border:1px solid var(--surface-2); }
+.philosopher-title { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--accent); letter-spacing:0.15em; margin-bottom:2rem; text-align:center; }
+.philosopher-primary { text-align:center; margin-bottom:3rem; }
+.philosopher-primary-name { font-family:'EB Garamond',Georgia,serif; font-size:2rem; font-weight:600; color:var(--text); margin-bottom:0.5rem; }
+.philosopher-primary-dates { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--text-dim); letter-spacing:0.1em; margin-bottom:1rem; }
+.philosopher-primary-desc { font-family:'EB Garamond',Georgia,serif; font-size:1.1rem; font-style:italic; color:var(--text-dim); line-height:1.7; margin-bottom:1.5rem; max-width:500px; margin-left:auto; margin-right:auto; }
+.philosopher-match-bar { max-width:400px; margin:0 auto; height:32px; background:var(--surface-2); border-radius:16px; overflow:hidden; }
+.philosopher-match-fill { height:100%; background:linear-gradient(90deg,var(--accent-dim),var(--accent)); transition:width 1.5s cubic-bezier(0.4,0.0,0.2,1); display:flex; align-items:center; justify-content:flex-end; padding-right:1rem; }
+.philosopher-match-label { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--bg); letter-spacing:0.05em; font-weight:700; white-space:nowrap; }
+.philosopher-runners { margin-top:2rem; padding-top:2rem; border-top:1px solid var(--surface-2); }
+.philosopher-runner-title { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--text-faint); letter-spacing:0.15em; text-transform:uppercase; text-align:center; margin-bottom:1.5rem; }
+.philosopher-runners-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.philosopher-runner { padding:1.5rem; background:var(--bg); border-radius:var(--radius); border:1px solid var(--surface-2); transition:border-color 0.3s ease; }
+.philosopher-runner:hover { border-color:var(--accent-dim); }
+.philosopher-runner-name { font-family:'EB Garamond',Georgia,serif; font-size:1.3rem; font-weight:500; color:var(--text); margin-bottom:0.3rem; }
+.philosopher-runner-dates { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--text-faint); letter-spacing:0.05em; margin-bottom:0.8rem; }
+.philosopher-runner-desc { font-family:'EB Garamond',Georgia,serif; font-size:0.9rem; font-style:italic; color:var(--text-dim); line-height:1.6; margin-bottom:0.8rem; }
+.philosopher-runner-match { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--accent); letter-spacing:0.05em; font-weight:700; }
+[data-theme="pink"] .philosopher-section { border:2px solid var(--accent); border-radius:2px 8px 2px 12px; box-shadow:3px 3px 0px var(--accent-dim); }
+[data-theme="pink"] .philosopher-runner { border:2px solid var(--surface-2); border-radius:4px; box-shadow:2px 2px 0px rgba(0,0,0,0.05); transform:rotate(-0.5deg); }
+[data-theme="pink"] .philosopher-runner:nth-child(2) { transform:rotate(0.5deg); }
+[data-theme="pink"] .philosopher-runner:hover { transform:rotate(0deg) scale(1.02); box-shadow:3px 3px 0px var(--accent-dim); }
 
 /* ===== CONSISTENCY CHECK ===== */
-.consistency-section {
-  margin: 3rem 0;
-  padding: 2rem;
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--surface-2);
-}
-
-.consistency-header { text-align: center; margin-bottom: 2rem; }
-
-.consistency-title {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  color: var(--accent);
-  letter-spacing: 0.15em;
-  margin-bottom: 0.5rem;
-}
-
-.consistency-score {
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 0.5rem;
-}
-
-.consistency-bar {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  color: var(--text-faint);
-  letter-spacing: 0.5em;
-  margin-bottom: 0.5rem;
-}
-
-.consistency-message {
-  font-size: 1rem;
-  color: var(--text-dim);
-  font-style: italic;
-}
-
-.consistency-observation {
-  background: var(--bg);
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  border-left: 3px solid var(--accent);
-  margin-top: 1rem;
-}
-
-.consistency-observation-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.5rem;
-  color: var(--text-faint);
-  letter-spacing: 0.1em;
-  margin-bottom: 0.8rem;
-  text-transform: uppercase;
-}
-
-.consistency-observation-text {
-  font-size: 1rem;
-  color: var(--text-dim);
-  line-height: 1.8;
-  margin: 0;
-}
-
-.consistency-footer {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--surface-2);
-}
-
-.consistency-footer p {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.5rem;
-  color: var(--text-faint);
-  letter-spacing: 0.05em;
-  line-height: 1.6;
-}
-
-[data-theme="pink"] .consistency-section {
-  border: 2px solid var(--accent);
-  border-radius: 2px 8px 2px 12px;
-  box-shadow: 3px 3px 0px var(--accent-dim);
-}
-
-[data-theme="pink"] .consistency-observation {
-  border-left: 3px solid var(--accent);
-  background: rgba(255,192,203,0.1);
-}
+.consistency-section { margin:3rem 0; padding:2rem; background:var(--surface); border-radius:var(--radius); border:1px solid var(--surface-2); }
+.consistency-header { text-align:center; margin-bottom:2rem; }
+.consistency-title { font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--accent); letter-spacing:0.15em; margin-bottom:0.5rem; }
+.consistency-score { font-size:2.5rem; font-weight:600; color:var(--text); margin-bottom:0.5rem; }
+.consistency-bar { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--text-faint); letter-spacing:0.5em; margin-bottom:0.5rem; }
+.consistency-message { font-size:1rem; color:var(--text-dim); font-style:italic; }
+.consistency-observation { background:var(--bg); padding:1.5rem; border-radius:var(--radius); border-left:3px solid var(--accent); margin-top:1rem; }
+.consistency-observation-label { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--text-faint); letter-spacing:0.1em; margin-bottom:0.8rem; text-transform:uppercase; }
+.consistency-observation-text { font-size:1rem; color:var(--text-dim); line-height:1.8; margin:0; }
+.consistency-footer { margin-top:2rem; padding-top:2rem; border-top:1px solid var(--surface-2); }
+.consistency-footer p { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--text-faint); letter-spacing:0.05em; line-height:1.6; }
+[data-theme="pink"] .consistency-section { border:2px solid var(--accent); border-radius:2px 8px 2px 12px; box-shadow:3px 3px 0px var(--accent-dim); }
+[data-theme="pink"] .consistency-observation { border-left:3px solid var(--accent); background:rgba(255,192,203,0.1); }
 
 @media (max-width: 600px) {
   html { font-size: 16px; }
@@ -1143,7 +898,6 @@ body {
 <div class="screen" id="scenario-screen">
   <div class="scenario-container">
     <div class="scenario-progress" id="progress"></div>
-    <div id="go-back-arrow"></div>
     <div class="scenario-chapter" id="chapter"></div>
     <div class="scenario-tradition" id="tradition"></div>
     <h2 class="scenario-title" id="title"></h2>
@@ -1234,69 +988,80 @@ const WALL_API = '/api/wall';
 const READINGS = {
   'The Examined Stoic': [
     { title:'Meditations', author:'Marcus Aurelius', why:'The original field manual for maintaining inner calm while the world burns around you.' },
-    { title:'Letters from a Stoic', author:'Seneca', why:'Practical Stoicism for everyday life — more accessible and human than you\'d expect from a Roman senator.' },
-    { title:'The Myth of Sisyphus', author:'Albert Camus', why:'If the rock never stays at the top, what makes the push worthwhile? Camus\'s answer will reframe how you think about effort.' },
+    { title:'Courage Under Fire', author:'James Stockdale', why:'A POW who survived seven years in Hanoi using Epictetus. Stoicism tested to its absolute limit.' },
+    { title:'Stoic Warriors', author:'Nancy Sherman', why:'How modern military culture accidentally rediscovered ancient Stoic philosophy. Surprisingly moving.' },
     { title:'Gravity and Grace', author:'Simone Weil', why:'A mystic\'s Stoicism — attention as the highest form of generosity, suffering as a path to clarity.' },
+    { title:'The Book of Five Rings', author:'Miyamoto Musashi', why:'Japanese bushido meets Stoic discipline. Written by a swordsman the night before his death.' },
   ],
   'The Reluctant Utilitarian': [
-    { title:'Practical Ethics', author:'Peter Singer', why:'The book that launched effective altruism. Rigorous, uncomfortable, necessary.' },
-    { title:'The Life You Can Save', author:'Peter Singer', why:'A more accessible entry point — what does ethics actually demand of us in a world of extreme inequality?' },
+    { title:'Strangers Drowning', author:'Larissa MacFarquhar', why:'Profiles of extreme altruists. What happens when you take utilitarian logic all the way — beautiful, disturbing, essential.' },
     { title:'Reasons and Persons', author:'Derek Parfit', why:'Mind-bending work on identity and ethics. Will permanently change how you think about future people.' },
+    { title:'Poor Economics', author:'Abhijit Banerjee & Esther Duflo', why:'Nobel-winning development economics that wrestles with what actually helps — not what feels like helping.' },
+    { title:'Winners Take All', author:'Anand Giridharadas', why:'The sharp critique of doing-good-while-doing-well. A mirror for reluctant utilitarians who benefit from the system they want to fix.' },
     { title:'In a Different Voice', author:'Carol Gilligan', why:'A counterweight to pure calculation — what gets lost when we reduce ethics to arithmetic.' },
   ],
   'The Existential Pragmatist': [
-    { title:'Pragmatism', author:'William James', why:'Philosophy as a tool for living, not a puzzle to solve. James writes like your smartest friend explaining the world over coffee.' },
+    { title:'The World Beyond Your Head', author:'Matthew Crawford', why:'Motorcycle repair as existential practice. Why working with your hands is a philosophical act.' },
     { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Freedom isn\'t just a right — it\'s a responsibility. de Beauvoir on what it means to act in an uncertain world.' },
     { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that reads like absurdist comedy. The butterfly dream alone is worth the price of entry.' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous pragmatism — truth arrived at through doing, making, and reciprocal relationship with the living world.' },
     { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A pragmatist\'s guide to mortality — stop optimizing time and start living in it.' },
   ],
   'The Relational Existentialist': [
     { title:'I and Thou', author:'Martin Buber', why:'The foundational text on what it means to truly encounter another person. Short, dense, life-altering.' },
     { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Morality as attention — seeing others clearly is the hardest and most important philosophical work.' },
     { title:'All About Love', author:'bell hooks', why:'Love as a practice of freedom. hooks dismantles romantic myths and builds something more honest in their place.' },
-    { title:'Totality and Infinity', author:'Emmanuel Levinas', why:'Dense but rewarding — ethics begins with the face of the Other. Changes how you think about responsibility.' },
+    { title:'Philosophy and an African Intellectual Culture', author:'Kwasi Wiredu', why:'Akan communal philosophy — personhood as co-created through relationship, not granted at birth.' },
+    { title:'Relational Being', author:'Kenneth Gergen', why:'Relational psychotherapy meets philosophy — the self as process, not thing. Changes how you understand connection.' },
   ],
   'The Radical Individualist': [
     { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s wild, poetic manifesto for becoming who you are. Not a self-help book — something stranger and better.' },
-    { title:'On Liberty', author:'John Stuart Mill', why:'The clearest case ever made for individual freedom. Still the foundation of liberal thought.' },
-    { title:'Walden', author:'Henry David Thoreau', why:'What happens when you actually try to live by your principles. Part nature writing, part philosophical experiment.' },
+    { title:'The Complete Works of Zhuangzi', author:'Zhuangzi (trans. Burton Watson)', why:'Daoist freedom — the sage wanders without purpose and finds everything. Individualism without ego.' },
+    { title:'Narrative of the Life of Frederick Douglass', author:'Frederick Douglass', why:'Self-liberation as philosophy. Douglass didn\'t just escape slavery — he thought his way to freedom.' },
     { title:'Sister Outsider', author:'Audre Lorde', why:'Radical individuality as survival and resistance. Lorde\'s essays burn with clarity.' },
+    { title:'Cruising Utopia', author:'José Esteban Muñoz', why:'Queer futurity — imagining selves and worlds that don\'t exist yet. Individualism as radical possibility.' },
   ],
   'The Contemplative Mystic': [
     { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s translation captures the poetry. 81 short chapters that say more than most 500-page books.' },
-    { title:'The Bezels of Wisdom', author:'Ibn Arabi', why:'Sufi mysticism at its most ambitious — each prophet as a facet of divine truth. Demands slow reading.' },
-    { title:'Tractatus Logico-Philosophicus', author:'Ludwig Wittgenstein', why:'Logic pushed to its absolute limit — until it breaks into silence. The ending will haunt you.' },
-    { title:'Siddhartha', author:'Hermann Hesse', why:'A novel about enlightenment that reads like a river. Hesse translates Buddhist philosophy into something you can feel.' },
+    { title:'The Essential Rumi', author:'Rumi (trans. Coleman Barks)', why:'Sufi ecstasy in English. "Out beyond ideas of wrongdoing and rightdoing there is a field. I\'ll meet you there."' },
+    { title:'I Am That', author:'Nisargadatta Maharaj', why:'Advaita Vedanta in dialogue form. A Mumbai shopkeeper dismantles the self with terrifying precision.' },
+    { title:'The Cloud of Unknowing', author:'Anonymous (14th century)', why:'Christian mysticism stripped to its core: God is found in darkness, not knowledge. Apophatic theology at its most honest.' },
+    { title:'Waking Up', author:'Sam Harris', why:'Contemplative neuroscience — meditation without religion. The mystic tradition meets empirical investigation.' },
   ],
   'The Philosophical Warrior': [
     { title:'The Deliverer from Error', author:'Al-Ghazali', why:'A scholar at the peak of his career demolishes his own framework because truth demanded it. Autobiography as philosophy.' },
-    { title:'Apology', author:'Plato', why:'Socrates on trial for his life, explaining why the examined life is worth dying for. Still electric after 2,400 years.' },
-    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming. Changed the word "paradigm" forever.' },
+    { title:'The Incoherence of the Philosophers', author:'Ibn Rushd (Averroes)', why:'Islamic philosophy\'s greatest debate — reason vs revelation, fought at the highest intellectual level.' },
     { title:'The Second Sex', author:'Simone de Beauvoir', why:'Courageous, systematic, world-changing. de Beauvoir dismantles centuries of assumptions with surgical precision.' },
+    { title:'Your Silence Will Not Protect You', author:'Audre Lorde', why:'Intellectual courage as survival. "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less important whether I am afraid."' },
+    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming.' },
   ],
   'The Practical Philosopher': [
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous wisdom meets botanical science. Kimmerer shows how reciprocity with the land is both ancient and urgently modern.' },
-    { title:'Caring: A Relational Approach to Ethics', author:'Nel Noddings', why:'Ethics grounded in actual human relationships rather than abstract principles. Quietly revolutionary.' },
-    { title:'The Public and Its Problems', author:'John Dewey', why:'Democracy as a lived practice, not just a system. Dewey\'s vision of collective intelligence still feels radical.' },
+    { title:'Permaculture: Principles and Pathways Beyond Sustainability', author:'David Holmgren', why:'Design philosophy disguised as agriculture. Ethics embedded in how you arrange a garden.' },
+    { title:'Pedagogy of the Oppressed', author:'Paulo Freire', why:'Education as liberation. The most practical radical philosophy ever written — still changing classrooms worldwide.' },
     { title:'Development as Freedom', author:'Amartya Sen', why:'Economics meets philosophy — freedom isn\'t just a value, it\'s the actual mechanism of human development.' },
+    { title:'The Hind Swaraj', author:'Mahatma Gandhi', why:'Self-rule as philosophy. Gandhi\'s practical ethics — satyagraha as a way of being, not just a tactic.' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous wisdom meets botanical science. Reciprocity with the land as both ancient practice and urgent philosophy.' },
   ],
   'The Poetic Empiricist': [
-    { title:'The Inner Chapters', author:'Zhuangzi', why:'Philosophy as playful storytelling. The Cook Ding chapter alone is a masterclass in embodied knowledge.' },
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.' },
+    { title:'Landmarks', author:'Robert Macfarlane', why:'Language shapes what we can see in landscape. Macfarlane recovers words for experiences you\'ve had but couldn\'t name.' },
+    { title:'An Immense World', author:'Ed Yong', why:'Animal perception as philosophy — what does the world look like through a bee\'s compound eye? Changes your sense of reality.' },
+    { title:'The Heart of Haiku', author:'Jane Hirshfield', why:'Bashō as philosopher. Seventeen syllables can hold more truth than a treatise.' },
     { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Your body knows things your mind doesn\'t. Merleau-Ponty on how perception shapes reality.' },
-    { title:'Selected Letters', author:'John Keats', why:'Negative capability, beauty as truth — Keats\'s letters contain more philosophical insight than most treatises.' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.' },
   ],
   'The Communal Builder': [
+    { title:'Mutual Aid', author:'Dean Spade', why:'Solidarity not charity. How communities take care of each other when institutions fail — practical, urgent, now.' },
     { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Ubuntu in action — how South Africa chose restoration over retribution. A blueprint for collective healing.' },
-    { title:'The Analects', author:'Confucius', why:'Virtue as social practice. 2,500 years old and still the best guide to leading by example.' },
-    { title:'All About Love', author:'bell hooks', why:'Community starts with how we love. hooks rebuilds the concept from the ground up.' },
-    { title:'In a Different Voice', author:'Carol Gilligan', why:'The ethics of care as a legitimate moral framework — not a footnote to justice theory.' },
+    { title:'Governing the Commons', author:'Elinor Ostrom', why:'Nobel-winning proof that communities can manage shared resources without privatization or state control.' },
+    { title:'The Dispossessed', author:'Ursula K. Le Guin', why:'A novel about an anarchist mutual-aid society. The best thought experiment on communal living ever written.' },
+    { title:'A Psalm for the Wild-Built', author:'Becky Chambers', why:'Solarpunk fiction — what does a society look like when it\'s actually organized around care? Gentle and radical.' },
   ],
   'The Philosophical Pluralist': [
-    { title:'The Hedgehog and the Fox', author:'Isaiah Berlin', why:'Are you one big idea or many small ones? Berlin\'s famous essay on intellectual temperament.' },
-    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.' },
+    { title:'Taking Back Philosophy', author:'Bryan Van Norden', why:'The case for multicultural philosophy. Why limiting "philosophy" to the Western canon is intellectually bankrupt.' },
     { title:'Essays', author:'Michel de Montaigne', why:'The original essayist — curious about everything, certain about nothing. Your intellectual ancestor.' },
-    { title:'Pragmatism', author:'William James', why:'Truth as what works. James makes the case for philosophical flexibility with wit and rigor.' },
+    { title:'Range', author:'David Epstein', why:'Why generalists triumph in a specialized world. The pluralist\'s manifesto backed by research.' },
+    { title:'Cloud Atlas', author:'David Mitchell', why:'Six nested narratives across centuries, each with its own epistemology. A novel that embodies philosophical pluralism.' },
+    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.' },
   ],
 };
 
@@ -1684,6 +1449,132 @@ const SCENARIOS = [
         philosopher:'bell hooks, All About Love' }
     ]
   },
+  {
+    chapter: 'XIX — cosmic order',
+    tradition: 'Maat (Egyptian Ethics)',
+    title: 'The Whistleblower\'s Weight',
+    body: `The documents spread across your desk tell a story you wish you didn't understand. For six months you've been the compliance officer at a mid-sized pharmaceutical company, and for six months you've filed the reports, signed the certifications, assured yourself that the numbers added up. They did add up—technically. But tonight, cross-referencing manufacturing logs with distribution records, you've found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls—not dangerous, probably, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. The same active ingredient, the same name, but not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will say it's a resource allocation issue. And they won't be entirely lying—the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order—not as abstractions but as weight. Your heart feels heavy tonight, and you don't think it's just stress.`,
+    question: 'What do you do?',
+    choices: [
+      { label:'a', text:'Report the findings through official channels and let the investigation unfold, trusting that bringing the truth to light restores balance regardless of personal consequences.',
+        scores: {consequence:-2, individual:-1, stoic:1, pragmatist:-2, agency:2, transcendent:2},
+        reflection:'You choose to align with Maat—cosmic truth and order—over social convenience. The question isn\'t whether speaking truth is strategically wise; it\'s whether you can face the weighing with a heart light enough to match the feather.',
+        philosopher:'Book of the Dead, The 42 Negative Confessions' },
+      { label:'b', text:'Document everything meticulously, secure the evidence, then resign and find a position where you can advocate for stronger industry regulations without targeting this specific company.',
+        scores: {consequence:1, individual:0, stoic:0, pragmatist:2, agency:1, rationalist:2, transcendent:-1},
+        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too—the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
+        philosopher:'Ptahhotep, The Maxims' },
+      { label:'c', text:'Bring the evidence to the executive team directly, giving them a private opportunity to correct the imbalance before it becomes public, trusting that restoration matters more than punishment.',
+        scores: {consequence:0, individual:-1, stoic:2, pragmatist:0, agency:0, rationalist:1, transcendent:2},
+        reflection:'You choose the path of restorative rather than retributive justice. In the Egyptian tradition, Maat isn\'t primarily about punishment—it\'s about restoration of cosmic balance. You give those who created the imbalance a chance to correct it, to lighten their own hearts before the weighing.',
+        philosopher:'Merikare, Teachings for a King' }
+    ]
+  },
+  {
+    chapter: 'XX — communal self',
+    tradition: 'Ubuntu (Southern African Ethics)',
+    title: 'The Inheritance Interview',
+    body: `The email from TechVenture Capital arrives on a Tuesday morning, and for a moment you just stare at the subject line: "Partner Track—Final Interview." You've been working toward this for five years—maybe your whole life, if you're honest. But you didn't build this alone. Your business partner—your college roommate who took a salary cut to join you when the company was just a fever dream and a maxed-out credit card—will be pushed out if you take this role. The fund made it clear: they want you, not both of you. They see you as the visionary; they see them as "operational overhead." You know that's bullshit. Every breakthrough you had, you had together. Every crisis you survived, they were the one who kept the ship from sinking while you were busy being the face of the company. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em>—a person is a person through other people. The success TechVenture wants to reward isn't divisible from the partnership that created it. To claim it as solely yours would be factually wrong. But it's also how the world works, isn't it?`,
+    question: 'Your finger hovers over the reply button. What do you write?',
+    choices: [
+      { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture—honoring the relationship while moving forward.',
+        scores: {consequence:1, individual:2, stoic:0, pragmatist:2, agency:1, rationalist:2, transcendent:-1},
+        reflection:'You try to have it both ways: individual advancement and communal recognition. Ubuntu would ask: does this actually honor interconnectedness, or does it just ease your conscience while accepting atomization?',
+        philosopher:'Kwame Gyekye, Tradition and Modernity' },
+      { label:'b', text:'Decline the individual offer and propose a joint partnership role, making it clear that the success they want to invest in was never separable from the collaboration that created it.',
+        scores: {consequence:-1, individual:-2, stoic:2, pragmatist:-2, agency:2, transcendent:2},
+        reflection:'You refuse the premise. Ubuntu says "I am because we are"—your identity, your achievement, your very personhood is constituted through relationship. To accept the role alone would be to accept a lie about the nature of reality.',
+        philosopher:'Desmond Tutu, No Future Without Forgiveness' },
+      { label:'c', text:'Take the meeting but use it as leverage to find better terms for the partnership—a larger valuation, better investor alignment—then stay with the company you built together.',
+        scores: {consequence:1, individual:0, stoic:1, pragmatist:2, agency:2, rationalist:2, transcendent:1},
+        reflection:'You convert individual opportunity into collective benefit. This is Ubuntu in practice: you redirect recognition back toward the "we." Your grandmother might smile at this—not self-abnegation, not guilt-managed individualism, but the practical wisdom of staying rooted while navigating a world that wants to uproot you.',
+        philosopher:'Augustine Shutte, Ubuntu: An Ethic for a New South Africa' }
+    ]
+  },
+  {
+    chapter: 'XXI — sacred waters',
+    tradition: 'Buen Vivir (Andean Philosophy)',
+    title: 'The River\'s Memory',
+    body: `You are the community liaison for a mining company that wants to extract lithium from a valley in the Bolivian altiplano, and the river that runs through it has a name you keep forgetting to use, because in your reports it is simply "Waterway B-7." The indigenous community of three hundred people who have lived along its banks for centuries do not call it a waterway; they call it by a name that translates roughly as "the one who remembers," because in their cosmology the river carries the memory of everyone who has ever drunk from it, bathed in it, or been buried within earshot of its current. The lithium beneath the valley floor would power batteries for electric vehicles across three continents, and the company has offered the community new housing, jobs in the mine, a school, a medical clinic—everything that development economics would call a generous package. The community has said no, not because the offer is inadequate but because the premise is unacceptable: you cannot compensate someone for the loss of a relative, and the river is a relative. You have spent enough time here to understand that this is not metaphor. The question before you is not whether to override their refusal—that decision belongs to people above your pay grade—but what to write in your report.`,
+    question: 'What do you recommend?',
+    choices: [
+      { label:'a', text:'Recommend proceeding with enhanced compensation. The climate crisis demands sacrifice, and the lithium will prevent suffering on a scale the community cannot see from here.',
+        scores: {consequence:2, individual:-1, pragmatist:0, transcendent:-2, rationalist:1},
+        reflection:'You choose the utilitarian calculus: aggregate suffering reduction outweighs local displacement. But buen vivir would ask whether a worldview that treats rivers as resources and communities as obstacles is the kind of thinking that created the climate crisis in the first place.',
+        philosopher:'Peter Singer, The Life You Can Save' },
+      { label:'b', text:'Recommend halting the project. Some things cannot be weighed on a cost-benefit scale, and a river that carries the memory of a people is one of them.',
+        scores: {consequence:-2, transcendent:2, agency:-1, individual:-1, rationalist:-1, stoic:1},
+        reflection:'You refuse the extractive logic entirely. Buen vivir—sumak kawsay—holds that the good life is not accumulation but harmony, that Pachamama has rights that precede human convenience. The river is not a resource to be compensated for; it is a being whose existence is non-negotiable.',
+        philosopher:'Eduardo Gudynas, Buen Vivir' },
+      { label:'c', text:'Recommend a third option: the community retains guardianship of the river and receives ownership stakes in the mining operation, ensuring extraction happens on their terms if it happens at all.',
+        scores: {pragmatist:2, consequence:0, agency:1, individual:-1, transcendent:1, rationalist:0},
+        reflection:'You try to build a bridge between two worldviews. The community\'s relationship to the river is preserved in legal form; the global need for lithium is acknowledged. It\'s imperfect—guardianship is a Western legal concept grafted onto a relationship that predates Western law—but it\'s an attempt to honor both realities.',
+        philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
+    ]
+  },
+  {
+    chapter: 'XXII — liberation',
+    tradition: 'Freire (Latin American Pedagogy)',
+    title: 'The Banking Hours',
+    body: `You teach philosophy at a secondary school in a neighbourhood where most of your students will be the first in their families to sit an exam that could change the trajectory of their lives, and the pressure from the administration is simple and unambiguous: raise the pass rate by fifteen percent or the programme gets cut. You know exactly how to do it—drill the mark schemes, teach to the test, turn your classroom into what Paulo Freire called the banking model of education, where knowledge is deposited into passive recipients who store it long enough to reproduce it on demand and then forget it entirely. It works, in the narrow sense that numbers go up on spreadsheets that matter to people who will never meet your students. But you also know what happens in your classroom when you abandon the script: when you ask your students not what Plato said but whether they agree with him, when you let a fifteen-year-old from a council estate argue with Aristotle about justice and <em>win</em>. Something comes alive in the room that no mark scheme can measure—what Freire called conscientização, the moment when a person realizes they are not merely an object being acted upon by the world but a subject capable of acting upon it. The administration doesn't care about conscientização. They care about pass rates, funding metrics, league tables.`,
+    question: 'How do you teach?',
+    choices: [
+      { label:'a', text:'Teach to the test. These students need qualifications more than they need consciousness-raising, and idealism that costs them their futures is just another form of privilege.',
+        scores: {consequence:2, pragmatist:2, individual:0, agency:-1, transcendent:-2, rationalist:1},
+        reflection:'You choose the pragmatic path: credentials open doors, and doors matter more than classroom epiphanies for students whose margins are thin. Freire would say you\'re reproducing the system. You\'d say you\'re giving them the tools to survive it first.',
+        philosopher:'Amartya Sen, Development as Freedom' },
+      { label:'b', text:'Teach for liberation. If education doesn\'t awaken critical consciousness, it\'s just a more sophisticated form of domestication. The pass rate will follow if the thinking is real.',
+        scores: {consequence:-1, pragmatist:-2, agency:2, transcendent:2, individual:-1, rationalist:-1},
+        reflection:'You refuse to separate education from liberation. Freire argued that the banking model serves the oppressor—it produces compliant workers, not free thinkers. You\'re betting that students who learn to think critically will also learn to pass exams, but that\'s genuinely a bet, and the stakes are their futures.',
+        philosopher:'Paulo Freire, Pedagogy of the Oppressed' },
+      { label:'c', text:'Build the exam prep into Socratic dialogue—teach the content through questioning, use the mark scheme as raw material for critical analysis rather than rote memorization.',
+        scores: {pragmatist:1, agency:1, consequence:1, rationalist:1, transcendent:0, individual:0},
+        reflection:'You try to smuggle liberation inside the system\'s container. Use the exam as the text; let the students interrogate it rather than merely absorb it. It\'s harder to execute than either pure approach, and it requires you to hold two contradictory things at once—which is, perhaps, its own kind of philosophical education.',
+        philosopher:'bell hooks, Teaching to Transgress' }
+    ]
+  },
+  {
+    chapter: 'XXIII — deep listening',
+    tradition: 'Dadirri (Aboriginal Australian Philosophy)',
+    title: 'The Listening',
+    body: `You are an environmental scientist asked to assess whether a patch of old-growth forest should be cleared for affordable housing, and you have spent three weeks gathering data—soil samples, biodiversity indexes, carbon sequestration rates, water table measurements—all of which point, with varying degrees of confidence, toward the conclusion that the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder, whose people have been custodians of this land for tens of thousands of years, asks if you would like to sit with her in the forest for a morning before you write your report. You almost say no—you have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes, and what happens over the next four hours changes something you don't yet have language for. She doesn't lecture you or argue with your findings. She simply sits, and after a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way the light moves through the canopy in patterns that suggest relationships between species your survey didn't capture, a feeling—unscientific, unmeasurable, but unmistakable—that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri: deep listening, the kind that requires you to be quiet long enough for the land itself to speak.`,
+    question: 'You sit down to write your report. What do you say?',
+    choices: [
+      { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
+        scores: {rationalist:2, pragmatist:1, consequence:1, transcendent:-2, individual:0, agency:1},
+        reflection:'You separate the personal from the professional. Your instruments measured what can be measured; the rest is poetry, not policy. But dadirri would ask whether your instruments are even asking the right questions—whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
+        philosopher:'Francis Bacon, Novum Organum' },
+      { label:'b', text:'Recommend against clearing. Something in the forest resists your categories, and intellectual honesty demands acknowledging what your methodology cannot capture.',
+        scores: {transcendent:2, rationalist:-2, agency:-1, individual:-1, consequence:-1, stoic:1},
+        reflection:'You let the experience change your conclusion. This is not anti-science—it\'s an acknowledgment that science has boundaries, that some knowledge arrives through presence rather than measurement. Dadirri suggests that the deepest understanding comes from listening so carefully that the distinction between observer and observed dissolves.',
+        philosopher:'Miriam-Rose Ungunmerr, Inner Deep Listening' },
+      { label:'c', text:'Report the data but include a supplementary section on indigenous ecological knowledge, recommending that traditional custodians be given co-governance over any development decision.',
+        scores: {pragmatist:1, transcendent:1, consequence:0, agency:1, rationalist:0, individual:-1},
+        reflection:'You try to hold both ways of knowing at once—Western empiricism and indigenous deep listening—in a single document. It\'s an imperfect bridge between epistemologies, but it refuses to let either one erase the other. The question is whether the system that reads your report has the capacity to hear both voices.',
+        philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
+    ]
+  },
+  {
+    chapter: 'XXIV — reciprocity',
+    tradition: 'Indigenous Reciprocity (Potawatomi/Kimmerer)',
+    title: 'The Patent',
+    body: `A decade ago, while conducting ethnobotanical fieldwork in a rural community, an elder showed you a plant preparation that her grandmother had taught her, which her grandmother's grandmother had taught before that—a chain of knowledge stretching back further than anyone could remember. You were studying traditional ecological knowledge for your PhD, and the elder shared this freely, in the spirit of what Robin Wall Kimmerer calls the gift economy: knowledge given not as transaction but as relationship, carrying with it the obligation of reciprocity and the understanding that gifts must keep moving. You published your findings (with attribution, with consent), and a pharmaceutical company read your paper, synthesized the active compound, and developed a treatment that is now helping hundreds of thousands of people with a chronic inflammatory condition. The company is now filing a patent, and they have offered you a consultancy fee and co-inventor credit. The elder and her community have been offered nothing, because traditional knowledge, in the eyes of patent law, belongs to no one. The company's lawyers explain that you cannot patent what was already "publicly known," and that the community's knowledge was, legally speaking, in the public domain the moment you published it. You understand the legal logic, and you also understand that it is built on a foundation that the elder would find incomprehensible: the idea that knowledge can be owned, that sharing it freely means losing it, that the gift economy is just another word for the commons waiting to be enclosed.`,
+    question: 'The company asks for your signature on the patent application. What do you do?',
+    choices: [
+      { label:'a', text:'Sign it. The treatment helps people, and walking away won\'t change the system. Use the consultancy money to fund projects in the elder\'s community.',
+        scores: {consequence:2, pragmatist:1, individual:1, transcendent:-2, agency:0, rationalist:0},
+        reflection:'You work within the system as it exists. The treatment is real, the suffering it alleviates is real, and your refusal won\'t undo the patent—someone else will sign. But Kimmerer would ask: does this perpetuate the very logic that made the theft possible? Are you keeping the gift moving, or are you helping to enclose it?',
+        philosopher:'William MacAskill, Doing Good Better' },
+      { label:'b', text:'Refuse to sign and publicly advocate for the elder\'s community to receive recognition and ongoing royalties, even if it delays or jeopardizes the treatment\'s availability.',
+        scores: {individual:-1, agency:2, transcendent:1, consequence:-1, pragmatist:-2, rationalist:1, stoic:1},
+        reflection:'You refuse to participate in the enclosure of the gift. The treatment matters, but so does the principle that knowledge shared in relationship carries obligations that patent law does not recognize. You\'re asking the system to accommodate a worldview it was not designed for.',
+        philosopher:'Vandana Shiva, Biopiracy' },
+      { label:'c', text:'Negotiate a benefit-sharing agreement where the community receives a percentage of revenues and co-governance over how the knowledge is used, then sign.',
+        scores: {pragmatist:2, consequence:1, transcendent:0, agency:1, individual:-1, rationalist:1},
+        reflection:'You try to retrofit reciprocity onto a transactional system. It\'s not the gift economy—it\'s a compromise that acknowledges the elder\'s contribution in the only language the system understands: money and legal agreements. Imperfect, but it creates a precedent. The question Kimmerer might ask: is this reciprocity, or is it just a more polite form of extraction?',
+        philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
+    ]
+  },
 ];
 
 // ===== SAVE/LOAD =====
@@ -1772,7 +1663,6 @@ function renderScenario() {
     return `<div class="${c}"></div>`;
   }).join('');
 
-  document.getElementById('go-back-arrow').innerHTML = currentScenario > 0 ? '<span onclick="tryGoBack()" style="cursor:pointer;opacity:0.2;font-size:1.2rem;display:inline-block;margin-bottom:0.5rem;user-select:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.35" onmouseout="this.style.opacity=0.2">←</span>' : '';
   document.getElementById('chapter').textContent = s.chapter;
   document.getElementById('tradition').textContent = s.tradition;
   document.getElementById('title').textContent = s.title;
@@ -1821,34 +1711,6 @@ function selectChoice(idx) {
   `;
 }
 
-let goBackAttempts = 0;
-const goBackMessages = [
-  "philosophy does not permit do-overs. neither does this.",
-  "you chose. the choice is yours now. sit with it.",
-  "Kierkegaard wrote that life can only be understood backwards, but must be lived forwards.",
-  "Heraclitus would remind you: you cannot step into the same river twice.",
-  "the unexamined choice is not worth revisiting. the examined one doesn't need to be.",
-  "Sartre called this radical freedom — you are condemned to choose, and the choice is already made.",
-  "the Stoics trained for this. what is done belongs to fate. what comes next belongs to you.",
-  "Simone Weil: 'attention is the rarest and purest form of generosity.' attend to what is ahead.",
-  "in Zen, they call this beginner's mind — but even a beginner cannot unring a bell.",
-  "Montaigne spent his life revising his essays. he never once revised a decision.",
-  "the Bhagavad Gita says: you have a right to your actions, but never to their fruits. you acted.",
-  "Camus pushed the boulder uphill. he did not ask to push it back down.",
-  "nice try."
-];
-
-function tryGoBack() {
-  const msg = goBackMessages[Math.min(goBackAttempts, goBackMessages.length - 1)];
-  goBackAttempts++;
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:pointer;padding:2rem;';
-  overlay.innerHTML = '<p style="font-family:EB Garamond,Georgia,serif;font-size:1.3rem;color:#e8e4dc;text-align:center;max-width:500px;line-height:1.8;font-style:italic;">' + msg + '</p>';
-  overlay.onclick = () => overlay.remove();
-  document.body.appendChild(overlay);
-  setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 4000);
-}
-
 function nextScenario() {
   currentScenario++;
   if (currentScenario >= activeScenarios.length) showResults();
@@ -1885,7 +1747,7 @@ function showResults() {
   document.getElementById('archetype-name').textContent = archetype.name;
   document.getElementById('archetype-sub').textContent = archetype.subtitle;
 
-  // Rarity badge (async — loads after wall fetch)
+  // Rarity badge (async)
   fetchWall().then(entries => {
     if (entries) {
       const rarity = calculateArchetypeRarity(entries, archetype.name);
@@ -2236,7 +2098,7 @@ function copyResults() {
   }
 })();
 
-// ===== PATCH 1: SHARE IMAGE =====
+// ===== SHARE IMAGE =====
 async function generateShareImage(archetypeName, archetypeSub, normalizedScores, axesObj) {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
@@ -2303,12 +2165,11 @@ async function shareResult() {
   }catch(e){btn.textContent=orig;btn.style.pointerEvents='';}
 }
 
-// ===== PATCH 2: ARCHETYPE RARITY =====
+// ===== ARCHETYPE RARITY =====
 function calculateArchetypeRarity(entries, archetypeName) {
   if(!entries||entries.length===0)return null;
   return Math.round((entries.filter(e=>e.archetype===archetypeName).length/entries.length)*1000)/10;
 }
-
 function renderRarityBadge(percentage) {
   if(percentage===null)return '';
   let label,desc;
@@ -2319,7 +2180,7 @@ function renderRarityBadge(percentage) {
     <span class="rarity-description">${desc}</span></div>`;
 }
 
-// ===== PATCH 3: PHILOSOPHER MATCH =====
+// ===== PHILOSOPHER MATCH =====
 const PHILOSOPHERS=[
   {name:'Socrates',dates:'470–399 BCE',description:'Athenian gadfly who chose death over compromise',scores:{consequence:0.2,individual:0.5,stoic:0.5,pragmatist:0.15,agency:0.75,rationalist:0.9,transcendent:0.8}},
   {name:'Aristotle',dates:'384–322 BCE',description:'Practical wisdom embodied — ethics as craft',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.6,agency:0.7,rationalist:0.6,transcendent:0.5}},
@@ -2343,18 +2204,11 @@ const PHILOSOPHERS=[
   {name:'Judith Butler',dates:'1956–',description:'Gender as performance, precarity as ethical ground',scores:{consequence:0.55,individual:0.25,stoic:0.3,pragmatist:0.8,agency:0.6,rationalist:0.3,transcendent:0.2}},
   {name:'Thomas Aquinas',dates:'1225–1274',description:'Faith seeking understanding, natural law as divine order',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.4,agency:0.65,rationalist:0.85,transcendent:0.9}},
 ];
-
 function findClosestPhilosophers(normalizedScores) {
   const ax=Object.keys(AXES);
-  const matches=PHILOSOPHERS.map(phil=>{
-    let sum=0;for(const a of ax){const d=(normalizedScores[a]||0.5)-phil.scores[a];sum+=d*d;}
-    const dist=Math.sqrt(sum);
-    return{philosopher:phil,distance:dist,matchPercentage:Math.round((1-(dist/Math.sqrt(7)))*100)};
-  });
-  matches.sort((a,b)=>a.distance-b.distance);
-  return matches.slice(0,3);
+  const matches=PHILOSOPHERS.map(phil=>{let sum=0;for(const a of ax){const d=(normalizedScores[a]||0.5)-phil.scores[a];sum+=d*d;}const dist=Math.sqrt(sum);return{philosopher:phil,distance:dist,matchPercentage:Math.round((1-(dist/Math.sqrt(7)))*100)};});
+  matches.sort((a,b)=>a.distance-b.distance);return matches.slice(0,3);
 }
-
 function renderPhilosopherMatch(matches) {
   if(!matches||matches.length===0)return '';
   const[p,s,t]=matches;
@@ -2371,20 +2225,19 @@ function renderPhilosopherMatch(matches) {
     </div></div>`:''}</div>`;
 }
 
-// ===== PATCH 4: CONSISTENCY CHECK =====
+// ===== CONSISTENCY CHECK =====
 const TENSION_PAIRS=[
   {scenarios:[{index:0,choice:0,label:'deliver the letter (duty-bound)'},{index:4,choice:0,label:'continue the wealth tax (utilitarian)'}],tension:'In one moment you held that promises carry unconditional moral weight — consequences be damned. In another, you calculated aggregate suffering and decided the math justified overriding individual rights. Kant and Mill have been arguing in your head, and they haven\'t reached a truce.',axes:['consequence'],severity:0.9},
   {scenarios:[{index:5,choice:1,label:'owe nothing to past self (radical freedom)'},{index:13,choice:0,label:'stay in the community (ubuntu)'}],tension:'You claimed radical freedom from even your own history — "the old self must die" — yet when it came to community, you chose belonging over conscience. Nietzsche would ask: are you free, or are you just choosing different chains?',axes:['individual','agency'],severity:0.85},
-  {scenarios:[{index:6,choice:0,label:'total intimacy, no walls'},{index:2,choice:0,label:'say nothing about the cheating'}],tension:'You chose total vulnerability in your own relationship — "to be half-known is to be half-loved" — yet when someone else\'s relationship was at stake, you held sacred the right to privacy. The question is whether intimacy is a universal good or a personal choice.',axes:['individual'],severity:0.75},
-  {scenarios:[{index:10,choice:1,label:'ban AI tools (rationalist)'},{index:11,choice:0,label:'understanding through presence, not words (empiricist)'}],tension:'In one domain you trusted reason and cognitive discipline over convenience. In another, you abandoned language entirely, trusting presence and feeling over articulation. Plato and Hume are wrestling in your belief system.',axes:['rationalist'],severity:0.7},
+  {scenarios:[{index:6,choice:0,label:'total intimacy, no walls'},{index:2,choice:0,label:'say nothing about the cheating'}],tension:'You chose total vulnerability in your own relationship — "to be half-known is to be half-loved" — yet when someone else\'s relationship was at stake, you held sacred the right to privacy.',axes:['individual'],severity:0.75},
+  {scenarios:[{index:10,choice:1,label:'ban AI tools (rationalist)'},{index:11,choice:0,label:'understanding through presence (empiricist)'}],tension:'In one domain you trusted reason and cognitive discipline over convenience. In another, you abandoned language entirely, trusting presence and feeling over articulation. Plato and Hume are wrestling in your belief system.',axes:['rationalist'],severity:0.7},
   {scenarios:[{index:16,choice:0,label:'publish the correction immediately'},{index:2,choice:0,label:'say nothing about the infidelity'}],tension:'You held truth as non-negotiable in one domain but allowed loyalty to override it in another. Al-Ghazali walked away from everything when his framework cracked; Confucian virtue holds trust as foundational. You\'ve chosen both, and they don\'t reconcile easily.',axes:['rationalist','individual'],severity:0.85},
-  {scenarios:[{index:4,choice:2,label:'oppose wealth tax (pragmatic)'},{index:13,choice:1,label:'leave the community (principle over belonging)'}],tension:'You let pragmatism guide you when it came to policy — "beautiful failures don\'t count" — but chose purity over practical compromise when your own community was at stake. You\'re more willing to compromise other people\'s values than your own.',axes:['pragmatist','consequence'],severity:0.75},
-  {scenarios:[{index:8,choice:0,label:'take the five-year project (public impact)'},{index:8,choice:1,label:'stay present with family (private devotion)'}],tension:'You chose between Hannah Arendt\'s "natality" — the capacity to begin something that outlasts you — and Oliver Burkeman\'s "just be here." One treats time as a resource to invest in legacy; the other treats it as the only thing you actually possess.',axes:['stoic','individual'],severity:0.8},
+  {scenarios:[{index:4,choice:2,label:'oppose wealth tax (pragmatic)'},{index:13,choice:1,label:'leave the community (principle over belonging)'}],tension:'You let pragmatism guide you when it came to policy — "beautiful failures don\'t count" — but chose purity over practical compromise when your own community was at stake.',axes:['pragmatist','consequence'],severity:0.75},
   {scenarios:[{index:12,choice:0,label:'separate art from artist'},{index:13,choice:1,label:'leave the community (refuse complicity)'}],tension:'You argued that beauty exists independently of its maker, yet when faced with institutional harm, you refused to stay silent or complicit. The Yoruba concept of àṣà sits uneasily next to the principle that silence enables harm.',axes:['consequence','individual'],severity:0.8},
-  {scenarios:[{index:14,choice:0,label:'build the mine (utilitarian carbon math)'},{index:14,choice:1,label:'respect the community\'s refusal'}],tension:'Singer\'s preference utilitarianism says aggregate suffering reduction justifies localized harm. Deep ecology says land has intrinsic value, not instrumental. You cannot choose both without a theory about when numbers matter and when they don\'t.',axes:['consequence','transcendent'],severity:0.85},
-  {scenarios:[{index:10,choice:2,label:'pull child from school (reject institution)'},{index:3,choice:2,label:'finish the thesis (trust the system)'}],tension:'When an institution failed to integrate new technology, you abandoned it entirely. When your own academic work collapsed, you stayed within the system and completed it anyway. Do you trust institutions or simply treat them as instrumental when convenient?',axes:['agency','pragmatist'],severity:0.7},
+  {scenarios:[{index:14,choice:0,label:'build the mine (utilitarian carbon math)'},{index:20,choice:1,label:'respect the river community\'s refusal'}],tension:'Singer\'s preference utilitarianism says aggregate suffering reduction justifies localized harm. Deep ecology says land has intrinsic value. You cannot choose both without a theory about when numbers matter and when they don\'t.',axes:['consequence','transcendent'],severity:0.85},
+  {scenarios:[{index:10,choice:2,label:'pull child from school (reject institution)'},{index:3,choice:2,label:'finish the thesis (trust the system)'}],tension:'When an institution failed to integrate new technology, you abandoned it entirely. When your own academic work collapsed, you stayed within the system. Do you trust institutions or simply treat them as instrumental when convenient?',axes:['agency','pragmatist'],severity:0.7},
+  {scenarios:[{index:21,choice:0,label:'teach to the test (pragmatic)'},{index:22,choice:1,label:'trust deep listening over data'}],tension:'In one case you prioritized measurable outcomes over transformative experience. In another, you let unmeasurable presence override empirical data. Your epistemology shifts based on who has power in the room.',axes:['rationalist','pragmatist'],severity:0.75},
 ];
-
 function analyzeConsistency(ans, activeSc) {
   const triggered=[],choiceMap=new Map();
   ans.forEach(a=>choiceMap.set(a.scenario,a.choice));
@@ -2400,7 +2253,6 @@ function analyzeConsistency(ans, activeSc) {
   const score=Math.max(0,Math.round(100-(totalSev/(possible||1)*100)));
   return{score,tensions:triggered,totalChecked:possible};
 }
-
 function renderConsistencyCheck(analysis) {
   const{score,tensions}=analysis;
   let msg='',bar='';
