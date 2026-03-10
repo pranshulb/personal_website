@@ -845,7 +845,505 @@ body {
   .philosopher-runners-grid { grid-template-columns: 1fr; }
   .philosopher-primary-name { font-size: 1.6rem; }
 }
-  </style>
+  /* ===== AGENT 4: VISUAL POLISH & PINK MODE ===== */
+
+/* ===== INTRO SCREEN ANIMATIONS ===== */
+
+/* Axes list items fade in one by one with staggered delay */
+.intro-axis {
+  opacity: 0;
+  animation: axisFadeIn 0.6s ease forwards;
+}
+
+.intro-axis:nth-child(1) { animation-delay: 0.2s; }
+.intro-axis:nth-child(2) { animation-delay: 0.4s; }
+.intro-axis:nth-child(3) { animation-delay: 0.6s; }
+.intro-axis:nth-child(4) { animation-delay: 0.8s; }
+.intro-axis:nth-child(5) { animation-delay: 1.0s; }
+.intro-axis:nth-child(6) { animation-delay: 1.2s; }
+.intro-axis:nth-child(7) { animation-delay: 1.4s; }
+
+@keyframes axisFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Quote typewriter effect */
+.intro-quote {
+  overflow: hidden;
+  border-right: 2px solid var(--accent);
+  white-space: nowrap;
+  animation: typewriter 2.5s steps(45) 0.1s forwards, blinkCursor 0.75s step-end infinite;
+  max-width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+    border-right-color: transparent;
+  }
+}
+
+@keyframes blinkCursor {
+  from, to {
+    border-right-color: transparent;
+  }
+  50% {
+    border-right-color: var(--accent);
+  }
+}
+
+/* Reset for screens other than intro */
+#scenario-screen .intro-quote,
+#results-screen .intro-quote,
+#path-screen .intro-quote {
+  animation: none;
+  border-right: none;
+  white-space: normal;
+  width: auto;
+}
+
+/* ===== SCENARIO TRANSITION ANIMATIONS ===== */
+
+/* Crossfade transition when scenarios change */
+.scenario-container {
+  animation: scenarioFadeIn 0.5s ease-in-out;
+}
+
+@keyframes scenarioFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth transition for scenario content */
+.scenario-title,
+.scenario-body,
+.scenario-question,
+.choices {
+  animation: contentSlideIn 0.4s ease-out;
+}
+
+@keyframes contentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== FURTHER EXPLORATION SECTION ===== */
+
+.exploration-section {
+  margin: 3rem 0;
+}
+
+.exploration-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 1.5rem;
+}
+
+.exploration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.exploration-card {
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Category-based left border (like reading cards but distinct) */
+.exploration-card[data-category="film"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--purple);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.exploration-card[data-category="documentary"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--teal);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.exploration-card[data-category="game"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--orange);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.exploration-card:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-2px);
+}
+
+/* Category label styled like tradition badges */
+.exploration-category {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.45rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+}
+
+.exploration-category[data-type="film"] {
+  background: rgba(138, 74, 181, 0.15);
+  color: var(--purple);
+  border: 1px solid rgba(138, 74, 181, 0.3);
+}
+
+.exploration-category[data-type="documentary"] {
+  background: rgba(74, 181, 168, 0.15);
+  color: var(--teal);
+  border: 1px solid rgba(74, 181, 168, 0.3);
+}
+
+.exploration-category[data-type="game"] {
+  background: rgba(181, 138, 74, 0.15);
+  color: var(--orange);
+  border: 1px solid rgba(181, 138, 74, 0.3);
+}
+
+.exploration-title-text {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.exploration-why {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+
+/* ===== DELIBERATION TIME SECTION ===== */
+
+.deliberation-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+  opacity: 0.85;
+}
+
+.deliberation-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.deliberation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.deliberation-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.deliberation-entry:last-child {
+  border-bottom: none;
+}
+
+.deliberation-scenario {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-style: italic;
+}
+
+.deliberation-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ===== PINK MODE ENHANCEMENTS FOR NEW FEATURES ===== */
+
+/* Philosopher match section */
+[data-theme="pink"] .philosopher-section {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  animation: sectionBounceIn 0.6s ease;
+}
+
+@keyframes sectionBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) rotate(-1deg);
+  }
+  60% {
+    transform: scale(1.02) rotate(0.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+[data-theme="pink"] .philosopher-runner {
+  border: 2px solid var(--surface-2);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+  transform: rotate(-0.5deg);
+  transition: all 0.3s ease;
+}
+
+[data-theme="pink"] .philosopher-runner:nth-child(2) {
+  transform: rotate(0.5deg);
+}
+
+[data-theme="pink"] .philosopher-runner:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+
+[data-theme="pink"] .philosopher-match-bar {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid var(--accent-dim);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* Consistency check section */
+[data-theme="pink"] .consistency-section {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  transform: rotate(-0.3deg);
+}
+
+[data-theme="pink"] .consistency-observation {
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 192, 203, 0.1);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="pink"] .consistency-score {
+  animation: scoreWiggle 2s ease-in-out infinite;
+}
+
+@keyframes scoreWiggle {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+/* Rarity badge pink mode */
+[data-theme="pink"] .rarity-badge {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  background: rgba(196, 68, 122, 0.08);
+  transform: rotate(0.5deg);
+  transition: all 0.3s ease;
+}
+
+[data-theme="pink"] .rarity-badge:hover {
+  transform: rotate(-0.5deg) scale(1.02);
+}
+
+[data-theme="pink"] .rarity-badge[data-rarity="rare"] {
+  animation: rarityPulse 2s ease-in-out infinite;
+}
+
+@keyframes rarityPulse {
+  0%, 100% {
+    box-shadow: 3px 3px 0px var(--accent-dim);
+  }
+  50% {
+    box-shadow: 5px 5px 0px var(--accent-dim), 0 0 15px rgba(196, 68, 122, 0.3);
+  }
+}
+
+/* Exploration section pink mode */
+[data-theme="pink"] .exploration-section {
+  margin: 3rem 0;
+}
+
+[data-theme="pink"] .exploration-card {
+  border: 2px solid var(--surface-2);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+  transform: rotate(-0.3deg);
+  transition: all 0.3s ease;
+}
+
+[data-theme="pink"] .exploration-card:nth-child(even) {
+  transform: rotate(0.4deg);
+}
+
+[data-theme="pink"] .exploration-card:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+
+[data-theme="pink"] .exploration-category {
+  border-radius: 2px 6px 2px 8px;
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.1);
+  transform: rotate(-1deg);
+}
+
+/* Deliberation time pink mode */
+[data-theme="pink"] .deliberation-section {
+  border: 2px solid var(--surface-2);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 245, 247, 0.5);
+  transform: rotate(0.3deg);
+}
+
+[data-theme="pink"] .deliberation-entry {
+  border-bottom-color: rgba(196, 68, 122, 0.15);
+}
+
+[data-theme="pink"] .deliberation-time {
+  color: var(--accent);
+}
+
+/* Enhanced intro animations in pink mode */
+[data-theme="pink"] .intro-quote {
+  animation: typewriter 2.5s steps(45) 0.1s forwards, 
+             blinkCursor 0.75s step-end infinite,
+             quoteWobble 3s ease-in-out 3s infinite;
+}
+
+@keyframes quoteWobble {
+  0%, 100% {
+    transform: rotate(-0.5deg);
+  }
+  50% {
+    transform: rotate(0.5deg);
+  }
+}
+
+[data-theme="pink"] .intro-axis {
+  animation: axisFadeIn 0.6s ease forwards, axisFloat 4s ease-in-out infinite;
+}
+
+@keyframes axisFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Delay the float animation so they don't all float in sync */
+[data-theme="pink"] .intro-axis:nth-child(1) { animation-delay: 0.2s, 0.5s; }
+[data-theme="pink"] .intro-axis:nth-child(2) { animation-delay: 0.4s, 1.0s; }
+[data-theme="pink"] .intro-axis:nth-child(3) { animation-delay: 0.6s, 1.5s; }
+[data-theme="pink"] .intro-axis:nth-child(4) { animation-delay: 0.8s, 2.0s; }
+[data-theme="pink"] .intro-axis:nth-child(5) { animation-delay: 1.0s, 2.5s; }
+[data-theme="pink"] .intro-axis:nth-child(6) { animation-delay: 1.2s, 3.0s; }
+[data-theme="pink"] .intro-axis:nth-child(7) { animation-delay: 1.4s, 3.5s; }
+
+/* Scenario transitions in pink mode - extra bouncy */
+[data-theme="pink"] .scenario-container {
+  animation: scenarioBounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes scenarioBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-2deg);
+  }
+  60% {
+    transform: scale(1.05) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 600px) {
+  .exploration-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deliberation-entry {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .intro-quote {
+    white-space: normal;
+    animation: none;
+    border-right: none;
+  }
+}
+
+</style>
 </head>
 <body>
 
@@ -1073,7 +1571,7 @@ const READINGS = {
 };
 
 const ESSENTIAL_IDS = [0,1,2,3,4,5,6,7,8];
-const EXAMINED_IDS = [0,1,2,3,4,5,6,7,8,13,15,17,18,22];
+const EXAMINED_IDS = [0,1,2,3,4,5,6,7,8,11,13,15,17,18,22];
 const LAST_QUESTION_ID = 9;
 
 const SCENARIOS = [
@@ -1087,11 +1585,11 @@ const SCENARIOS = [
     choices: [
       { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
         scores: {consequence: -2, pragmatist: -1, agency: 0, individual: 1},
-        reflection:'Kant would nod. A promise made to the dying carries the full weight of moral obligation — consequences be damned. The world holds together because some things are unconditional.',
+        reflection:'There\'s a reason deathbed promises feel different from ordinary ones — they can never be renegotiated, never updated with new information. Kant argued that\'s exactly what gives them force: a moral law that bends to circumstance isn\'t a law at all. You\'re not delivering a letter. You\'re deciding whether obligations survive the people who created them.',
         philosopher:'Immanuel Kant, Groundwork of the Metaphysics of Morals' },
       { label:'b', text:'Burn it. The promise was made to secure peace, not to inflict pain. Your friend could not have wanted this, and the dead do not get to override the living.',
         scores: {consequence: 2, pragmatist: 0, individual: -1, agency: 1},
-        reflection:'Mill would agree — the promise was made to secure peace, not pain. When the consequences of a rule clash with its purpose, a thoughtful person adapts.',
+        reflection:'Mill would push back on the idea that promises are sacred in themselves — what matters is what they\'re *for*. Your friend wanted peace for their sister, not a confession delivered from beyond the grave. When a rule produces the opposite of its intended effect, following it isn\'t integrity. It\'s stubbornness wearing a moral costume.',
         philosopher:'John Stuart Mill, Utilitarianism' },
       { label:'c', text:'Deliver it, but stay. Sit with her while she reads it. If you are going to honor a deathbed promise, you owe her your presence when the truth lands. You don\'t get to drop a grenade and walk away.',
         scores: {pragmatist: 1, agency: 0, rationalist: -1, individual: -1},
@@ -1103,7 +1601,7 @@ const SCENARIOS = [
     chapter: 'II — control',
     tradition: 'Stoicism & Existentialism',
     title: 'The Forecast',
-    body: `Your doctor calls on a Tuesday with news that arrives like a stone dropped into still water. Something showed up in your bloodwork, nothing fatal, nothing painful, but in one year you will lose your eyesight completely and irreversibly. The rest of your life will be fine, the doctor assures you, just <em>dark</em>. You have twelve months of seeing left: twelve months to look at the faces of everyone you love, to watch light move across a room at different hours, to read a book with your own eyes and memorize the shape of written words. The countdown has already started, whether you acknowledge it or not, and every morning you wake now is one morning closer to a horizon you cannot push back.`,
+    body: `Your doctor calls on a Tuesday. Something in your bloodwork. Not fatal, not painful — but in one year you will lose your eyesight completely. Irreversibly. The rest of your life will be fine, the doctor assures you. Just <em>dark</em>. You have twelve months of seeing left. Twelve months to watch light move across a room at different hours, to memorize the faces of everyone you love, to read a book with your own eyes. The countdown started the moment the phone rang, whether you acknowledge it or not. Every morning you wake now is one morning closer to a horizon you cannot push back.`,
     question: 'How do you spend them?',
     choices: [
       { label:'a', text:'Devour everything. Travel, memorize faces, watch every sunrise you can reach. If loss is guaranteed, the only sane response is to <em>flood</em> yourself with what remains.',
@@ -1111,7 +1609,7 @@ const SCENARIOS = [
         reflection:'This is the Epicurean wager — if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
         philosopher:'Epicurus, Letter to Menoeceus' },
       { label:'b', text:'Start adapting now. Learn braille, train with a cane, reorganize your life for the dark. Grieving is a luxury. Preparing is a choice you can still make.',
-        scores: {stoic: 2, pragmatist: -1, individual: 0, agency: 1},
+        scores: {stoic: 2, pragmatist: 1, individual: 0, agency: 1},
         reflection:'"Begin each day by telling yourself: today I shall meet with interference, ingratitude, insolence." Marcus Aurelius prepared for loss not to prevent feeling, but to keep feeling from destroying judgment.',
         philosopher:'Marcus Aurelius, Meditations, Book II' },
       { label:'c', text:'Change nothing. The countdown is a prison only if you let it be one. The moment you rearrange your life around a future loss, you have already lost the present.',
@@ -1137,7 +1635,7 @@ const SCENARIOS = [
         philosopher:'Peter Singer, Practical Ethics' },
       { label:'c', text:'Go to the partner. Tell them what you know. Give them one chance to come clean. The person who did the wrong thing should be the one to face it.',
         scores: {agency: 0, pragmatist: 1, individual: 0, rationalist: 1},
-        reflection:'The virtue ethicist\'s instinct: preserve agency where you can. The person who did the wrong thing should be the one to face it. You\'re not a messenger — you\'re a pressure valve.',
+        reflection:'You\'re not choosing truth or silence — you\'re choosing *who* delivers the truth. The virtue ethicist preserves agency where possible: the person who broke the trust should be the one to face the consequences of breaking it. You\'re not playing messenger. You\'re creating the conditions for someone else to do the right thing.',
         philosopher:'Aristotle, Nicomachean Ethics' }
     ]
   },
@@ -1145,7 +1643,7 @@ const SCENARIOS = [
     chapter: 'IV — meaning',
     tradition: 'Existentialism & Absurdism',
     title: 'The Absurd Commute',
-    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about with the kind of depth that makes a person willing to spend years in a library. Last month you read a paper that proves, beyond reasonable doubt, that your central argument is wrong—not wrong in a way that can be patched or revised, but structurally, irreparably wrong. You could pivot, start over with a new question, and lose two years of work in the process. You could quit entirely and leave with nothing to show for the time you have already spent. Or you could push through to completion, knowing the thing you are building rests on a cracked foundation, that you are producing scholarship you no longer believe in. Your supervisor says finish, that this is normal, that no thesis is perfect. But something in you keeps asking <em>why?</em> and the answer is not coming easily.`,
+    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about deeply enough to spend years in a library. Last month you read a paper that proves your central argument is wrong — not wrong in a way that can be patched, but structurally, irreparably wrong. You could pivot and lose two years. You could quit and leave with nothing. Or you could push through to completion, producing scholarship you no longer believe in, building on a foundation you know is cracked. Your supervisor says finish. This is normal. No thesis is perfect. But something in you keeps asking <em>why?</em> — and the answer is not coming.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Walk away. There is no dignity in defending something you know to be false. The courage is not in persisting; it is in admitting the ground has shifted beneath you.',
@@ -1153,9 +1651,9 @@ const SCENARIOS = [
         reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses — that\'s the point. Choosing to stop is still a choice.',
         philosopher:'Albert Camus, The Myth of Sisyphus' },
       { label:'b', text:'Pivot, but be honest about why. Tell your supervisor the original argument collapsed. Salvage what you can — the research, the methods, the instincts that got you here — and build something that actually holds. Two years lost is cheaper than a career built on something you don\'t believe in.',
-        scores: {individual: -2, consequence: 0, pragmatist: 1, rationalist: -1},
-        reflection:'Levinas argued that ethics — our responsibility to the Other — is more fundamental than ontology. You don\'t need the thesis to be right. You need the work to mean something to someone.',
-        philosopher:'Emmanuel Levinas, Totality and Infinity' },
+        scores: {individual: 0, consequence: 0, pragmatist: 1, rationalist: 1},
+        reflection:'Peirce argued that the whole point of inquiry is self-correction — that getting it wrong and openly revising is not failure but the actual mechanism by which knowledge advances. A thesis that honestly accounts for its own collapse is more scientifically valuable than one that quietly papers over the cracks.',
+        philosopher:'Charles Sanders Peirce, "The Fixation of Belief"' },
       { label:'c', text:'Finish it. Being wrong is part of the scholarly record. Write the most rigorous wrong thesis you can, defend it honestly, and let the next person build on the failure.',
         scores: {pragmatist: 0, stoic: 1, consequence: -1, agency: 1, individual: 1},
         reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks — not because you\'re naive, but because completion has its own kind of integrity.',
@@ -1237,7 +1735,7 @@ const SCENARIOS = [
         reflection:'The benevolent dictator\'s argument. It works — until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
         philosopher:'John Stuart Mill, On Liberty' },
       { label:'b', text:'Step away entirely. If it cannot survive without you, it was never a community. It was a performance. Let it find its own legs, or let it fall.',
-        scores: {agency: -1, individual: 0, stoic: 0, transcendent: 2, consequence: -1},
+        scores: {agency: 1, individual: 0, stoic: 0, transcendent: 2, consequence: -1},
         reflection:'"A leader is best when people barely know he exists." The Taoist principle: true influence empowers others to find their own way.',
         philosopher:'Lao Tzu, Tao Te Ching, Chapter 17' },
       { label:'c', text:'Start failing on purpose. Miss a booking. Let a small problem fester. Force other people into the gap. It will be messy, but dependency only breaks when the thing it depends on disappears.',
@@ -1250,7 +1748,7 @@ const SCENARIOS = [
     chapter: 'IX — time',
     tradition: 'Existentialism & Phenomenology',
     title: 'The Four Thousand Weeks',
-    body: `You are twenty-eight years old when the offer arrives: an opportunity to lead a project that could genuinely reshape how education works in your country, the kind of systemic intervention that might give millions of children a better foundation than they would otherwise have. The work will consume at least five years of your life—no weekends, no sustained hobbies, no long dinners with friends that stretch past midnight. Your relationships will narrow to the functional, your attention will become a scarce resource rationed among competing urgencies, and the texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss, your parents are entering the stage of life where time with them has begun to feel finite, and you have been meaning to learn piano for a decade but keep deferring it to some imagined future with more breathing room. You have roughly <em>four thousand weeks</em> on this earth if you are lucky, and the question is not what to do with them but what to sacrifice, because every choice forecloses a dozen others.`,
+    body: `You are twenty-eight when the offer arrives: lead a project that could reshape how education works in your country. The kind of systemic intervention that might give millions of children a better start. The work will consume five years. No weekends, no sustained hobbies, no long dinners that stretch past midnight. Your relationships will narrow to the functional. The texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss. Your parents are entering the stage of life where time with them has started to feel finite. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth. The question is not what to do with them but what to sacrifice — because every yes forecloses a dozen other lives you might have lived.`,
     question: 'Do you take the offer?',
     choices: [
       { label:'a', text:'Yes. This is the kind of thing that justifies a life. The piano and the dinners will still be there. The window for this will not.',
@@ -1271,7 +1769,7 @@ const SCENARIOS = [
     chapter: 'X — the mirror',
     tradition: 'Socratic Method',
     title: 'The Last Question',
-    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that, if you are honest with yourself, you already knew the answers to before you clicked—perhaps you have known them for years but never articulated them clearly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think so much as it forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror, and the question now is not whether the reflection is flattering but whether it is true, and whether you have the courage to sit with what it shows you.`,
+    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked — perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
     question: 'What is the question you are actually trying to answer?',
     choices: [
       { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
@@ -1293,7 +1791,7 @@ const SCENARIOS = [
     chapter: 'XI — knowledge',
     tradition: 'Epistemology · East & West',
     title: 'The Library of Babel',
-    body: `Your child is twelve years old and has never had to memorize anything substantial, because artificial intelligence does their research, drafts their essays, checks their arithmetic, and offers explanations whenever they ask. They are genuinely happy and curious in their own way, engaged with ideas and projects that interest them, but when you ask them to explain <em>why</em> something is true—not just what the answer is but how one arrives at it—they shrug with complete comfort and say "the AI told me." Their school has proposed banning these tools entirely, returning to a pedagogy built on struggle and retention, and other parents think this is absurd, a reactionary impulse no different from banning calculators in the 1980s when the world had already changed. You find yourself uncertain whether either side has fully grasped what is at stake, or whether the future of learning is something neither camp has yet imagined.`,
+    body: `Your child is twelve and has never had to memorize anything substantial. AI does their research, drafts their essays, checks their arithmetic. They are happy, curious, engaged with ideas in their own way — but when you ask them to explain <em>why</em> something is true, not just what the answer is, they shrug and say "the AI told me." Their school wants to ban the tools entirely. Other parents think this is absurd — no different from banning calculators in the 1980s. You find yourself uncertain whether either side has fully grasped what is at stake.`,
     question: 'Where do you land?',
     choices: [
       { label:'a', text:'Let them use it. The world has changed, and teaching children to do what machines do better is nostalgia dressed as pedagogy.',
@@ -1314,7 +1812,7 @@ const SCENARIOS = [
     chapter: 'XII — language',
     tradition: 'Philosophy of Language · Phenomenology',
     title: 'The Untranslatable',
-    body: `Your best friend's father died last year, someone you were close to as well, and at the funeral you said all the things one is supposed to say—quiet condolences, memories offered carefully, presence maintained with steady attention. Your friend thanked you afterward and told you it had helped, and you believed them. But last night, unguarded and several drinks past sober, they said something that has been sitting heavy in your chest ever since: <em>"You don't actually understand what this is like."</em> And they are right—you have never lost a parent, never stood in that particular valley of grief, and what you offered was compassion filtered through imagination rather than lived knowledge. You were performing empathy, and performing it well enough that it seemed real to both of you, but now the gap between your goodwill and their suffering feels unbridgeable, and you are not sure whether language was ever capable of closing it or whether you have been asking it to do something it was never designed for.`,
+    body: `Your best friend's father died last year — someone you were close to as well. At the funeral you said all the things one is supposed to say. Quiet condolences, memories offered carefully, presence maintained with steady attention. Your friend thanked you afterward, told you it helped. You believed them. But last night, unguarded and several drinks past sober, they said something that has been sitting heavy in your chest ever since: <em>"You don't actually understand what this is like."</em> And they are right. You have never lost a parent, never stood in that particular valley. What you offered was compassion filtered through imagination rather than lived knowledge. You were performing empathy, and performing it well enough that it seemed real to both of you — but now the gap between your goodwill and their suffering feels unbridgeable, and you are not sure language was ever built to close it.`,
     question: 'Can you actually understand someone else\'s pain?',
     choices: [
       { label:'a', text:'Yes, but not through language. Sit beside them. Say nothing. Understanding is not something you achieve with the right words; it is something that happens when you stop trying to perform it.',
@@ -1344,8 +1842,8 @@ const SCENARIOS = [
         philosopher:'Yoruba aesthetic philosophy, via Babatunde Lawal' },
       { label:'b', text:'No. You cannot unhear who made it. Every listen is now a small act of looking away, and the discomfort is not a flaw in your response. It <em>is</em> the response.',
         scores: {agency: 0, individual: 1, transcendent: 1, rationalist: -1, stoic: 0},
-        reflection:'Keats argued for "negative capability" — dwelling in discomfort without reaching for easy resolution. Sometimes the right response to beauty is to let it become complicated.',
-        philosopher:'John Keats, letter to George & Tom Keats, 1817' },
+        reflection:'Adorno argued that after certain moral horrors, aesthetic experience cannot remain innocent — that the conditions of a work\'s creation become part of the work itself. Your discomfort isn\'t squeamishness. It\'s moral perception doing exactly what it\'s supposed to do.',
+        philosopher:'Theodor Adorno, Aesthetic Theory' },
       { label:'c', text:'Listen, but don\'t pay. The art is still good; the person does not deserve your money. There is a practical middle that neither purity nor complicity requires you to ignore.',
         scores: {pragmatist: 2, stoic: 0, rationalist: -1, consequence: 1},
         reflection:'Zhuangzi would recognize this: a practical response that refuses the false binary. You don\'t have to choose between purity and pleasure if you\'re willing to be creative about it.',
@@ -1356,7 +1854,7 @@ const SCENARIOS = [
     chapter: 'XIV — belonging',
     tradition: 'Ubuntu · African Philosophy',
     title: 'The Circle',
-    body: `Your religious community, the one you grew up in, the one your parents still attend with a fidelity that moves you even when it frustrates you, has taken a public stance against something you believe in deeply — not as a matter of preference or politics, but as a moral conviction you hold in your bones with the same certainty they claim for their position. It is not ambiguous and it is not negotiable; they are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves, who showed up at your door during the worst year of your life without being asked, who taught you by example what kindness looks like in practice rather than in principle. You owe them more than you can articulate, a debt made of presence and care that cannot be reduced to gratitude or obligation. And yet they are asking you, simply by staying, to endorse something unconscionable, or at least to be complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
+    body: `Your religious community — the one you grew up in, the one your parents still attend every week — has taken a public stance against something you believe in deeply. Not as a matter of preference. As a moral conviction you hold in your bones. They are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves. Who showed up at your door during the worst year of your life without being asked. Who taught you what kindness looks like in practice rather than in principle. You owe them something that cannot be reduced to gratitude, a debt made of presence and care and showing up. And yet staying means endorsing — or at least being complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
     question: 'Do you stay or go?',
     choices: [
       { label:'a', text:'Stay. "I am because we are." You do not abandon the people who made you because they are wrong. You stay and fight to change them from the inside.',
@@ -1377,13 +1875,13 @@ const SCENARIOS = [
     chapter: 'XV — nature',
     tradition: 'Environmental Philosophy · Indigenous Thought',
     title: 'The Last Forest',
-    body: `A mining company wants to extract lithium from a valley in Bolivia, the kind of lithium that goes into batteries for electric cars, which is to say the technology that is supposed to save us from the slow catastrophe of climate collapse that we have finally, belatedly, begun to take seriously. The valley is home to an indigenous community of four hundred people who have lived there for centuries, whose relationship to that land is not ownership in any sense the company's lawyers would recognize but something closer to kinship, and they do not want to move. The company offers money, new housing, jobs in the mine itself, all the things that are supposed to compensate for displacement, and the community says <em>no</em> — not because the offer is inadequate, but because the premise is unacceptable. The government is considering eminent domain, the legal apparatus that allows a state to override individual refusal in the name of collective need. The planet is warming, the carbon clock is ticking, millions of lives hang in the balance of whether we can decarbonize fast enough, and the community is resolute in its refusal. You are asked to take a side, to weigh four hundred people who will lose their home against the aggregate suffering reduction of millions who might not have to flee theirs.`,
+    body: `A mining company wants lithium from a valley in Bolivia — the kind that goes into batteries for electric cars, the technology that is supposed to save us from climate collapse. The valley is home to four hundred indigenous people who have lived there for centuries. Their relationship to the land is not ownership in any sense the company's lawyers would recognize. It is closer to kinship. They do not want to move. The company offers money, new housing, jobs in the mine. The community says <em>no</em> — not because the offer is inadequate, but because the premise is unacceptable. The government is considering eminent domain. The planet is warming. The carbon clock is ticking. Millions of lives hang in the balance of whether we decarbonize fast enough. Four hundred people will not move, and you are asked to weigh their home against the aggregate suffering of millions who might lose theirs.`,
     question: 'Should the mine go ahead?',
     choices: [
       { label:'a', text:'Yes. Four hundred people versus millions of tons of carbon. The calculus is brutal, but it is clear. Compensate them generously. Build the mine. Save what can still be saved.',
         scores: {consequence: 2, pragmatist: 0, transcendent: -2, individual: -1},
         reflection:'Singer\'s preference utilitarianism draws a clear line: aggregate suffering reduction outweighs localised disruption, however painful. The numbers don\'t lie.',
-        philosopher:'Peter Singer, Animal Liberation' },
+        philosopher:'Peter Singer, Practical Ethics' },
       { label:'b', text:'No. "We will destroy your home for the greater good" is what colonizers have always said. The community said no. That should be the end of it.',
         scores: {consequence: -2, transcendent: 2, agency: -1, individual: -1, rationalist: 1},
         reflection:'Arne Næss\'s deep ecology holds that land and the people who live on it have intrinsic value — not instrumental. You don\'t get to sacrifice someone else\'s home for your clean conscience.',
@@ -1398,7 +1896,7 @@ const SCENARIOS = [
     chapter: 'XVI — mortality',
     tradition: 'Existentialism · Buddhist Philosophy',
     title: 'The Immortality Pill',
-    body: `Gene therapy, a single injection, and your telomeres stop shortening, the biological clock that counts down to your body's obsolescence simply halted mid-tick. You do not age past your current state; you could live for centuries, perhaps longer, watching the future unfold in ways no one else will ever witness. The catch is that it is irreversible — once you take it, there is no going back, no exit clause, no way to change your mind when the weight of time becomes unbearable. You will watch everyone you love die, all of them, again and again, a procession of endings that you alone will carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left behind. And the urgency that makes Tuesday mornings and looming deadlines and the thought <em>"I should call my mother"</em> feel real, that animal awareness that time is running out and you cannot afford to waste it — that vanishes. There is always tomorrow, and the day after that, and a thousand years of days after that, a horizon so distant it stops functioning as one.`,
+    body: `A single injection. Gene therapy. Your telomeres stop shortening — the biological clock that counts down to your body's obsolescence, halted mid-tick. You could live for centuries, perhaps longer. The catch: it is irreversible. No exit clause. No way to change your mind when the weight of centuries becomes unbearable. You will watch everyone you love die. All of them. Again and again — a procession of endings that you alone carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left standing. And the urgency that makes Tuesday mornings feel real, that animal awareness that time is running out — the thought <em>"I should call my mother"</em> that only works because you might not get another chance — that vanishes. There is always tomorrow. And the day after that. And a thousand years of days after that.`,
     question: 'Do you take the injection?',
     choices: [
       { label:'a', text:'Yes, and I would not want an exit. The irreversibility is the point. A commitment you can undo is not a commitment. I want to see what a human becomes with enough time to actually learn from their mistakes.',
@@ -1431,8 +1929,8 @@ const SCENARIOS = [
         reflection:'Kuhn showed that paradigm shifts aren\'t instant conversions — they\'re slow, messy, social processes. Responsible revolution means bringing people with you.',
         philosopher:'Thomas Kuhn, The Structure of Scientific Revolutions' },
       { label:'c', text:'Quietly fix it in your next paper. Don\'t make a public spectacle — weave the correction into new work that supersedes the old. The academic system rewards confessions less than it rewards progress. Game the system.',
-        scores: {transcendent: 1, rationalist: -2, pragmatist: 0, stoic: 0},
-        reflection:'Ibn Arabi held that truth reveals itself in its own time. "My heart has become capable of every form." Perhaps the flaw is not yours to confess but the field\'s to discover.',
+        scores: {pragmatist: 2, rationalist: -2, stoic: 0, consequence: 1},
+        reflection:'There\'s a cynical wisdom here that the academy rarely acknowledges: the system punishes honesty and rewards seamless narratives of progress. Ibn Arabi held that truth reveals itself in its own time — but the question is whether you\'re trusting that process or just hiding behind it.',
         philosopher:'Ibn Arabi, Fusus al-Hikam (The Bezels of Wisdom)' }
     ]
   },
@@ -1452,8 +1950,8 @@ const SCENARIOS = [
         reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back — concretely, not abstractly.',
         philosopher:'Nel Noddings, Caring: A Relational Approach to Ethics' },
       { label:'c', text:'Talk to them privately. Ask what they actually want. Do not assume you know how to fix something you only just noticed.',
-        scores: {agency: 0, individual: -1, consequence: -1, rationalist: -1, transcendent: 0},
-        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like — not the person who just noticed.',
+        scores: {agency: 0, individual: -1, consequence: -1, rationalist: -1, transcendent: 1},
+        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like — not the person who just noticed. Asking is itself an act of respect that naming and fixing both skip past.',
         philosopher:'bell hooks, All About Love' }
     ]
   },
@@ -1482,7 +1980,7 @@ const SCENARIOS = [
     chapter: 'XX — communal self',
     tradition: 'Ubuntu (Southern African Ethics)',
     title: 'The Inheritance Interview',
-    body: `The email arrives on a Tuesday morning: "Partner Track — Final Interview." You've been working toward this for five years. But you didn't build this alone. Your business partner — college roommate, first believer, the person who took a salary cut to join you when the company was a fever dream and a maxed-out credit card — will be pushed out if you take this role. The fund wants you, not both of you. They see you as the visionary; they see your partner as "operational overhead." You know that's wrong. Every breakthrough, you had together. Every crisis, they held the ship steady while you played the face. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em> — a person is a person through other people. The success they want to invest in was never yours alone. But the world doesn't reward partnerships the way it rewards individuals.`,
+    body: `The email arrives on a Tuesday morning: "Partner Track — Final Interview." Five years of work, distilled into a subject line. But you didn't build this alone. Your business partner — college roommate, first believer, the person who took a salary cut when the company was a fever dream and a maxed-out credit card — will be pushed out if you take this role. The fund wants you. Not both of you. They see your partner as "operational overhead." You know that's wrong. Every breakthrough was shared. Every crisis, they held the ship steady while you played the face. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em> — a person is a person through other people. The success they want to invest in was never yours alone. But the world doesn't reward partnerships the way it rewards individuals.`,
     question: 'Your finger hovers over the reply button. What do you write?',
     choices: [
       { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture — honoring the relationship while moving forward.',
@@ -1545,7 +2043,7 @@ const SCENARIOS = [
     chapter: 'XXIII — deep listening',
     tradition: 'Dadirri (Aboriginal Australian Philosophy)',
     title: 'The Listening',
-    body: `You are an environmental scientist asked to assess whether a patch of old-growth forest should be cleared for affordable housing, and you have spent three weeks gathering data—soil samples, biodiversity indexes, carbon sequestration rates, water table measurements—all of which point, with varying degrees of confidence, toward the conclusion that the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder, whose people have been custodians of this land for tens of thousands of years, asks if you would like to sit with her in the forest for a morning before you write your report. You almost say no—you have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes, and what happens over the next four hours changes something you don't yet have language for. She doesn't lecture you or argue with your findings. She simply sits, and after a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way the light moves through the canopy in patterns that suggest relationships between species your survey didn't capture, a feeling—unscientific, unmeasurable, but unmistakable—that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri: deep listening, the kind that requires you to be quiet long enough for the land itself to speak.`,
+    body: `You are an environmental scientist assessing whether a patch of old-growth forest should be cleared for affordable housing. Three weeks of data — soil samples, biodiversity indexes, carbon sequestration rates, water table measurements — all pointing toward the same conclusion: the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder asks if you would sit with her in the forest for a morning before you write your report. You almost say no. You have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes. She doesn't lecture you or argue with your findings. She sits. After a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way light moves through the canopy in patterns that suggest relationships between species your survey never captured. A feeling — unscientific, unmeasurable, but unmistakable — that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri. Deep listening. The kind that requires you to be quiet long enough for the land itself to speak.`,
     question: 'You sit down to write your report. What do you say?',
     choices: [
       { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
@@ -1566,7 +2064,7 @@ const SCENARIOS = [
     chapter: 'XXIV — reciprocity',
     tradition: 'Indigenous Reciprocity (Potawatomi/Kimmerer)',
     title: 'The Patent',
-    body: `A decade ago, while conducting ethnobotanical fieldwork in a rural community, an elder showed you a plant preparation that her grandmother had taught her, which her grandmother's grandmother had taught before that—a chain of knowledge stretching back further than anyone could remember. You were studying traditional ecological knowledge for your PhD, and the elder shared this freely, in the spirit of what Robin Wall Kimmerer calls the gift economy: knowledge given not as transaction but as relationship, carrying with it the obligation of reciprocity and the understanding that gifts must keep moving. You published your findings (with attribution, with consent), and a pharmaceutical company read your paper, synthesized the active compound, and developed a treatment that is now helping hundreds of thousands of people with a chronic inflammatory condition. The company is now filing a patent, and they have offered you a consultancy fee and co-inventor credit. The elder and her community have been offered nothing, because traditional knowledge, in the eyes of patent law, belongs to no one. The company's lawyers explain that you cannot patent what was already "publicly known," and that the community's knowledge was, legally speaking, in the public domain the moment you published it. You understand the legal logic, and you also understand that it is built on a foundation that the elder would find incomprehensible: the idea that knowledge can be owned, that sharing it freely means losing it, that the gift economy is just another word for the commons waiting to be enclosed.`,
+    body: `A decade ago, during ethnobotanical fieldwork, an elder showed you a plant preparation her grandmother had taught her, passed down through a chain of knowledge stretching back further than anyone could trace. She shared it freely — not as transaction but as relationship, carrying with it the obligation of reciprocity and the understanding that gifts must keep moving. You published your findings with attribution and consent. A pharmaceutical company read your paper, synthesized the active compound, and developed a treatment now helping hundreds of thousands of people. The company is filing a patent. They have offered you a consultancy fee and co-inventor credit. The elder and her community have been offered nothing. Traditional knowledge, in the eyes of patent law, belongs to no one — the community's knowledge entered the public domain the moment you published it. You understand the legal logic. You also understand it rests on a foundation the elder would find incomprehensible: that knowledge can be owned, that sharing it freely means losing it, that the gift economy is just the commons waiting to be enclosed.`,
     question: 'The company asks for your signature on the patent application. What do you do?',
     choices: [
       { label:'a', text:'Sign it. The treatment helps people, and walking away won\'t change the system. Use the consultancy money to fund projects in the elder\'s community.',
@@ -1619,11 +2117,15 @@ let answers = [];
 let selectedChoice = null;
 let selectedPath = null;
 let traditions = {};
+let deliberationTimes = [];
+let scenarioStartTime = null;
 
 function resetScores() {
   scores = {};
   for (const k of Object.keys(AXES)) scores[k] = 0;
   traditions = {};
+  deliberationTimes = [];
+  scenarioStartTime = null;
 }
 
 function showPaths() { showScreen('path-screen'); }
@@ -1665,6 +2167,7 @@ function showScreen(id) {
 function renderScenario() {
   const s = activeScenarios[currentScenario];
   selectedChoice = null;
+  scenarioStartTime = Date.now();
 
   const prog = document.getElementById('progress');
   prog.innerHTML = activeScenarios.map((_, i) => {
@@ -1695,6 +2198,12 @@ function renderScenario() {
 function selectChoice(idx) {
   if (selectedChoice !== null) return;
   selectedChoice = idx;
+  const deliberationTime = scenarioStartTime ? (Date.now() - scenarioStartTime) / 1000 : 0;
+  deliberationTimes.push({
+    scenarioIndex: currentScenario,
+    scenarioTitle: activeScenarios[currentScenario].title,
+    time: deliberationTime
+  });
   const s = activeScenarios[currentScenario];
   const c = s.choices[idx];
 
@@ -1734,7 +2243,7 @@ function showResults() {
   showScreen('results-screen');
   saveProgress();
 
-  const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
+  const maxP = Math.round(Math.min(activeScenarios.length * 0.6, 14));
   // Raw normalization
   const raw = {};
   for (const axis of Object.keys(AXES)) {
@@ -1810,6 +2319,7 @@ function showResults() {
 
   currentArchetype = archetype;
   renderReadings(archetype);
+  renderDeliberationInsights();
   loadWall();
 
   const portrait = document.getElementById('portrait');
@@ -2057,6 +2567,38 @@ function renderReadings(archetype) {
         </div>
       `).join('')}
     </div>
+    
+    <div class="readings-title" style="margin-top: 3rem;">FURTHER EXPLORATION</div>
+    <div class="readings-grid">
+      <div class="reading-card" style="border-left: 3px solid var(--purple);">
+        <div class="reading-book" style="font-style: normal; font-weight: 600;">FILM</div>
+        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">visual philosophy</div>
+        <div class="reading-why">
+          <strong>12 Angry Men</strong> — justice through deliberation<br>
+          <strong>Stalker</strong> (Tarkovsky) — desire and meaning<br>
+          <strong>After Life</strong> (Koreeda) — memory and identity<br>
+          <strong>Incendies</strong> — truth and consequences
+        </div>
+      </div>
+      <div class="reading-card" style="border-left: 3px solid var(--teal);">
+        <div class="reading-book" style="font-style: normal; font-weight: 600;">DOCUMENTARY</div>
+        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">philosophy in practice</div>
+        <div class="reading-why">
+          <strong>The Examined Life</strong> (2008) — philosophers walking and talking<br>
+          <strong>Waking Life</strong> (2001) — animated philosophical dialogue
+        </div>
+      </div>
+      <div class="reading-card" style="border-left: 3px solid var(--orange);">
+        <div class="reading-book" style="font-style: normal; font-weight: 600;">GAMES</div>
+        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">interactive ethics</div>
+        <div class="reading-why">
+          <strong>Disco Elysium</strong> — political philosophy &amp; identity<br>
+          <strong>Papers, Please</strong> — bureaucracy &amp; moral compromise<br>
+          <strong>The Stanley Parable</strong> — choice &amp; determinism<br>
+          <strong>Outer Wilds</strong> — knowledge &amp; cosmic perspective
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -2064,7 +2606,7 @@ function copyResults() {
   const name = document.getElementById('archetype-name').textContent;
   const sub = document.getElementById('archetype-sub').textContent;
   const axisText = Object.entries(AXES).map(([k,v]) => {
-    const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
+    const maxP = Math.round(Math.min(activeScenarios.length * 0.6, 14));
     const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
     return `${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('\n');
@@ -2286,11 +2828,42 @@ function renderConsistencyCheck(analysis) {
   return `<div class="consistency-section"><div class="consistency-header"><div class="consistency-title">PHILOSOPHICAL CONSISTENCY</div><div class="consistency-score">${score}%</div><div class="consistency-bar">${bar}</div><div class="consistency-message">${msg}</div></div>${interp}<div style="margin-top:2rem"><div class="consistency-observation-label" style="margin-bottom:1rem">Your Philosophical Tensions ${tensions.length>0?`(${tensions.length})`:''}</div>${tensHTML}</div>${tensions.length>0?'<div class="consistency-footer"><p>These tensions don\'t mean you failed the quiz — they mean you\'re engaging with it honestly. The goal of philosophy isn\'t to eliminate contradictions but to see them clearly. Socrates would be proud.</p></div>':''}</div>`;
 }
 
+function renderDeliberationInsights() {
+  if (!deliberationTimes || deliberationTimes.length === 0) return;
+  const sorted = [...deliberationTimes].sort((a, b) => b.time - a.time);
+  const longest = sorted[0];
+  const meaningful = deliberationTimes.filter(d => d.time >= 5);
+  const shortest = meaningful.length > 0 ? meaningful.reduce((min, d) => d.time < min.time ? d : min) : sorted[sorted.length - 1];
+  const avgTime = (deliberationTimes.reduce((sum, t) => sum + t.time, 0) / deliberationTimes.length).toFixed(1);
+  const formatTime = s => s < 60 ? Math.round(s) + 's' : Math.floor(s/60) + 'm ' + Math.round(s%60) + 's';
+  const html = `
+    <div class="deliberation-section">
+      <div class="deliberation-title">your deliberation</div>
+      <div class="deliberation-list">
+        <div class="deliberation-entry">
+          <span class="deliberation-scenario">longest pause: "${longest.scenarioTitle}"</span>
+          <span class="deliberation-time">${formatTime(longest.time)}</span>
+        </div>
+        <div class="deliberation-entry">
+          <span class="deliberation-scenario">quickest choice: "${shortest.scenarioTitle}"</span>
+          <span class="deliberation-time">${formatTime(shortest.time)}</span>
+        </div>
+        <div class="deliberation-entry">
+          <span class="deliberation-scenario">average deliberation</span>
+          <span class="deliberation-time">${avgTime}s</span>
+        </div>
+      </div>
+    </div>
+  `;
+  const readingsSection = document.getElementById('readings-section');
+  if (readingsSection) readingsSection.insertAdjacentHTML('afterend', html);
+}
+
 function emailResults() {
   const name = document.getElementById('archetype-name').textContent;
   const sub = document.getElementById('archetype-sub').textContent;
   const axisText = Object.entries(AXES).map(([k,v]) => {
-    const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
+    const maxP = Math.round(Math.min(activeScenarios.length * 0.6, 14));
     const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
     return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('%0A');
@@ -2315,7 +2888,7 @@ ${sub}
 YOUR AXES
 
 ${Object.entries(AXES).map(([k,v]) => {
-  const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
+  const maxP = Math.round(Math.min(activeScenarios.length * 0.6, 14));
   const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
   return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
 }).join('\n')}
