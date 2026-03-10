@@ -135,7 +135,8 @@
 
 /* Path cards tilt */
 [data-theme="pink"] .path-card:nth-child(1) { transform: rotate(-1deg); }
-[data-theme="pink"] .path-card:nth-child(2) { transform: rotate(1deg); }
+[data-theme="pink"] .path-card:nth-child(2) { transform: rotate(0.8deg); }
+[data-theme="pink"] .path-card:nth-child(3) { transform: rotate(-0.5deg); }
 [data-theme="pink"] .path-card:hover { transform: rotate(0deg) scale(1.02) !important; }
 
 /* Bounce animation on selected choice */
@@ -372,7 +373,7 @@ body {
 
 .paths {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -884,10 +885,16 @@ body {
         <p class="path-card-desc">Ten core dilemmas. Ethics, freedom, meaning, identity. The greatest hits.</p>
         <div class="path-card-count">10 scenarios · ~5 min</div>
       </div>
+      <div class="path-card" onclick="selectPath('examined')" id="path-examined">
+        <div class="path-card-icon">◎</div>
+        <div class="path-card-name">THE EXAMINED</div>
+        <p class="path-card-desc">Fifteen carefully chosen dilemmas spanning ethics, identity, knowledge, and belonging. The sweet spot.</p>
+        <div class="path-card-count">15 scenarios · ~10 min</div>
+      </div>
       <div class="path-card" onclick="selectPath('deep')" id="path-deep">
         <div class="path-card-icon">◉</div>
         <div class="path-card-name">THE DEEP CUT</div>
-        <p class="path-card-desc">All twenty-four. Adds epistemology, aesthetics, language, ecology, mortality, cosmic order, liberation, deep listening, and non-Western traditions.</p>
+        <p class="path-card-desc">All twenty-four. The complete philosophical inventory — Western, Eastern, African, Indigenous, and everything between.</p>
         <div class="path-card-count">24 scenarios · ~15 min</div>
       </div>
     </div>
@@ -1066,6 +1073,7 @@ const READINGS = {
 };
 
 const ESSENTIAL_IDS = [0,1,2,3,4,5,6,7,8];
+const EXAMINED_IDS = [0,1,2,3,4,5,6,7,8,13,15,17,18,22];
 const LAST_QUESTION_ID = 9;
 
 const SCENARIOS = [
@@ -1165,7 +1173,7 @@ const SCENARIOS = [
         scores: {consequence: 2, individual: -2, pragmatist: 0, rationalist: 1},
         reflection:'The utilitarian math is clear, but Rawls would ask: would you design this from behind the veil of ignorance? The answer reveals more than the policy.',
         philosopher:'John Rawls, A Theory of Justice' },
-      { label:'b', text:'No. You cannot take seventy percent of a person\'s income, however noble the cause. That is not taxation; it is confiscation. Rights are not subject to cost-benefit analysis.',
+      { label:'b', text:'No. You cannot take ninety percent of a person\'s wealth, however noble the cause. That is not taxation; it is confiscation. Rights are not subject to cost-benefit analysis.',
         scores: {consequence: -2, individual: 2, agency: 0, rationalist: 1},
         reflection:'Nozick would argue: if wealth was justly acquired, taking it is theft regardless of destination. Rights aren\'t subject to cost-benefit analysis.',
         philosopher:'Robert Nozick, Anarchy, State, and Utopia' },
@@ -1200,7 +1208,7 @@ const SCENARIOS = [
     chapter: 'VII — intimacy',
     tradition: 'Existentialism & Virtue Ethics',
     title: 'The Vulnerability Tax',
-    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good—perhaps the most honest and easeful connection you've had with another person. Last week they asked, with the kind of careful gentleness that suggested they'd been thinking about it for some time, why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed the deflection, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without transformation. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper would mean handing someone the exact knowledge they would need to hurt you in ways no one else could—not that they would, not that you have any reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
+    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good — perhaps the most honest connection you've had with another person. Last week they asked why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without changing shape. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else could — not that they would, not that you have reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
     question: 'Do you go deeper?',
     choices: [
       { label:'a', text:'Yes, all the way. To be half-known is to be half-loved. If this person matters, they get the full picture, even the parts that make you harder to love.',
@@ -1453,7 +1461,7 @@ const SCENARIOS = [
     chapter: 'XIX — cosmic order',
     tradition: 'Maat (Egyptian Ethics)',
     title: 'The Whistleblower\'s Weight',
-    body: `The documents spread across your desk tell a story you wish you didn't understand. For six months you've been the compliance officer at a mid-sized pharmaceutical company, and for six months you've filed the reports, signed the certifications, assured yourself that the numbers added up. They did add up—technically. But tonight, cross-referencing manufacturing logs with distribution records, you've found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls—not dangerous, probably, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. The same active ingredient, the same name, but not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will say it's a resource allocation issue. And they won't be entirely lying—the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order—not as abstractions but as weight. Your heart feels heavy tonight, and you don't think it's just stress.`,
+    body: `For six months you've been the compliance officer at a mid-sized pharmaceutical company. For six months you've filed the reports, signed the certifications, assured yourself the numbers added up. They did — technically. But tonight, cross-referencing manufacturing logs with distribution records, you found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls — not dangerous exactly, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. Same active ingredient, same name, not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will call it a resource allocation issue. They won't be entirely lying — the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order — not as abstractions but as weight. The scale is in front of you. The feather is waiting.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Report the findings through official channels and let the investigation unfold, trusting that bringing the truth to light restores balance regardless of personal consequences.',
@@ -1461,12 +1469,12 @@ const SCENARIOS = [
         reflection:'You choose to align with Maat—cosmic truth and order—over social convenience. The question isn\'t whether speaking truth is strategically wise; it\'s whether you can face the weighing with a heart light enough to match the feather.',
         philosopher:'Book of the Dead, The 42 Negative Confessions' },
       { label:'b', text:'Document everything meticulously, secure the evidence, then resign and find a position where you can advocate for stronger industry regulations without targeting this specific company.',
-        scores: {consequence:1, individual:0, stoic:0, pragmatist:2, agency:1, rationalist:2, transcendent:-1},
-        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too—the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
+        scores: {pragmatist:2, rationalist:2, agency:1, consequence:1},
+        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too — the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
         philosopher:'Ptahhotep, The Maxims' },
       { label:'c', text:'Bring the evidence to the executive team directly, giving them a private opportunity to correct the imbalance before it becomes public, trusting that restoration matters more than punishment.',
         scores: {consequence:0, individual:-1, stoic:2, pragmatist:0, agency:0, rationalist:1, transcendent:2},
-        reflection:'You choose the path of restorative rather than retributive justice. In the Egyptian tradition, Maat isn\'t primarily about punishment—it\'s about restoration of cosmic balance. You give those who created the imbalance a chance to correct it, to lighten their own hearts before the weighing.',
+        reflection:'Restorative over retributive. In the Egyptian tradition, Maat isn\'t primarily about punishment — it\'s about restoring cosmic balance. You give those who created the imbalance a chance to correct it themselves, to lighten their own hearts before the weighing.',
         philosopher:'Merikare, Teachings for a King' }
     ]
   },
@@ -1474,20 +1482,20 @@ const SCENARIOS = [
     chapter: 'XX — communal self',
     tradition: 'Ubuntu (Southern African Ethics)',
     title: 'The Inheritance Interview',
-    body: `The email from TechVenture Capital arrives on a Tuesday morning, and for a moment you just stare at the subject line: "Partner Track—Final Interview." You've been working toward this for five years—maybe your whole life, if you're honest. But you didn't build this alone. Your business partner—your college roommate who took a salary cut to join you when the company was just a fever dream and a maxed-out credit card—will be pushed out if you take this role. The fund made it clear: they want you, not both of you. They see you as the visionary; they see them as "operational overhead." You know that's bullshit. Every breakthrough you had, you had together. Every crisis you survived, they were the one who kept the ship from sinking while you were busy being the face of the company. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em>—a person is a person through other people. The success TechVenture wants to reward isn't divisible from the partnership that created it. To claim it as solely yours would be factually wrong. But it's also how the world works, isn't it?`,
+    body: `The email arrives on a Tuesday morning: "Partner Track — Final Interview." You've been working toward this for five years. But you didn't build this alone. Your business partner — college roommate, first believer, the person who took a salary cut to join you when the company was a fever dream and a maxed-out credit card — will be pushed out if you take this role. The fund wants you, not both of you. They see you as the visionary; they see your partner as "operational overhead." You know that's wrong. Every breakthrough, you had together. Every crisis, they held the ship steady while you played the face. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em> — a person is a person through other people. The success they want to invest in was never yours alone. But the world doesn't reward partnerships the way it rewards individuals.`,
     question: 'Your finger hovers over the reply button. What do you write?',
     choices: [
-      { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture—honoring the relationship while moving forward.',
-        scores: {consequence:1, individual:2, stoic:0, pragmatist:2, agency:1, rationalist:2, transcendent:-1},
-        reflection:'You try to have it both ways: individual advancement and communal recognition. Ubuntu would ask: does this actually honor interconnectedness, or does it just ease your conscience while accepting atomization?',
+      { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture — honoring the relationship while moving forward.',
+        scores: {individual:2, pragmatist:2, consequence:1, rationalist:1},
+        reflection:'You try to have it both ways: individual advancement and communal recognition. Ubuntu would ask: does this actually honour interconnectedness, or does it just ease your conscience while accepting atomization?',
         philosopher:'Kwame Gyekye, Tradition and Modernity' },
       { label:'b', text:'Decline the individual offer and propose a joint partnership role, making it clear that the success they want to invest in was never separable from the collaboration that created it.',
         scores: {consequence:-1, individual:-2, stoic:2, pragmatist:-2, agency:2, transcendent:2},
         reflection:'You refuse the premise. Ubuntu says "I am because we are"—your identity, your achievement, your very personhood is constituted through relationship. To accept the role alone would be to accept a lie about the nature of reality.',
         philosopher:'Desmond Tutu, No Future Without Forgiveness' },
-      { label:'c', text:'Take the meeting but use it as leverage to find better terms for the partnership—a larger valuation, better investor alignment—then stay with the company you built together.',
-        scores: {consequence:1, individual:0, stoic:1, pragmatist:2, agency:2, rationalist:2, transcendent:1},
-        reflection:'You convert individual opportunity into collective benefit. This is Ubuntu in practice: you redirect recognition back toward the "we." Your grandmother might smile at this—not self-abnegation, not guilt-managed individualism, but the practical wisdom of staying rooted while navigating a world that wants to uproot you.',
+      { label:'c', text:'Take the meeting but use it as leverage to find better terms for the partnership — a larger valuation, better investor alignment — then stay with the company you built together.',
+        scores: {pragmatist:2, agency:2, stoic:1, transcendent:1},
+        reflection:'You convert individual opportunity into collective benefit. Ubuntu in practice: redirect recognition back toward the "we." Your grandmother might smile at this — not self-abnegation, not guilt-managed individualism, but the practical wisdom of staying rooted while navigating a world that wants to uproot you.',
         philosopher:'Augustine Shutte, Ubuntu: An Ethic for a New South Africa' }
     ]
   },
@@ -1495,21 +1503,21 @@ const SCENARIOS = [
     chapter: 'XXI — sacred waters',
     tradition: 'Buen Vivir (Andean Philosophy)',
     title: 'The River\'s Memory',
-    body: `You are the community liaison for a mining company that wants to extract lithium from a valley in the Bolivian altiplano, and the river that runs through it has a name you keep forgetting to use, because in your reports it is simply "Waterway B-7." The indigenous community of three hundred people who have lived along its banks for centuries do not call it a waterway; they call it by a name that translates roughly as "the one who remembers," because in their cosmology the river carries the memory of everyone who has ever drunk from it, bathed in it, or been buried within earshot of its current. The lithium beneath the valley floor would power batteries for electric vehicles across three continents, and the company has offered the community new housing, jobs in the mine, a school, a medical clinic—everything that development economics would call a generous package. The community has said no, not because the offer is inadequate but because the premise is unacceptable: you cannot compensate someone for the loss of a relative, and the river is a relative. You have spent enough time here to understand that this is not metaphor. The question before you is not whether to override their refusal—that decision belongs to people above your pay grade—but what to write in your report.`,
+    body: `The government wants to dam the Willkamayu. In your engineering reports it is "Waterway B-7," but the Quechua community downstream calls it <em>the one who remembers</em> — a living ancestor that carries the voices of the dead, nourishes the soil with seasonal floods, and marks the boundary between this world and the next. The dam would generate clean electricity for two hundred thousand people in a city forty kilometres away. The community does not oppose development. They have proposed an alternative: a network of small run-of-river turbines that work <em>with</em> the current rather than stopping it, preserving the flow, the spawning routes, the floods that renew the valley. Engineers say the alternative would generate roughly a third of the power at twice the cost per kilowatt. The government says the numbers don't work. The community says the river is not a number. You are the environmental impact assessor, and your recommendation will likely determine what happens next.`,
     question: 'What do you recommend?',
     choices: [
-      { label:'a', text:'Recommend proceeding with enhanced compensation. The climate crisis demands sacrifice, and the lithium will prevent suffering on a scale the community cannot see from here.',
-        scores: {consequence:2, individual:-1, pragmatist:0, transcendent:-2, rationalist:1},
-        reflection:'You choose the utilitarian calculus: aggregate suffering reduction outweighs local displacement. But buen vivir would ask whether a worldview that treats rivers as resources and communities as obstacles is the kind of thinking that created the climate crisis in the first place.',
-        philosopher:'Peter Singer, The Life You Can Save' },
-      { label:'b', text:'Recommend halting the project. Some things cannot be weighed on a cost-benefit scale, and a river that carries the memory of a people is one of them.',
-        scores: {consequence:-2, transcendent:2, agency:-1, individual:-1, rationalist:-1, stoic:1},
-        reflection:'You refuse the extractive logic entirely. Buen vivir—sumak kawsay—holds that the good life is not accumulation but harmony, that Pachamama has rights that precede human convenience. The river is not a resource to be compensated for; it is a being whose existence is non-negotiable.',
+      { label:'a', text:'Recommend the dam. Two hundred thousand people need power, and clean energy prevents suffering on a scale that small-scale alternatives cannot match. Compensate the community and relocate the sacred sites where possible.',
+        scores: {consequence:2, stoic:-1, transcendent:-2, individual:-1, pragmatist:1},
+        reflection:'You chose the calculus of scale — aggregate need outweighs local meaning. But buen vivir asks a harder question: is a worldview that can only see rivers as kilowatt-hours capable of solving the crisis it created?',
+        philosopher:'Jeremy Bentham, An Introduction to the Principles of Morals and Legislation' },
+      { label:'b', text:'Recommend the community\'s alternative. A third of the power is still power, and development that requires silencing an ancestor is not development — it is conquest wearing a green hat.',
+        scores: {transcendent:2, pragmatist:-1, consequence:-1, agency:-1, stoic:1},
+        reflection:'Sumak kawsay — the good life — is not accumulation but harmony. You cannot dam a relative and call it progress. The river\'s flow is not inefficiency; it is the shape of a relationship older than the state that wants to interrupt it.',
         philosopher:'Eduardo Gudynas, Buen Vivir' },
-      { label:'c', text:'Recommend a third option: the community retains guardianship of the river and receives ownership stakes in the mining operation, ensuring extraction happens on their terms if it happens at all.',
-        scores: {pragmatist:2, consequence:0, agency:1, individual:-1, transcendent:1, rationalist:0},
-        reflection:'You try to build a bridge between two worldviews. The community\'s relationship to the river is preserved in legal form; the global need for lithium is acknowledged. It\'s imperfect—guardianship is a Western legal concept grafted onto a relationship that predates Western law—but it\'s an attempt to honor both realities.',
-        philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
+      { label:'c', text:'Recommend a phased approach: build the run-of-river system first, prove it works, then revisit the question in ten years with better technology and a genuine partnership rather than a forced choice.',
+        scores: {pragmatist:2, rationalist:1, agency:1, transcendent:1},
+        reflection:'You buy time and redistribute power. The community keeps the river; the city gets some electricity now and a promise of more later. It satisfies no one completely — which may be exactly why it is the most honest option on the table.',
+        philosopher:'Arturo Escobar, Designs for the Pluriverse' }
     ]
   },
   {
@@ -1542,11 +1550,11 @@ const SCENARIOS = [
     choices: [
       { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
         scores: {rationalist:2, pragmatist:1, consequence:1, transcendent:-2, individual:0, agency:1},
-        reflection:'You separate the personal from the professional. Your instruments measured what can be measured; the rest is poetry, not policy. But dadirri would ask whether your instruments are even asking the right questions—whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
+        reflection:'Your instruments measured what can be measured; the rest is poetry, not policy. Fair enough. But dadirri would ask whether your instruments are even asking the right questions — whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
         philosopher:'Francis Bacon, Novum Organum' },
       { label:'b', text:'Recommend against clearing. Something in the forest resists your categories, and intellectual honesty demands acknowledging what your methodology cannot capture.',
         scores: {transcendent:2, rationalist:-2, agency:-1, individual:-1, consequence:-1, stoic:1},
-        reflection:'You let the experience change your conclusion. This is not anti-science—it\'s an acknowledgment that science has boundaries, that some knowledge arrives through presence rather than measurement. Dadirri suggests that the deepest understanding comes from listening so carefully that the distinction between observer and observed dissolves.',
+        reflection:'You let the experience change your conclusion. Not anti-science — an acknowledgment that science has boundaries, that some knowledge arrives through presence rather than measurement. Dadirri: listen carefully enough and the distinction between observer and observed dissolves.',
         philosopher:'Miriam-Rose Ungunmerr, Inner Deep Listening' },
       { label:'c', text:'Report the data but include a supplementary section on indigenous ecological knowledge, recommending that traditional custodians be given co-governance over any development decision.',
         scores: {pragmatist:1, transcendent:1, consequence:0, agency:1, rationalist:0, individual:-1},
@@ -1566,7 +1574,7 @@ const SCENARIOS = [
         reflection:'You work within the system as it exists. The treatment is real, the suffering it alleviates is real, and your refusal won\'t undo the patent—someone else will sign. But Kimmerer would ask: does this perpetuate the very logic that made the theft possible? Are you keeping the gift moving, or are you helping to enclose it?',
         philosopher:'William MacAskill, Doing Good Better' },
       { label:'b', text:'Refuse to sign and publicly advocate for the elder\'s community to receive recognition and ongoing royalties, even if it delays or jeopardizes the treatment\'s availability.',
-        scores: {individual:-1, agency:2, transcendent:1, consequence:-1, pragmatist:-2, rationalist:1, stoic:1},
+        scores: {agency:2, pragmatist:-2, transcendent:1, consequence:-1, rationalist:1},
         reflection:'You refuse to participate in the enclosure of the gift. The treatment matters, but so does the principle that knowledge shared in relationship carries obligations that patent law does not recognize. You\'re asking the system to accommodate a worldview it was not designed for.',
         philosopher:'Vandana Shiva, Biopiracy' },
       { label:'c', text:'Negotiate a benefit-sharing agreement where the community receives a percentage of revenues and co-governance over how the knowledge is used, then sign.',
@@ -1627,12 +1635,15 @@ function selectPath(p) {
   document.getElementById('path-go-btn').style.display = '';
 }
 
+
 function startExam() {
   resetScores();
   answers = [];
   currentScenario = 0;
   if (selectedPath === 'essential') {
     activeScenarios = ESSENTIAL_IDS.map(i => SCENARIOS[i]);
+  } else if (selectedPath === 'examined') {
+    activeScenarios = EXAMINED_IDS.map(i => SCENARIOS[i]);
   } else {
     activeScenarios = SCENARIOS.filter((_, i) => i !== LAST_QUESTION_ID);
   }
@@ -1723,7 +1734,7 @@ function showResults() {
   showScreen('results-screen');
   saveProgress();
 
-  const maxP = activeScenarios.length <= 10 ? 6 : 10;
+  const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
   // Raw normalization
   const raw = {};
   for (const axis of Object.keys(AXES)) {
@@ -1807,7 +1818,10 @@ function showResults() {
     'Existentialism & Virtue Ethics','Taoism & Political Philosophy','Existentialism & Phenomenology',
     'Socratic Method','Epistemology · East & West','Philosophy of Language · Phenomenology',
     'Aesthetics · African & Western','Ubuntu · African Philosophy','Environmental Philosophy · Indigenous Thought',
-    'Existentialism · Buddhist Philosophy','Islamic Philosophy · Epistemology','Feminist Philosophy · Ethics of Care'];
+    'Existentialism · Buddhist Philosophy','Islamic Philosophy · Epistemology','Feminist Philosophy · Ethics of Care',
+    'Maat (Egyptian Ethics)','Ubuntu (Southern African Ethics)','Buen Vivir (Andean Philosophy)',
+    'Freire (Latin American Pedagogy)','Dadirri (Aboriginal Australian Philosophy)',
+    'Indigenous Reciprocity (Potawatomi/Kimmerer)'];
 
   const activeTraditions = Object.keys(traditions);
 
@@ -2050,7 +2064,7 @@ function copyResults() {
   const name = document.getElementById('archetype-name').textContent;
   const sub = document.getElementById('archetype-sub').textContent;
   const axisText = Object.entries(AXES).map(([k,v]) => {
-    const maxP = activeScenarios.length <= 10 ? 6 : 10;
+    const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
     const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
     return `${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('\n');
@@ -2084,6 +2098,8 @@ function copyResults() {
     // fallback
     if (selectedPath === 'essential') {
       activeScenarios = ESSENTIAL_IDS.map(i => SCENARIOS[i]);
+    } else if (selectedPath === 'examined') {
+      activeScenarios = EXAMINED_IDS.map(i => SCENARIOS[i]);
     } else {
       activeScenarios = SCENARIOS.filter((_, i) => i !== LAST_QUESTION_ID);
     }
@@ -2150,7 +2166,7 @@ async function shareResult() {
   const archetypeName=document.getElementById('archetype-name')?.textContent;
   const archetypeSub=document.getElementById('archetype-sub')?.textContent;
   if(!archetypeName||!archetypeSub)return;
-  const maxP=activeScenarios.length<=10?6:10;
+  const maxP=activeScenarios.length<=10?6:activeScenarios.length<=15?8:10;
   const raw={};for(const axis of Object.keys(AXES))raw[axis]=Math.max(0,Math.min(1,(scores[axis]+maxP)/(2*maxP)));
   const ax2=Object.keys(AXES);const mean=ax2.reduce((s,a)=>s+raw[a],0)/ax2.length;
   const centered={};for(const a of ax2)centered[a]=raw[a]-mean;
@@ -2234,7 +2250,7 @@ const TENSION_PAIRS=[
   {scenarios:[{index:16,choice:0,label:'publish the correction immediately'},{index:2,choice:0,label:'say nothing about the infidelity'}],tension:'You held truth as non-negotiable in one domain but allowed loyalty to override it in another. Al-Ghazali walked away from everything when his framework cracked; Confucian virtue holds trust as foundational. You\'ve chosen both, and they don\'t reconcile easily.',axes:['rationalist','individual'],severity:0.85},
   {scenarios:[{index:4,choice:2,label:'oppose wealth tax (pragmatic)'},{index:13,choice:1,label:'leave the community (principle over belonging)'}],tension:'You let pragmatism guide you when it came to policy — "beautiful failures don\'t count" — but chose purity over practical compromise when your own community was at stake.',axes:['pragmatist','consequence'],severity:0.75},
   {scenarios:[{index:12,choice:0,label:'separate art from artist'},{index:13,choice:1,label:'leave the community (refuse complicity)'}],tension:'You argued that beauty exists independently of its maker, yet when faced with institutional harm, you refused to stay silent or complicit. The Yoruba concept of àṣà sits uneasily next to the principle that silence enables harm.',axes:['consequence','individual'],severity:0.8},
-  {scenarios:[{index:14,choice:0,label:'build the mine (utilitarian carbon math)'},{index:20,choice:1,label:'respect the river community\'s refusal'}],tension:'Singer\'s preference utilitarianism says aggregate suffering reduction justifies localized harm. Deep ecology says land has intrinsic value. You cannot choose both without a theory about when numbers matter and when they don\'t.',axes:['consequence','transcendent'],severity:0.85},
+  {scenarios:[{index:14,choice:0,label:'build the mine (utilitarian carbon math)'},{index:20,choice:1,label:'recommend the community\'s alternative (honour the river)'}],tension:'Singer\'s preference utilitarianism says aggregate suffering reduction justifies localized harm. Buen vivir says the river is a relative, not a resource. You chose the numbers in one valley and the relationship in another — which means your utilitarianism has a threshold you haven\'t named yet.',axes:['consequence','transcendent'],severity:0.85},
   {scenarios:[{index:10,choice:2,label:'pull child from school (reject institution)'},{index:3,choice:2,label:'finish the thesis (trust the system)'}],tension:'When an institution failed to integrate new technology, you abandoned it entirely. When your own academic work collapsed, you stayed within the system. Do you trust institutions or simply treat them as instrumental when convenient?',axes:['agency','pragmatist'],severity:0.7},
   {scenarios:[{index:21,choice:0,label:'teach to the test (pragmatic)'},{index:22,choice:1,label:'trust deep listening over data'}],tension:'In one case you prioritized measurable outcomes over transformative experience. In another, you let unmeasurable presence override empirical data. Your epistemology shifts based on who has power in the room.',axes:['rationalist','pragmatist'],severity:0.75},
 ];
@@ -2274,7 +2290,7 @@ function emailResults() {
   const name = document.getElementById('archetype-name').textContent;
   const sub = document.getElementById('archetype-sub').textContent;
   const axisText = Object.entries(AXES).map(([k,v]) => {
-    const maxP = activeScenarios.length <= 10 ? 6 : 10;
+    const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
     const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
     return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('%0A');
@@ -2299,7 +2315,7 @@ ${sub}
 YOUR AXES
 
 ${Object.entries(AXES).map(([k,v]) => {
-  const maxP = activeScenarios.length <= 10 ? 6 : 10;
+  const maxP = activeScenarios.length <= 10 ? 6 : activeScenarios.length <= 15 ? 8 : 10;
   const val = Math.round(Math.max(0,Math.min(1,(scores[k]+maxP)/(2*maxP)))*100);
   return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
 }).join('\n')}
