@@ -785,6 +785,298 @@ body {
   border-color: var(--accent-dim);
 }
 
+/* ===== RARITY BADGE ===== */
+.rarity-badge {
+  margin-top: 1.5rem;
+  padding: 0.8rem 1.5rem;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  text-align: center;
+  display: inline-block;
+  animation: rarityFadeIn 0.6s ease 0.3s both;
+}
+
+@keyframes rarityFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rarity-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+
+.rarity-description {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.rarity-badge[data-rarity="rare"] {
+  border-color: var(--accent);
+  background: rgba(201, 168, 76, 0.12);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
+}
+
+[data-theme="pink"] .rarity-badge {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+  background: rgba(196, 68, 122, 0.08);
+}
+
+/* ===== PHILOSOPHER MATCH ===== */
+.philosopher-section {
+  margin: 3rem 0;
+  padding: 2.5rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+}
+
+.philosopher-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.philosopher-primary { text-align: center; margin-bottom: 3rem; }
+
+.philosopher-primary-name {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.philosopher-primary-dates {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.philosopher-primary-desc {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.philosopher-match-bar {
+  max-width: 400px;
+  margin: 0 auto;
+  height: 32px;
+  background: var(--surface-2);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.philosopher-match-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  transition: width 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 1rem;
+}
+
+.philosopher-match-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--bg);
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.philosopher-runners { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--surface-2); }
+
+.philosopher-runner-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.philosopher-runners-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+.philosopher-runner {
+  padding: 1.5rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+  transition: border-color 0.3s ease;
+}
+
+.philosopher-runner:hover { border-color: var(--accent-dim); }
+
+.philosopher-runner-name {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.philosopher-runner-dates {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.8rem;
+}
+
+.philosopher-runner-desc {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+}
+
+.philosopher-runner-match {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+[data-theme="pink"] .philosopher-section {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+}
+
+[data-theme="pink"] .philosopher-runner {
+  border: 2px solid var(--surface-2);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+  transform: rotate(-0.5deg);
+}
+
+[data-theme="pink"] .philosopher-runner:nth-child(2) { transform: rotate(0.5deg); }
+
+[data-theme="pink"] .philosopher-runner:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 3px 3px 0px var(--accent-dim);
+}
+
+/* ===== CONSISTENCY CHECK ===== */
+.consistency-section {
+  margin: 3rem 0;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-2);
+}
+
+.consistency-header { text-align: center; margin-bottom: 2rem; }
+
+.consistency-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+
+.consistency-score {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.consistency-bar {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--text-faint);
+  letter-spacing: 0.5em;
+  margin-bottom: 0.5rem;
+}
+
+.consistency-message {
+  font-size: 1rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.consistency-observation {
+  background: var(--bg);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  margin-top: 1rem;
+}
+
+.consistency-observation-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.consistency-observation-text {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.consistency-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--surface-2);
+}
+
+.consistency-footer p {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+}
+
+[data-theme="pink"] .consistency-section {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 3px 3px 0px var(--accent-dim);
+}
+
+[data-theme="pink"] .consistency-observation {
+  border-left: 3px solid var(--accent);
+  background: rgba(255,192,203,0.1);
+}
+
 @media (max-width: 600px) {
   html { font-size: 16px; }
   .screen { padding: 1.5rem; }
@@ -794,6 +1086,8 @@ body {
   .paths { grid-template-columns: 1fr; }
   .readings-grid { grid-template-columns: 1fr; }
   .community-add { flex-direction: column; }
+  .philosopher-runners-grid { grid-template-columns: 1fr; }
+  .philosopher-primary-name { font-size: 1.6rem; }
 }
   </style>
 </head>
@@ -871,7 +1165,9 @@ body {
       <svg class="radar-svg" id="radar" viewBox="0 0 400 400"></svg>
     </div>
     <div class="axes-grid" id="axes-grid"></div>
+    <div id="consistency-container"></div>
     <div class="portrait" id="portrait"></div>
+    <div id="philosopher-container"></div>
     <div class="readings-section" id="readings-section"></div>
     <div class="community-section" id="community-section">
       <div class="community-title">THE WALL</div>
@@ -887,6 +1183,7 @@ body {
     <div class="results-footer">
       <p>"know thyself" — inscribed at the Temple of Apollo at Delphi</p>
       <div class="share-row">
+        <button class="btn-small" onclick="shareResult()">share image</button>
         <button class="btn-small" onclick="copyResults()">copy result</button>
         <button class="btn-small" onclick="emailResults()">email to myself</button>
         <button class="btn-small" onclick="restart()">take again</button>
@@ -1588,6 +1885,22 @@ function showResults() {
   document.getElementById('archetype-name').textContent = archetype.name;
   document.getElementById('archetype-sub').textContent = archetype.subtitle;
 
+  // Rarity badge (async — loads after wall fetch)
+  fetchWall().then(entries => {
+    if (entries) {
+      const rarity = calculateArchetypeRarity(entries, archetype.name);
+      const badge = renderRarityBadge(rarity);
+      if (badge) {
+        const header = document.querySelector('.results-header');
+        const existing = header.querySelector('.rarity-badge');
+        if (existing) existing.remove();
+        const container = document.createElement('div');
+        container.innerHTML = badge;
+        header.appendChild(container.firstElementChild);
+      }
+    }
+  });
+
   drawRadar(normalized);
 
   const grid = document.getElementById('axes-grid');
@@ -1609,6 +1922,18 @@ function showResults() {
   setTimeout(() => {
     document.querySelectorAll('.axis-bar-fill').forEach(b => b.style.width = b.dataset.width);
   }, 300);
+
+  // Consistency check
+  const consistencyAnalysis = analyzeConsistency(answers, activeScenarios);
+  document.getElementById('consistency-container').innerHTML = renderConsistencyCheck(consistencyAnalysis);
+
+  // Philosopher match
+  const philMatches = findClosestPhilosophers(normalized);
+  document.getElementById('philosopher-container').innerHTML = renderPhilosopherMatch(philMatches);
+  setTimeout(() => {
+    const bar = document.querySelector('.philosopher-match-fill');
+    if (bar) bar.style.width = bar.getAttribute('data-width');
+  }, 500);
 
   currentArchetype = archetype;
   renderReadings(archetype);
@@ -1910,6 +2235,188 @@ function copyResults() {
     renderScenario();
   }
 })();
+
+// ===== PATCH 1: SHARE IMAGE =====
+async function generateShareImage(archetypeName, archetypeSub, normalizedScores, axesObj) {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080; canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    const bg='#0a0a0c',accent='#c9a84c',txt='#e8e4dc',txtDim='#8a8680',txtFaint='#4a4844';
+    const serifFont='Georgia, serif', monoFont='"Courier New", monospace';
+    ctx.fillStyle=bg; ctx.fillRect(0,0,1080,1080);
+    ctx.textAlign='center';
+    ctx.font=`bold 24px ${monoFont}`; ctx.fillStyle=accent;
+    ctx.fillText('E X A M I N E D .',540,100);
+    ctx.font=`600 56px ${serifFont}`; ctx.fillStyle=txt;
+    const nameWords=archetypeName.split(' ');
+    let nL1='',nL2='';
+    for(let w of nameWords){const t=nL1?nL1+' '+w:w;if(ctx.measureText(t).width>900&&nL1!=='')nL2=nL2?nL2+' '+w:w;else nL1=t;}
+    if(nL2){ctx.fillText(nL1,540,180);ctx.fillText(nL2,540,245);}else ctx.fillText(nL1,540,200);
+    ctx.font=`italic 28px ${serifFont}`; ctx.fillStyle=txtDim;
+    const subY=nL2?310:270;
+    const subWords=archetypeSub.split(' ');let sL1='',sL2='';
+    for(let w of subWords){const t=sL1?sL1+' '+w:w;if(ctx.measureText(t).width>850&&sL1!=='')sL2=sL2?sL2+' '+w:w;else sL1=t;}
+    ctx.fillText(sL1,540,subY);if(sL2)ctx.fillText(sL2,540,subY+38);
+    const rCY=nL2?560:540,rR=140,rCX=540;
+    const ax=Object.keys(axesObj),n=ax.length;
+    ctx.strokeStyle=txtFaint;ctx.lineWidth=1;ctx.globalAlpha=0.3;
+    for(let i=1;i<=4;i++){const r=(rR/4)*i;ctx.beginPath();ctx.arc(rCX,rCY,r,0,Math.PI*2);ctx.stroke();}
+    ctx.globalAlpha=0.2;
+    ax.forEach((_,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.moveTo(rCX,rCY);ctx.lineTo(rCX+rR*Math.cos(a),rCY+rR*Math.sin(a));ctx.stroke();});
+    ctx.globalAlpha=0.2;ctx.fillStyle=accent;ctx.beginPath();
+    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle=accent;ctx.lineWidth=3;ctx.beginPath();
+    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.closePath();ctx.stroke();
+    ctx.fillStyle=accent;
+    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.arc(rCX+rR*v*Math.cos(a),rCY+rR*v*Math.sin(a),5,0,Math.PI*2);ctx.fill();});
+    ctx.font=`12px ${monoFont}`;ctx.fillStyle=txtDim;ctx.textAlign='center';
+    ax.forEach((axis,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2,lR=rR+45,x=rCX+lR*Math.cos(a),y=rCY+lR*Math.sin(a);ctx.save();ctx.translate(x,y);ctx.textAlign=x<rCX-10?'right':x>rCX+10?'left':'center';ctx.fillText(axesObj[axis].right.toUpperCase(),0,0);ctx.restore();});
+    const sStartY=rCY+210,sLH=42,sLX=180;ctx.textAlign='left';
+    ax.forEach((axis,i)=>{const ad=axesObj[axis],v=normalizedScores[axis],y=sStartY+(i*sLH);ctx.font=`bold 16px ${monoFont}`;ctx.fillStyle=txtFaint;ctx.fillText(ad.left.toUpperCase(),sLX,y);ctx.fillStyle=accent;ctx.font=`20px ${monoFont}`;ctx.fillText(v<0.45?'◄':v>0.55?'►':'•',sLX+280,y);ctx.font=`bold 16px ${monoFont}`;ctx.fillStyle=txtFaint;ctx.textAlign='right';ctx.fillText(ad.right.toUpperCase(),900,y);ctx.textAlign='left';});
+    ctx.textAlign='center';ctx.font=`italic 20px ${serifFont}`;ctx.fillStyle=txtFaint;
+    ctx.fillText('"the unexamined life is not worth living."',540,1000);
+    ctx.font=`bold 18px ${monoFont}`;ctx.fillStyle=accent;
+    ctx.fillText('examined. — pranshul.cafe/examined',540,1040);
+    resolve(canvas.toDataURL('image/png'));
+  });
+}
+
+async function shareResult() {
+  const archetypeName=document.getElementById('archetype-name')?.textContent;
+  const archetypeSub=document.getElementById('archetype-sub')?.textContent;
+  if(!archetypeName||!archetypeSub)return;
+  const maxP=activeScenarios.length<=10?6:10;
+  const raw={};for(const axis of Object.keys(AXES))raw[axis]=Math.max(0,Math.min(1,(scores[axis]+maxP)/(2*maxP)));
+  const ax2=Object.keys(AXES);const mean=ax2.reduce((s,a)=>s+raw[a],0)/ax2.length;
+  const centered={};for(const a of ax2)centered[a]=raw[a]-mean;
+  const vals=ax2.map(a=>centered[a]);const cMin=Math.min(...vals),cMax=Math.max(...vals),cRange=cMax-cMin||1;
+  const normalized={};for(const a of ax2)normalized[a]=(centered[a]-cMin)/cRange;
+  const btn=event.target;const orig=btn.textContent;btn.textContent='generating...';btn.style.pointerEvents='none';
+  try{
+    const dataUrl=await generateShareImage(archetypeName,archetypeSub,normalized,AXES);
+    if(navigator.share&&navigator.canShare){try{const blob=await(await fetch(dataUrl)).blob();const file=new File([blob],'examined-result.png',{type:'image/png'});if(navigator.canShare({files:[file]})){await navigator.share({title:`examined. — ${archetypeName}`,text:`${archetypeSub}\n\nTake the quiz: pranshul.cafe/examined`,files:[file]});btn.textContent=orig;btn.style.pointerEvents='';return;}}catch(e){}}
+    const link=document.createElement('a');link.download=`examined-${archetypeName.toLowerCase().replace(/\s+/g,'-')}.png`;link.href=dataUrl;link.click();
+    btn.textContent='downloaded ✓';setTimeout(()=>{btn.textContent=orig;btn.style.pointerEvents='';},2000);
+  }catch(e){btn.textContent=orig;btn.style.pointerEvents='';}
+}
+
+// ===== PATCH 2: ARCHETYPE RARITY =====
+function calculateArchetypeRarity(entries, archetypeName) {
+  if(!entries||entries.length===0)return null;
+  return Math.round((entries.filter(e=>e.archetype===archetypeName).length/entries.length)*1000)/10;
+}
+
+function renderRarityBadge(percentage) {
+  if(percentage===null)return '';
+  let label,desc;
+  if(percentage<10){label='rare';desc=`only ${percentage}% share your archetype`;}
+  else if(percentage<25){label='uncommon';desc=`${percentage}% share your archetype`;}
+  else{label=null;desc=`${percentage}% of examined thinkers share your archetype`;}
+  return `<div class="rarity-badge" data-rarity="${percentage<10?'rare':percentage<25?'uncommon':'common'}">${label?`<span class="rarity-label">${label}</span>`:''}
+    <span class="rarity-description">${desc}</span></div>`;
+}
+
+// ===== PATCH 3: PHILOSOPHER MATCH =====
+const PHILOSOPHERS=[
+  {name:'Socrates',dates:'470–399 BCE',description:'Athenian gadfly who chose death over compromise',scores:{consequence:0.2,individual:0.5,stoic:0.5,pragmatist:0.15,agency:0.75,rationalist:0.9,transcendent:0.8}},
+  {name:'Aristotle',dates:'384–322 BCE',description:'Practical wisdom embodied — ethics as craft',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.6,agency:0.7,rationalist:0.6,transcendent:0.5}},
+  {name:'Immanuel Kant',dates:'1724–1804',description:'Duty without exception, dignity without price',scores:{consequence:0.1,individual:0.75,stoic:0.75,pragmatist:0.15,agency:0.85,rationalist:0.95,transcendent:0.85}},
+  {name:'John Stuart Mill',dates:'1806–1873',description:'The greatest happiness for the greatest number',scores:{consequence:0.95,individual:0.65,stoic:0.4,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.2}},
+  {name:'Friedrich Nietzsche',dates:'1844–1900',description:'Revaluator of values, philosopher with a hammer',scores:{consequence:0.4,individual:0.95,stoic:0.4,pragmatist:0.65,agency:0.9,rationalist:0.35,transcendent:0.15}},
+  {name:'Simone de Beauvoir',dates:'1908–1986',description:'Freedom through situation, ethics of ambiguity',scores:{consequence:0.6,individual:0.55,stoic:0.35,pragmatist:0.75,agency:0.85,rationalist:0.4,transcendent:0.3}},
+  {name:'Lao Tzu',dates:'c. 6th century BCE',description:'The way that can be spoken is not the eternal Way',scores:{consequence:0.3,individual:0.2,stoic:0.7,pragmatist:0.7,agency:0.2,rationalist:0.15,transcendent:0.9}},
+  {name:'Confucius',dates:'551–479 BCE',description:'Ritual propriety and filial devotion as social harmony',scores:{consequence:0.25,individual:0.15,stoic:0.5,pragmatist:0.75,agency:0.65,rationalist:0.4,transcendent:0.35}},
+  {name:'Ibn Arabi',dates:'1165–1240',description:'Mystic of the unity of being, poet of divine love',scores:{consequence:0.2,individual:0.15,stoic:0.65,pragmatist:0.2,agency:0.4,rationalist:0.25,transcendent:0.95}},
+  {name:'Nāgārjuna',dates:'c. 150–250 CE',description:'Emptiness is form, form is emptiness',scores:{consequence:0.45,individual:0.1,stoic:0.75,pragmatist:0.5,agency:0.2,rationalist:0.3,transcendent:0.8}},
+  {name:'bell hooks',dates:'1952–2021',description:'Love as practice of freedom, theory from the margins',scores:{consequence:0.65,individual:0.2,stoic:0.25,pragmatist:0.85,agency:0.75,rationalist:0.3,transcendent:0.25}},
+  {name:'Marcus Aurelius',dates:'121–180 CE',description:'Emperor and Stoic — duty, discipline, acceptance',scores:{consequence:0.25,individual:0.6,stoic:0.95,pragmatist:0.55,agency:0.5,rationalist:0.75,transcendent:0.7}},
+  {name:'Ludwig Wittgenstein',dates:'1889–1951',description:'Silence on what cannot be said, clarity on what can',scores:{consequence:0.35,individual:0.4,stoic:0.6,pragmatist:0.7,agency:0.55,rationalist:0.45,transcendent:0.75}},
+  {name:'Hannah Arendt',dates:'1906–1975',description:'Action, natality, and the space of appearance',scores:{consequence:0.45,individual:0.65,stoic:0.35,pragmatist:0.65,agency:0.8,rationalist:0.45,transcendent:0.3}},
+  {name:'Iris Murdoch',dates:'1919–1999',description:'Attention as love, the Good beyond the self',scores:{consequence:0.3,individual:0.45,stoic:0.55,pragmatist:0.35,agency:0.7,rationalist:0.7,transcendent:0.85}},
+  {name:'Zhuangzi',dates:'c. 369–286 BCE',description:'Butterfly dreamer, skeptic of certainty and categories',scores:{consequence:0.25,individual:0.7,stoic:0.6,pragmatist:0.75,agency:0.4,rationalist:0.2,transcendent:0.85}},
+  {name:'Epicurus',dates:'341–270 BCE',description:'Pleasure as absence of pain, tranquility as goal',scores:{consequence:0.8,individual:0.75,stoic:0.05,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.1}},
+  {name:'David Hume',dates:'1711–1776',description:'Sentiment as moral foundation, skeptic of reason alone',scores:{consequence:0.75,individual:0.5,stoic:0.45,pragmatist:0.75,agency:0.35,rationalist:0.1,transcendent:0.15}},
+  {name:'Baruch Spinoza',dates:'1632–1677',description:'God or Nature — substance, necessity, intellectual love',scores:{consequence:0.2,individual:0.5,stoic:0.8,pragmatist:0.25,agency:0.15,rationalist:0.95,transcendent:0.9}},
+  {name:'Judith Butler',dates:'1956–',description:'Gender as performance, precarity as ethical ground',scores:{consequence:0.55,individual:0.25,stoic:0.3,pragmatist:0.8,agency:0.6,rationalist:0.3,transcendent:0.2}},
+  {name:'Thomas Aquinas',dates:'1225–1274',description:'Faith seeking understanding, natural law as divine order',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.4,agency:0.65,rationalist:0.85,transcendent:0.9}},
+];
+
+function findClosestPhilosophers(normalizedScores) {
+  const ax=Object.keys(AXES);
+  const matches=PHILOSOPHERS.map(phil=>{
+    let sum=0;for(const a of ax){const d=(normalizedScores[a]||0.5)-phil.scores[a];sum+=d*d;}
+    const dist=Math.sqrt(sum);
+    return{philosopher:phil,distance:dist,matchPercentage:Math.round((1-(dist/Math.sqrt(7)))*100)};
+  });
+  matches.sort((a,b)=>a.distance-b.distance);
+  return matches.slice(0,3);
+}
+
+function renderPhilosopherMatch(matches) {
+  if(!matches||matches.length===0)return '';
+  const[p,s,t]=matches;
+  return `<div class="philosopher-section"><div class="philosopher-title">YOUR PHILOSOPHICAL KINDRED SPIRIT</div>
+    <div class="philosopher-primary"><div class="philosopher-primary-name">${p.philosopher.name}</div>
+    <div class="philosopher-primary-dates">${p.philosopher.dates}</div>
+    <div class="philosopher-primary-desc">${p.philosopher.description}</div>
+    <div class="philosopher-match-bar"><div class="philosopher-match-fill" data-width="${p.matchPercentage}%" style="width:0%">
+    <span class="philosopher-match-label">${p.matchPercentage}% philosophical alignment</span></div></div></div>
+    ${s&&t?`<div class="philosopher-runners"><div class="philosopher-runner-title">close contenders</div>
+    <div class="philosopher-runners-grid">
+    <div class="philosopher-runner"><div class="philosopher-runner-name">${s.philosopher.name}</div><div class="philosopher-runner-dates">${s.philosopher.dates}</div><div class="philosopher-runner-desc">${s.philosopher.description}</div><div class="philosopher-runner-match">${s.matchPercentage}% match</div></div>
+    <div class="philosopher-runner"><div class="philosopher-runner-name">${t.philosopher.name}</div><div class="philosopher-runner-dates">${t.philosopher.dates}</div><div class="philosopher-runner-desc">${t.philosopher.description}</div><div class="philosopher-runner-match">${t.matchPercentage}% match</div></div>
+    </div></div>`:''}</div>`;
+}
+
+// ===== PATCH 4: CONSISTENCY CHECK =====
+const TENSION_PAIRS=[
+  {scenarios:[{index:0,choice:0,label:'deliver the letter (duty-bound)'},{index:4,choice:0,label:'continue the wealth tax (utilitarian)'}],tension:'In one moment you held that promises carry unconditional moral weight — consequences be damned. In another, you calculated aggregate suffering and decided the math justified overriding individual rights. Kant and Mill have been arguing in your head, and they haven\'t reached a truce.',axes:['consequence'],severity:0.9},
+  {scenarios:[{index:5,choice:1,label:'owe nothing to past self (radical freedom)'},{index:13,choice:0,label:'stay in the community (ubuntu)'}],tension:'You claimed radical freedom from even your own history — "the old self must die" — yet when it came to community, you chose belonging over conscience. Nietzsche would ask: are you free, or are you just choosing different chains?',axes:['individual','agency'],severity:0.85},
+  {scenarios:[{index:6,choice:0,label:'total intimacy, no walls'},{index:2,choice:0,label:'say nothing about the cheating'}],tension:'You chose total vulnerability in your own relationship — "to be half-known is to be half-loved" — yet when someone else\'s relationship was at stake, you held sacred the right to privacy. The question is whether intimacy is a universal good or a personal choice.',axes:['individual'],severity:0.75},
+  {scenarios:[{index:10,choice:1,label:'ban AI tools (rationalist)'},{index:11,choice:0,label:'understanding through presence, not words (empiricist)'}],tension:'In one domain you trusted reason and cognitive discipline over convenience. In another, you abandoned language entirely, trusting presence and feeling over articulation. Plato and Hume are wrestling in your belief system.',axes:['rationalist'],severity:0.7},
+  {scenarios:[{index:16,choice:0,label:'publish the correction immediately'},{index:2,choice:0,label:'say nothing about the infidelity'}],tension:'You held truth as non-negotiable in one domain but allowed loyalty to override it in another. Al-Ghazali walked away from everything when his framework cracked; Confucian virtue holds trust as foundational. You\'ve chosen both, and they don\'t reconcile easily.',axes:['rationalist','individual'],severity:0.85},
+  {scenarios:[{index:4,choice:2,label:'oppose wealth tax (pragmatic)'},{index:13,choice:1,label:'leave the community (principle over belonging)'}],tension:'You let pragmatism guide you when it came to policy — "beautiful failures don\'t count" — but chose purity over practical compromise when your own community was at stake. You\'re more willing to compromise other people\'s values than your own.',axes:['pragmatist','consequence'],severity:0.75},
+  {scenarios:[{index:8,choice:0,label:'take the five-year project (public impact)'},{index:8,choice:1,label:'stay present with family (private devotion)'}],tension:'You chose between Hannah Arendt\'s "natality" — the capacity to begin something that outlasts you — and Oliver Burkeman\'s "just be here." One treats time as a resource to invest in legacy; the other treats it as the only thing you actually possess.',axes:['stoic','individual'],severity:0.8},
+  {scenarios:[{index:12,choice:0,label:'separate art from artist'},{index:13,choice:1,label:'leave the community (refuse complicity)'}],tension:'You argued that beauty exists independently of its maker, yet when faced with institutional harm, you refused to stay silent or complicit. The Yoruba concept of àṣà sits uneasily next to the principle that silence enables harm.',axes:['consequence','individual'],severity:0.8},
+  {scenarios:[{index:14,choice:0,label:'build the mine (utilitarian carbon math)'},{index:14,choice:1,label:'respect the community\'s refusal'}],tension:'Singer\'s preference utilitarianism says aggregate suffering reduction justifies localized harm. Deep ecology says land has intrinsic value, not instrumental. You cannot choose both without a theory about when numbers matter and when they don\'t.',axes:['consequence','transcendent'],severity:0.85},
+  {scenarios:[{index:10,choice:2,label:'pull child from school (reject institution)'},{index:3,choice:2,label:'finish the thesis (trust the system)'}],tension:'When an institution failed to integrate new technology, you abandoned it entirely. When your own academic work collapsed, you stayed within the system and completed it anyway. Do you trust institutions or simply treat them as instrumental when convenient?',axes:['agency','pragmatist'],severity:0.7},
+];
+
+function analyzeConsistency(ans, activeSc) {
+  const triggered=[],choiceMap=new Map();
+  ans.forEach(a=>choiceMap.set(a.scenario,a.choice));
+  TENSION_PAIRS.forEach(pair=>{
+    const s1i=activeSc.findIndex((s,i)=>SCENARIOS.indexOf(s)===pair.scenarios[0].index&&choiceMap.has(i));
+    const s2i=activeSc.findIndex((s,i)=>SCENARIOS.indexOf(s)===pair.scenarios[1].index&&choiceMap.has(i));
+    if(s1i===-1||s2i===-1)return;
+    if(choiceMap.get(s1i)===pair.scenarios[0].choice&&choiceMap.get(s2i)===pair.scenarios[1].choice)
+      triggered.push(pair);
+  });
+  const possible=TENSION_PAIRS.filter(p=>activeSc.some(s=>SCENARIOS.indexOf(s)===p.scenarios[0].index)&&activeSc.some(s=>SCENARIOS.indexOf(s)===p.scenarios[1].index)).length;
+  const totalSev=triggered.reduce((s,t)=>s+t.severity,0);
+  const score=Math.max(0,Math.round(100-(totalSev/(possible||1)*100)));
+  return{score,tensions:triggered,totalChecked:possible};
+}
+
+function renderConsistencyCheck(analysis) {
+  const{score,tensions}=analysis;
+  let msg='',bar='';
+  if(score>=85){msg='remarkably consistent — but is that a feature or a bug?';bar='━━━━━━━━━━';}
+  else if(score>=70){msg='mostly coherent, with a few interesting contradictions';bar='━━━━━━━━━○';}
+  else if(score>=50){msg='philosophically complicated — you contain multitudes';bar='━━━━━○○○○○';}
+  else{msg='a beautiful mess of competing commitments';bar='━━○○○○○○○○';}
+  let interp='';
+  if(score>=85)interp='<p style="font-size:0.95rem;color:var(--text-dim);line-height:1.8;font-style:italic;">High consistency can mean wisdom — or it can mean you haven\'t encountered the scenarios that would genuinely test your framework. Emerson warned against "foolish consistency" for a reason.</p>';
+  else if(score>=50)interp='<p style="font-size:0.95rem;color:var(--text-dim);line-height:1.8;font-style:italic;">Walt Whitman: "Do I contradict myself? Very well, then I contradict myself. I am large, I contain multitudes." Your tensions aren\'t failures — they\'re the seams where different moral intuitions meet.</p>';
+  else interp='<p style="font-size:0.95rem;color:var(--text-dim);line-height:1.8;font-style:italic;">You are navigating competing moral frameworks that genuinely cannot be reconciled. This isn\'t confusion — it\'s the human condition.</p>';
+  let tensHTML='';
+  if(tensions.length===0)tensHTML='<div class="consistency-observation"><p class="consistency-observation-text"><em>No major tensions detected.</em> Either you have an unusually coherent philosophical framework, or you haven\'t been pressed hard enough yet. Philosophy begins where comfort ends.</p></div>';
+  else tensHTML=tensions.map(t=>`<div class="consistency-observation"><div class="consistency-observation-label">${t.scenarios[0].label} → ${t.scenarios[1].label}</div><p class="consistency-observation-text">${t.tension}</p></div>`).join('');
+  return `<div class="consistency-section"><div class="consistency-header"><div class="consistency-title">PHILOSOPHICAL CONSISTENCY</div><div class="consistency-score">${score}%</div><div class="consistency-bar">${bar}</div><div class="consistency-message">${msg}</div></div>${interp}<div style="margin-top:2rem"><div class="consistency-observation-label" style="margin-bottom:1rem">Your Philosophical Tensions ${tensions.length>0?`(${tensions.length})`:''}</div>${tensHTML}</div>${tensions.length>0?'<div class="consistency-footer"><p>These tensions don\'t mean you failed the quiz — they mean you\'re engaging with it honestly. The goal of philosophy isn\'t to eliminate contradictions but to see them clearly. Socrates would be proud.</p></div>':''}</div>`;
+}
 
 function emailResults() {
   const name = document.getElementById('archetype-name').textContent;
