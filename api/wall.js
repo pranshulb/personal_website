@@ -3,6 +3,26 @@
 
 const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019ccfe8-62ea-77c6-9365-621dbecdbdf8';
 
+// Rate limiting (in-memory, resets on cold start — fine for serverless)
+const rateLimit = new Map();
+const RATE_WINDOW = 60000; // 1 minute
+const RATE_MAX_POST = 3;   // 3 wall posts per minute per IP
+const RATE_MAX_GET = 30;   // 30 reads per minute per IP
+
+function checkRate(ip, limit) {
+  const now = Date.now();
+  const key = `${ip}`;
+  const entry = rateLimit.get(key) || { count: 0, start: now };
+  if (now - entry.start > RATE_WINDOW) { entry.count = 0; entry.start = now; }
+  entry.count++;
+  rateLimit.set(key, entry);
+  // Cleanup old entries every 100 checks
+  if (rateLimit.size > 1000) {
+    for (const [k, v] of rateLimit) { if (now - v.start > RATE_WINDOW * 2) rateLimit.delete(k); }
+  }
+  return entry.count <= limit;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -10,7 +30,12 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  const ip = (req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || 'unknown').split(',')[0].trim();
+
   if (req.method === 'GET') {
+    if (!checkRate(ip, RATE_MAX_GET)) {
+      return res.status(429).json({ error: 'too many requests — try again in a minute' });
+    }
     try {
       const response = await fetch(BLOB_URL);
       const data = await response.json();
@@ -21,6 +46,9 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    if (!checkRate(ip, RATE_MAX_POST)) {
+      return res.status(429).json({ error: 'slow down — max 3 submissions per minute' });
+    }
     try {
       const current = await fetch(BLOB_URL);
       const data = await current.json();
