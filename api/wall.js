@@ -1,26 +1,42 @@
-// Vercel serverless function — wall entries proxied through jsonblob
-// Pings the blob weekly to prevent expiry
+import { put, head, list } from '@vercel/blob';
 
-const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019ccfe8-62ea-77c6-9365-621dbecdbdf8';
+const BLOB_KEY = 'examined-wall.json';
 
-// Rate limiting (in-memory, resets on cold start — fine for serverless)
+// Rate limiting (in-memory, resets on cold start)
 const rateLimit = new Map();
-const RATE_WINDOW = 60000; // 1 minute
-const RATE_MAX_POST = 3;   // 3 wall posts per minute per IP
-const RATE_MAX_GET = 30;   // 30 reads per minute per IP
+const RATE_WINDOW = 60000;
+const RATE_MAX_POST = 3;
+const RATE_MAX_GET = 30;
 
 function checkRate(ip, limit) {
   const now = Date.now();
-  const key = `${ip}`;
-  const entry = rateLimit.get(key) || { count: 0, start: now };
+  const entry = rateLimit.get(ip) || { count: 0, start: now };
   if (now - entry.start > RATE_WINDOW) { entry.count = 0; entry.start = now; }
   entry.count++;
-  rateLimit.set(key, entry);
-  // Cleanup old entries every 100 checks
+  rateLimit.set(ip, entry);
   if (rateLimit.size > 1000) {
     for (const [k, v] of rateLimit) { if (now - v.start > RATE_WINDOW * 2) rateLimit.delete(k); }
   }
   return entry.count <= limit;
+}
+
+async function getWallData() {
+  try {
+    const { blobs } = await list({ prefix: BLOB_KEY });
+    if (blobs.length === 0) return { entries: [] };
+    const response = await fetch(blobs[0].url);
+    return await response.json();
+  } catch (e) {
+    return { entries: [] };
+  }
+}
+
+async function saveWallData(data) {
+  await put(BLOB_KEY, JSON.stringify(data), {
+    access: 'public',
+    contentType: 'application/json',
+    addRandomSuffix: false,
+  });
 }
 
 export default async function handler(req, res) {
@@ -34,11 +50,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     if (!checkRate(ip, RATE_MAX_GET)) {
-      return res.status(429).json({ error: 'too many requests — try again in a minute' });
+      return res.status(429).json({ error: 'too many requests' });
     }
     try {
-      const response = await fetch(BLOB_URL);
-      const data = await response.json();
+      const data = await getWallData();
       return res.status(200).json(data);
     } catch (e) {
       return res.status(500).json({ error: 'failed to fetch wall' });
@@ -47,11 +62,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     if (!checkRate(ip, RATE_MAX_POST)) {
-      return res.status(429).json({ error: 'slow down — max 3 submissions per minute' });
+      return res.status(429).json({ error: 'slow down' });
     }
     try {
-      const current = await fetch(BLOB_URL);
-      const data = await current.json();
+      const data = await getWallData();
       const entries = data.entries || [];
 
       const { name, archetype, scores, answers, path } = req.body;
@@ -63,7 +77,6 @@ export default async function handler(req, res) {
       }
 
       const clean = (s) => s.replace(/[<>&"']/g, '');
-
       const now = new Date();
       const entry = {
         name: clean(name),
@@ -72,20 +85,14 @@ export default async function handler(req, res) {
         ts: now.getTime()
       };
 
-      // Store full quiz data if provided
       if (scores && typeof scores === 'object') entry.scores = scores;
       if (answers && Array.isArray(answers)) entry.answers = answers;
       if (path && typeof path === 'string') entry.path = clean(path);
 
       entries.push(entry);
-
       const trimmed = entries.slice(-500);
 
-      await fetch(BLOB_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: trimmed })
-      });
+      await saveWallData({ entries: trimmed });
 
       return res.status(200).json({ ok: true, count: trimmed.length });
     } catch (e) {
