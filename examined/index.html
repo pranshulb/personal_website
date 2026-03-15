@@ -768,9 +768,9 @@ body {
   font-size: 0.55rem;
   letter-spacing: 0.1em;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--surface-2);
-  background: var(--surface);
-  color: var(--text-dim);
+  border: 1px solid #e8a0b4;
+  background: rgba(255,182,206,0.15);
+  color: #d4708f;
   cursor: pointer;
   transition: all 0.4s ease;
   border-radius: 20px;
@@ -778,8 +778,9 @@ body {
   -webkit-backdrop-filter: blur(8px);
 }
 .theme-toggle:hover {
-  border-color: var(--accent-dim);
-  color: var(--accent);
+  border-color: #d4708f;
+  color: #c44d75;
+  background: rgba(255,182,206,0.3);
 }
 [data-theme="pink"] .theme-toggle {
   background: rgba(255,208,218,0.7);
@@ -834,16 +835,86 @@ body {
 [data-theme="pink"] .consistency-observation { border-left:3px solid var(--accent); background:rgba(255,192,203,0.1); }
 
 @media (max-width: 600px) {
-  html { font-size: 16px; }
-  .screen { padding: 1.5rem; }
-  .scenario-title { font-size: 1.3rem; }
-  .axes-grid { grid-template-columns: 1fr; }
-  .radar-svg { width: 340px; height: 340px; }
-  .paths { grid-template-columns: 1fr; }
-  .readings-grid { grid-template-columns: 1fr; }
-  .community-add { flex-direction: column; }
+  html { font-size: 15px; }
+  .screen { padding: 1.2rem 1rem; min-height: calc(100dvh - 2rem); }
+  
+  /* Intro */
+  .intro-title { font-size: 0.7rem; margin-bottom: 1.5rem; }
+  .intro-quote { font-size: 1.15rem; }
+  .intro-attr { margin-bottom: 2rem; }
+  .intro-desc { font-size: 0.88rem; line-height: 1.7; }
+  .intro-axes { max-width: 100%; }
+  .intro-meta { margin: 1.5rem 0 2rem; }
+  .btn { padding: 0.9rem 2rem; font-size: 0.65rem; width: 100%; box-sizing: border-box; }
+  
+  /* Path select */
+  .paths { grid-template-columns: 1fr; gap: 0.8rem; }
+  .path-card { padding: 1.2rem; }
+  .path-subtitle { font-size: 0.9rem; margin-bottom: 1.5rem; }
+  
+  /* Scenarios */
+  .scenario-title { font-size: 1.25rem; margin-bottom: 1.5rem; }
+  .scenario-body { font-size: 0.93rem; line-height: 1.8; margin-bottom: 2rem; }
+  .scenario-question { font-size: 1rem; }
+  .choice { padding: 1rem 1.2rem; font-size: 0.93rem; }
+  .choice-label { font-size: 0.5rem; }
+  .reflection { padding: 1.2rem; margin-top: 1.5rem; }
+  .reflection-text { font-size: 0.85rem; }
+  .progress-dot { width: 6px; height: 6px; }
+  .scenario-progress { gap: 4px; margin-bottom: 2rem; }
+  .scenario-container { max-width: 100%; }
+  
+  /* Back button */
+  .back-btn { font-size: 0.5rem; padding: 0.4rem 0.8rem; }
+  
+  /* Results */
+  .results-container { max-width: 100%; }
+  .results-name { font-size: 1.5rem; }
+  .results-subtitle { font-size: 0.9rem; }
+  .radar-container { margin: 2rem 0; }
+  .radar-svg { width: 300px; height: 300px; }
+  .axes-grid { grid-template-columns: 1fr; gap: 0.8rem; }
+  .axis-card { padding: 0.8rem; }
+  .axis-name { font-size: 0.6rem; }
+  .axis-labels { font-size: 0.55rem; }
+  
+  /* Portrait */
+  .portrait { padding: 1.5rem; }
+  .portrait-text { font-size: 0.93rem; line-height: 1.8; }
+  
+  /* Philosopher match */
   .philosopher-runners-grid { grid-template-columns: 1fr; }
-  .philosopher-primary-name { font-size: 1.6rem; }
+  .philosopher-primary-name { font-size: 1.4rem; }
+  .philosopher-primary-desc { font-size: 1rem; }
+  
+  /* Readings */
+  .readings-grid { grid-template-columns: 1fr; gap: 0.8rem; }
+  .reading-card { padding: 0.8rem 1rem; }
+  
+  /* Community */
+  .community-section { padding: 1.5rem; }
+  .community-add { flex-direction: column; }
+  .community-input { width: 100%; box-sizing: border-box; }
+  
+  /* Share row */
+  .share-row { flex-direction: column; gap: 0.6rem; }
+  .btn-small { width: 100%; box-sizing: border-box; text-align: center; }
+  
+  /* Theme toggle */
+  .theme-toggle { top: 0.8rem; right: 0.8rem; font-size: 0.5rem; padding: 0.4rem 0.8rem; }
+  
+  /* Rarity badge */
+  .rarity-badge { padding: 0.6rem 1rem; }
+  
+  /* Traditions */
+  .tradition-badge { font-size: 0.45rem; padding: 0.25rem 0.6rem; }
+  
+  /* Consistency */
+  .consistency-section { padding: 1.5rem; }
+  
+  /* Exploration */
+  .exploration-grid { grid-template-columns: 1fr; }
+  .deliberation-entry { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
 }
   /* ===== AGENT 4: VISUAL POLISH & PINK MODE ===== */
 
@@ -1341,6 +1412,10 @@ body {
     animation: none;
     border-right: none;
   }
+
+  /* Smooth scrolling + safe area for notched phones */
+  html { scroll-behavior: smooth; }
+  body { padding-bottom: env(safe-area-inset-bottom, 0); }
 }
 
 </style>
