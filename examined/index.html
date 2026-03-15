@@ -134,6 +134,13 @@
   box-shadow: 3px 3px 0px var(--accent-dim);
 }
 
+/* Reading card category colors use accent in pink mode */
+[data-theme="pink"] .reading-card-film,
+[data-theme="pink"] .reading-card-doc,
+[data-theme="pink"] .reading-card-game {
+  border-left-color: var(--accent);
+}
+
 /* Bouncy hover on buttons */
 [data-theme="pink"] .btn,
 [data-theme="pink"] .btn-small {
@@ -681,7 +688,11 @@ body {
   border-radius: var(--radius);
   transition: all 0.3s ease;
 }
-.reading-card:hover { border-color: var(--accent-dim); transform: translateY(-1px); }
+.reading-card:hover { border-color: var(--accent-dim); border-left-color: var(--accent); transform: translateY(-1px); }
+
+.reading-card-film { border-left: 3px solid var(--purple); }
+.reading-card-doc { border-left: 3px solid var(--teal); }
+.reading-card-game { border-left: 3px solid var(--orange); }
 
 .reading-book {
   font-size: 0.95rem; font-style: italic;
@@ -1944,7 +1955,7 @@ const SCENARIOS = [
     chapter: 'I — duty',
     tradition: 'Western Ethics',
     title: 'The Promise',
-    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilt her life around the absence of. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
+    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilding her life in its absence. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
     question: 'What do you do with the letter?',
     choices: [
       { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
@@ -2133,7 +2144,7 @@ const SCENARIOS = [
     chapter: 'X — the mirror',
     tradition: 'Socratic Method',
     title: 'The Last Question',
-    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked, perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
+    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked; perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
     question: 'What is the question you are actually trying to answer?',
     choices: [
       { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
@@ -2155,7 +2166,7 @@ const SCENARIOS = [
     chapter: 'XI — knowledge',
     tradition: 'Epistemology · East & West',
     title: 'The Library of Babel',
-    body: `Your child is twelve and has never had to memorize anything substantial. AI does their research, drafts their essays, checks their arithmetic. They are happy, curious, engaged with ideas in their own way. But when you ask them to explain <em>why</em> something is true, not just what the answer is, they shrug and say "the AI told me." Their school wants to ban the tools entirely. Other parents think this is absurd, no different from banning calculators in the 1980s. You find yourself uncertain whether either side has fully grasped what is at stake.`,
+    body: `Your child is twelve and has never had to memorize anything substantial. AI does their research, drafts their essays, checks their arithmetic. They are happy, curious, engaged with ideas in their own way. But when you ask them to explain <em>why</em> something is true, not just what the answer is, they shrug and say 'the AI told me.' Their school wants to ban the tools entirely. Other parents think this is absurd, no different from banning calculators in the 1980s. You find yourself uncertain whether either side has fully grasped what is at stake.`,
     question: 'Where do you land?',
     choices: [
       { label:'a', text:'Let them use it. The world has changed, and teaching children to do what machines do better is nostalgia dressed as pedagogy.',
@@ -2386,7 +2397,7 @@ const SCENARIOS = [
     chapter: 'XXII — liberation',
     tradition: 'Freire (Latin American Pedagogy)',
     title: 'The Banking Hours',
-    body: `You teach philosophy at a secondary school in a neighbourhood where most of your students will be the first in their families to sit an exam that could change the trajectory of their lives, and the pressure from the administration is simple and unambiguous: raise the pass rate by fifteen percent or the programme gets cut. You know exactly how to do it: drill the mark schemes, teach to the test, turn your classroom into what Paulo Freire called the banking model of education, where knowledge is deposited into passive recipients who store it long enough to reproduce it on demand and then forget it entirely. It works, in the narrow sense that numbers go up on spreadsheets that matter to people who will never meet your students. But you also know what happens in your classroom when you abandon the script: when you ask your students not what Plato said but whether they agree with him, when you let a fifteen-year-old from a council estate argue with Aristotle about justice and <em>win</em>. Something comes alive in the room that no mark scheme can measure: what Freire called conscientização, the moment when a person realizes they are not merely an object being acted upon by the world but a subject capable of acting upon it. The administration doesn't care about conscientização. They care about pass rates, funding metrics, league tables.`,
+    body: `You teach philosophy at a secondary school in a neighbourhood where most of your students will be the first in their families to sit an exam that could change the trajectory of their lives, and the pressure from the administration is simple and unambiguous: raise the pass rate by fifteen percent or the program gets cut. You know exactly how to do it: drill the mark schemes, teach to the test, turn your classroom into what Paulo Freire called the banking model of education, where knowledge is deposited into passive recipients who store it long enough to reproduce it on demand and then forget it entirely. It works, in the narrow sense that numbers go up on spreadsheets that matter to people who will never meet your students. But you also know what happens in your classroom when you abandon the script: when you ask your students not what Plato said but whether they agree with him, when you let a fifteen-year-old from a council estate argue with Aristotle about justice and <em>win</em>. Something comes alive in the room that no mark scheme can measure: what Freire called conscientização, the moment when a person realizes they are not merely an object being acted upon by the world but a subject capable of acting upon it. The administration doesn't care about conscientização. They care about pass rates, funding metrics, league tables.`,
     question: 'How do you teach?',
     choices: [
       { label:'a', text:'Teach to the test. These students need qualifications more than they need consciousness-raising, and idealism that costs them their futures is just another form of privilege.',
@@ -2652,20 +2663,29 @@ function showResults() {
   document.getElementById('archetype-name').textContent = archetype.name;
   document.getElementById('archetype-sub').textContent = archetype.subtitle;
 
-  // Rarity badge (async)
+  // Rarity badge (async) — add loading state
+  const header = document.querySelector('.results-header');
+  const placeholder = document.createElement('div');
+  placeholder.className = 'rarity-badge';
+  placeholder.innerHTML = '<span class="rarity-description" style="opacity:0.6;">calculating rarity...</span>';
+  header.appendChild(placeholder);
+
   fetchWall().then(entries => {
+    const loading = header.querySelector('.rarity-badge');
+    if (loading) loading.remove();
     if (entries) {
       const rarity = calculateArchetypeRarity(entries, archetype.name);
       const badge = renderRarityBadge(rarity);
       if (badge) {
-        const header = document.querySelector('.results-header');
-        const existing = header.querySelector('.rarity-badge');
-        if (existing) existing.remove();
         const container = document.createElement('div');
         container.innerHTML = badge;
         header.appendChild(container.firstElementChild);
       }
     }
+  }).catch(() => {
+    // Remove placeholder on error, fail silently
+    const loading = header.querySelector('.rarity-badge');
+    if (loading) loading.remove();
   });
 
   drawRadar(normalized);
@@ -2686,9 +2706,15 @@ function showResults() {
       </div>`;
   }).join('');
 
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(() => {
-    document.querySelectorAll('.axis-bar-fill').forEach(b => b.style.width = b.dataset.width);
-  }, 300);
+    document.querySelectorAll('.axis-bar-fill').forEach(b => {
+      if (prefersReduced) {
+        b.style.transition = 'none';
+      }
+      b.style.width = b.dataset.width;
+    });
+  }, prefersReduced ? 0 : 300);
 
   // Consistency check
   const consistencyAnalysis = analyzeConsistency(answers, activeScenarios);
@@ -2697,10 +2723,13 @@ function showResults() {
   // Philosopher match
   const philMatches = findClosestPhilosophers(normalized);
   document.getElementById('philosopher-container').innerHTML = renderPhilosopherMatch(philMatches);
-  setTimeout(() => {
-    const bar = document.querySelector('.philosopher-match-fill');
-    if (bar) bar.style.width = bar.getAttribute('data-width');
-  }, 500);
+  // Trigger animation more reliably
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const bar = document.querySelector('.philosopher-match-fill');
+      if (bar) bar.style.width = bar.getAttribute('data-width');
+    }, 100);
+  });
 
   currentArchetype = archetype;
   renderReadings(archetype);
@@ -2802,9 +2831,10 @@ function getArchetype(n) {
 function drawRadar(normalized) {
   const svg = document.getElementById('radar');
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Radar chart showing your philosophical orientation across seven axes');
-  const cx = 200, cy = 200, r = 120;
   const axes = Object.keys(AXES);
+  const axisScores = axes.map(a => `${AXES[a].right}: ${Math.round(normalized[a]*100)}%`).join(', ');
+  svg.setAttribute('aria-label', `Radar chart of your philosophical axes: ${axisScores}`);
+  const cx = 200, cy = 200, r = 120;
   const n = axes.length;
   let html = '';
 
@@ -2887,7 +2917,7 @@ function renderWall(entries, selfName) {
     return;
   }
   if (entries.length === 0) {
-    list.innerHTML = '<div class="community-empty">no one here yet. be the first.</div>';
+    list.innerHTML = '<div class="community-empty">no one here yet. be the first to add your name.</div>';
     return;
   }
   // Show newest first, cap at 50
@@ -2957,7 +2987,7 @@ function renderReadings(archetype) {
     
     <div class="readings-title" style="margin-top: 3rem;">FURTHER EXPLORATION</div>
     <div class="readings-grid">
-      <div class="reading-card" style="border-left: 3px solid var(--purple);">
+      <div class="reading-card reading-card-film">
         <div class="reading-book" style="font-style: normal; font-weight: 600;">FILM</div>
         <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">visual philosophy</div>
         <div class="reading-why">
@@ -2967,7 +2997,7 @@ function renderReadings(archetype) {
           <strong>Incendies</strong> — truth and consequences
         </div>
       </div>
-      <div class="reading-card" style="border-left: 3px solid var(--teal);">
+      <div class="reading-card reading-card-doc">
         <div class="reading-book" style="font-style: normal; font-weight: 600;">DOCUMENTARY</div>
         <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">philosophy in practice</div>
         <div class="reading-why">
@@ -2975,7 +3005,7 @@ function renderReadings(archetype) {
           <strong>Waking Life</strong> (2001) — animated philosophical dialogue
         </div>
       </div>
-      <div class="reading-card" style="border-left: 3px solid var(--orange);">
+      <div class="reading-card reading-card-game">
         <div class="reading-book" style="font-style: normal; font-weight: 600;">GAMES</div>
         <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">interactive ethics</div>
         <div class="reading-why">
@@ -3179,7 +3209,7 @@ const CONTRADICTION_PAIRS = [
   // --- ESSENTIAL PATH (both scenarios in 0-8, everyone sees these) ---
   { id:'ci1', s1:0, c1:0, s2:2, c2:1,
     s1Label:'The Promise', s2Label:'The Dinner Party',
-    c1Text:'Deliver the letter. A promise made to the dying carries the full weight of moral obligation.',
+    c1Text:'Deliver it. A promise made to the dying carries the full weight of moral obligation.',
     c2Text:'Tell her. Some truths outweigh the promise of privacy.',
     commentary:'Earlier, you held fast to principle regardless of outcome. Just now, you let the consequences decide. This isn\'t hypocrisy; it\'s the oldest argument in ethics. Kant and Mill would both claim you as their own.' },
   { id:'ci2', s1:0, c1:1, s2:4, c2:1,
@@ -3221,7 +3251,7 @@ const CONTRADICTION_PAIRS = [
   // --- ESSENTIAL × EXAMINED (one scenario in 0-8, other in examined additions) ---
   { id:'ci9', s1:1, c1:0, s2:15, c2:1,
     s1Label:'The Forecast', s2Label:'The Immortality Pill',
-    c1Text:'Devour everything. If loss is guaranteed, greed is a form of grace.',
+    c1Text:'Devour everything. If loss is guaranteed, the only sane response is to flood yourself with what remains.',
     c2Text:'No. Mortality is what makes any of this matter.',
     commentary:'First, you valued the immediate\u2014devour everything, memorize every face. Then you said mortality is what gives life meaning. You wanted to maximize time precisely because it was finite\u2014but the logic of maximization leads to wanting more, not less.' },
   { id:'ci10', s1:4, c1:1, s2:13, c2:0,
@@ -3298,7 +3328,7 @@ const CONTRADICTION_PAIRS = [
     commentary:'You honored the limits of language, trusting presence over articulation. Then you chose hard data over ineffable experience. In personal grief, silence is enough; in policy, only measurements count. Your epistemology shifts with the stakes.' },
   { id:'ci24', s1:19, c1:0, s2:23, c2:1,
     s1Label:'The Inheritance Interview', s2Label:'The Patent',
-    c1Text:'Accept the role. Create an advisory position and fund the community centre.',
+    c1Text:'Accept the role. Create an advisory position for your partner and fund their next venture.',
     c2Text:'Refuse to sign. Publicly advocate for the elder\'s community to receive recognition.',
     commentary:'You accepted individual advancement, leveraging the system to fund what matters. Then you chose the gift economy\u2014refusing ownership of knowledge that belongs to a community. Your individualism stops where indigenous knowledge begins.' },
   { id:'ci25', s1:21, c1:1, s2:23, c2:0,
