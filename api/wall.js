@@ -1,8 +1,8 @@
-import { put, head, list } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 
 const BLOB_KEY = 'examined-wall.json';
 
-// Rate limiting (in-memory, resets on cold start)
+// Rate limiting
 const rateLimit = new Map();
 const RATE_WINDOW = 60000;
 const RATE_MAX_POST = 3;
@@ -24,18 +24,31 @@ async function getWallData() {
   try {
     const { blobs } = await list({ prefix: BLOB_KEY });
     if (blobs.length === 0) return { entries: [] };
-    const response = await fetch(blobs[0].url);
+    // Get the most recent blob
+    const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
+    const response = await fetch(latest.url);
     return await response.json();
   } catch (e) {
+    console.error('getWallData error:', e);
     return { entries: [] };
   }
 }
 
 async function saveWallData(data) {
+  // Delete old blobs first to avoid accumulation
+  try {
+    const { blobs } = await list({ prefix: BLOB_KEY });
+    for (const blob of blobs) {
+      await del(blob.url);
+    }
+  } catch (e) {
+    // ok if delete fails
+  }
+  
+  // Write new blob
   await put(BLOB_KEY, JSON.stringify(data), {
     access: 'public',
     contentType: 'application/json',
-    addRandomSuffix: false,
   });
 }
 
@@ -96,7 +109,8 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ ok: true, count: trimmed.length });
     } catch (e) {
-      return res.status(500).json({ error: 'failed to save' });
+      console.error('POST wall error:', e);
+      return res.status(500).json({ error: 'failed to save', detail: e.message });
     }
   }
 
