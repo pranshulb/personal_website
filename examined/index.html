@@ -1418,6 +1418,197 @@ body {
   body { padding-bottom: env(safe-area-inset-bottom, 0); }
 }
 
+/* ===== CONTRADICTION INTERSTITIAL ===== */
+
+.contradiction-interstitial {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 12, 0.96);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.contradiction-interstitial.active {
+  display: flex;
+  animation: interstitialFadeIn 0.6s ease forwards;
+}
+
+@keyframes interstitialFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.contradiction-content {
+  max-width: 580px;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  padding: 3rem 2.5rem;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: contentSlideIn 0.8s ease 0.3s forwards;
+}
+
+@keyframes contentSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.contradiction-header {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: lowercase;
+  color: var(--accent-dim);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: contradictionTextFadeIn 0.6s ease 0.8s forwards;
+}
+
+@keyframes contradictionTextFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.contradiction-symbol {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--accent);
+  opacity: 0;
+  animation: symbolPulse 1.2s ease 0.5s forwards;
+}
+
+@keyframes symbolPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.contradiction-choices {
+  margin-bottom: 2rem;
+  opacity: 0;
+  animation: contradictionTextFadeIn 0.6s ease 1.2s forwards;
+}
+
+.contradiction-choice-item {
+  margin-bottom: 1.2rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border-left: 2px solid var(--accent-dim);
+}
+
+.contradiction-choice-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.contradiction-choice-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.contradiction-choice-scenario {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--text-faint);
+  margin-top: 0.4rem;
+  letter-spacing: 0.05em;
+}
+
+.contradiction-commentary {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--surface-2);
+  border-bottom: 1px solid var(--surface-2);
+  opacity: 0;
+  animation: contradictionTextFadeIn 0.6s ease 1.4s forwards;
+}
+
+.contradiction-continue {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: lowercase;
+  padding: 0.9rem 2rem;
+  border: 1px solid var(--accent-dim);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto;
+  opacity: 0;
+  animation: contradictionTextFadeIn 0.6s ease 1.6s forwards;
+}
+
+.contradiction-continue:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+}
+
+.contradiction-continue:active {
+  transform: translateY(0);
+}
+
+/* Pink theme overrides for interstitial */
+[data-theme="pink"] .contradiction-interstitial {
+  background: rgba(255, 240, 243, 0.96);
+}
+
+[data-theme="pink"] .contradiction-content {
+  border: 2px solid var(--accent);
+  border-radius: 2px 8px 2px 12px;
+  box-shadow: 5px 5px 0px var(--accent-dim);
+}
+
+[data-theme="pink"] .contradiction-choice-item {
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 192, 203, 0.1);
+}
+
+[data-theme="pink"] .contradiction-continue {
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0px var(--accent);
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>👆</text></svg>") 16 0, pointer;
+}
+
+[data-theme="pink"] .contradiction-continue:hover {
+  box-shadow: 5px 5px 0px var(--accent);
+}
+
+[data-theme="pink"] .contradiction-continue:active {
+  box-shadow: 1px 1px 0px var(--accent);
+}
+
 </style>
 </head>
 <body>
@@ -1456,19 +1647,19 @@ body {
         <div class="path-card-icon">◯</div>
         <div class="path-card-name">THE ESSENTIAL</div>
         <p class="path-card-desc">Ten core dilemmas. Ethics, freedom, meaning, identity. The greatest hits.</p>
-        <div class="path-card-count">10 scenarios · ~5 min</div>
+        <div class="path-card-count">10 scenarios · ~8 min</div>
       </div>
       <div class="path-card" onclick="selectPath('examined')" id="path-examined">
         <div class="path-card-icon">◎</div>
         <div class="path-card-name">THE EXAMINED</div>
         <p class="path-card-desc">Fifteen carefully chosen dilemmas spanning ethics, identity, knowledge, and belonging. The sweet spot.</p>
-        <div class="path-card-count">15 scenarios · ~10 min</div>
+        <div class="path-card-count">15 scenarios · ~15 min</div>
       </div>
       <div class="path-card" onclick="selectPath('deep')" id="path-deep">
         <div class="path-card-icon">◉</div>
         <div class="path-card-name">THE DEEP CUT</div>
         <p class="path-card-desc">All twenty-four. The complete philosophical inventory — Western, Eastern, African, Indigenous, and everything between.</p>
-        <div class="path-card-count">24 scenarios · ~15 min</div>
+        <div class="path-card-count">24 scenarios · ~25 min</div>
       </div>
     </div>
     <button class="btn" id="path-go-btn" style="display:none" onclick="startExam()">continue</button>
@@ -1655,16 +1846,16 @@ const SCENARIOS = [
     chapter: 'I — duty',
     tradition: 'Western Ethics',
     title: 'The Promise',
-    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilt her life around the absence of. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it, on the other hand, would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
+    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilt her life around the absence of. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
     question: 'What do you do with the letter?',
     choices: [
       { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
         scores: {consequence: -2, pragmatist: -1, agency: 0, individual: 1},
-        reflection:'There\'s a reason deathbed promises feel different from ordinary ones — they can never be renegotiated, never updated with new information. Kant argued that\'s exactly what gives them force: a moral law that bends to circumstance isn\'t a law at all. You\'re not delivering a letter. You\'re deciding whether obligations survive the people who created them.',
+        reflection:'There\'s a reason deathbed promises feel different from ordinary ones: they can never be renegotiated, never updated with new information. Kant argued that\'s exactly what gives them force. A moral law that bends to circumstance isn\'t a law at all. You\'re not delivering a letter. You\'re deciding whether obligations survive the people who created them.',
         philosopher:'Immanuel Kant, Groundwork of the Metaphysics of Morals' },
       { label:'b', text:'Burn it. The promise was made to secure peace, not to inflict pain. Your friend could not have wanted this, and the dead do not get to override the living.',
         scores: {consequence: 2, pragmatist: 0, individual: -1, agency: 1},
-        reflection:'Mill would push back on the idea that promises are sacred in themselves — what matters is what they\'re *for*. Your friend wanted peace for their sister, not a confession delivered from beyond the grave. When a rule produces the opposite of its intended effect, following it isn\'t integrity. It\'s stubbornness wearing a moral costume.',
+        reflection:'Mill would push back on the idea that promises are sacred in themselves. What matters is what they\'re *for*. Your friend wanted peace for their sister, not a confession delivered from beyond the grave. When a rule produces the opposite of its intended effect, following it isn\'t integrity. It\'s stubbornness wearing a moral costume.',
         philosopher:'John Stuart Mill, Utilitarianism' },
       { label:'c', text:'Deliver it, but stay. Sit with her while she reads it. If you are going to honor a deathbed promise, you owe her your presence when the truth lands. You don\'t get to drop a grenade and walk away.',
         scores: {pragmatist: 1, agency: 0, rationalist: -1, individual: -1},
@@ -1676,12 +1867,12 @@ const SCENARIOS = [
     chapter: 'II — control',
     tradition: 'Stoicism & Existentialism',
     title: 'The Forecast',
-    body: `Your doctor calls on a Tuesday. Something in your bloodwork. Not fatal, not painful — but in one year you will lose your eyesight completely. Irreversibly. The rest of your life will be fine, the doctor assures you. Just <em>dark</em>. You have twelve months of seeing left. Twelve months to watch light move across a room at different hours, to memorize the faces of everyone you love, to read a book with your own eyes. The countdown started the moment the phone rang, whether you acknowledge it or not. Every morning you wake now is one morning closer to a horizon you cannot push back.`,
+    body: `Your doctor calls on a Tuesday. Something in your bloodwork. Not fatal, not painful, but in one year you will lose your eyesight completely. Irreversibly. The rest of your life will be fine, the doctor assures you. Just <em>dark</em>. You have twelve months of seeing left. Twelve months to watch light move across a room at different hours, to memorize the faces of everyone you love, to read a book with your own eyes. The countdown started the moment the phone rang, whether you acknowledge it or not. Every morning you wake now is one morning closer to a horizon you cannot push back.`,
     question: 'How do you spend them?',
     choices: [
       { label:'a', text:'Devour everything. Travel, memorize faces, watch every sunrise you can reach. If loss is guaranteed, the only sane response is to <em>flood</em> yourself with what remains.',
         scores: {stoic: -2, individual: 1, agency: -1, pragmatist: -1},
-        reflection:'This is the Epicurean wager — if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
+        reflection:'This is the Epicurean wager: if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
         philosopher:'Epicurus, Letter to Menoeceus' },
       { label:'b', text:'Start adapting now. Learn braille, train with a cane, reorganize your life for the dark. Grieving is a luxury. Preparing is a choice you can still make.',
         scores: {stoic: 2, pragmatist: 1, individual: 0, agency: 1},
@@ -1689,7 +1880,7 @@ const SCENARIOS = [
         philosopher:'Marcus Aurelius, Meditations, Book II' },
       { label:'c', text:'Change nothing. The countdown is a prison only if you let it be one. The moment you rearrange your life around a future loss, you have already lost the present.',
         scores: {agency: 1, stoic: 0, transcendent: 0, consequence: -1, individual: 1, rationalist: -1},
-        reflection:'Sartre would say the diagnosis is irrelevant to how you live today. You are condemned to be free — to choose how you live regardless of what\'s coming. Acting on prophecy is just another form of bad faith.',
+        reflection:'Sartre would say the diagnosis is irrelevant to how you live today. You are condemned to be free, to choose how you live regardless of what\'s coming. Acting on prophecy is just another form of bad faith.',
         philosopher:'Jean-Paul Sartre, Being and Nothingness' }
     ]
   },
@@ -1702,7 +1893,7 @@ const SCENARIOS = [
     choices: [
       { label:'a', text:'Say nothing. You did not ask for this knowledge. Confidence is sacred. The moment people cannot trust you with secrets, you lose access to truth entirely.',
         scores: {individual: 0, consequence: -1, stoic: 0, agency: -1, rationalist: -1},
-        reflection:'Trust is the infrastructure of all relationships. Betray a confidence once and you\'ve not just broken one bond — you\'ve signaled that your loyalty is conditional.',
+        reflection:'Trust is the infrastructure of all relationships. Betray a confidence once and you\'ve not just broken one bond; you\'ve signaled that your loyalty is conditional.',
         philosopher:'Confucius, Analects — on the virtue of trustworthiness (xìn)' },
       { label:'b', text:'Tell her. Some truths outweigh the promise of privacy. She is building a life on a lie, and your silence makes you part of the architecture.',
         scores: {consequence: 2, individual: -1, pragmatist: 0, agency: 1},
@@ -1710,7 +1901,7 @@ const SCENARIOS = [
         philosopher:'Peter Singer, Practical Ethics' },
       { label:'c', text:'Go to the partner. Tell them what you know. Give them one chance to come clean. The person who did the wrong thing should be the one to face it.',
         scores: {agency: 0, pragmatist: 1, individual: 0, rationalist: 1},
-        reflection:'You\'re not choosing truth or silence — you\'re choosing *who* delivers the truth. The virtue ethicist preserves agency where possible: the person who broke the trust should be the one to face the consequences of breaking it. You\'re not playing messenger. You\'re creating the conditions for someone else to do the right thing.',
+        reflection:'You\'re not choosing truth or silence; you\'re choosing *who* delivers the truth. The virtue ethicist preserves agency where possible: the person who broke the trust should be the one to face the consequences of breaking it. You\'re not playing messenger. You\'re creating the conditions for someone else to do the right thing.',
         philosopher:'Aristotle, Nicomachean Ethics' }
     ]
   },
@@ -1718,20 +1909,20 @@ const SCENARIOS = [
     chapter: 'IV — meaning',
     tradition: 'Existentialism & Absurdism',
     title: 'The Absurd Commute',
-    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about deeply enough to spend years in a library. Last month you read a paper that proves your central argument is wrong — not wrong in a way that can be patched, but structurally, irreparably wrong. You could pivot and lose two years. You could quit and leave with nothing. Or you could push through to completion, producing scholarship you no longer believe in, building on a foundation you know is cracked. Your supervisor says finish. This is normal. No thesis is perfect. But something in you keeps asking <em>why?</em> — and the answer is not coming.`,
+    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about deeply enough to spend years in a library. Last month you read a paper that proves your central argument is wrong. Not wrong in a way that can be patched, but structurally, irreparably wrong. You could pivot and lose two years. You could quit and leave with nothing. Or you could push through to completion, producing scholarship you no longer believe in, building on a foundation you know is cracked. Your supervisor says finish. This is normal. No thesis is perfect. But something in you keeps asking <em>why?</em> — and the answer is not coming.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Walk away. There is no dignity in defending something you know to be false. The courage is not in persisting; it is in admitting the ground has shifted beneath you.',
         scores: {agency: 1, stoic: 0, individual: 1, transcendent: -1, consequence: -1},
-        reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses — that\'s the point. Choosing to stop is still a choice.',
+        reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses; that\'s the point. Choosing to stop is still a choice.',
         philosopher:'Albert Camus, The Myth of Sisyphus' },
-      { label:'b', text:'Pivot, but be honest about why. Tell your supervisor the original argument collapsed. Salvage what you can — the research, the methods, the instincts that got you here — and build something that actually holds. Two years lost is cheaper than a career built on something you don\'t believe in.',
+      { label:'b', text:'Pivot, but be honest about why. Tell your supervisor the original argument collapsed. Salvage what you can: the research, the methods, the instincts that got you here. Build something that actually holds. Two years lost is cheaper than a career built on something you don\'t believe in.',
         scores: {individual: 0, consequence: 0, pragmatist: 1, rationalist: 1},
-        reflection:'Peirce argued that the whole point of inquiry is self-correction — that getting it wrong and openly revising is not failure but the actual mechanism by which knowledge advances. A thesis that honestly accounts for its own collapse is more scientifically valuable than one that quietly papers over the cracks.',
+        reflection:'Peirce argued that the whole point of inquiry is self-correction, that getting it wrong and openly revising is not failure but the actual mechanism by which knowledge advances. A thesis that honestly accounts for its own collapse is more scientifically valuable than one that quietly papers over the cracks.',
         philosopher:'Charles Sanders Peirce, "The Fixation of Belief"' },
       { label:'c', text:'Finish it. Being wrong is part of the scholarly record. Write the most rigorous wrong thesis you can, defend it honestly, and let the next person build on the failure.',
         scores: {pragmatist: 0, stoic: 1, consequence: -1, agency: 1, individual: 1},
-        reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks — not because you\'re naive, but because completion has its own kind of integrity.',
+        reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks, not because you\'re naive, but because completion has its own kind of integrity.',
         philosopher:'Søren Kierkegaard, Fear and Trembling' }
     ]
   },
@@ -1765,11 +1956,11 @@ const SCENARIOS = [
     choices: [
       { label:'a', text:'Yes. That person built everything you have now. Continuity matters. You can cringe at your past self, but you do not get to disown them.',
         scores: {stoic: 0, individual: 1, agency: -1, transcendent: 0, rationalist: 1},
-        reflection:'Locke grounded identity in memory — the psychological thread connecting past selves to present. To sever that thread isn\'t growth, it\'s amnesia dressed as evolution.',
+        reflection:'Locke grounded identity in memory: the psychological thread connecting past selves to present. To sever that thread isn\'t growth, it\'s amnesia dressed as evolution.',
         philosopher:'John Locke, Essay Concerning Human Understanding' },
       { label:'b', text:'No. You grew out of that person for a reason, and nostalgia for who you were is just another way of avoiding who you are. Growth means letting the old self die.',
         scores: {agency: 1, stoic: 0, pragmatist: 0, individual: 1, transcendent: -1},
-        reflection:'Nietzsche celebrated the capacity to outgrow yourself — to say "I was that, but I am not that now" without guilt. The Übermensch doesn\'t look backward.',
+        reflection:'Nietzsche celebrated the capacity to outgrow yourself, to say "I was that, but I am not that now" without guilt. The Übermensch doesn\'t look backward.',
         philosopher:'Friedrich Nietzsche, Thus Spoke Zarathustra' },
       { label:'c', text:'Read the whole thing aloud to your partner. Every cringeworthy page. Let them see every version of you, including the ones that embarrass you. Identity is not something you protect; it is something you share.',
         scores: {pragmatist: -1, stoic: 0, individual: 0, transcendent: 2, agency: -1},
@@ -1781,16 +1972,16 @@ const SCENARIOS = [
     chapter: 'VII — intimacy',
     tradition: 'Existentialism & Virtue Ethics',
     title: 'The Vulnerability Tax',
-    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good — perhaps the most honest connection you've had with another person. Last week they asked why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without changing shape. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else could — not that they would, not that you have reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
+    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good, perhaps the most honest connection you've had with another person. Last week they asked why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without changing shape. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else could — not that they would, not that you have reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
     question: 'Do you go deeper?',
     choices: [
       { label:'a', text:'Yes, all the way. To be half-known is to be half-loved. If this person matters, they get the full picture, even the parts that make you harder to love.',
         scores: {stoic: -2, individual: -2, consequence: 0, agency: 1},
-        reflection:'Aristotle placed friendship at the center of the good life — not as nice-to-have but as necessary condition. The virtuous life is inherently relational. Partial intimacy is partial living.',
+        reflection:'Aristotle placed friendship at the center of the good life, not as nice-to-have but as necessary condition. The virtuous life is inherently relational. Partial intimacy is partial living.',
         philosopher:'Aristotle, Nicomachean Ethics, Books VIII-IX' },
       { label:'b', text:'Partially. You can be intimate without being transparent. Share the rooms that matter, keep some locked. Not every truth serves a relationship.',
         scores: {pragmatist: 1, stoic: 0, individual: 2, rationalist: 1},
-        reflection:'Montaigne loved deeply but maintained the "back shop" — an inner room no one else could enter. Intimacy doesn\'t require total transparency. Some privacy is self-preservation, not dishonesty.',
+        reflection:'Montaigne loved deeply but maintained the "back shop," an inner room no one else could enter. Intimacy doesn\'t require total transparency. Some privacy is self-preservation, not dishonesty.',
         philosopher:'Michel de Montaigne, Essays, "Of Solitude"' },
       { label:'c', text:'No. You know yourself well enough to know that you would resent them for knowing too much. The relationship is good as it is. Not everything must go to the bottom.',
         scores: {agency: 0, stoic: 1, consequence: -1, individual: 2, transcendent: 0},
@@ -1802,12 +1993,12 @@ const SCENARIOS = [
     chapter: 'VIII — power',
     tradition: 'Taoism & Political Philosophy',
     title: 'The Room',
-    body: `You run a community of about two hundred people, and if you are honest with yourself, you are the reason it works. You book the venues, mediate the disputes, set the tone, hold the vision steady when others lose sight of it, and people tell you constantly how much it means to them. But recently you have noticed something troubling: whenever you step away for a week, the entire operation simply stops. Nobody schedules anything, nobody resolves conflicts, nobody takes initiative—the space becomes inert in your absence, as though the community were not a living organism but an extension of your own will. Your competence, which you cultivated with care and good intentions, has quietly eroded everyone else's sense of agency, and now you are not sure whether you are leading a community or performing one.`,
+    body: `You run a community of about two hundred people, and if you are honest with yourself, you are the reason it works. You book the venues, mediate the disputes, set the tone, hold the vision steady when others lose sight of it, and people tell you constantly how much it means to them. But recently you have noticed something troubling: whenever you step away for a week, the entire operation simply stops. Nobody schedules anything, nobody resolves conflicts, nobody takes initiative — the space becomes inert in your absence, as though the community were not a living organism but an extension of your own will. Your competence, which you cultivated with care and good intentions, has quietly eroded everyone else's sense of agency, and now you are not sure whether you are leading a community or performing one.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Keep running it. If the community dies without you, that means it needs you. The people are happy. Building something people love is not a problem that requires solving.',
         scores: {consequence: 1, individual: -1, agency: -2, pragmatist: 1},
-        reflection:'The benevolent dictator\'s argument. It works — until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
+        reflection:'The benevolent dictator\'s argument. It works, until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
         philosopher:'John Stuart Mill, On Liberty' },
       { label:'b', text:'Step away entirely. If it cannot survive without you, it was never a community. It was a performance. Let it find its own legs, or let it fall.',
         scores: {agency: 1, individual: 0, stoic: 0, transcendent: 2, consequence: -1},
@@ -1815,7 +2006,7 @@ const SCENARIOS = [
         philosopher:'Lao Tzu, Tao Te Ching, Chapter 17' },
       { label:'c', text:'Start failing on purpose. Miss a booking. Let a small problem fester. Force other people into the gap. It will be messy, but dependency only breaks when the thing it depends on disappears.',
         scores: {individual: -2, pragmatist: 1, consequence: 0, agency: 1, rationalist: 1},
-        reflection:'Dewey\'s democratic instinct: the answer to problems of leadership isn\'t less leadership — it\'s engineered opportunities for others to lead. Sometimes you have to create the vacuum.',
+        reflection:'Dewey\'s democratic instinct: the answer to problems of leadership isn\'t less leadership; it\'s engineered opportunities for others to lead. Sometimes you have to create the vacuum.',
         philosopher:'John Dewey, The Public and Its Problems' }
     ]
   },
@@ -1823,12 +2014,12 @@ const SCENARIOS = [
     chapter: 'IX — time',
     tradition: 'Existentialism & Phenomenology',
     title: 'The Four Thousand Weeks',
-    body: `You are twenty-eight when the offer arrives: lead a project that could reshape how education works in your country. The kind of systemic intervention that might give millions of children a better start. The work will consume five years. No weekends, no sustained hobbies, no long dinners that stretch past midnight. Your relationships will narrow to the functional. The texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss. Your parents are entering the stage of life where time with them has started to feel finite. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth. The question is not what to do with them but what to sacrifice — because every yes forecloses a dozen other lives you might have lived.`,
+    body: `You are twenty-eight when the offer arrives: lead a project that could reshape how education works in your country. The kind of systemic intervention that might give millions of children a better start. The work will consume five years. No weekends, no sustained hobbies, no long dinners that stretch past midnight. Your relationships will narrow to the functional. The texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss. Your parents are entering the stage of life where time with them has started to feel finite. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth. The question is not what to do with them but what to sacrifice, because every yes forecloses a dozen other lives you might have lived.`,
     question: 'Do you take the offer?',
     choices: [
       { label:'a', text:'Yes. This is the kind of thing that justifies a life. The piano and the dinners will still be there. The window for this will not.',
         scores: {individual: 0, agency: 1, stoic: -1, transcendent: -1, consequence: 1},
-        reflection:'Hannah Arendt called this "natality" — the human capacity to begin something new that outlasts its creator. Action in the public realm is how mortals touch immortality.',
+        reflection:'Hannah Arendt called this "natality": the human capacity to begin something new that outlasts its creator. Action in the public realm is how mortals touch immortality.',
         philosopher:'Hannah Arendt, The Human Condition' },
       { label:'b', text:'No. Your parents will not be around forever. The baby will grow up without you noticing. "Changing the world" is what people say when they are afraid to be present in their actual life.',
         scores: {stoic: 1, pragmatist: -2, individual: -2, transcendent: 1, agency: -1},
@@ -1844,20 +2035,20 @@ const SCENARIOS = [
     chapter: 'X — the mirror',
     tradition: 'Socratic Method',
     title: 'The Last Question',
-    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked — perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
+    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked, perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
     question: 'What is the question you are actually trying to answer?',
     choices: [
       { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
         scores: {stoic: 0, agency: 1, pragmatist: -1, rationalist: 1, individual: 1},
-        reflection:'This is Socrates\' original challenge. The examined life isn\'t about right answers — it\'s about the courage to notice when you\'re lying to yourself.',
+        reflection:'This is Socrates\' original challenge. The examined life isn\'t about right answers; it\'s about the courage to notice when you\'re lying to yourself.',
         philosopher:'Socrates, via Plato\'s Apology' },
       { label:'b', text:'Am I being good to the people who matter, or too caught up in my own story?',
         scores: {individual: -2, consequence: 0, stoic: 0, transcendent: 0},
-        reflection:'Iris Murdoch said morality is "the progressive attempt to see things as they really are" — especially other people. The hardest philosophical work is paying attention.',
+        reflection:'Iris Murdoch said morality is "the progressive attempt to see things as they really are," especially other people. The hardest philosophical work is paying attention.',
         philosopher:'Iris Murdoch, The Sovereignty of Good' },
       { label:'c', text:'Does any of this matter, and if not, what do I do with that?',
         scores: {pragmatist: 0, agency: 0, stoic: 0, transcendent: -1, rationalist: 1, individual: 1},
-        reflection:'The question underneath every question. Nagel called it "the absurd" — the collision between our need for meaning and the universe\'s silence.',
+        reflection:'The question underneath every question. Nagel called it "the absurd": the collision between our need for meaning and the universe\'s silence.',
         philosopher:'Thomas Nagel, "The Absurd"' }
     ]
   },
@@ -1866,7 +2057,7 @@ const SCENARIOS = [
     chapter: 'XI — knowledge',
     tradition: 'Epistemology · East & West',
     title: 'The Library of Babel',
-    body: `Your child is twelve and has never had to memorize anything substantial. AI does their research, drafts their essays, checks their arithmetic. They are happy, curious, engaged with ideas in their own way — but when you ask them to explain <em>why</em> something is true, not just what the answer is, they shrug and say "the AI told me." Their school wants to ban the tools entirely. Other parents think this is absurd — no different from banning calculators in the 1980s. You find yourself uncertain whether either side has fully grasped what is at stake.`,
+    body: `Your child is twelve and has never had to memorize anything substantial. AI does their research, drafts their essays, checks their arithmetic. They are happy, curious, engaged with ideas in their own way. But when you ask them to explain <em>why</em> something is true, not just what the answer is, they shrug and say "the AI told me." Their school wants to ban the tools entirely. Other parents think this is absurd, no different from banning calculators in the 1980s. You find yourself uncertain whether either side has fully grasped what is at stake.`,
     question: 'Where do you land?',
     choices: [
       { label:'a', text:'Let them use it. The world has changed, and teaching children to do what machines do better is nostalgia dressed as pedagogy.',
@@ -1875,7 +2066,7 @@ const SCENARIOS = [
         philosopher:'David Hume, An Enquiry Concerning Human Understanding' },
       { label:'b', text:'Ban it. At least until they are older. Thinking is a muscle, and if you never use it, you lose it. No tool can return what atrophy takes.',
         scores: {rationalist: 2, transcendent: 0, pragmatist: -2, consequence: -1},
-        reflection:'Plato distinguished knowledge from true belief for exactly this reason. Understanding requires the soul\'s own labor — the dialectic, the struggle. A shortcut to answers is a shortcut past wisdom.',
+        reflection:'Plato distinguished knowledge from true belief for exactly this reason. Understanding requires the soul\'s own labor: the dialectic, the struggle. A shortcut to answers is a shortcut past wisdom.',
         philosopher:'Plato, Republic, Book VII (Allegory of the Cave)' },
       { label:'c', text:'Pull them out of the school. If the institution cannot integrate the tool, the institution is the problem. Teach them yourself, or find one that treats AI as a fact of the world rather than a threat to be managed.',
         scores: {pragmatist: 1, agency: 1, individual: 0, consequence: 1},
@@ -1887,7 +2078,7 @@ const SCENARIOS = [
     chapter: 'XII — language',
     tradition: 'Philosophy of Language · Phenomenology',
     title: 'The Untranslatable',
-    body: `Your best friend's father died last year — someone you were close to as well. At the funeral you said all the things one is supposed to say. Quiet condolences, memories offered carefully, presence maintained with steady attention. Your friend thanked you afterward, told you it helped. You believed them. But last night, unguarded and several drinks past sober, they said something that has been sitting heavy in your chest ever since: <em>"You don't actually understand what this is like."</em> And they are right. You have never lost a parent, never stood in that particular valley. What you offered was compassion filtered through imagination rather than lived knowledge. You were performing empathy, and performing it well enough that it seemed real to both of you — but now the gap between your goodwill and their suffering feels unbridgeable, and you are not sure language was ever built to close it.`,
+    body: `Your best friend's father died last year, someone you were close to as well. At the funeral you said all the things one is supposed to say. Quiet condolences, memories offered carefully, presence maintained with steady attention. Your friend thanked you afterward, told you it helped. You believed them. But last night, unguarded and several drinks past sober, they said something that has been sitting heavy in your chest ever since: <em>"You don't actually understand what this is like."</em> And they are right. You have never lost a parent, never stood in that particular valley. What you offered was compassion filtered through imagination rather than lived knowledge. You were performing empathy, and performing it well enough that it seemed real to both of you. But now the gap between your goodwill and their suffering feels unbridgeable, and you are not sure language was ever built to close it.`,
     question: 'Can you actually understand someone else\'s pain?',
     choices: [
       { label:'a', text:'Yes, but not through language. Sit beside them. Say nothing. Understanding is not something you achieve with the right words; it is something that happens when you stop trying to perform it.',
@@ -1900,7 +2091,7 @@ const SCENARIOS = [
         philosopher:'Motoori Norinaga, on mono no aware (物の哀れ)' },
       { label:'c', text:'You understood enough. Perfect empathy is a fantasy. Your friend needed someone there, and you were there. That is not performance. That is love, doing what love can.',
         scores: {pragmatist: 1, consequence: 0, stoic: 0, individual: -1},
-        reflection:'Gadamer argued that understanding is always partial, always evolving — a "fusion of horizons" that\'s never complete but always in motion. Imperfect understanding, genuinely offered, is enough.',
+        reflection:'Gadamer argued that understanding is always partial, always evolving: a "fusion of horizons" that\'s never complete but always in motion. Imperfect understanding, genuinely offered, is enough.',
         philosopher:'Hans-Georg Gadamer, Truth and Method' }
     ]
   },
@@ -1908,16 +2099,16 @@ const SCENARIOS = [
     chapter: 'XIII — beauty',
     tradition: 'Aesthetics · African & Western',
     title: 'The Burning Gallery',
-    body: `A musician you love, someone whose work genuinely changed your life in ways you can still trace through the architecture of who you became, has just been exposed as a terrible person — not ambiguously terrible in the way that allows for generous interpretation, but concretely, provably, seriously terrible in ways that resist any charitable reading. Their music has not changed; the songs that got you through your worst year still sound exactly as they did, every note and phrase intact, but now you know who made them, and that knowledge sits inside the music like a watermark you cannot unsee. You find yourself wondering whether beauty can be separated from its maker, whether the thing that moved you was ever really yours, or whether it always belonged to the person whose hands shaped it, tainted now by everything those hands have done.`,
+    body: `A musician you love, someone whose work genuinely changed your life in ways you can still trace through the architecture of who you became, has just been exposed as a terrible person, not ambiguously terrible in the way that allows for generous interpretation, but concretely, provably, seriously terrible in ways that resist any charitable reading. Their music has not changed; the songs that got you through your worst year still sound exactly as they did, every note and phrase intact, but now you know who made them, and that knowledge sits inside the music like a watermark you cannot unsee. You find yourself wondering whether beauty can be separated from its maker, whether the thing that moved you was ever really yours, or whether it always belonged to the person whose hands shaped it, tainted now by everything those hands have done.`,
     question: 'Can you still listen?',
     choices: [
       { label:'a', text:'Yes. The music exists independently of the person who made it. It moved you, it helped you, and that was real. Separating art from artist is not a cop-out. It is the only honest position.',
         scores: {consequence: 1, individual: -1, pragmatist: 1, transcendent: -1, rationalist: -1},
-        reflection:'The Yoruba concept of àṣà holds that art\'s value is communal — once it enters the world, it belongs to everyone who encounters it, not to the person who made it.',
+        reflection:'The Yoruba concept of àṣà holds that art\'s value is communal: once it enters the world, it belongs to everyone who encounters it, not to the person who made it.',
         philosopher:'Yoruba aesthetic philosophy, via Babatunde Lawal' },
       { label:'b', text:'No. You cannot unhear who made it. Every listen is now a small act of looking away, and the discomfort is not a flaw in your response. It <em>is</em> the response.',
         scores: {agency: 0, individual: 1, transcendent: 1, rationalist: -1, stoic: 0},
-        reflection:'Adorno argued that after certain moral horrors, aesthetic experience cannot remain innocent — that the conditions of a work\'s creation become part of the work itself. Your discomfort isn\'t squeamishness. It\'s moral perception doing exactly what it\'s supposed to do.',
+        reflection:'Adorno argued that after certain moral horrors, aesthetic experience cannot remain innocent, that the conditions of a work\'s creation become part of the work itself. Your discomfort isn\'t squeamishness. It\'s moral perception doing exactly what it\'s supposed to do.',
         philosopher:'Theodor Adorno, Aesthetic Theory' },
       { label:'c', text:'Listen, but don\'t pay. The art is still good; the person does not deserve your money. There is a practical middle that neither purity nor complicity requires you to ignore.',
         scores: {pragmatist: 2, stoic: 0, rationalist: -1, consequence: 1},
@@ -1929,16 +2120,16 @@ const SCENARIOS = [
     chapter: 'XIV — belonging',
     tradition: 'Ubuntu · African Philosophy',
     title: 'The Circle',
-    body: `Your religious community — the one you grew up in, the one your parents still attend every week — has taken a public stance against something you believe in deeply. Not as a matter of preference. As a moral conviction you hold in your bones. They are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves. Who showed up at your door during the worst year of your life without being asked. Who taught you what kindness looks like in practice rather than in principle. You owe them something that cannot be reduced to gratitude, a debt made of presence and care and showing up. And yet staying means endorsing — or at least being complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
+    body: `Your religious community, the one you grew up in, the one your parents still attend every week, has taken a public stance against something you believe in deeply. Not as a matter of preference. As a moral conviction you hold in your bones. They are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves. Who showed up at your door during the worst year of your life without being asked. Who taught you what kindness looks like in practice rather than in principle. You owe them something that cannot be reduced to gratitude, a debt made of presence and care and showing up. And yet staying means endorsing — or at least being complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
     question: 'Do you stay or go?',
     choices: [
       { label:'a', text:'Stay. "I am because we are." You do not abandon the people who made you because they are wrong. You stay and fight to change them from the inside.',
         scores: {individual: -2, agency: -1, consequence: 0, transcendent: 0, stoic: 0},
-        reflection:'Ubuntu philosophy holds that personhood is constituted through community — umuntu ngumuntu ngabantu. To leave is not just to disagree but to diminish yourself.',
+        reflection:'Ubuntu philosophy holds that personhood is constituted through community: umuntu ngumuntu ngabantu. To leave is not just to disagree but to diminish yourself.',
         philosopher:'Desmond Tutu & Ubuntu philosophy' },
       { label:'b', text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, then staying is complicity wearing a loyalty costume.',
         scores: {individual: 2, agency: 1, stoic: 0, consequence: -1, rationalist: 1},
-        reflection:'Thoreau walked into the woods — and into jail — because he believed that conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
+        reflection:'Thoreau walked into the woods, and into jail, because he believed that conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
         philosopher:'Henry David Thoreau, Civil Disobedience' },
       { label:'c', text:'Leave publicly. Write the letter, name the reason, make it cost them something. A quiet exit changes nothing; a loud one gives others permission to follow.',
         scores: {pragmatist: 0, agency: 1, individual: -1, consequence: 1, rationalist: 1},
@@ -1950,7 +2141,7 @@ const SCENARIOS = [
     chapter: 'XV — nature',
     tradition: 'Environmental Philosophy · Indigenous Thought',
     title: 'The Last Forest',
-    body: `A mining company wants lithium from a valley in Bolivia — the kind that goes into batteries for electric cars, the technology that is supposed to save us from climate collapse. The valley is home to four hundred indigenous people who have lived there for centuries. Their relationship to the land is not ownership in any sense the company's lawyers would recognize. It is closer to kinship. They do not want to move. The company offers money, new housing, jobs in the mine. The community says <em>no</em> — not because the offer is inadequate, but because the premise is unacceptable. The government is considering eminent domain. The planet is warming. The carbon clock is ticking. Millions of lives hang in the balance of whether we decarbonize fast enough. Four hundred people will not move, and you are asked to weigh their home against the aggregate suffering of millions who might lose theirs.`,
+    body: `A mining company wants lithium from a valley in Bolivia, the kind that goes into batteries for electric cars, the technology that is supposed to save us from climate collapse. The valley is home to four hundred indigenous people who have lived there for centuries. Their relationship to the land is not ownership in any sense the company's lawyers would recognize. It is closer to kinship. They do not want to move. The company offers money, new housing, jobs in the mine. The community says <em>no</em>, not because the offer is inadequate, but because the premise is unacceptable. The government is considering eminent domain. The planet is warming. The carbon clock is ticking. Millions of lives hang in the balance of whether we decarbonize fast enough. Four hundred people will not move, and you are asked to weigh their home against the aggregate suffering of millions who might lose theirs.`,
     question: 'Should the mine go ahead?',
     choices: [
       { label:'a', text:'Yes. Four hundred people versus millions of tons of carbon. The calculus is brutal, but it is clear. Compensate them generously. Build the mine. Save what can still be saved.',
@@ -1959,11 +2150,11 @@ const SCENARIOS = [
         philosopher:'Peter Singer, Practical Ethics' },
       { label:'b', text:'No. "We will destroy your home for the greater good" is what colonizers have always said. The community said no. That should be the end of it.',
         scores: {consequence: -2, transcendent: 2, agency: -1, individual: -1, rationalist: 1},
-        reflection:'Arne Næss\'s deep ecology holds that land and the people who live on it have intrinsic value — not instrumental. You don\'t get to sacrifice someone else\'s home for your clean conscience.',
+        reflection:'Arne Næss\'s deep ecology holds that land and the people who live on it have intrinsic value, not instrumental. You don\'t get to sacrifice someone else\'s home for your clean conscience.',
         philosopher:'Arne Næss, "The Shallow and the Deep" (1973)' },
       { label:'c', text:'Only if the community owns the mine. Not compensation. <em>Ownership</em>. Equity, profits, veto power at every stage. If they still say no, you walk away.',
         scores: {pragmatist: 2, consequence: 0, rationalist: 0, individual: -1, agency: 1},
-        reflection:'Robin Wall Kimmerer, drawing on Potawatomi wisdom, speaks of the "Honorable Harvest" — take only what is given, use it well, give back. Extraction without relationship is just theft with better PR.',
+        reflection:'Robin Wall Kimmerer, drawing on Potawatomi wisdom, speaks of the "Honorable Harvest": take only what is given, use it well, give back. Extraction without relationship is just theft with better PR.',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
   },
@@ -1971,7 +2162,7 @@ const SCENARIOS = [
     chapter: 'XVI — mortality',
     tradition: 'Existentialism · Buddhist Philosophy',
     title: 'The Immortality Pill',
-    body: `A single injection. Gene therapy. Your telomeres stop shortening — the biological clock that counts down to your body's obsolescence, halted mid-tick. You could live for centuries, perhaps longer. The catch: it is irreversible. No exit clause. No way to change your mind when the weight of centuries becomes unbearable. You will watch everyone you love die. All of them. Again and again — a procession of endings that you alone carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left standing. And the urgency that makes Tuesday mornings feel real, that animal awareness that time is running out — the thought <em>"I should call my mother"</em> that only works because you might not get another chance — that vanishes. There is always tomorrow. And the day after that. And a thousand years of days after that.`,
+    body: `A single injection. Gene therapy. Your telomeres stop shortening, the biological clock that counts down to your body's obsolescence, halted mid-tick. You could live for centuries, perhaps longer. The catch: it is irreversible. No exit clause. No way to change your mind when the weight of centuries becomes unbearable. You will watch everyone you love die. All of them. Again and again — a procession of endings that you alone carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left standing. And the urgency that makes Tuesday mornings feel real, that animal awareness that time is running out, the thought <em>"I should call my mother"</em> that only works because you might not get another chance, that vanishes. There is always tomorrow. And the day after that. And a thousand years of days after that.`,
     question: 'Do you take the injection?',
     choices: [
       { label:'a', text:'Yes, and I would not want an exit. The irreversibility is the point. A commitment you can undo is not a commitment. I want to see what a human becomes with enough time to actually learn from their mistakes.',
@@ -1980,11 +2171,11 @@ const SCENARIOS = [
         philosopher:'Lucretius, De Rerum Natura' },
       { label:'b', text:'No. Mortality is what makes any of this matter. Without the horizon, nothing is urgent, nothing is precious, nothing costs you anything. Infinity is not a gift; it is a sentence.',
         scores: {stoic: 2, transcendent: 1, agency: -1, rationalist: 1},
-        reflection:'Heidegger\'s "being-toward-death" — the awareness that we will die is precisely what allows us to live authentically. Remove the horizon and you remove all urgency.',
+        reflection:'Heidegger\'s "being-toward-death": the awareness that we will die is precisely what allows us to live authentically. Remove the horizon and you remove all urgency.',
         philosopher:'Martin Heidegger, Being and Time' },
       { label:'c', text:'Only if I can choose to end it. Immortality as an option is the purest form of freedom. Immortality without an exit is the purest form of a cage.',
         scores: {agency: 1, pragmatist: 1, rationalist: 0, stoic: 0, individual: 1},
-        reflection:'The Buddhist Middle Way applied to mortality itself: neither clinging to life nor romanticizing death. The question is always about attachment — to living or to dying.',
+        reflection:'The Buddhist Middle Way applied to mortality itself: neither clinging to life nor romanticizing death. The question is always about attachment, to living or to dying.',
         philosopher:'The Buddha, Dhammapada — on the Middle Way' }
     ]
   },
@@ -1992,7 +2183,7 @@ const SCENARIOS = [
     chapter: 'XVII — knowledge II',
     tradition: 'Islamic Philosophy · Epistemology',
     title: 'The Scholar\'s Doubt',
-    body: `You are a published researcher with a career built on work that other people trust, and your most-cited paper — the one that earned you tenure, that other scholars build upon, that you teach to your students every year with the authority of someone who knows their field — has a flaw. Not a typo, not a rounding error, but a foundational error in the methodology that undermines the central claim in ways that cannot be patched or explained away. You found it last month while reviewing someone else's work, a moment of recognition that arrived with the sick clarity of watching a bridge collapse in slow motion, and nobody else has noticed. Three PhD students are currently building their dissertations on your framework, their entire academic futures staked on the assumption that your work is sound. If you publish a correction, your reputation takes a serious hit, the kind of hit that changes how people introduce you at conferences, that turns your name into a cautionary tale about rigor. If you stay quiet, the error might never surface — or it might surface in ten years when someone else catches what you already know, and then the question will not be whether you were wrong, but whether you knew you were wrong and said nothing.`,
+    body: `You are a published researcher with a career built on work that other people trust, and your most-cited paper — the one that earned you tenure, that other scholars build upon, that you teach to your students every year with the authority of someone who knows their field — has a flaw. Not a typo, not a rounding error, but a foundational error in the methodology that undermines the central claim in ways that cannot be patched or explained away. You found it last month while reviewing someone else's work, a moment of recognition that arrived with the sick clarity of watching a bridge collapse in slow motion, and nobody else has noticed. Three PhD students are currently building their dissertations on your framework, their entire academic futures staked on the assumption that your work is sound. If you publish a correction, your reputation takes a serious hit, the kind of hit that changes how people introduce you at conferences, that turns your name into a cautionary tale about rigor. If you stay quiet, the error might never surface, or it might surface in ten years when someone else catches what you already know, and then the question will not be whether you were wrong, but whether you knew you were wrong and said nothing.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Publish the correction immediately. Your reputation is less important than the truth, and a scholar who hides an error is no longer a scholar. The students will adapt.',
@@ -2001,11 +2192,11 @@ const SCENARIOS = [
         philosopher:'Al-Ghazali, The Deliverer from Error (al-Munqidh min al-Dalāl)' },
       { label:'b', text:'Tell the PhD students first, privately. Help them pivot before you go public. You owe it to the people who trusted your work not to pull the ground out from under them without warning.',
         scores: {consequence: 0, individual: -1, pragmatist: 1, agency: 1},
-        reflection:'Kuhn showed that paradigm shifts aren\'t instant conversions — they\'re slow, messy, social processes. Responsible revolution means bringing people with you.',
+        reflection:'Kuhn showed that paradigm shifts aren\'t instant conversions; they\'re slow, messy, social processes. Responsible revolution means bringing people with you.',
         philosopher:'Thomas Kuhn, The Structure of Scientific Revolutions' },
-      { label:'c', text:'Quietly fix it in your next paper. Don\'t make a public spectacle — weave the correction into new work that supersedes the old. The academic system rewards confessions less than it rewards progress. Game the system.',
+      { label:'c', text:'Quietly fix it in your next paper. Don\'t make a public spectacle; weave the correction into new work that supersedes the old. The academic system rewards confessions less than it rewards progress. Game the system.',
         scores: {pragmatist: 2, rationalist: -2, stoic: 0, consequence: 1},
-        reflection:'There\'s a cynical wisdom here that the academy rarely acknowledges: the system punishes honesty and rewards seamless narratives of progress. Ibn Arabi held that truth reveals itself in its own time — but the question is whether you\'re trusting that process or just hiding behind it.',
+        reflection:'There\'s a cynical wisdom here that the academy rarely acknowledges: the system punishes honesty and rewards seamless narratives of progress. Ibn Arabi held that truth reveals itself in its own time, but the question is whether you\'re trusting that process or just hiding behind it.',
         philosopher:'Ibn Arabi, Fusus al-Hikam (The Bezels of Wisdom)' }
     ]
   },
@@ -2022,11 +2213,11 @@ const SCENARIOS = [
         philosopher:'Carol Gilligan, In a Different Voice' },
       { label:'b', text:'Skip the speech. Start doing more. Quietly, consistently. Buy the toilet paper first, remember the birthdays, take over the mediation. The ethical response to care is to care <em>back</em>.',
         scores: {pragmatist: 1, stoic: 0, individual: -2, agency: 1, consequence: 1},
-        reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back — concretely, not abstractly.',
+        reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back: concretely, not abstractly.',
         philosopher:'Nel Noddings, Caring: A Relational Approach to Ethics' },
       { label:'c', text:'Talk to them privately. Ask what they actually want. Do not assume you know how to fix something you only just noticed.',
         scores: {agency: 0, individual: -1, consequence: -1, rationalist: -1, transcendent: 1},
-        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like — not the person who just noticed. Asking is itself an act of respect that naming and fixing both skip past.',
+        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like, not the person who just noticed. Asking is itself an act of respect that naming and fixing both skip past.',
         philosopher:'bell hooks, All About Love' }
     ]
   },
@@ -2034,20 +2225,20 @@ const SCENARIOS = [
     chapter: 'XIX — cosmic order',
     tradition: 'Maat (Egyptian Ethics)',
     title: 'The Whistleblower\'s Weight',
-    body: `For six months you've been the compliance officer at a mid-sized pharmaceutical company. For six months you've filed the reports, signed the certifications, assured yourself the numbers added up. They did — technically. But tonight, cross-referencing manufacturing logs with distribution records, you found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls — not dangerous exactly, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. Same active ingredient, same name, not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will call it a resource allocation issue. They won't be entirely lying — the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order — not as abstractions but as weight. The scale is in front of you. The feather is waiting.`,
+    body: `For six months you've been the compliance officer at a mid-sized pharmaceutical company. For six months you've filed the reports, signed the certifications, assured yourself the numbers added up. They did, technically. But tonight, cross-referencing manufacturing logs with distribution records, you found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls, not dangerous exactly, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. Same active ingredient, same name, not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will call it a resource allocation issue. They won't be entirely lying; the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order: not as abstractions but as weight. The scale is in front of you. The feather is waiting.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Report the findings through official channels and let the investigation unfold, trusting that bringing the truth to light restores balance regardless of personal consequences.',
         scores: {consequence:-2, individual:-1, stoic:1, pragmatist:-2, agency:2, transcendent:2},
-        reflection:'You choose to align with Maat—cosmic truth and order—over social convenience. The question isn\'t whether speaking truth is strategically wise; it\'s whether you can face the weighing with a heart light enough to match the feather.',
+        reflection:'You choose to align with Maat — cosmic truth and order — over social convenience. The question isn\'t whether speaking truth is strategically wise; it\'s whether you can face the weighing with a heart light enough to match the feather.',
         philosopher:'Book of the Dead, The 42 Negative Confessions' },
       { label:'b', text:'Document everything meticulously, secure the evidence, then resign and find a position where you can advocate for stronger industry regulations without targeting this specific company.',
         scores: {pragmatist:2, rationalist:2, agency:1, consequence:1},
-        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too — the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
+        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too: the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
         philosopher:'Ptahhotep, The Maxims' },
       { label:'c', text:'Bring the evidence to the executive team directly, giving them a private opportunity to correct the imbalance before it becomes public, trusting that restoration matters more than punishment.',
         scores: {consequence:0, individual:-1, stoic:2, pragmatist:0, agency:0, rationalist:1, transcendent:2},
-        reflection:'Restorative over retributive. In the Egyptian tradition, Maat isn\'t primarily about punishment — it\'s about restoring cosmic balance. You give those who created the imbalance a chance to correct it themselves, to lighten their own hearts before the weighing.',
+        reflection:'Restorative over retributive. In the Egyptian tradition, Maat isn\'t primarily about punishment; it\'s about restoring cosmic balance. You give those who created the imbalance a chance to correct it themselves, to lighten their own hearts before the weighing.',
         philosopher:'Merikare, Teachings for a King' }
     ]
   },
@@ -2055,20 +2246,20 @@ const SCENARIOS = [
     chapter: 'XX — communal self',
     tradition: 'Ubuntu (Southern African Ethics)',
     title: 'The Inheritance Interview',
-    body: `The email arrives on a Tuesday morning: "Partner Track — Final Interview." Five years of work, distilled into a subject line. But you didn't build this alone. Your business partner — college roommate, first believer, the person who took a salary cut when the company was a fever dream and a maxed-out credit card — will be pushed out if you take this role. The fund wants you. Not both of you. They see your partner as "operational overhead." You know that's wrong. Every breakthrough was shared. Every crisis, they held the ship steady while you played the face. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em> — a person is a person through other people. The success they want to invest in was never yours alone. But the world doesn't reward partnerships the way it rewards individuals.`,
+    body: `The email arrives on a Tuesday morning: "Partner Track — Final Interview." Five years of work, distilled into a subject line. But you didn't build this alone. Your business partner, college roommate, first believer, the person who took a salary cut when the company was a fever dream and a maxed-out credit card, will be pushed out if you take this role. The fund wants you. Not both of you. They see your partner as "operational overhead." You know that's wrong. Every breakthrough was shared. Every crisis, they held the ship steady while you played the face. Your grandmother's phrase echoes: <em>umuntu ngumuntu ngabantu</em>, a person is a person through other people. The success they want to invest in was never yours alone. But the world doesn't reward partnerships the way it rewards individuals.`,
     question: 'Your finger hovers over the reply button. What do you write?',
     choices: [
-      { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture — honoring the relationship while moving forward.',
+      { label:'a', text:'Accept the role but insist on creating an advisory position for your partner and commit to funding their next venture, honoring the relationship while moving forward.',
         scores: {individual:2, pragmatist:2, consequence:1, rationalist:1},
         reflection:'You try to have it both ways: individual advancement and communal recognition. Ubuntu would ask: does this actually honour interconnectedness, or does it just ease your conscience while accepting atomization?',
         philosopher:'Kwame Gyekye, Tradition and Modernity' },
       { label:'b', text:'Decline the individual offer and propose a joint partnership role, making it clear that the success they want to invest in was never separable from the collaboration that created it.',
         scores: {consequence:-1, individual:-2, stoic:2, pragmatist:-2, agency:2, transcendent:2},
-        reflection:'You refuse the premise. Ubuntu says "I am because we are"—your identity, your achievement, your very personhood is constituted through relationship. To accept the role alone would be to accept a lie about the nature of reality.',
+        reflection:'You refuse the premise. Ubuntu says "I am because we are": your identity, your achievement, your very personhood is constituted through relationship. To accept the role alone would be to accept a lie about the nature of reality.',
         philosopher:'Desmond Tutu, No Future Without Forgiveness' },
-      { label:'c', text:'Take the meeting but use it as leverage to find better terms for the partnership — a larger valuation, better investor alignment — then stay with the company you built together.',
+      { label:'c', text:'Take the meeting but use it as leverage to find better terms for the partnership, a larger valuation, better investor alignment, then stay with the company you built together.',
         scores: {pragmatist:2, agency:2, stoic:1, transcendent:1},
-        reflection:'You convert individual opportunity into collective benefit. Ubuntu in practice: redirect recognition back toward the "we." Your grandmother might smile at this — not self-abnegation, not guilt-managed individualism, but the practical wisdom of staying rooted while navigating a world that wants to uproot you.',
+        reflection:'You convert individual opportunity into collective benefit. Ubuntu in practice: redirect recognition back toward the "we." Your grandmother might smile at this: not self-abnegation, not guilt-managed individualism, but the practical wisdom of staying rooted while navigating a world that wants to uproot you.',
         philosopher:'Augustine Shutte, Ubuntu: An Ethic for a New South Africa' }
     ]
   },
@@ -2076,20 +2267,20 @@ const SCENARIOS = [
     chapter: 'XXI — sacred waters',
     tradition: 'Buen Vivir (Andean Philosophy)',
     title: 'The River\'s Memory',
-    body: `The government wants to dam the Willkamayu. In your engineering reports it is "Waterway B-7," but the Quechua community downstream calls it <em>the one who remembers</em> — a living ancestor that carries the voices of the dead, nourishes the soil with seasonal floods, and marks the boundary between this world and the next. The dam would generate clean electricity for two hundred thousand people in a city forty kilometres away. The community does not oppose development. They have proposed an alternative: a network of small run-of-river turbines that work <em>with</em> the current rather than stopping it, preserving the flow, the spawning routes, the floods that renew the valley. Engineers say the alternative would generate roughly a third of the power at twice the cost per kilowatt. The government says the numbers don't work. The community says the river is not a number. You are the environmental impact assessor, and your recommendation will likely determine what happens next.`,
+    body: `The government wants to dam the Willkamayu. In your engineering reports it is "Waterway B-7," but the Quechua community downstream calls it <em>the one who remembers</em>, a living ancestor that carries the voices of the dead, nourishes the soil with seasonal floods, and marks the boundary between this world and the next. The dam would generate clean electricity for two hundred thousand people in a city forty kilometres away. The community does not oppose development. They have proposed an alternative: a network of small run-of-river turbines that work <em>with</em> the current rather than stopping it, preserving the flow, the spawning routes, the floods that renew the valley. Engineers say the alternative would generate roughly a third of the power at twice the cost per kilowatt. The government says the numbers don't work. The community says the river is not a number. You are the environmental impact assessor, and your recommendation will likely determine what happens next.`,
     question: 'What do you recommend?',
     choices: [
       { label:'a', text:'Recommend the dam. Two hundred thousand people need power, and clean energy prevents suffering on a scale that small-scale alternatives cannot match. Compensate the community and relocate the sacred sites where possible.',
         scores: {consequence:2, stoic:-1, transcendent:-2, individual:-1, pragmatist:1},
-        reflection:'You chose the calculus of scale — aggregate need outweighs local meaning. But buen vivir asks a harder question: is a worldview that can only see rivers as kilowatt-hours capable of solving the crisis it created?',
+        reflection:'You chose the calculus of scale: aggregate need outweighs local meaning. But buen vivir asks a harder question: is a worldview that can only see rivers as kilowatt-hours capable of solving the crisis it created?',
         philosopher:'Jeremy Bentham, An Introduction to the Principles of Morals and Legislation' },
       { label:'b', text:'Recommend the community\'s alternative. A third of the power is still power, and development that requires silencing an ancestor is not development — it is conquest wearing a green hat.',
         scores: {transcendent:2, pragmatist:-1, consequence:-1, agency:-1, stoic:1},
-        reflection:'Sumak kawsay — the good life — is not accumulation but harmony. You cannot dam a relative and call it progress. The river\'s flow is not inefficiency; it is the shape of a relationship older than the state that wants to interrupt it.',
+        reflection:'Sumak kawsay, the good life, is not accumulation but harmony. You cannot dam a relative and call it progress. The river\'s flow is not inefficiency; it is the shape of a relationship older than the state that wants to interrupt it.',
         philosopher:'Eduardo Gudynas, Buen Vivir' },
       { label:'c', text:'Recommend a phased approach: build the run-of-river system first, prove it works, then revisit the question in ten years with better technology and a genuine partnership rather than a forced choice.',
         scores: {pragmatist:2, rationalist:1, agency:1, transcendent:1},
-        reflection:'You buy time and redistribute power. The community keeps the river; the city gets some electricity now and a promise of more later. It satisfies no one completely — which may be exactly why it is the most honest option on the table.',
+        reflection:'You buy time and redistribute power. The community keeps the river; the city gets some electricity now and a promise of more later. It satisfies no one completely, which may be exactly why it is the most honest option on the table.',
         philosopher:'Arturo Escobar, Designs for the Pluriverse' }
     ]
   },
@@ -2097,7 +2288,7 @@ const SCENARIOS = [
     chapter: 'XXII — liberation',
     tradition: 'Freire (Latin American Pedagogy)',
     title: 'The Banking Hours',
-    body: `You teach philosophy at a secondary school in a neighbourhood where most of your students will be the first in their families to sit an exam that could change the trajectory of their lives, and the pressure from the administration is simple and unambiguous: raise the pass rate by fifteen percent or the programme gets cut. You know exactly how to do it—drill the mark schemes, teach to the test, turn your classroom into what Paulo Freire called the banking model of education, where knowledge is deposited into passive recipients who store it long enough to reproduce it on demand and then forget it entirely. It works, in the narrow sense that numbers go up on spreadsheets that matter to people who will never meet your students. But you also know what happens in your classroom when you abandon the script: when you ask your students not what Plato said but whether they agree with him, when you let a fifteen-year-old from a council estate argue with Aristotle about justice and <em>win</em>. Something comes alive in the room that no mark scheme can measure—what Freire called conscientização, the moment when a person realizes they are not merely an object being acted upon by the world but a subject capable of acting upon it. The administration doesn't care about conscientização. They care about pass rates, funding metrics, league tables.`,
+    body: `You teach philosophy at a secondary school in a neighbourhood where most of your students will be the first in their families to sit an exam that could change the trajectory of their lives, and the pressure from the administration is simple and unambiguous: raise the pass rate by fifteen percent or the programme gets cut. You know exactly how to do it: drill the mark schemes, teach to the test, turn your classroom into what Paulo Freire called the banking model of education, where knowledge is deposited into passive recipients who store it long enough to reproduce it on demand and then forget it entirely. It works, in the narrow sense that numbers go up on spreadsheets that matter to people who will never meet your students. But you also know what happens in your classroom when you abandon the script: when you ask your students not what Plato said but whether they agree with him, when you let a fifteen-year-old from a council estate argue with Aristotle about justice and <em>win</em>. Something comes alive in the room that no mark scheme can measure: what Freire called conscientização, the moment when a person realizes they are not merely an object being acted upon by the world but a subject capable of acting upon it. The administration doesn't care about conscientização. They care about pass rates, funding metrics, league tables.`,
     question: 'How do you teach?',
     choices: [
       { label:'a', text:'Teach to the test. These students need qualifications more than they need consciousness-raising, and idealism that costs them their futures is just another form of privilege.',
@@ -2106,11 +2297,11 @@ const SCENARIOS = [
         philosopher:'Amartya Sen, Development as Freedom' },
       { label:'b', text:'Teach for liberation. If education doesn\'t awaken critical consciousness, it\'s just a more sophisticated form of domestication. The pass rate will follow if the thinking is real.',
         scores: {consequence:-1, pragmatist:-2, agency:2, transcendent:2, individual:-1, rationalist:-1},
-        reflection:'You refuse to separate education from liberation. Freire argued that the banking model serves the oppressor—it produces compliant workers, not free thinkers. You\'re betting that students who learn to think critically will also learn to pass exams, but that\'s genuinely a bet, and the stakes are their futures.',
+        reflection:'You refuse to separate education from liberation. Freire argued that the banking model serves the oppressor; it produces compliant workers, not free thinkers. You\'re betting that students who learn to think critically will also learn to pass exams, but that\'s genuinely a bet, and the stakes are their futures.',
         philosopher:'Paulo Freire, Pedagogy of the Oppressed' },
-      { label:'c', text:'Build the exam prep into Socratic dialogue—teach the content through questioning, use the mark scheme as raw material for critical analysis rather than rote memorization.',
+      { label:'c', text:'Build the exam prep into Socratic dialogue. Teach the content through questioning, use the mark scheme as raw material for critical analysis rather than rote memorization.',
         scores: {pragmatist:1, agency:1, consequence:1, rationalist:1, transcendent:0, individual:0},
-        reflection:'You try to smuggle liberation inside the system\'s container. Use the exam as the text; let the students interrogate it rather than merely absorb it. It\'s harder to execute than either pure approach, and it requires you to hold two contradictory things at once—which is, perhaps, its own kind of philosophical education.',
+        reflection:'You try to smuggle liberation inside the system\'s container. Use the exam as the text; let the students interrogate it rather than merely absorb it. It\'s harder to execute than either pure approach, and it requires you to hold two contradictory things at once, which is, perhaps, its own kind of philosophical education.',
         philosopher:'bell hooks, Teaching to Transgress' }
     ]
   },
@@ -2118,12 +2309,12 @@ const SCENARIOS = [
     chapter: 'XXIII — deep listening',
     tradition: 'Dadirri (Aboriginal Australian Philosophy)',
     title: 'The Listening',
-    body: `You are an environmental scientist assessing whether a patch of old-growth forest should be cleared for affordable housing. Three weeks of data — soil samples, biodiversity indexes, carbon sequestration rates, water table measurements — all pointing toward the same conclusion: the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder asks if you would sit with her in the forest for a morning before you write your report. You almost say no. You have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes. She doesn't lecture you or argue with your findings. She sits. After a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way light moves through the canopy in patterns that suggest relationships between species your survey never captured. A feeling — unscientific, unmeasurable, but unmistakable — that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri. Deep listening. The kind that requires you to be quiet long enough for the land itself to speak.`,
+    body: `You are an environmental scientist assessing whether a patch of old-growth forest should be cleared for affordable housing. Three weeks of data, soil samples, biodiversity indexes, carbon sequestration rates, water table measurements, all pointing toward the same conclusion: the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder asks if you would sit with her in the forest for a morning before you write your report. You almost say no. You have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes. She doesn't lecture you or argue with your findings. She sits. After a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way light moves through the canopy in patterns that suggest relationships between species your survey never captured. A feeling — unscientific, unmeasurable, but unmistakable — that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri. Deep listening. The kind that requires you to be quiet long enough for the land itself to speak.`,
     question: 'You sit down to write your report. What do you say?',
     choices: [
       { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
         scores: {rationalist:2, pragmatist:1, consequence:1, transcendent:-2, individual:0, agency:1},
-        reflection:'Your instruments measured what can be measured; the rest is poetry, not policy. Fair enough. But dadirri would ask whether your instruments are even asking the right questions — whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
+        reflection:'Your instruments measured what can be measured; the rest is poetry, not policy. Fair enough. But dadirri would ask whether your instruments are even asking the right questions, whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
         philosopher:'Francis Bacon, Novum Organum' },
       { label:'b', text:'Recommend against clearing. Something in the forest resists your categories, and intellectual honesty demands acknowledging what your methodology cannot capture.',
         scores: {transcendent:2, rationalist:-2, agency:-1, individual:-1, consequence:-1, stoic:1},
@@ -2131,7 +2322,7 @@ const SCENARIOS = [
         philosopher:'Miriam-Rose Ungunmerr, Inner Deep Listening' },
       { label:'c', text:'Report the data but include a supplementary section on indigenous ecological knowledge, recommending that traditional custodians be given co-governance over any development decision.',
         scores: {pragmatist:1, transcendent:1, consequence:0, agency:1, rationalist:0, individual:-1},
-        reflection:'You try to hold both ways of knowing at once—Western empiricism and indigenous deep listening—in a single document. It\'s an imperfect bridge between epistemologies, but it refuses to let either one erase the other. The question is whether the system that reads your report has the capacity to hear both voices.',
+        reflection:'You try to hold both ways of knowing at once, Western empiricism and indigenous deep listening, in a single document. It\'s an imperfect bridge between epistemologies, but it refuses to let either one erase the other. The question is whether the system that reads your report has the capacity to hear both voices.',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
   },
@@ -2139,12 +2330,12 @@ const SCENARIOS = [
     chapter: 'XXIV — reciprocity',
     tradition: 'Indigenous Reciprocity (Potawatomi/Kimmerer)',
     title: 'The Patent',
-    body: `A decade ago, during ethnobotanical fieldwork, an elder showed you a plant preparation her grandmother had taught her, passed down through a chain of knowledge stretching back further than anyone could trace. She shared it freely — not as transaction but as relationship, carrying with it the obligation of reciprocity and the understanding that gifts must keep moving. You published your findings with attribution and consent. A pharmaceutical company read your paper, synthesized the active compound, and developed a treatment now helping hundreds of thousands of people. The company is filing a patent. They have offered you a consultancy fee and co-inventor credit. The elder and her community have been offered nothing. Traditional knowledge, in the eyes of patent law, belongs to no one — the community's knowledge entered the public domain the moment you published it. You understand the legal logic. You also understand it rests on a foundation the elder would find incomprehensible: that knowledge can be owned, that sharing it freely means losing it, that the gift economy is just the commons waiting to be enclosed.`,
+    body: `A decade ago, during ethnobotanical fieldwork, an elder showed you a plant preparation her grandmother had taught her, passed down through a chain of knowledge stretching back further than anyone could trace. She shared it freely, not as transaction but as relationship, carrying with it the obligation of reciprocity and the understanding that gifts must keep moving. You published your findings with attribution and consent. A pharmaceutical company read your paper, synthesized the active compound, and developed a treatment now helping hundreds of thousands of people. The company is filing a patent. They have offered you a consultancy fee and co-inventor credit. The elder and her community have been offered nothing. Traditional knowledge, in the eyes of patent law, belongs to no one; the community's knowledge entered the public domain the moment you published it. You understand the legal logic. You also understand it rests on a foundation the elder would find incomprehensible: that knowledge can be owned, that sharing it freely means losing it, that the gift economy is just the commons waiting to be enclosed.`,
     question: 'The company asks for your signature on the patent application. What do you do?',
     choices: [
       { label:'a', text:'Sign it. The treatment helps people, and walking away won\'t change the system. Use the consultancy money to fund projects in the elder\'s community.',
         scores: {consequence:2, pragmatist:1, individual:1, transcendent:-2, agency:0, rationalist:0},
-        reflection:'You work within the system as it exists. The treatment is real, the suffering it alleviates is real, and your refusal won\'t undo the patent—someone else will sign. But Kimmerer would ask: does this perpetuate the very logic that made the theft possible? Are you keeping the gift moving, or are you helping to enclose it?',
+        reflection:'You work within the system as it exists. The treatment is real, the suffering it alleviates is real, and your refusal won\'t undo the patent; someone else will sign. But Kimmerer would ask: does this perpetuate the very logic that made the theft possible? Are you keeping the gift moving, or are you helping to enclose it?',
         philosopher:'William MacAskill, Doing Good Better' },
       { label:'b', text:'Refuse to sign and publicly advocate for the elder\'s community to receive recognition and ongoing royalties, even if it delays or jeopardizes the treatment\'s availability.',
         scores: {agency:2, pragmatist:-2, transcendent:1, consequence:-1, rationalist:1},
@@ -2152,7 +2343,7 @@ const SCENARIOS = [
         philosopher:'Vandana Shiva, Biopiracy' },
       { label:'c', text:'Negotiate a benefit-sharing agreement where the community receives a percentage of revenues and co-governance over how the knowledge is used, then sign.',
         scores: {pragmatist:2, consequence:1, transcendent:0, agency:1, individual:-1, rationalist:1},
-        reflection:'You try to retrofit reciprocity onto a transactional system. It\'s not the gift economy—it\'s a compromise that acknowledges the elder\'s contribution in the only language the system understands: money and legal agreements. Imperfect, but it creates a precedent. The question Kimmerer might ask: is this reciprocity, or is it just a more polite form of extraction?',
+        reflection:'You try to retrofit reciprocity onto a transactional system. It\'s not the gift economy — it\'s a compromise that acknowledges the elder\'s contribution in the only language the system understands: money and legal agreements. Imperfect, but it creates a precedent. The question Kimmerer might ask: is this reciprocity, or is it just a more polite form of extraction?',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
   },
@@ -2194,6 +2385,7 @@ let selectedPath = null;
 let traditions = {};
 let deliberationTimes = [];
 let scenarioStartTime = null;
+let shownContradictions = new Set();
 
 function resetScores() {
   scores = {};
@@ -2201,6 +2393,7 @@ function resetScores() {
   traditions = {};
   deliberationTimes = [];
   scenarioStartTime = null;
+  shownContradictions = new Set();
 }
 
 function showPaths() { showScreen('path-screen'); }
@@ -2307,6 +2500,18 @@ function selectChoice(idx) {
 }
 
 function nextScenario() {
+  // Check for contradictions before advancing
+  const contradiction = checkContradiction();
+  if (contradiction) {
+    showContradictionInterstitial(contradiction, () => {
+      advanceToNextScenario();
+    });
+  } else {
+    advanceToNextScenario();
+  }
+}
+
+function advanceToNextScenario() {
   currentScenario++;
   if (currentScenario >= activeScenarios.length) showResults();
   else renderScenario();
@@ -2859,6 +3064,227 @@ function renderPhilosopherMatch(matches) {
 }
 
 // ===== CONSISTENCY CHECK =====
+// ===== CONTRADICTION INTERSTITIAL PAIRS =====
+// Curated tension pairs that trigger a contemplative pause mid-quiz
+// when the user's current choice contradicts a previous one.
+// s1/s2 = SCENARIOS array indices (0-based), c1/c2 = choice indices (0-based)
+const CONTRADICTION_PAIRS = [
+  // --- ESSENTIAL PATH (both scenarios in 0-8, everyone sees these) ---
+  { id:'ci1', s1:0, c1:0, s2:2, c2:1,
+    s1Label:'The Promise', s2Label:'The Dinner Party',
+    c1Text:'Deliver the letter. A promise made to the dying carries the full weight of moral obligation.',
+    c2Text:'Tell her. Some truths outweigh the promise of privacy.',
+    commentary:'Earlier, you held fast to principle regardless of outcome. Just now, you let the consequences decide. This isn\'t hypocrisy; it\'s the oldest argument in ethics. Kant and Mill would both claim you as their own.' },
+  { id:'ci2', s1:0, c1:1, s2:4, c2:1,
+    s1Label:'The Promise', s2Label:'The Lottery',
+    c1Text:'Burn the letter. The promise was made to secure peace, not to inflict pain.',
+    c2Text:'No. You cannot take ninety percent of a person\'s wealth, however noble the cause.',
+    commentary:'You began by weighing outcomes, calculating the greater good. Then something shifted\u2014a line you wouldn\'t cross, regardless of the calculus. Sometimes the ends don\'t justify the means, even when we wish they could.' },
+  { id:'ci3', s1:0, c1:0, s2:4, c2:0,
+    s1Label:'The Promise', s2Label:'The Lottery',
+    c1Text:'Deliver the letter. A deathbed promise carries unconditional moral weight.',
+    c2Text:'Yes to the wealth tax. Half as many children in poverty is not an abstraction.',
+    commentary:'In one moment you held that promises carry unconditional weight\u2014duty, full stop. Then you calculated aggregate suffering and decided the math justified overriding individual wealth. You\'re discovering where your deontology ends and your consequentialism begins.' },
+  { id:'ci4', s1:1, c1:1, s2:6, c2:0,
+    s1Label:'The Forecast', s2Label:'The Vulnerability Tax',
+    c1Text:'Start adapting now. Learn braille, reorganize your life for the dark.',
+    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
+    commentary:'Earlier you chose endurance over feeling, stoic preparation over indulgence. Just now, you chose radical vulnerability\u2014to be fully known. Even the Stoics knew: asceticism isn\'t the whole story.' },
+  { id:'ci5', s1:1, c1:0, s2:8, c2:1,
+    s1Label:'The Forecast', s2Label:'The Four Thousand Weeks',
+    c1Text:'Devour everything. If loss is guaranteed, greed is a form of grace.',
+    c2Text:'No. Your parents will not be around forever. The baby will grow up without you noticing.',
+    commentary:'You began by seizing everything\u2014every sunrise, every face. Then something asked for sacrifice, for relationships over achievement. Epicurus knew this paradox: sometimes pleasure requires refusing pleasure.' },
+  { id:'ci6', s1:2, c1:0, s2:6, c2:0,
+    s1Label:'The Dinner Party', s2Label:'The Vulnerability Tax',
+    c1Text:'Say nothing. Confidence is sacred.',
+    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
+    commentary:'You protected silence when it shielded someone else\'s peace. Then you demanded total transparency when your own intimacy was at stake. Privacy for others, vulnerability for yourself\u2014a generous contradiction, but a contradiction nonetheless.' },
+  { id:'ci7', s1:4, c1:1, s2:7, c2:2,
+    s1Label:'The Lottery', s2Label:'The Room',
+    c1Text:'No to the wealth tax. That is not taxation; it is confiscation.',
+    c2Text:'Start failing on purpose. Force other people into the gap.',
+    commentary:'You claimed radical freedom\u2014the right to be left alone, the sanctity of what\'s yours. Just now you forced others into responsibility they didn\'t choose. We are both more free and less free than we think.' },
+  { id:'ci8', s1:5, c1:1, s2:6, c2:0,
+    s1Label:'The Ship', s2Label:'The Vulnerability Tax',
+    c1Text:'No. You grew out of that person for a reason. Nostalgia is another way of refusing to live.',
+    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
+    commentary:'You claimed the self is fluid, that the old self must die for the new one to live. Then you chose to be fully known\u2014which requires a self stable enough to be seen. Who is being vulnerable if the self keeps changing?' },
+
+  // --- ESSENTIAL × EXAMINED (one scenario in 0-8, other in examined additions) ---
+  { id:'ci9', s1:1, c1:0, s2:15, c2:1,
+    s1Label:'The Forecast', s2Label:'The Immortality Pill',
+    c1Text:'Devour everything. If loss is guaranteed, greed is a form of grace.',
+    c2Text:'No. Mortality is what makes any of this matter.',
+    commentary:'First, you valued the immediate\u2014devour everything, memorize every face. Then you said mortality is what gives life meaning. You wanted to maximize time precisely because it was finite\u2014but the logic of maximization leads to wanting more, not less.' },
+  { id:'ci10', s1:4, c1:1, s2:13, c2:0,
+    s1Label:'The Lottery', s2Label:'The Circle',
+    c1Text:'No to the wealth tax. You cannot take what is someone\'s by right.',
+    c2Text:'Stay. You do not abandon the people who made you because they are wrong.',
+    commentary:'You claimed yourself as sovereign, self-contained\u2014nobody can take what\'s mine. Then you chose as though you were woven into something larger, staying because belonging trumped principle. The self that is both irreducibly alone and inescapably connected.' },
+  { id:'ci11', s1:4, c1:0, s2:13, c2:1,
+    s1Label:'The Lottery', s2Label:'The Circle',
+    c1Text:'Yes to the wealth tax. Thousands of real lives materially improved.',
+    c2Text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, staying is complicity.',
+    commentary:'You calculated the greater good for the many\u2014aggregate suffering justified collective action. Then you stood alone against your community, conscience over belonging. Utilitarianism says: fold in. Thoreau says: step out. You\'ve done both.' },
+  { id:'ci12', s1:5, c1:1, s2:13, c2:0,
+    s1Label:'The Ship', s2Label:'The Circle',
+    c1Text:'No. You grew out of that person for a reason, and nostalgia is another way of refusing to live.',
+    c2Text:'Stay. "I am because we are." You do not abandon the people who made you.',
+    commentary:'You claimed radical freedom from even your own history\u2014the old self must die. Yet when it came to community, you chose belonging over conscience. Nietzsche would ask: are you free, or are you just choosing different chains?' },
+  { id:'ci13', s1:6, c1:0, s2:15, c2:1,
+    s1Label:'The Vulnerability Tax', s2Label:'The Immortality Pill',
+    c1Text:'Yes, all the way. To be half-known is to be half-loved.',
+    c2Text:'No. Mortality is what makes any of this matter.',
+    commentary:'You chose to be fully known, because half-known is half-loved. Then you chose mortality\u2014because without the horizon, nothing is urgent. Both are about stakes: intimacy matters because we can lose people, life matters because we can lose it.' },
+  { id:'ci14', s1:8, c1:0, s2:22, c2:1,
+    s1Label:'The Four Thousand Weeks', s2Label:'The Listening',
+    c1Text:'Yes. This is the kind of thing that justifies a life.',
+    c2Text:'Recommend against clearing. Something in the forest resists your categories.',
+    commentary:'You chose to act, to leave a mark, to justify a life through impact. Then you recommended stillness\u2014listening to what resists your categories. Hannah Arendt meets dadirri. Action and contemplation, the oldest tension in the philosophical life.' },
+  { id:'ci15', s1:3, c1:0, s2:13, c2:0,
+    s1Label:'The Absurd Commute', s2Label:'The Circle',
+    c1Text:'Walk away. There is no dignity in defending something you know to be false.',
+    c2Text:'Stay. You do not abandon the people who made you because they are wrong.',
+    commentary:'When your thesis collapsed, you walked away\u2014no dignity in defending what you know is false. When your community had problems, you stayed. Walking away from institutions but not from people reveals where your loyalty actually lives.' },
+  { id:'ci16', s1:1, c1:1, s2:11, c2:0,
+    s1Label:'The Forecast', s2Label:'The Untranslatable',
+    c1Text:'Start adapting now. Learn braille, train with a cane, reorganize your life.',
+    c2Text:'Sit beside them. Say nothing. Understanding is not something you achieve through language.',
+    commentary:'You prepared rationally, methodically, for inevitable loss\u2014learn braille, face what\'s coming with eyes open. Then you abandoned method entirely, choosing to sit in silence beside grief. Reason prepared you; presence healed you.' },
+  { id:'ci17', s1:6, c1:2, s2:17, c2:1,
+    s1Label:'The Vulnerability Tax', s2Label:'The Invisible Labor',
+    c1Text:'No. You would resent them for knowing too much.',
+    c2Text:'Skip the speech. Start doing more. Quietly, consistently.',
+    commentary:'You chose solitude, protecting yourself from the resentment of being too-known. Then you chose to quietly care for someone without speech or recognition. You guard your own depths but tend to others\'. That\'s not contradiction\u2014it might be love.' },
+
+  // --- FULL PATH & DEEP CUT PAIRS ---
+  { id:'ci18', s1:10, c1:1, s2:11, c2:0,
+    s1Label:'The Library of Babel', s2Label:'The Untranslatable',
+    c1Text:'Ban AI tools. Thinking is a muscle, and if you never use it, you lose it.',
+    c2Text:'Sit beside them. Say nothing. Understanding exceeds language.',
+    commentary:'You trusted reason, discipline, the systematic method of thought\u2014ban the shortcuts, make them think. Then you leaned into wordless presence, knowledge that can\'t be articulated. Spinoza\'s geometry meets Wittgenstein\'s silence.' },
+  { id:'ci19', s1:2, c1:0, s2:16, c2:0,
+    s1Label:'The Dinner Party', s2Label:'The Scholar\'s Doubt',
+    c1Text:'Say nothing. Confidence is sacred.',
+    c2Text:'Publish the correction immediately. Your reputation is less important than the truth.',
+    commentary:'You held silence sacred when it protected a relationship. Then you demanded radical truth in scholarship\u2014publish immediately, consequences be damned. Your truth has a context switch: private life gets discretion, public life gets transparency.' },
+  { id:'ci20', s1:14, c1:0, s2:20, c2:1,
+    s1Label:'The Last Forest', s2Label:'The River\'s Memory',
+    c1Text:'Yes, build the mine. Four hundred people versus millions of tons of carbon.',
+    c2Text:'Recommend the community\'s alternative. Development that requires erasure isn\'t development.',
+    commentary:'You chose the numbers in one valley\u2014four hundred people versus carbon math. In another, you honored the river\'s memory. Your utilitarianism has a threshold you haven\'t named yet, and it lives somewhere between carbon and water.' },
+  { id:'ci21', s1:14, c1:1, s2:21, c2:0,
+    s1Label:'The Last Forest', s2Label:'The Banking Hours',
+    c1Text:'No. "We will destroy your home for the greater good" is what colonizers have always said.',
+    c2Text:'Teach to the test. These students need qualifications more than consciousness-raising.',
+    commentary:'You rejected utilitarian calculus when land and culture were at stake\u2014some things can\'t be priced. Then you chose pragmatic credentials over consciousness-raising. Your idealism has a class dimension: principle for the forest, pragmatism for the classroom.' },
+  { id:'ci22', s1:12, c1:0, s2:13, c2:1,
+    s1Label:'The Burning Gallery', s2Label:'The Circle',
+    c1Text:'Yes. The music exists independently of the person who made it.',
+    c2Text:'Leave. If your conscience says this is wrong, staying is complicity.',
+    commentary:'You argued beauty exists independently of its maker\u2014you can love the music, condemn the person. Then you refused to separate a community from its harmful actions. Art gets a pass; institutions don\'t. The distinction might be more about intimacy than principle.' },
+  { id:'ci23', s1:11, c1:0, s2:22, c2:0,
+    s1Label:'The Untranslatable', s2Label:'The Listening',
+    c1Text:'Sit beside them. Say nothing. Understanding exceeds language.',
+    c2Text:'Report the scientific data as gathered. Policy decisions need evidence, not experience.',
+    commentary:'You honored the limits of language, trusting presence over articulation. Then you chose hard data over ineffable experience. In personal grief, silence is enough; in policy, only measurements count. Your epistemology shifts with the stakes.' },
+  { id:'ci24', s1:19, c1:0, s2:23, c2:1,
+    s1Label:'The Inheritance Interview', s2Label:'The Patent',
+    c1Text:'Accept the role. Create an advisory position and fund the community centre.',
+    c2Text:'Refuse to sign. Publicly advocate for the elder\'s community to receive recognition.',
+    commentary:'You accepted individual advancement, leveraging the system to fund what matters. Then you chose the gift economy\u2014refusing ownership of knowledge that belongs to a community. Your individualism stops where indigenous knowledge begins.' },
+  { id:'ci25', s1:21, c1:1, s2:23, c2:0,
+    s1Label:'The Banking Hours', s2Label:'The Patent',
+    c1Text:'Teach for liberation. Education must awaken critical consciousness.',
+    c2Text:'Sign the patent deal. Walking away won\'t change the system.',
+    commentary:'You chose liberation over pragmatism\u2014education must awaken, not merely credential. Then you signed the corporate deal, reasoning that walking away changes nothing. Your radicalism yielded to the very pragmatism you rejected one scenario earlier.' },
+];
+
+// Track which contradictions have been shown during this session
+let _contradictionOnContinue = null;
+
+function checkContradiction() {
+  // Build map: SCENARIOS index -> choice index
+  const answerMap = {};
+  answers.forEach(a => {
+    const scenariosIdx = SCENARIOS.indexOf(activeScenarios[a.scenario]);
+    answerMap[scenariosIdx] = a.choice;
+  });
+
+  for (const pair of CONTRADICTION_PAIRS) {
+    if (shownContradictions.has(pair.id)) continue;
+    if (answerMap[pair.s1] === pair.c1 && answerMap[pair.s2] === pair.c2) {
+      shownContradictions.add(pair.id);
+      return pair;
+    }
+  }
+  return null;
+}
+
+function showContradictionInterstitial(pair, onContinue) {
+  let container = document.querySelector('.contradiction-interstitial');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'contradiction-interstitial';
+    container.innerHTML = `
+      <div class="contradiction-content">
+        <div class="contradiction-header">a tension emerges</div>
+        <div class="contradiction-symbol">\u2696</div>
+        <div class="contradiction-choices"></div>
+        <div class="contradiction-commentary"></div>
+        <button class="contradiction-continue">continue</button>
+      </div>
+    `;
+    document.body.appendChild(container);
+    container.querySelector('.contradiction-continue').addEventListener('click', hideContradictionInterstitial);
+  }
+
+  // Reset animations by cloning content
+  const content = container.querySelector('.contradiction-content');
+  const newContent = content.cloneNode(false);
+  newContent.innerHTML = `
+    <div class="contradiction-header">a tension emerges</div>
+    <div class="contradiction-symbol">\u2696</div>
+    <div class="contradiction-choices">
+      <div class="contradiction-choice-item">
+        <div class="contradiction-choice-label">First, you chose</div>
+        <div class="contradiction-choice-text">${pair.c1Text}</div>
+        <div class="contradiction-choice-scenario">${pair.s1Label}</div>
+      </div>
+      <div class="contradiction-choice-item">
+        <div class="contradiction-choice-label">Now, you chose</div>
+        <div class="contradiction-choice-text">${pair.c2Text}</div>
+        <div class="contradiction-choice-scenario">${pair.s2Label}</div>
+      </div>
+    </div>
+    <div class="contradiction-commentary">${pair.commentary}</div>
+    <button class="contradiction-continue">continue</button>
+  `;
+  content.replaceWith(newContent);
+  newContent.querySelector('.contradiction-continue').addEventListener('click', hideContradictionInterstitial);
+
+  _contradictionOnContinue = onContinue;
+  container.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideContradictionInterstitial() {
+  const container = document.querySelector('.contradiction-interstitial');
+  if (!container) return;
+  container.style.opacity = '0';
+  setTimeout(() => {
+    container.classList.remove('active');
+    container.style.opacity = '';
+    document.body.style.overflow = '';
+    if (_contradictionOnContinue) {
+      const cb = _contradictionOnContinue;
+      _contradictionOnContinue = null;
+      cb();
+    }
+  }, 400);
+}
+
 const TENSION_PAIRS=[
   {scenarios:[{index:0,choice:0,label:'deliver the letter (duty-bound)'},{index:4,choice:0,label:'continue the wealth tax (utilitarian)'}],tension:'In one moment you held that promises carry unconditional moral weight — consequences be damned. In another, you calculated aggregate suffering and decided the math justified overriding individual rights. Kant and Mill have been arguing in your head, and they haven\'t reached a truce.',axes:['consequence'],severity:0.9},
   {scenarios:[{index:5,choice:1,label:'owe nothing to past self (radical freedom)'},{index:13,choice:0,label:'stay in the community (ubuntu)'}],tension:'You claimed radical freedom from even your own history — "the old self must die" — yet when it came to community, you chose belonging over conscience. Nietzsche would ask: are you free, or are you just choosing different chains?',axes:['individual','agency'],severity:0.85},
