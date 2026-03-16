@@ -2763,30 +2763,7 @@ function showResults() {
   document.getElementById('archetype-name').textContent = archetype.name;
   document.getElementById('archetype-sub').textContent = archetype.subtitle;
 
-  // Rarity badge (async) — add loading state
-  const header = document.querySelector('.results-header');
-  const placeholder = document.createElement('div');
-  placeholder.className = 'rarity-badge';
-  placeholder.innerHTML = '<span class="rarity-description" style="opacity:0.6;">calculating rarity...</span>';
-  header.appendChild(placeholder);
-
-  fetchWall().then(entries => {
-    const loading = header.querySelector('.rarity-badge');
-    if (loading) loading.remove();
-    if (entries) {
-      const rarity = calculateArchetypeRarity(entries, archetype.name);
-      const badge = renderRarityBadge(rarity);
-      if (badge) {
-        const container = document.createElement('div');
-        container.innerHTML = badge;
-        header.appendChild(container.firstElementChild);
-      }
-    }
-  }).catch(() => {
-    // Remove placeholder on error, fail silently
-    const loading = header.querySelector('.rarity-badge');
-    if (loading) loading.remove();
-  });
+  // Rarity badge disabled — not enough wall data yet. Re-enable after April 16 2026.
 
   drawRadar(normalized);
 
