@@ -3171,46 +3171,95 @@ function copyResults() {
 async function generateShareImage(archetypeName, archetypeSub, normalizedScores, axesObj) {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1080; canvas.height = 1080;
+    canvas.width = 1080; canvas.height = 1350;
     const ctx = canvas.getContext('2d');
     const bg='#0a0a0c',accent='#c9a84c',txt='#e8e4dc',txtDim='#8a8680',txtFaint='#4a4844';
     const serifFont='Georgia, serif', monoFont='"Courier New", monospace';
-    ctx.fillStyle=bg; ctx.fillRect(0,0,1080,1080);
+
+    // Background
+    ctx.fillStyle=bg; ctx.fillRect(0,0,1080,1350);
+
+    // Header
     ctx.textAlign='center';
-    ctx.font=`bold 24px ${monoFont}`; ctx.fillStyle=accent;
-    ctx.fillText('E X A M I N E D .',540,100);
-    ctx.font=`600 56px ${serifFont}`; ctx.fillStyle=txt;
+    ctx.font=`bold 22px ${monoFont}`; ctx.fillStyle=accent;
+    ctx.fillText('E X A M I N E D .',540,80);
+
+    // Thin gold line
+    ctx.strokeStyle=accent; ctx.globalAlpha=0.3; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(340,100); ctx.lineTo(740,100); ctx.stroke();
+    ctx.globalAlpha=1;
+
+    // Archetype name
+    ctx.font=`600 52px ${serifFont}`; ctx.fillStyle=txt;
     const nameWords=archetypeName.split(' ');
     let nL1='',nL2='';
     for(let w of nameWords){const t=nL1?nL1+' '+w:w;if(ctx.measureText(t).width>900&&nL1!=='')nL2=nL2?nL2+' '+w:w;else nL1=t;}
-    if(nL2){ctx.fillText(nL1,540,180);ctx.fillText(nL2,540,245);}else ctx.fillText(nL1,540,200);
-    ctx.font=`italic 28px ${serifFont}`; ctx.fillStyle=txtDim;
-    const subY=nL2?310:270;
+    if(nL2){ctx.fillText(nL1,540,170);ctx.fillText(nL2,540,230);}else ctx.fillText(nL1,540,190);
+
+    // Subtitle
+    ctx.font=`italic 26px ${serifFont}`; ctx.fillStyle=txtDim;
+    const subY=nL2?290:260;
     const subWords=archetypeSub.split(' ');let sL1='',sL2='';
     for(let w of subWords){const t=sL1?sL1+' '+w:w;if(ctx.measureText(t).width>850&&sL1!=='')sL2=sL2?sL2+' '+w:w;else sL1=t;}
-    ctx.fillText(sL1,540,subY);if(sL2)ctx.fillText(sL2,540,subY+38);
-    const rCY=nL2?560:540,rR=140,rCX=540;
+    ctx.fillText(sL1,540,subY);if(sL2)ctx.fillText(sL2,540,subY+36);
+
+    // Radar — bigger, centered
+    const rCX=540, rCY=nL2?560:530, rR=190;
     const ax=Object.keys(axesObj),n=ax.length;
-    ctx.strokeStyle=txtFaint;ctx.lineWidth=1;ctx.globalAlpha=0.3;
+
+    // Grid circles
+    ctx.strokeStyle=txtFaint;ctx.lineWidth=1;ctx.globalAlpha=0.25;
     for(let i=1;i<=4;i++){const r=(rR/4)*i;ctx.beginPath();ctx.arc(rCX,rCY,r,0,Math.PI*2);ctx.stroke();}
-    ctx.globalAlpha=0.2;
+
+    // Grid lines
+    ctx.globalAlpha=0.15;
     ax.forEach((_,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.moveTo(rCX,rCY);ctx.lineTo(rCX+rR*Math.cos(a),rCY+rR*Math.sin(a));ctx.stroke();});
+
+    // Radar fill
     ctx.globalAlpha=0.2;ctx.fillStyle=accent;ctx.beginPath();
     ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
     ctx.closePath();ctx.fill();
-    ctx.globalAlpha=1;ctx.strokeStyle=accent;ctx.lineWidth=3;ctx.beginPath();
+
+    // Radar stroke
+    ctx.globalAlpha=1;ctx.strokeStyle=accent;ctx.lineWidth=2.5;ctx.beginPath();
     ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
     ctx.closePath();ctx.stroke();
+
+    // Radar dots
     ctx.fillStyle=accent;
     ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.arc(rCX+rR*v*Math.cos(a),rCY+rR*v*Math.sin(a),5,0,Math.PI*2);ctx.fill();});
-    ctx.font=`12px ${monoFont}`;ctx.fillStyle=txtDim;ctx.textAlign='center';
-    ax.forEach((axis,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2,lR=rR+45,x=rCX+lR*Math.cos(a),y=rCY+lR*Math.sin(a);ctx.save();ctx.translate(x,y);ctx.textAlign=x<rCX-10?'right':x>rCX+10?'left':'center';ctx.fillText(axesObj[axis].right.toUpperCase(),0,0);ctx.restore();});
-    const sStartY=rCY+210,sLH=42,sLX=180;ctx.textAlign='left';
-    ax.forEach((axis,i)=>{const ad=axesObj[axis],v=normalizedScores[axis],y=sStartY+(i*sLH);ctx.font=`bold 16px ${monoFont}`;ctx.fillStyle=txtFaint;ctx.fillText(ad.left.toUpperCase(),sLX,y);ctx.fillStyle=accent;ctx.font=`20px ${monoFont}`;ctx.fillText(v<0.45?'◄':v>0.55?'►':'•',sLX+280,y);ctx.font=`bold 16px ${monoFont}`;ctx.fillStyle=txtFaint;ctx.textAlign='right';ctx.fillText(ad.right.toUpperCase(),900,y);ctx.textAlign='left';});
-    ctx.textAlign='center';ctx.font=`italic 20px ${serifFont}`;ctx.fillStyle=txtFaint;
-    ctx.fillText('"the unexamined life is not worth living."',540,1000);
-    ctx.font=`bold 18px ${monoFont}`;ctx.fillStyle=accent;
-    ctx.fillText('examined. — pranshul.cafe/examined',540,1040);
+
+    // Radar labels
+    ctx.font=`bold 14px ${monoFont}`;ctx.fillStyle=txtDim;ctx.textAlign='center';
+    ax.forEach((axis,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2,lR=rR+35,x=rCX+lR*Math.cos(a),y=rCY+lR*Math.sin(a);ctx.save();ctx.translate(x,y);ctx.textAlign=x<rCX-10?'right':x>rCX+10?'left':'center';ctx.fillText(axesObj[axis].right.toUpperCase(),0,0);ctx.restore();});
+
+    // Axis bars section
+    const sStartY=rCY+260, barW=500, barH=8, sLH=52;
+    ctx.textAlign='left';
+    ax.forEach((axis,i)=>{
+      const ad=axesObj[axis], v=normalizedScores[axis], y=sStartY+(i*sLH);
+      // Left label
+      ctx.font=`13px ${monoFont}`; ctx.fillStyle=txtFaint;
+      ctx.textAlign='left'; ctx.fillText(ad.left.toUpperCase(),140,y-12);
+      // Right label
+      ctx.textAlign='right'; ctx.fillText(ad.right.toUpperCase(),940,y-12);
+      // Track
+      ctx.textAlign='left';
+      ctx.fillStyle=txtFaint; ctx.globalAlpha=0.2;
+      ctx.fillRect(290,y-4,barW,barH);
+      // Fill
+      ctx.globalAlpha=1; ctx.fillStyle=accent;
+      ctx.fillRect(290,y-4,barW*v,barH);
+      ctx.globalAlpha=1;
+    });
+
+    // Footer
+    ctx.textAlign='center';
+    ctx.font=`italic 20px ${serifFont}`;ctx.fillStyle=txtFaint;
+    ctx.fillText('"the unexamined life is not worth living."',540,1270);
+    ctx.font=`bold 16px ${monoFont}`;ctx.fillStyle=accent;
+    ctx.fillText('pranshul.cafe/examined',540,1310);
+
     resolve(canvas.toDataURL('image/png'));
   });
 }
