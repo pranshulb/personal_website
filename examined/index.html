@@ -2976,7 +2976,10 @@ let wallLoaded = false;
 
 async function fetchWall() {
   try {
-    const res = await fetch(WALL_API);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(WALL_API, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) throw new Error('fetch failed');
     const data = await res.json();
     return data.entries || [];
@@ -2988,6 +2991,8 @@ async function fetchWall() {
 
 async function postToWall(name, archetype) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(WALL_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2997,8 +3002,10 @@ async function postToWall(name, archetype) {
         scores: scores,
         answers: answers,
         path: selectedPath
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     return res.ok;
   } catch(e) {
     console.error('Wall save error:', e);
