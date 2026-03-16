@@ -1800,7 +1800,7 @@ body.modal-open > *:not(.contradiction-interstitial) {
       <svg class="radar-svg" id="radar" viewBox="0 0 400 400"></svg>
     </div>
     <div class="axes-grid" id="axes-grid"></div>
-    <div id="consistency-container"></div>
+    <!-- consistency section removed -->
     <div class="portrait" id="portrait"></div>
     <div id="philosopher-container"></div>
     <div class="readings-section" id="readings-section"></div>
@@ -2814,7 +2814,7 @@ function showResults() {
 
   // Consistency check
   const consistencyAnalysis = analyzeConsistency(answers, activeScenarios);
-  document.getElementById('consistency-container').innerHTML = renderConsistencyCheck(consistencyAnalysis);
+  // consistency section removed — most people get 100%, not useful
 
   // Philosopher match
   const philMatches = findClosestPhilosophers(normalized);
