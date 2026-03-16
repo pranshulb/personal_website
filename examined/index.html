@@ -1778,6 +1778,7 @@ body.modal-open > *:not(.contradiction-interstitial) {
 <div class="screen" id="scenario-screen">
   <div class="scenario-container">
     <div class="scenario-progress" id="progress"></div>
+    <div id="go-back-arrow"></div>
     <div class="scenario-chapter" id="chapter"></div>
     <div class="scenario-tradition" id="tradition"></div>
     <h2 class="scenario-title" id="title"></h2>
@@ -1867,81 +1868,147 @@ const WALL_API = '/api/wall';
 
 const READINGS = {
   'The Examined Stoic': [
-    { title:'Meditations', author:'Marcus Aurelius', why:'The original field manual for maintaining inner calm while the world burns around you.' },
-    { title:'Courage Under Fire', author:'James Stockdale', why:'A POW who survived seven years in Hanoi using Epictetus. Stoicism tested to its absolute limit.' },
-    { title:'Stoic Warriors', author:'Nancy Sherman', why:'How modern military culture accidentally rediscovered ancient Stoic philosophy. Surprisingly moving.' },
-    { title:'Gravity and Grace', author:'Simone Weil', why:'A mystic\'s Stoicism — attention as the highest form of generosity, suffering as a path to clarity.' },
-    { title:'The Book of Five Rings', author:'Miyamoto Musashi', why:'Japanese bushido meets Stoic discipline. Written by a swordsman the night before his death.' },
+    { title:'Meditations', author:'Marcus Aurelius', why:'The original field manual for maintaining inner calm while the world burns around you.', type:'book' },
+    { title:'Courage Under Fire', author:'James Stockdale', why:'A POW who survived seven years in Hanoi using Epictetus. Stoicism tested to its absolute limit.', type:'book' },
+    { title:'Stoic Warriors', author:'Nancy Sherman', why:'How modern military culture accidentally rediscovered ancient Stoic philosophy. Surprisingly moving.', type:'book' },
+    { title:'Gravity and Grace', author:'Simone Weil', why:'A mystic\'s Stoicism — attention as the highest form of generosity, suffering as a path to clarity.', type:'book' },
+    { title:'The Book of Five Rings', author:'Miyamoto Musashi', why:'Japanese bushido meets Stoic discipline. Written by an undefeated swordsman in his final years, a meditation on strategy as a way of life.', type:'book' },
+    { title:'The Heart of the Buddha\'s Teaching', author:'Thích Nhất Hạnh', why:'Vietnamese Zen master transforms suffering into mindfulness through the Four Noble Truths. Where Stoicism builds resilience through reason, Thích Nhất Hạnh teaches equanimity through compassion and present-moment awareness—accepting what is while actively transforming it.', type:'book' },
+    { title:'My Grandmother\'s Hands: Racialized Trauma and the Pathway to Mending Our Hearts and Bodies', author:'Resmaa Menakem', why:'Black trauma therapist reframes stoic endurance through the body. Where classical Stoicism mastered emotions through mind, Menakem teaches resilience through somatic practice—healing racialized trauma by settling the nervous system, not just disciplining thought.', type:'book' },
+    { title:'Gladiator', author:'Ridley Scott (2000)', why:'Maximus endures the unendurable with grace—loss, slavery, death—without self-pity or complaint. The arena becomes his meditation hall, each fight a practice in presence, each breath a choice to remain unbroken.', type:'film' },
+    { title:'Master and Commander: The Far Side of the World', author:'Peter Weir (2003)', why:'Captain Aubrey commands with Stoic virtue incarnate: duty over desire, discipline over impulse, the mission above the man. A floating Republic where reason governs the passions and every decision carries the weight of lives.', type:'film' },
+    { title:'The Daily Stoic Podcast', author:'Ryan Holiday', why:'Daily doses of ancient wisdom filtered through modern chaos—like Marcus Aurelius whispering in your ear during your commute. Less philosophy lecture, more emergency kit for the soul.', type:'podcast', url:'https://dailystoic.com/podcast/' },
+    { title:'Epictetus: The Enchiridion', author:'Epictetus', why:'A former slave\'s field manual for inner freedom, distilled into bite-sized maxims that hit harder than most modern self-help. Your ancestors read this before battle; you can read it before Monday.', type:'essay', url:'https://standardebooks.org/ebooks/epictetus/the-enchiridion' },
   ],
   'The Reluctant Utilitarian': [
-    { title:'Strangers Drowning', author:'Larissa MacFarquhar', why:'Profiles of extreme altruists. What happens when you take utilitarian logic all the way — beautiful, disturbing, essential.' },
-    { title:'Reasons and Persons', author:'Derek Parfit', why:'Mind-bending work on identity and ethics. Will permanently change how you think about future people.' },
-    { title:'Poor Economics', author:'Abhijit Banerjee & Esther Duflo', why:'Nobel-winning development economics that wrestles with what actually helps — not what feels like helping.' },
-    { title:'Winners Take All', author:'Anand Giridharadas', why:'The sharp critique of doing-good-while-doing-well. A mirror for reluctant utilitarians who benefit from the system they want to fix.' },
-    { title:'In a Different Voice', author:'Carol Gilligan', why:'A counterweight to pure calculation — what gets lost when we reduce ethics to arithmetic.' },
+    { title:'Strangers Drowning', author:'Larissa MacFarquhar', why:'Profiles of extreme altruists. What happens when you take utilitarian logic all the way — beautiful, disturbing, essential.', type:'book' },
+    { title:'Reasons and Persons', author:'Derek Parfit', why:'Mind-bending work on identity and ethics. Will permanently change how you think about future people.', type:'book' },
+    { title:'Poor Economics', author:'Abhijit Banerjee & Esther Duflo', why:'Nobel-winning development economics that wrestles with what actually helps — not what feels like helping.', type:'book' },
+    { title:'Winners Take All', author:'Anand Giridharadas', why:'The sharp critique of doing-good-while-doing-well. A mirror for reluctant utilitarians who benefit from the system they want to fix.', type:'book' },
+    { title:'In a Different Voice', author:'Carol Gilligan', why:'A counterweight to pure calculation — what gets lost when we reduce ethics to arithmetic.', type:'book' },
+    { title:'Ethics of Liberation', author:'Enrique Dussel', why:'Argentine-Mexican philosopher rebuilds ethics from the perspective of the colonized. Where Western utilitarians calculate from privilege, Dussel asks: whose suffering counts? An ethics that starts with those excluded from the calculus—victims of systems, not their beneficiaries.', type:'book' },
+    { title:'Black Feminist Thought', author:'Patricia Hill Collins', why:'Black feminist standpoint theory exposes whose \'greater good\' gets prioritized. Where utilitarian calculations claim neutrality, Collins reveals the matrix of domination—how race, class, and gender determine who counts in moral math. Care work counts. Black women\'s knowledge counts.', type:'book' },
+    { title:'The Dark Knight', author:'Christopher Nolan (2008)', why:'Batman calculates consequences in real-time—two ferries, impossible choices, the Joker forcing Gotham to do its own moral accounting. The greatest good demands the dirtiest hands, and Harvey Dent\'s fall proves even heroes can\'t escape the math.', type:'film' },
+    { title:'A Serious Man', author:'Coen Brothers (2009)', why:'Larry Gopnik tries desperately to be good, to calculate the right action, but the universe returns only static and suffering. A cosmic joke about moral ledgers that refuse to balance—sometimes the trolley hits everyone.', type:'film' },
+    { title:'Famine, Affluence, and Morality', author:'Peter Singer', why:'The essay that makes you realize your morning latte might be a moral catastrophe. Singer\'s drowning-child thought experiment will haunt your wallet—and force you to reckon with what you actually owe strangers.', type:'essay', url:'https://rintintin.colorado.edu/~vancecd/phil308/Singer2.pdf' },
+    { title:'Partially Examined Life on Utilitarianism', author:'Mark Linsenmayer et al.', why:'Philosophy PhDs who escaped academia dissect the messy calculus of the greatest good. Smart without being smug, critical without being cynical—like therapy for your ethical anxieties.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
   ],
   'The Existential Pragmatist': [
-    { title:'Shop Class as Soulcraft', author:'Matthew Crawford', why:'Motorcycle repair as existential practice. Why working with your hands is a philosophical act.' },
-    { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Freedom isn\'t just a right — it\'s a responsibility. de Beauvoir on what it means to act in an uncertain world.' },
-    { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that reads like absurdist comedy. The butterfly dream alone is worth the price of entry.' },
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous pragmatism — truth arrived at through doing, making, and reciprocal relationship with the living world.' },
-    { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A pragmatist\'s guide to mortality — stop optimizing time and start living in it.' },
+    { title:'Shop Class as Soulcraft', author:'Matthew Crawford', why:'Motorcycle repair as existential practice. Why working with your hands is a philosophical act.', type:'book' },
+    { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Freedom isn\'t just a right — it\'s a responsibility. de Beauvoir on what it means to act in an uncertain world.', type:'book' },
+    { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that reads like absurdist comedy. The butterfly dream alone is worth the price of entry.', type:'book' },
+    { title:'The Craftsman', author:'Richard Sennett', why:'Explores skilled practice as a form of embodied knowledge. Pragmatism through making, not just thinking — hands shaping mind.', type:'book' },
+    { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A pragmatist\'s guide to mortality — stop optimizing time and start living in it.', type:'book' },
+    { title:'Borderlands/La Frontera: The New Mestiza', author:'Gloria Anzaldúa', why:'Queer Chicana poet-philosopher lives in the borderlands between cultures, languages, genders. Where pragmatism adapts to circumstances, Anzaldúa creates \'mestiza consciousness\'—not choosing between worlds but inhabiting contradiction itself. The third space where transformation happens.', type:'book' },
+    { title:'Parable of the Sower', author:'Octavia E. Butler', why:'Black sci-fi prophet builds philosophy through apocalypse. Where existential pragmatism theorizes adaptation, Butler\'s hyperempathic protagonist creates \'Earthseed\'—a religion of change, shaping God through community survival. Philosophy isn\'t thought experiments; it\'s the practice of staying alive and staying human.', type:'book' },
+    { title:'No Country for Old Men', author:'Coen Brothers (2007)', why:'Llewelyn Moss makes the choice and lives the consequence—no cosmic justice, no safety net, just the cold truth that actions ripple forward into chaos. Chigurh is fate with a philosophy degree; the coin flip is all the meaning you get.', type:'film' },
+    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Andre chases transcendence across continents while Wallace defends the comfort of coffee and routine—two philosophers at dinner, one mystic and one pragmatist, both trying to justify how they\'ve chosen to live. The conversation is the philosophy.', type:'film' },
+    { title:'The Will to Believe', author:'William James', why:'James defends leaping before you look—arguing that some truths only reveal themselves to those who dare to act. The philosophical permission slip for the practically courageous.', type:'essay', url:'https://www.gutenberg.org/files/26659/26659-h/26659-h.htm' },
+    { title:'Awakening from the Meaning Crisis', author:'John Vervaeke', why:'A cognitive scientist traces Western civilization\'s loss of meaning through philosophy, religion, and psychology—then rebuilds wisdom from the fragments. Dense, sprawling, transformative.', type:'lecture', url:'https://www.youtube.com/playlist?list=PLND1JCRq8Vuh3f0P5qjrSdb5eC1ZfZwWJ' },
   ],
   'The Relational Existentialist': [
-    { title:'I and Thou', author:'Martin Buber', why:'The foundational text on what it means to truly encounter another person. Short, dense, life-altering.' },
-    { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Morality as attention — seeing others clearly is the hardest and most important philosophical work.' },
-    { title:'All About Love', author:'bell hooks', why:'Love as a practice of freedom. hooks dismantles romantic myths and builds something more honest in their place.' },
-    { title:'Philosophy and an African Culture', author:'Kwasi Wiredu', why:'Akan communal philosophy — personhood as co-created through relationship, not granted at birth.' },
-    { title:'Relational Being', author:'Kenneth Gergen', why:'Relational psychotherapy meets philosophy — the self as process, not thing. Changes how you understand connection.' },
+    { title:'I and Thou', author:'Martin Buber', why:'The foundational text on what it means to truly encounter another person. Short, dense, life-altering.', type:'book' },
+    { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Morality as attention — seeing others clearly is the hardest and most important philosophical work.', type:'book' },
+    { title:'All About Love', author:'bell hooks', why:'Love as a practice of freedom. hooks dismantles romantic myths and builds something more honest in their place.', type:'book' },
+    { title:'Philosophy and an African Culture', author:'Kwasi Wiredu', why:'Akan communal philosophy — personhood as co-created through relationship, not granted at birth.', type:'book' },
+    { title:'Relational Being', author:'Kenneth Gergen', why:'Relational psychotherapy meets philosophy — the self as process, not thing. Changes how you understand connection.', type:'book' },
+    { title:'Poetics of Relation', author:'Édouard Glissant', why:'Martinican poet-philosopher weaves identity from archipelagos, not roots. Where Western existentialism isolates the individual, Glissant\'s \'créolité\' builds selfhood through relation—not despite difference but because of it. Caribbean thought as relational ontology, where mixture creates, not dilutes.', type:'book' },
+    { title:'Pilgrimages/Peregrinajes: Theorizing Coalition Against Multiple Oppressions', author:'María Lugones', why:'Argentine feminist philosopher rejects the colonial logic of purity. Where liberal relationality seeks common ground, Lugones teaches \'world-traveling\'—learning to see yourself through another\'s eyes without erasing difference. Coalition as ontological practice, loving across worlds.', type:'book' },
+    { title:'Before Sunrise', author:'Richard Linklater (1995)', why:'Jesse and Céline wander Vienna discovering the I-Thou in real-time—two strangers becoming whole through genuine encounter, creating meaning through dialogue, building a world between them that didn\'t exist before. Connection as existential act.', type:'film' },
+    { title:'Wings of Desire', author:'Wim Wenders (1987)', why:'Damiel the angel witnesses humanity from above—lonely, eternal, untouchable—until love for a trapeze artist pulls him into mortal flesh. A meditation on what we sacrifice for connection: immortality for a single human touch.', type:'film' },
+    { title:'I Am Because We Are: Ubuntu Philosophy', author:'Internet Encyclopedia of Philosophy', why:'African philosophy\'s antidote to Descartes: your humanity emerges through connection, not isolated thought. A communal manifesto for those who find themselves in the mirror of others.', type:'essay', url:'https://iep.utm.edu/hunhu-ubuntu-southern-african-thought/' },
+    { title:'On Being with Krista Tippett', author:'Krista Tippett', why:'Where philosophy meets poetry, theology dances with neuroscience, and every conversation asks: what does it mean to be human together? Tippett listens like attention is an act of love.', type:'podcast', url:'https://onbeing.org/series/podcast/' },
   ],
   'The Radical Individualist': [
-    { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s wild, poetic manifesto for becoming who you are. Not a self-help book — something stranger and better.' },
-    { title:'The Complete Works of Zhuangzi', author:'Zhuangzi (trans. Burton Watson)', why:'Daoist freedom — the sage wanders without purpose and finds everything. Individualism without ego.' },
-    { title:'Narrative of the Life of Frederick Douglass', author:'Frederick Douglass', why:'Self-liberation as philosophy. Douglass didn\'t just escape slavery — he thought his way to freedom.' },
-    { title:'Sister Outsider', author:'Audre Lorde', why:'Radical individuality as survival and resistance. Lorde\'s essays burn with clarity.' },
-    { title:'Cruising Utopia', author:'José Esteban Muñoz', why:'Queer futurity — imagining selves and worlds that don\'t exist yet. Individualism as radical possibility.' },
+    { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s wild, poetic manifesto for becoming who you are. Not a self-help book — something stranger and better.', type:'book' },
+    { title:'The Complete Works of Zhuangzi', author:'Zhuangzi (trans. Burton Watson)', why:'Daoist freedom — the sage wanders without purpose and finds everything. Individualism without ego.', type:'book' },
+    { title:'Narrative of the Life of Frederick Douglass', author:'Frederick Douglass', why:'Self-liberation as philosophy. Douglass didn\'t just escape slavery — he thought his way to freedom.', type:'book' },
+    { title:'Sister Outsider', author:'Audre Lorde', why:'Radical individuality as survival and resistance. Lorde\'s essays burn with clarity.', type:'book' },
+    { title:'Cruising Utopia', author:'José Esteban Muñoz', why:'Queer futurity — imagining selves and worlds that don\'t exist yet. Individualism as radical possibility.', type:'book' },
+    { title:'The Invention of Women: Making an African Sense of Western Gender Discourses', author:'Oyèrónkẹ́ Oyěwùmí', why:'Yoruba feminist philosopher refuses Western gender binaries. Where radical individualism breaks from norms, Oyěwùmí reveals that \'woman\' itself is a colonial invention—Yoruba society organized by seniority, not gender. Freedom isn\'t escaping categories; it\'s exposing how they were forced upon you.', type:'book' },
+    { title:'Dear Senthuran: A Black Spirit Memoir', author:'Akwaeke Emezi', why:'Nonbinary Igbo writer refuses the gender binary and the body/spirit divide. Where Western individualism builds the self through assertion, Emezi draws on ogbanje spirituality—being many, being liminal, being neither alive nor dead. Radical selfhood as spiritual fact, not political claim.', type:'book' },
+    { title:'The Matrix', author:'Wachowskis (1999)', why:'Neo wakes up, rejects the given world, and wills himself into the Übermensch—literally rewriting reality through sheer self-creation. The red pill is the most Nietzschean choice in cinema: truth over comfort, becoming over being.', type:'film' },
+    { title:'When Nietzsche Wept', author:'Pinchas Perry (2007)', why:'Nietzsche himself as patient-philosopher, wrestling with despair and the death of God in 19th-century Vienna. A dramatization of the man behind the Übermensch, showing the loneliness of radical freedom and the cost of rejecting herd morality.', type:'film' },
+    { title:'Civil Disobedience', author:'Henry David Thoreau', why:'Thoreau\'s defiant blueprint for conscience over conformity, written from jail after refusing to fund a war. The ur-text of American rebellion—Gandhi and King both carried it into battle.', type:'essay', url:'https://users.manchester.edu/Facstaff/SSNaragon/Online/texts/201/Thoreau,%20CivilDisobedience.pdf' },
+    { title:'The Partially Examined Life on Nietzsche', author:'Mark Linsenmayer et al.', why:'Recovering academics wrestle with philosophy\'s most dangerous individualist, the prophet of self-overcoming. They bring Nietzsche down from his mountain without neutering his fire.', type:'podcast', url:'https://partiallyexaminedlife.com/tag/nietzsche/' },
   ],
   'The Contemplative Mystic': [
-    { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s translation captures the poetry. 81 short chapters that say more than most 500-page books.' },
-    { title:'The Essential Rumi', author:'Rumi (trans. Coleman Barks)', why:'Sufi ecstasy in English. "Out beyond ideas of wrongdoing and rightdoing there is a field. I\'ll meet you there."' },
-    { title:'I Am That', author:'Nisargadatta Maharaj', why:'Advaita Vedanta in dialogue form. A Mumbai shopkeeper dismantles the self with terrifying precision.' },
-    { title:'The Cloud of Unknowing', author:'Anonymous (14th century)', why:'Christian mysticism stripped to its core: God is found in darkness, not knowledge. Apophatic theology at its most honest.' },
-    { title:'Waking Up', author:'Sam Harris', why:'Contemplative neuroscience — meditation without religion. The mystic tradition meets empirical investigation.' },
+    { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s translation captures the poetry. 81 short chapters that say more than most 500-page books.', type:'book' },
+    { title:'The Essential Rumi', author:'Rumi (trans. Coleman Barks)', why:'Sufi ecstasy in English. "Out beyond ideas of wrongdoing and rightdoing there is a field. I\'ll meet you there."', type:'book' },
+    { title:'I Am That', author:'Nisargadatta Maharaj', why:'Advaita Vedanta in dialogue form. A Mumbai shopkeeper dismantles the self with terrifying precision.', type:'book' },
+    { title:'The Cloud of Unknowing', author:'Anonymous (14th century)', why:'Christian mysticism stripped to its core: God is found in darkness, not knowledge. Apophatic theology at its most honest.', type:'book' },
+    { title:'Waking Up', author:'Sam Harris', why:'Contemplative neuroscience — meditation without religion. The mystic tradition meets empirical investigation.', type:'book' },
+    { title:'The Garden of Truth: The Vision and Promise of Sufism, Islam\'s Mystical Tradition', author:'Seyyed Hossein Nasr', why:'Iranian-American Islamic philosopher restores Sufism\'s sacred heart. Where Western mysticism sometimes exoticizes the East, Nasr teaches Islam\'s own contemplative tradition—the garden of truth cultivated through dhikr, not escape. The intellect as sacred faculty, knowledge as gnosis.', type:'book' },
+    { title:'Zen Mind, Beginner\'s Mind', author:'Shunryu Suzuki', why:'Japanese Zen master brings beginner\'s mind to California. Where mysticism often seeks the extraordinary, Suzuki teaches: your everyday mind is the Way. Not transcendence through effort but presence through practice. Each breath, each moment—already complete, already enough.', type:'book' },
+    { title:'Stalker', author:'Andrei Tarkovsky (1979)', why:'Three men journey into the Zone seeking a room that grants desires—but the real pilgrimage is inward, through stillness and silence, toward the ineffable. Tarkovsky films time itself, turning cinema into prayer.', type:'film' },
+    { title:'The Tree of Life', author:'Terrence Malick (2011)', why:'Malick shoots the cosmic and the domestic as one continuous meditation—the Big Bang to a 1950s childhood, dinosaurs to whispered prayers. Grace versus nature, eternity in a blade of grass, the universe contemplating itself through human eyes.', type:'film' },
+    { title:'Gravity and Grace', author:'Simone Weil', why:'A French mystic\'s field notes from the edge of existence, where suffering meets transcendence and attention becomes prayer. Weil writes like she\'s reporting from another dimension.', type:'essay', url:'https://cominsitu.wordpress.com/wp-content/uploads/2021/09/simone-weil-gravity-and-grace-2.pdf' },
+    { title:'Making Sense: Conversations on Consciousness', author:'Sam Harris', why:'A neuroscientist-turned-meditator bridges rationalism and contemplative practice, exploring consciousness without the mystical fluff. Secular spirituality for the scientifically minded seeker.', type:'podcast', url:'https://www.samharris.org/podcasts' },
   ],
   'The Philosophical Warrior': [
-    { title:'The Deliverer from Error', author:'Al-Ghazali', why:'A scholar at the peak of his career demolishes his own framework because truth demanded it. Autobiography as philosophy.' },
-    { title:'The Incoherence of the Incoherence', author:'Ibn Rushd (Averroes)', why:'Ibn Rushd\'s legendary rebuttal to Al-Ghazali — Islamic philosophy\'s greatest debate on reason vs revelation, fought at the highest intellectual level.' },
-    { title:'The Second Sex', author:'Simone de Beauvoir', why:'Courageous, systematic, world-changing. de Beauvoir dismantles centuries of assumptions with surgical precision.' },
-    { title:'Your Silence Will Not Protect You', author:'Audre Lorde', why:'Intellectual courage as survival. "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less important whether I am afraid."' },
-    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming.' },
+    { title:'The Deliverer from Error', author:'Al-Ghazali', why:'A scholar at the peak of his career demolishes his own framework because truth demanded it. Autobiography as philosophy.', type:'book' },
+    { title:'The Incoherence of the Incoherence', author:'Ibn Rushd (Averroes)', why:'Ibn Rushd\'s legendary rebuttal to Al-Ghazali — Islamic philosophy\'s greatest debate on reason vs revelation, fought at the highest intellectual level.', type:'book' },
+    { title:'The Second Sex', author:'Simone de Beauvoir', why:'Courageous, systematic, world-changing. de Beauvoir dismantles centuries of assumptions with surgical precision.', type:'book' },
+    { title:'Your Silence Will Not Protect You', author:'Audre Lorde', why:'Intellectual courage as survival. "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less important whether I am afraid."', type:'book' },
+    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming.', type:'book' },
+    { title:'Necropolitics', author:'Achille Mbembe', why:'Cameroonian political philosopher maps the power to decide who lives and who dies. Where just war theory debates rules of engagement, Mbembe exposes necropolitics—colonial sovereignty as the right to kill. The philosophical warrior must confront not just battlefields but the slow violence of occupation.', type:'book' },
+    { title:'God Is Red: A Native View of Religion', author:'Vine Deloria Jr.', why:'Standing Rock Sioux scholar wages intellectual war on Christian colonialism. Where Western warriors fight for abstract principles, Deloria defends land-based spirituality—place over time, relation over salvation. The warrior as one who remembers what was taken and refuses to forget.', type:'book' },
+    { title:'Harakiri', author:'Masaki Kobayashi (1962)', why:'Kobayashi dismantles bushido from within—a ronin exposes the samurai code as performative cruelty, honor as institutional violence. The greatest warrior film is the one that asks whether the warrior\'s way is worth the bloodshed.', type:'film' },
+    { title:'The Last Samurai', author:'Edward Zwick (2003)', why:'Captain Algren finds discipline, honor, and purpose in the dying samurai tradition—learning that the warrior\'s true battle is internal, against ego and chaos. Bushido as spiritual practice, the sword as path to enlightenment, death as teacher.', type:'film' },
+    { title:'Hagakure: The Book of the Samurai (excerpts online)', author:'Yamamoto Tsunetomo', why:'An 18th-century samurai\'s meditation on death, loyalty, and living with absolute presence. Less about swords, more about the discipline to face each moment as if it\'s your last.', type:'essay', url:'https://www.pdf-archive.com/2015/06/20/hagakure/' },
+    { title:'Iain McGilchrist on The Master and His Emissary', author:'Iain McGilchrist', why:'A psychiatrist reveals how the left brain\'s hunger for control has colonized Western thought—and why integrating both hemispheres is the warrior\'s real conquest. Neuroscience meets philosophy of civilization.', type:'lecture', url:'https://www.youtube.com/watch?v=e90hUwFvB94' },
   ],
   'The Practical Philosopher': [
-    { title:'Permaculture: Principles and Pathways Beyond Sustainability', author:'David Holmgren', why:'Design philosophy disguised as agriculture. Ethics embedded in how you arrange a garden.' },
-    { title:'Pedagogy of the Oppressed', author:'Paulo Freire', why:'Education as liberation. The most practical radical philosophy ever written — still changing classrooms worldwide.' },
-    { title:'Development as Freedom', author:'Amartya Sen', why:'Economics meets philosophy — freedom isn\'t just a value, it\'s the actual mechanism of human development.' },
-    { title:'Hind Swaraj', author:'Mahatma Gandhi', why:'Self-rule as philosophy. Gandhi\'s practical ethics — satyagraha as a way of being, not just a tactic.' },
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Indigenous wisdom meets botanical science. Reciprocity with the land as both ancient practice and urgent philosophy.' },
+    { title:'Permaculture: Principles and Pathways Beyond Sustainability', author:'David Holmgren', why:'Design philosophy disguised as agriculture. Ethics embedded in how you arrange a garden.', type:'book' },
+    { title:'Pedagogy of the Oppressed', author:'Paulo Freire', why:'Education as liberation. The most practical radical philosophy ever written — still changing classrooms worldwide.', type:'book' },
+    { title:'Development as Freedom', author:'Amartya Sen', why:'Economics meets philosophy — freedom isn\'t just a value, it\'s the actual mechanism of human development.', type:'book' },
+    { title:'Hind Swaraj', author:'Mahatma Gandhi', why:'Self-rule as philosophy. Gandhi\'s practical ethics — satyagraha as a way of being, not just a tactic.', type:'book' },
+    { title:'Small Is Beautiful', author:'E.F. Schumacher', why:'Buddhist economics meets practical wisdom. "Economics as if people mattered" — the philosophy of human-scale systems.', type:'book' },
+    { title:'Staying Alive: Women, Ecology and Development', author:'Vandana Shiva', why:'Indian physicist-turned-ecofeminist refuses the \'development\' that destroys. Where Western practical philosophy optimizes systems, Shiva learns from Chipko women who hug trees—preservation as practice, subsistence as resistance. The feminine principle not as metaphor but as ecological survival.', type:'book' },
+    { title:'Capitalism: A Ghost Story', author:'Arundhati Roy', why:'Indian novelist dissects how foundations and NGOs manufacture consent. Where practical philosophy seeks solutions, Roy exposes the problem—corporate capture of resistance itself. The writer as public intellectual, the essay as scalpel, language as last defense against total market logic.', type:'book' },
+    { title:'Examined Life', author:'Astra Taylor (2008)', why:'Philosophy pulled from the ivory tower and placed on city streets—Cornel West in a taxi, Peter Singer at a clothing donation bin, philosophers making their ideas walk. The unexamined life is not worth living; this doc makes examination cinematic.', type:'film' },
+    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Two old friends debate how to live over dinner—mysticism versus materialism, experience versus comfort, meaning versus routine. Philosophy as conversation, the everyday elevated into inquiry, a restaurant booth as Socratic dialogue.', type:'film' },
+    { title:'The School of Life YouTube Channel', author:'Alain de Botton', why:'Philosophy as therapy for the anxiously alive—bite-sized videos on relationships, work, and self-knowledge. De Botton makes Schopenhauer relevant to your lunch break.', type:'lecture', url:'https://www.youtube.com/channel/UC7IcJI8PUf5Z3zKxnZvTBog' },
+    { title:'Seth Tichenor: Philosophy is a Human Right', author:'Seth Tichenor', why:'A philosopher makes the case that thinking critically about existence isn\'t academic luxury—it\'s survival gear. Short, accessible, and unapologetically earnest about philosophy\'s practical power.', type:'lecture', url:'https://www.ted.com/talks/seth_tichenor_philosophy_is_a_human_right_and_can_change_your_life' },
   ],
   'The Poetic Empiricist': [
-    { title:'Landmarks', author:'Robert Macfarlane', why:'Language shapes what we can see in landscape. Macfarlane recovers words for experiences you\'ve had but couldn\'t name.' },
-    { title:'An Immense World', author:'Ed Yong', why:'Animal perception as philosophy — what does the world look like through a bee\'s compound eye? Changes your sense of reality.' },
-    { title:'The Heart of Haiku', author:'Jane Hirshfield', why:'Bashō as philosopher. Seventeen syllables can hold more truth than a treatise.' },
-    { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Your body knows things your mind doesn\'t. Merleau-Ponty on how perception shapes reality.' },
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.' },
+    { title:'Landmarks', author:'Robert Macfarlane', why:'Language shapes what we can see in landscape. Macfarlane recovers words for experiences you\'ve had but couldn\'t name.', type:'book' },
+    { title:'An Immense World', author:'Ed Yong', why:'Animal perception as philosophy — what does the world look like through a bee\'s compound eye? Changes your sense of reality.', type:'book' },
+    { title:'The Heart of Haiku', author:'Jane Hirshfield', why:'Bashō as philosopher. Seventeen syllables can hold more truth than a treatise.', type:'book' },
+    { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Your body knows things your mind doesn\'t. Merleau-Ponty on how perception shapes reality.', type:'book' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.', type:'book' },
+    { title:'In Praise of Shadows', author:'Jun\'ichirō Tanizaki', why:'Japanese novelist discovers beauty in what electric light erases. Where Western empiricism illuminates everything, Tanizaki teaches the aesthetics of shadow—lacquer in candlelight, darkness in the alcove. Not what we see but what we allow to remain unseen. Perception as restraint.', type:'book' },
+    { title:'Queer Phenomenology: Orientations, Objects, Others', author:'Sara Ahmed', why:'British-Pakistani feminist phenomenologist asks: what comes into view when you\'re queer? Where straight phenomenology takes orientation for granted, Ahmed reveals how bodies get oriented toward some objects and not others. The oblique angle sees what the straight line misses.', type:'book' },
+    { title:'Koyaanisqatsi', author:'Godfrey Reggio (1982)', why:'Pure observation without narration—time-lapse cities, slow-motion crowds, the planet as raw sensory data set to Philip Glass. Reggio films reality as it is, letting patterns emerge from patient watching: empiricism as visual poem.', type:'film' },
+    { title:'Baraka', author:'Ron Fricke (1992)', why:'Fricke shoots 24 countries without a single word, trusting the image to reveal truth—ritual, industry, nature, devotion, all woven into wordless meditation. The eye as instrument, the camera as microscope of the human condition.', type:'film' },
+    { title:'The Poetics of Space', author:'Gaston Bachelard', why:'A phenomenologist explores how we inhabit houses, corners, drawers—turning architecture into archaeology of the soul. Observation becomes poetry; the ordinary reveals its sacred geometry.', type:'essay', url:'https://www.academia.edu/7012171/The_Poetics_of_Space' },
+    { title:'Iseult Gillespie: The Meaning of Life According to Simone de Beauvoir', author:'Iseult Gillespie', why:'How de Beauvoir broke philosophy\'s rules to insist that embodied, lived experience trumps abstract theory. Existentialism for those who trust their senses more than systems.', type:'lecture', url:'https://www.ted.com/talks/iseult_gillespie_the_meaning_of_life_according_to_simone_de_beauvoir' },
   ],
   'The Communal Builder': [
-    { title:'Mutual Aid', author:'Dean Spade', why:'Solidarity not charity. How communities take care of each other when institutions fail — practical, urgent, now.' },
-    { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Ubuntu in action — how South Africa chose restoration over retribution. A blueprint for collective healing.' },
-    { title:'Governing the Commons', author:'Elinor Ostrom', why:'Nobel-winning proof that communities can manage shared resources without privatization or state control.' },
-    { title:'The Dispossessed', author:'Ursula K. Le Guin', why:'A novel about an anarchist mutual-aid society. The best thought experiment on communal living ever written.' },
-    { title:'A Psalm for the Wild-Built', author:'Becky Chambers', why:'Solarpunk fiction — what does a society look like when it\'s actually organized around care? Gentle and radical.' },
+    { title:'Mutual Aid', author:'Dean Spade', why:'Solidarity not charity. How communities take care of each other when institutions fail — practical, urgent, now.', type:'book' },
+    { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Ubuntu in action — how South Africa chose restoration over retribution. A blueprint for collective healing.', type:'book' },
+    { title:'Governing the Commons', author:'Elinor Ostrom', why:'Nobel-winning proof that communities can manage shared resources without privatization or state control.', type:'book' },
+    { title:'The Dispossessed', author:'Ursula K. Le Guin', why:'A novel about an anarchist mutual-aid society. The best thought experiment on communal living ever written.', type:'book' },
+    { title:'A Psalm for the Wild-Built', author:'Becky Chambers', why:'Solarpunk fiction — what does a society look like when it\'s actually organized around care? Gentle and radical.', type:'book' },
+    { title:'Cultural Universals and Particulars: An African Perspective', author:'Kwasi Wiredu', why:'Ghanaian philosopher rebuilds universals from Akan consensus-building. Where Western communitarianism debates individual vs. collective, Wiredu shows how the Akan build truth through communal deliberation—not imposing unity but achieving it through patient talk. Philosophy as palaver.', type:'book' },
+    { title:'Ch\'ixinakax utxiwa: On Decolonising Practices and Discourses', author:'Silvia Rivera Cusicanqui', why:'Aymara sociologist reclaims \'ch\'ixi\'—the mottled, the mixed, the unresolved. Where liberal multiculturalism seeks harmony, Rivera Cusicanqui teaches Andean contradiction—Indigenous and modern, colonized and resistant, at once. Community built not despite antagonism but through it.', type:'book' },
+    { title:'12 Angry Men', author:'Sidney Lumet (1957)', why:'Twelve strangers in a room, deliberating a life—democracy as crucible, community forged through argument and persuasion. One dissenting voice changes eleven minds; the jury room becomes the polis, dialogue the tool of justice.', type:'film' },
+    { title:'American Factory', author:'Steven Bognar & Julia Reichert (2019)', why:'Chinese management meets American labor in an Ohio factory—culture clash, collective bargaining, the fraught work of building community across vast difference. Neither side wins cleanly; the documentary watches humans try to make it work anyway.', type:'film' },
+    { title:'Michael Sandel on The Tyranny of Merit', author:'Michael J. Sandel', why:'Harvard\'s communitarian diagnostician dissects how meritocracy corrodes solidarity—and why we need to rebuild the common good. A philosophical autopsy of what binds (and breaks) us.', type:'lecture', url:'https://news.harvard.edu/gazette/story/2021/01/the-myth-of-meritocracy-according-to-michael-sandel/' },
+    { title:'I Am Because We Are: Ubuntu and African Philosophy', author:'To The Best Of Our Knowledge', why:'The radical proposition that your humanity is not solo achievement but collective creation. Ubuntu as antidote to Western atomization—you exist because others call you into being.', type:'podcast', url:'https://www.ttbook.org/interview/i-am-because-we-are-african-philosophy-ubuntu' },
   ],
   'The Philosophical Pluralist': [
-    { title:'Taking Back Philosophy', author:'Bryan Van Norden', why:'The case for multicultural philosophy. Why limiting "philosophy" to the Western canon is intellectually bankrupt.' },
-    { title:'Essays', author:'Michel de Montaigne', why:'The original essayist — curious about everything, certain about nothing. Your intellectual ancestor.' },
-    { title:'Range', author:'David Epstein', why:'Why generalists triumph in a specialized world. The pluralist\'s manifesto backed by research.' },
-    { title:'Cloud Atlas', author:'David Mitchell', why:'Six nested narratives across centuries, each with its own epistemology. A novel that embodies philosophical pluralism.' },
-    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.' },
+    { title:'Taking Back Philosophy', author:'Bryan Van Norden', why:'The case for multicultural philosophy. Why limiting "philosophy" to the Western canon is intellectually bankrupt.', type:'book' },
+    { title:'Essays', author:'Michel de Montaigne', why:'The original essayist — curious about everything, certain about nothing. Your intellectual ancestor.', type:'book' },
+    { title:'Range', author:'David Epstein', why:'Why generalists triumph in a specialized world. The pluralist\'s manifesto backed by research.', type:'book' },
+    { title:'Cloud Atlas', author:'David Mitchell', why:'Six nested narratives across centuries, each with its own epistemology. A novel that embodies philosophical pluralism.', type:'book' },
+    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.', type:'book' },
+    { title:'Can the Subaltern Speak?', author:'Gayatri Chakravorty Spivak', why:'Bengali deconstructionist asks: can the colonized speak or only be spoken for? Where pluralism celebrates many voices, Spivak reveals the structures that silence some from the start. The subaltern doesn\'t need a platform; the platform itself must be dismantled. Listening as ethical responsibility.', type:'book' },
+    { title:'All About Love: New Visions', author:'bell hooks', why:'Black feminist critic refuses love as private feeling—it\'s a public practice, a political choice. Where pluralism tolerates difference, hooks teaches love as action across divides—not in spite of race, class, gender but through reckoning with them. Love as revolutionary discipline, not liberal sentiment.', type:'book' },
+    { title:'Rashomon', author:'Akira Kurosawa (1950)', why:'One crime, four testimonies, zero objective truth—Kurosawa\'s masterpiece weaponizes perspective itself. Every witness is unreliable, every account self-serving, and the film refuses to arbitrate. Pluralism as narrative structure, ambiguity as wisdom.', type:'film' },
+    { title:'Gone Girl', author:'David Fincher (2014)', why:'Amy and Nick narrate competing realities—marriage as Rashomon, truth as performance, each partner the unreliable narrator of their shared life. Fincher films the collision of perspectives, showing how the same events contain infinite interpretations.', type:'film' },
+    { title:'Contingency, Irony, and Solidarity', author:'Richard Rorty', why:'Rorty\'s case for holding your beliefs lightly while fighting for them fiercely—philosophical irony as the foundation for genuine solidarity. Truth is conversation, not monument.', type:'essay', url:'https://www.cambridge.org/core/books/contingency-irony-and-solidarity/608B102FB73C92EE1CDDE5C21A41AE38' },
+    { title:'The Partially Examined Life', author:'Mark Linsenmayer, Wes Alwan, Seth Paskin', why:'Former philosophy grad students prove you can take ideas seriously without taking yourself seriously—roaming from Sartre to Rorty, always skeptical of dogma. The pluralist\'s podcast.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
   ],
 };
 
@@ -2561,6 +2628,7 @@ function renderScenario() {
     return `<span class="${c}" role="img" aria-label="Question ${i + 1}: ${label}"></span>`;
   }).join('');
 
+  document.getElementById('go-back-arrow').innerHTML = currentScenario > 0 ? '<span onclick="tryGoBack()" style="cursor:pointer;opacity:0.2;font-size:1.2rem;display:inline-block;margin-bottom:0.5rem;user-select:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.35" onmouseout="this.style.opacity=0.2">←</span>' : '';
   document.getElementById('chapter').textContent = s.chapter;
   document.getElementById('tradition').textContent = s.tradition;
   document.getElementById('title').textContent = s.title;
@@ -2613,6 +2681,34 @@ function selectChoice(idx) {
     </div>
     <button class="btn next-btn" onclick="nextScenario()">${currentScenario < activeScenarios.length - 1 ? 'continue' : 'see results'}</button>
   `;
+}
+
+let goBackAttempts = 0;
+const goBackMessages = [
+  "philosophy does not permit do-overs. neither does this.",
+  "you chose. the choice is yours now. sit with it.",
+  "Kierkegaard wrote that life can only be understood backwards, but must be lived forwards.",
+  "Heraclitus would remind you: you cannot step into the same river twice.",
+  "the unexamined choice is not worth revisiting. the examined one doesn't need to be.",
+  "Sartre called this radical freedom — you are condemned to choose, and the choice is already made.",
+  "the Stoics trained for this. what is done belongs to fate. what comes next belongs to you.",
+  "Simone Weil: 'attention is the rarest and purest form of generosity.' attend to what is ahead.",
+  "in Zen, they call this beginner's mind — but even a beginner cannot unring a bell.",
+  "Montaigne spent his life revising his essays. he never once revised a decision.",
+  "the Bhagavad Gita says: you have a right to your actions, but never to their fruits. you acted.",
+  "Camus pushed the boulder uphill. he did not ask to push it back down.",
+  "nice try."
+];
+
+function tryGoBack() {
+  const msg = goBackMessages[Math.min(goBackAttempts, goBackMessages.length - 1)];
+  goBackAttempts++;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:pointer;padding:2rem;';
+  overlay.innerHTML = '<p style="font-family:EB Garamond,Georgia,serif;font-size:1.3rem;color:#e8e4dc;text-align:center;max-width:500px;line-height:1.8;font-style:italic;">' + msg + '</p>';
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+  setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 4000);
 }
 
 function nextScenario() {
@@ -2971,51 +3067,42 @@ async function addToWall() {
 
 function renderReadings(archetype) {
   const section = document.getElementById('readings-section');
-  const books = READINGS[archetype.name] || READINGS['The Philosophical Pluralist'];
+  const items = READINGS[archetype.name] || READINGS['The Philosophical Pluralist'];
+
+  const books = items.filter(i => i.type === 'book');
+  const films = items.filter(i => i.type === 'film');
+  const talks = items.filter(i => i.type === 'essay' || i.type === 'podcast' || i.type === 'lecture');
+
+  function renderCard(b) {
+    const linkOpen = b.url ? `<a href="${b.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">` : '';
+    const linkClose = b.url ? '</a>' : '';
+    return `
+      <div class="reading-card">
+        ${linkOpen}
+        <div class="reading-book">${b.title}</div>
+        <div class="reading-author">${b.author}</div>
+        <div class="reading-why">${b.why}</div>
+        ${linkClose}
+      </div>`;
+  }
 
   section.innerHTML = `
-    <div class="readings-title">RECOMMENDED READING</div>
+    <div class="readings-title">📚 BOOKS</div>
     <div class="readings-grid">
-      ${books.map(b => `
-        <div class="reading-card">
-          <div class="reading-book">${b.title}</div>
-          <div class="reading-author">${b.author}</div>
-          <div class="reading-why">${b.why}</div>
-        </div>
-      `).join('')}
+      ${books.map(renderCard).join('')}
     </div>
     
-    <div class="readings-title" style="margin-top: 3rem;">FURTHER EXPLORATION</div>
+    ${films.length ? `
+    <div class="readings-title" style="margin-top: 3rem;">🎬 FILMS & DOCUMENTARIES</div>
     <div class="readings-grid">
-      <div class="reading-card reading-card-film">
-        <div class="reading-book" style="font-style: normal; font-weight: 600;">FILM</div>
-        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">visual philosophy</div>
-        <div class="reading-why">
-          <strong>12 Angry Men</strong> — justice through deliberation<br>
-          <strong>Stalker</strong> (Tarkovsky) — desire and meaning<br>
-          <strong>After Life</strong> (Koreeda) — memory and identity<br>
-          <strong>Incendies</strong> — truth and consequences
-        </div>
-      </div>
-      <div class="reading-card reading-card-doc">
-        <div class="reading-book" style="font-style: normal; font-weight: 600;">DOCUMENTARY</div>
-        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">philosophy in practice</div>
-        <div class="reading-why">
-          <strong>The Examined Life</strong> (2008) — philosophers walking and talking<br>
-          <strong>Waking Life</strong> (2001) — animated philosophical dialogue
-        </div>
-      </div>
-      <div class="reading-card reading-card-game">
-        <div class="reading-book" style="font-style: normal; font-weight: 600;">GAMES</div>
-        <div class="reading-author" style="margin-bottom: 0.8rem; opacity: 0.6;">interactive ethics</div>
-        <div class="reading-why">
-          <strong>Disco Elysium</strong> — political philosophy &amp; identity<br>
-          <strong>Papers, Please</strong> — bureaucracy &amp; moral compromise<br>
-          <strong>The Stanley Parable</strong> — choice &amp; determinism<br>
-          <strong>Outer Wilds</strong> — knowledge &amp; cosmic perspective
-        </div>
-      </div>
-    </div>
+      ${films.map(renderCard).join('')}
+    </div>` : ''}
+    
+    ${talks.length ? `
+    <div class="readings-title" style="margin-top: 3rem;">🎙️ ESSAYS, PODCASTS & TALKS</div>
+    <div class="readings-grid">
+      ${talks.map(renderCard).join('')}
+    </div>` : ''}
   `;
 }
 
@@ -3028,8 +3115,8 @@ function copyResults() {
     return `${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('\n');
 
-  const books = READINGS[name] || READINGS['The Philosophical Pluralist'];
-  const readingText = books.slice(0,3).map(b => `  → ${b.title} — ${b.author}`).join('\n');
+  const allItems = READINGS[name] || READINGS['The Philosophical Pluralist'];
+  const readingText = allItems.filter(b => b.type === 'book').slice(0,3).map(b => `  → ${b.title} — ${b.author}`).join('\n');
 
   const text = `examined. — philosophical portrait\n\n${name}\n${sub}\n\n${axisText}\n\nreading list:\n${readingText}\n\ntake yours: [link]`;
   navigator.clipboard.writeText(text).then(() => {
@@ -3506,7 +3593,8 @@ function emailResults() {
     return `  ${v.left} ${val < 50 ? '◄' : '►'} ${v.right}: ${val}%`;
   }).join('%0A');
 
-  const books = READINGS[name] || READINGS['The Philosophical Pluralist'];
+  const allRecs = READINGS[name] || READINGS['The Philosophical Pluralist'];
+  const books = allRecs.filter(b => b.type === 'book');
   const readingText = books.map(b => `  → ${b.title} — ${b.author}%0A    ${b.why}`).join('%0A%0A');
 
   const portrait = currentArchetype ? currentArchetype.portrait : '';
