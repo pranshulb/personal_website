@@ -25,6 +25,40 @@
     .socials a { color: #666; }
     .socials a:hover { color: #2a2a2a; }
     .social-links { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .copy-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: #2a2a2a;
+      color: #fefefe;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: Georgia, serif;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .copy-hint {
+      font-size: 0.85rem;
+      color: #bbb;
+      margin-top: 1rem;
+    }
+    .copy-hint kbd {
+      display: inline-block;
+      padding: 0.1em 0.35em;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: Georgia, serif;
+      font-size: 0.9em;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +79,22 @@
     <a href="https://curius.app/pranshul-bohra">curius</a>
     <a href="mailto:pranshulbohra@gmail.com">email</a>
   </div>
+  <p class="copy-hint">press <kbd>C</kbd> to copy my email</p>
 </div>
+
+<div class="copy-toast" id="copyToast">email copied!</div>
+
+<script>
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) {
+      navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      });
+    }
+  });
+</script>
 
 </body>
 </html>
