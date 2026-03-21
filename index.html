@@ -12,46 +12,10 @@
     body {
       font-family: 'EB Garamond', Georgia, serif;
       min-height: 100vh;
-      color: #f0e6d8;
+      color: #3a2f2f;
       line-height: 1.8;
       overflow-x: hidden;
-      background: linear-gradient(170deg, #1a1a2e 0%, #16213e 25%, #1a1a2e 50%, #2d1b3d 75%, #1a1a2e 100%);
-    }
-
-    /* starfield */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background:
-        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,220,200,0.4), transparent),
-        radial-gradient(1.5px 1.5px at 65% 25%, rgba(255,200,220,0.3), transparent),
-        radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 35% 35%, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.3), transparent);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* warm glow at bottom — like distant city lights */
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 40%;
-      background: linear-gradient(to top, rgba(245,166,35,0.04), transparent);
-      pointer-events: none;
-      z-index: 0;
+      background: #faf5ef;
     }
 
     .container {
@@ -70,23 +34,23 @@
     }
 
     h1 a {
-      color: #f0e6d8;
+      color: #3a2f2f;
       text-decoration: none;
     }
 
     h1 a:hover {
-      color: #f5c6cb;
+      color: #c47a7a;
     }
 
     .subtitle {
       font-size: 1rem;
-      color: #8e7b9a;
+      color: #b09a8a;
       font-style: italic;
       margin-bottom: 3rem;
     }
 
     p {
-      color: #b8a9c4;
+      color: #7a6a5f;
       margin-bottom: 0.5rem;
       font-size: 1.05rem;
     }
@@ -100,26 +64,26 @@
 
     li::before {
       content: '→ ';
-      color: #f5c6cb;
-      opacity: 0.5;
+      color: #d4a0a0;
+      opacity: 0.7;
     }
 
     a {
-      color: #f0e6d8;
+      color: #3a2f2f;
       text-decoration: none;
-      border-bottom: 1px solid rgba(245,198,203,0.3);
+      border-bottom: 1px solid #d4a0a0;
       transition: all 0.3s ease;
     }
 
     a:hover {
-      color: #f5c6cb;
-      border-bottom-color: #f5c6cb;
+      color: #c47a7a;
+      border-bottom-color: #c47a7a;
     }
 
     .socials {
       margin-top: 3rem;
       padding-top: 1.5rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(0,0,0,0.06);
     }
 
     .social-links {
@@ -130,25 +94,25 @@
     }
 
     .social-links a {
-      color: #8e7b9a;
+      color: #b09a8a;
       border-bottom: none;
       font-size: 0.9rem;
     }
 
     .social-links a:hover {
-      color: #f5c6cb;
+      color: #c47a7a;
     }
 
     .copy-hint {
       font-size: 0.85rem;
-      color: #5a4d66;
+      color: #c4b0a0;
       margin-top: 1.2rem;
     }
 
     .copy-hint kbd {
       display: inline-block;
       padding: 0.1em 0.4em;
-      border: 1px solid #5a4d66;
+      border: 1px solid #d4c4b4;
       border-radius: 3px;
       font-family: 'EB Garamond', Georgia, serif;
       font-size: 0.9em;
@@ -159,14 +123,14 @@
       bottom: 2rem;
       left: 50%;
       transform: translateX(-50%) translateY(100%);
-      background: rgba(245,198,203,0.15);
-      color: #f5c6cb;
+      background: rgba(196,122,122,0.12);
+      color: #c47a7a;
       padding: 0.6rem 1.4rem;
       border-radius: 20px;
       font-size: 0.85rem;
       font-family: 'EB Garamond', Georgia, serif;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(245,198,203,0.2);
+      border: 1px solid rgba(196,122,122,0.2);
       opacity: 0;
       transition: all 0.4s ease;
       pointer-events: none;
@@ -181,39 +145,19 @@
     /* falling cherry blossom petals */
     .petal {
       position: fixed;
-      width: 10px;
-      height: 10px;
-      background: radial-gradient(ellipse at center, #f5c6cb 0%, #f8d7da 40%, transparent 70%);
-      border-radius: 50% 0 50% 0;
-      opacity: 0;
       pointer-events: none;
       z-index: 1;
+      opacity: 0;
       animation: fall linear infinite;
     }
 
     @keyframes fall {
-      0% {
-        opacity: 0;
-        transform: translateX(0) rotate(0deg) scale(0.8);
-      }
-      10% {
-        opacity: 0.6;
-      }
-      90% {
-        opacity: 0.4;
-      }
-      100% {
-        opacity: 0;
-        transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4);
-      }
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
-    @keyframes sway {
-      0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(20px); }
-    }
-
-    /* mobile */
     @media (max-width: 600px) {
       .container { padding: 3rem 1.2rem 2rem; }
       h1 { font-size: 1.5rem; }
@@ -242,38 +186,40 @@
       <a href="https://www.linkedin.com/in/pranshul-b-00051b213/">l*inkedin</a>
     </div>
     <p class="copy-hint">press <kbd>C</kbd> to copy my email!</p>
+    <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please please text me if you think it'd be fun to chat!!</p>
   </div>
 </div>
 
 <div class="copy-toast" id="copyToast">email copied!</div>
 
 <script>
-  // cherry blossom petals
   function createPetal() {
     const petal = document.createElement('div');
     petal.className = 'petal';
-
     const startX = Math.random() * window.innerWidth;
-    const size = 6 + Math.random() * 10;
+    const size = 8 + Math.random() * 12;
     const duration = 8 + Math.random() * 12;
     const drift = -60 + Math.random() * 120;
     const spin = 180 + Math.random() * 540;
     const delay = Math.random() * 5;
-    const hue = Math.random() > 0.3 ? '#f5c6cb' : '#f8d7da';
+
+    // soft pinks and warm tones against the cream background
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
 
     petal.style.cssText = `
       left: ${startX}px;
       top: -20px;
       width: ${size}px;
       height: ${size * 0.7}px;
-      background: radial-gradient(ellipse at center, ${hue} 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
       animation-duration: ${duration}s;
       animation-delay: ${delay}s;
       --drift: ${drift}px;
       --spin: ${spin}deg;
     `;
 
-    // move down
     petal.animate([
       { top: '-20px' },
       { top: `${window.innerHeight + 20}px` }
@@ -284,18 +230,11 @@
     });
 
     document.body.appendChild(petal);
-
-    setTimeout(() => {
-      petal.remove();
-    }, (duration + delay) * 1000);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
   }
 
-  // spawn petals gently — not too many
   setInterval(createPetal, 2000);
-  // initial few
-  for (let i = 0; i < 5; i++) {
-    setTimeout(createPetal, i * 800);
-  }
+  for (let i = 0; i < 5; i++) setTimeout(createPetal, i * 800);
 
   // press C to copy email
   document.addEventListener('keydown', (e) => {
