@@ -350,9 +350,10 @@
 
   function renderMovies() {
     const grid = document.getElementById('movieGrid');
-    const filtered = activeFilter === 'all'
+    const filtered = (activeFilter === 'all'
       ? movies
-      : movies.filter(m => m.tags && m.tags.includes(activeFilter));
+      : movies.filter(m => m.tags && m.tags.includes(activeFilter))
+    ).sort((a, b) => a.title.replace(/^The /, '').localeCompare(b.title.replace(/^The /, '')));
 
     document.getElementById('movie-count').textContent = filtered.length;
 
