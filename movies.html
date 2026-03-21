@@ -211,7 +211,7 @@
     <button class="filter-btn" data-filter="anime">anime</button>
   </div>
 
-  <p class="count"><span id="movie-count">0</span> films</p>
+  <p class="count"><span id="movie-count">0</span> things</p>
 
   <div class="movie-grid" id="movieGrid"></div>
 </div>
@@ -350,7 +350,7 @@
     document.getElementById('movie-count').textContent = filtered.length;
 
     if (filtered.length === 0) {
-      grid.innerHTML = '<div class="empty-state">nothing here yet... time to watch more films</div>';
+      grid.innerHTML = '<div class="empty-state">nothing here yet...</div>';
       return;
     }
 
