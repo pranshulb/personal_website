@@ -5,88 +5,299 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>pranshul's cafe!</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: Georgia, serif;
-      max-width: 520px;
-      margin: 3rem auto;
-      padding: 1.5rem;
-      color: #2a2a2a;
-      line-height: 1.7;
-      background: #fefefe;
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #f0e6d8;
+      line-height: 1.8;
+      overflow-x: hidden;
+      background: linear-gradient(170deg, #1a1a2e 0%, #16213e 25%, #1a1a2e 50%, #2d1b3d 75%, #1a1a2e 100%);
     }
-    h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
-    h3 { font-size: 1rem; color: #888; font-weight: 400; margin-top: 0; font-style: italic; }
-    a { color: #2a2a2a; text-decoration-color: #ccc; text-underline-offset: 3px; }
-    a:hover { text-decoration-color: #2a2a2a; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 0.4rem 0; }
-    li::before { content: '→ '; color: #bbb; }
-    .socials { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #eee; font-size: 0.9rem; color: #666; }
-    .socials a { color: #666; }
-    .socials a:hover { color: #2a2a2a; }
-    .social-links { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+    /* starfield */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,220,200,0.4), transparent),
+        radial-gradient(1.5px 1.5px at 65% 25%, rgba(255,200,220,0.3), transparent),
+        radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 55% 90%, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 35% 35%, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1px 1px at 75% 70%, rgba(255,255,255,0.3), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* warm glow at bottom — like distant city lights */
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(to top, rgba(245,166,35,0.04), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 3rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.2rem;
+    }
+
+    h1 a {
+      color: #f0e6d8;
+      text-decoration: none;
+    }
+
+    h1 a:hover {
+      color: #f5c6cb;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #8e7b9a;
+      font-style: italic;
+      margin-bottom: 3rem;
+    }
+
+    p {
+      color: #b8a9c4;
+      margin-bottom: 0.5rem;
+      font-size: 1.05rem;
+    }
+
+    ul { list-style: none; padding: 0; margin-bottom: 2rem; }
+
+    li {
+      margin: 0.6rem 0;
+      font-size: 1.05rem;
+    }
+
+    li::before {
+      content: '→ ';
+      color: #f5c6cb;
+      opacity: 0.5;
+    }
+
+    a {
+      color: #f0e6d8;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(245,198,203,0.3);
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      color: #f5c6cb;
+      border-bottom-color: #f5c6cb;
+    }
+
+    .socials {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .social-links a {
+      color: #8e7b9a;
+      border-bottom: none;
+      font-size: 0.9rem;
+    }
+
+    .social-links a:hover {
+      color: #f5c6cb;
+    }
+
+    .copy-hint {
+      font-size: 0.85rem;
+      color: #5a4d66;
+      margin-top: 1.2rem;
+    }
+
+    .copy-hint kbd {
+      display: inline-block;
+      padding: 0.1em 0.4em;
+      border: 1px solid #5a4d66;
+      border-radius: 3px;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.9em;
+    }
+
     .copy-toast {
       position: fixed;
       bottom: 2rem;
       left: 50%;
       transform: translateX(-50%) translateY(100%);
-      background: #2a2a2a;
-      color: #fefefe;
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
+      background: rgba(245,198,203,0.15);
+      color: #f5c6cb;
+      padding: 0.6rem 1.4rem;
+      border-radius: 20px;
       font-size: 0.85rem;
-      font-family: Georgia, serif;
+      font-family: 'EB Garamond', Georgia, serif;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(245,198,203,0.2);
       opacity: 0;
-      transition: all 0.3s ease;
+      transition: all 0.4s ease;
       pointer-events: none;
       z-index: 999;
     }
+
     .copy-toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
-    .copy-hint {
-      font-size: 0.85rem;
-      color: #bbb;
-      margin-top: 1rem;
+
+    /* falling cherry blossom petals */
+    .petal {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: radial-gradient(ellipse at center, #f5c6cb 0%, #f8d7da 40%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+      animation: fall linear infinite;
     }
-    .copy-hint kbd {
-      display: inline-block;
-      padding: 0.1em 0.35em;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      font-family: Georgia, serif;
-      font-size: 0.9em;
-      color: #888;
+
+    @keyframes fall {
+      0% {
+        opacity: 0;
+        transform: translateX(0) rotate(0deg) scale(0.8);
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4);
+      }
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(20px); }
+    }
+
+    /* mobile */
+    @media (max-width: 600px) {
+      .container { padding: 3rem 1.2rem 2rem; }
+      h1 { font-size: 1.5rem; }
     }
   </style>
 </head>
 <body>
 
-<h1><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
-<h3>(still cooking)</h3>
+<div class="container">
+  <h1><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
+  <p class="subtitle">(still cooking)</p>
 
-<p>pastries ready:</p>
-<ul>
-  <li><a href="/examined">examined.</a> — made a philosophy personality test for funsies:)</li>
-  <li><a href="/questions">questions i am thinking about</a></li>
-</ul>
+  <p>pastries ready:</p>
+  <ul>
+    <li><a href="/examined">examined.</a> — made a philosophy personality test for funsies:)</li>
+    <li><a href="/questions">questions i am thinking about</a></li>
+  </ul>
 
-<div class="socials">
-  <div class="social-links">
-    <a href="mailto:pranshulbohra@gmail.com">email</a>
-    <a href="https://pranshulbohra.substack.com/">substack</a>
-    <a href="http://goodreads.com/pranshulb">goodreads</a>
-    <a href="https://curius.app/pranshul-bohra">curius</a>
-    <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
-    <a href="https://www.linkedin.com/in/pranshul-b-00051b213/">l*inkedin</a>
+  <div class="socials">
+    <div class="social-links">
+      <a href="mailto:pranshulbohra@gmail.com">email</a>
+      <a href="https://pranshulbohra.substack.com/">substack</a>
+      <a href="http://goodreads.com/pranshulb">goodreads</a>
+      <a href="https://curius.app/pranshul-bohra">curius</a>
+      <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
+      <a href="https://www.linkedin.com/in/pranshul-b-00051b213/">l*inkedin</a>
+    </div>
+    <p class="copy-hint">press <kbd>C</kbd> to copy my email!</p>
   </div>
-  <p class="copy-hint">press <kbd>C</kbd> to copy my email!</p>
 </div>
 
 <div class="copy-toast" id="copyToast">email copied!</div>
 
 <script>
+  // cherry blossom petals
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+
+    const startX = Math.random() * window.innerWidth;
+    const size = 6 + Math.random() * 10;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+    const hue = Math.random() > 0.3 ? '#f5c6cb' : '#f8d7da';
+
+    petal.style.cssText = `
+      left: ${startX}px;
+      top: -20px;
+      width: ${size}px;
+      height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${hue} 0%, transparent 70%);
+      animation-duration: ${duration}s;
+      animation-delay: ${delay}s;
+      --drift: ${drift}px;
+      --spin: ${spin}deg;
+    `;
+
+    // move down
+    petal.animate([
+      { top: '-20px' },
+      { top: `${window.innerHeight + 20}px` }
+    ], {
+      duration: duration * 1000,
+      delay: delay * 1000,
+      fill: 'forwards'
+    });
+
+    document.body.appendChild(petal);
+
+    setTimeout(() => {
+      petal.remove();
+    }, (duration + delay) * 1000);
+  }
+
+  // spawn petals gently — not too many
+  setInterval(createPetal, 2000);
+  // initial few
+  for (let i = 0; i < 5; i++) {
+    setTimeout(createPetal, i * 800);
+  }
+
+  // press C to copy email
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) {
       navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
