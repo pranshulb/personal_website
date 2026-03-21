@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>movies — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.8;
+      overflow-x: hidden;
+      background: #faf5ef;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.2rem;
+    }
+
+    h1 a {
+      color: #3a2f2f;
+      text-decoration: none;
+    }
+
+    h1 a:hover {
+      color: #c47a7a;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #b09a8a;
+      font-style: italic;
+      margin-bottom: 2.5rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: #b09a8a;
+      text-decoration: none;
+      font-size: 0.95rem;
+      border-bottom: none;
+    }
+
+    .back-link:hover {
+      color: #c47a7a;
+    }
+
+    /* filter tabs */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid #d4c4b4;
+      color: #b09a8a;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(196,122,122,0.1);
+      border-color: #c47a7a;
+      color: #c47a7a;
+    }
+
+    /* movie grid */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .movie-card {
+      cursor: default;
+      transition: transform 0.3s ease;
+    }
+
+    .movie-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .movie-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: #ede5db;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .movie-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .movie-poster .no-poster {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #c4b0a0;
+    }
+
+    .movie-title {
+      font-size: 0.9rem;
+      color: #3a2f2f;
+      line-height: 1.4;
+    }
+
+    .movie-year {
+      font-size: 0.8rem;
+      color: #b09a8a;
+    }
+
+    .movie-note {
+      font-size: 0.8rem;
+      color: #c47a7a;
+      font-style: italic;
+      margin-top: 0.2rem;
+      line-height: 1.3;
+    }
+
+    .movie-rating {
+      font-size: 0.8rem;
+      color: #d4a0a0;
+      margin-top: 0.15rem;
+    }
+
+    .count {
+      font-size: 0.9rem;
+      color: #b09a8a;
+      margin-bottom: 1.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #b09a8a;
+      font-style: italic;
+    }
+
+    /* petal animation */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 3rem 1.2rem 2rem; }
+      h1 { font-size: 1.5rem; }
+      .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <a href="/" class="back-link">← back to cafe</a>
+  <h1>movies i've watched</h1>
+  <p class="subtitle">a running list, in no particular order</p>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="loved">loved ♥</button>
+    <button class="filter-btn" data-filter="philosophy">philosophy</button>
+    <button class="filter-btn" data-filter="comfort">comfort</button>
+    <button class="filter-btn" data-filter="anime">anime</button>
+  </div>
+
+  <p class="count"><span id="movie-count">0</span> films</p>
+
+  <div class="movie-grid" id="movieGrid"></div>
+</div>
+
+<script>
+  // ============================================================
+  // MOVIE DATA — add your movies here!
+  // tags: loved, philosophy, comfort, anime, drama, comedy, etc
+  // rating: optional, out of 5 (use half like 4.5)
+  // note: optional one-liner thought
+  // poster: TMDB poster path (or leave blank)
+  // ============================================================
+
+  const TMDB_IMG = 'https://image.tmdb.org/t/p/w300';
+
+  const movies = [
+    // === ADD YOUR MOVIES BELOW ===
+    // template:
+    // { title: "Movie Name", year: 2024, tags: ["loved", "drama"], rating: 5, note: "one-liner", poster: "/poster_path.jpg" },
+
+    // starter list — edit/remove these!
+    { title: "The Stranger", year: 1967, tags: ["philosophy"], note: "camus on screen", poster: "/qjGFHaSz3JYfX3HMcH5V3EsLBba.jpg" },
+
+  ];
+
+  // ============================================================
+  // RENDERING (don't need to touch this)
+  // ============================================================
+
+  let activeFilter = 'all';
+
+  function renderMovies() {
+    const grid = document.getElementById('movieGrid');
+    const filtered = activeFilter === 'all'
+      ? movies
+      : movies.filter(m => m.tags && m.tags.includes(activeFilter));
+
+    document.getElementById('movie-count').textContent = filtered.length;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">nothing here yet... time to watch more films</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(m => `
+      <div class="movie-card" data-tags="${(m.tags || []).join(',')}">
+        <div class="movie-poster">
+          ${m.poster
+            ? `<img src="${TMDB_IMG}${m.poster}" alt="${m.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-poster>🎬</div>'">`
+            : '<div class="no-poster">🎬</div>'
+          }
+        </div>
+        <div class="movie-title">${m.title}</div>
+        <div class="movie-year">${m.year || ''}</div>
+        ${m.rating ? `<div class="movie-rating">${'★'.repeat(Math.floor(m.rating))}${m.rating % 1 ? '½' : ''}${'☆'.repeat(5 - Math.ceil(m.rating))}</div>` : ''}
+        ${m.note ? `<div class="movie-note">"${m.note}"</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderMovies();
+    });
+  });
+
+  renderMovies();
+
+  // cherry blossom petals
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    petal.style.cssText = `
+      left: ${startX}px; top: -20px;
+      width: ${size}px; height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s; animation-delay: ${delay}s;
+      --drift: ${drift}px; --spin: ${spin}deg;
+    `;
+    petal.animate([{ top: '-20px' }, { top: `${window.innerHeight + 20}px` }], {
+      duration: duration * 1000, delay: delay * 1000, fill: 'forwards'
+    });
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  }
+  setInterval(createPetal, 2000);
+  for (let i = 0; i < 5; i++) setTimeout(createPetal, i * 800);
+</script>
+
+</body>
+</html>
