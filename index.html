@@ -170,8 +170,38 @@
     }
 
     @media (max-width: 600px) {
-      .container { padding: 3rem 1.2rem 2rem; }
-      h1 { font-size: 1.5rem; }
+      .container {
+        margin: 0 auto;
+        padding: 4.5rem 1.4rem 2rem;
+      }
+      h1 { font-size: 1.4rem; }
+      .subtitle { margin-bottom: 2rem; }
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1rem 1.4rem 0;
+        font-size: 0.8rem;
+      }
+      .social-links {
+        gap: 1rem;
+      }
+      .social-links a {
+        font-size: 0.85rem;
+      }
+      .copy-hint {
+        font-size: 0.8rem;
+      }
+      .copy-hint kbd {
+        display: none;
+      }
+      .copy-hint::after {
+        content: ' (tap email link above)';
+      }
+      li {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
