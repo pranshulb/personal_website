@@ -205,10 +205,9 @@
 
   <div class="filters">
     <button class="filter-btn active" data-filter="all">all</button>
-    <button class="filter-btn" data-filter="loved">loved ♥</button>
-    <button class="filter-btn" data-filter="philosophy">philosophy</button>
-    <button class="filter-btn" data-filter="comfort">comfort</button>
-    <button class="filter-btn" data-filter="bollywood">bollywood</button>
+    <button class="filter-btn" data-filter="favourites">favourites ♥</button>
+    <button class="filter-btn" data-filter="english">english</button>
+    <button class="filter-btn" data-filter="hindi">hindi</button>
     <button class="filter-btn" data-filter="anime">anime</button>
   </div>
 
@@ -220,7 +219,7 @@
 <script>
   // ============================================================
   // MOVIE DATA — add your movies here!
-  // tags: loved, philosophy, comfort, anime, drama, comedy, etc
+  // tags: favourites, english, hindi, anime
   // rating: optional, out of 5 (use half like 4.5)
   // note: optional one-liner thought
   // poster: TMDB poster path (or leave blank)
@@ -233,92 +232,86 @@
     // template:
     // { title: "Movie Name", year: 2024, tags: ["loved", "drama"], rating: 5, note: "one-liner", poster: "/poster_path.jpg" },
 
-    // === BOLLYWOOD ===
-    { title: "3 Idiots", year: 2009, tags: ["loved", "comfort", "bollywood"], poster: "/66A9MqXOyVFCssoloscw79z8Tew.jpg" },
-    { title: "Zindagi Na Milegi Dobara", year: 2011, tags: ["loved", "comfort", "bollywood"], poster: "/hKO9O715wYxjkQSEv47giCYcyO8.jpg" },
-    { title: "Dil Chahta Hai", year: 2001, tags: ["loved", "comfort", "bollywood"], poster: "/c6Cicaf2FFmfcInfsbPTxMLk5CS.jpg" },
-    { title: "Rang De Basanti", year: 2006, tags: ["philosophy", "bollywood"], poster: "/f1bF8CHzEu621bPSIg6XiUNAabh.jpg" },
-    { title: "Taare Zameen Par", year: 2007, tags: ["comfort", "bollywood"], poster: "/puHRt6Raovm5ujGCdwLWvRv4NHU.jpg" },
-    { title: "PK", year: 2014, tags: ["philosophy", "bollywood"], poster: "/pzSN4XWmmU9uDeLu3aUw6OclGeD.jpg" },
-    { title: "Barfi!", year: 2012, tags: ["comfort", "bollywood"], poster: "/5cJIx2zKjDoUtPSliou23xsReb1.jpg" },
-    { title: "Wake Up Sid", year: 2009, tags: ["comfort", "bollywood"], poster: "/1UpgW67W6Do0xizTuE26bMQFLdL.jpg" },
-    { title: "Yeh Jawaani Hai Deewani", year: 2013, tags: ["comfort", "bollywood"], poster: "/em39H81XLCDgXsI7V4IcBZseEO6.jpg" },
-    { title: "Munna Bhai M.B.B.S.", year: 2003, tags: ["comfort", "bollywood"], poster: "/nZNUTxGsSB4nLEC9Bpa2xfu81qV.jpg" },
+    // === HINDI ===
+    { title: "3 Idiots", year: 2009, tags: ["favourites", "hindi"], poster: "/66A9MqXOyVFCssoloscw79z8Tew.jpg" },
+    { title: "Zindagi Na Milegi Dobara", year: 2011, tags: ["favourites", "hindi"], poster: "/hKO9O715wYxjkQSEv47giCYcyO8.jpg" },
+    { title: "Dil Chahta Hai", year: 2001, tags: ["favourites", "hindi"], poster: "/c6Cicaf2FFmfcInfsbPTxMLk5CS.jpg" },
+    { title: "Rang De Basanti", year: 2006, tags: ["hindi"], poster: "/f1bF8CHzEu621bPSIg6XiUNAabh.jpg" },
+    { title: "Taare Zameen Par", year: 2007, tags: ["hindi"], poster: "/puHRt6Raovm5ujGCdwLWvRv4NHU.jpg" },
+    { title: "PK", year: 2014, tags: ["hindi"], poster: "/pzSN4XWmmU9uDeLu3aUw6OclGeD.jpg" },
+    { title: "Barfi!", year: 2012, tags: ["hindi"], poster: "/5cJIx2zKjDoUtPSliou23xsReb1.jpg" },
+    { title: "Wake Up Sid", year: 2009, tags: ["hindi"], poster: "/1UpgW67W6Do0xizTuE26bMQFLdL.jpg" },
+    { title: "Yeh Jawaani Hai Deewani", year: 2013, tags: ["hindi"], poster: "/em39H81XLCDgXsI7V4IcBZseEO6.jpg" },
+    { title: "Munna Bhai M.B.B.S.", year: 2003, tags: ["hindi"], poster: "/nZNUTxGsSB4nLEC9Bpa2xfu81qV.jpg" },
+    { title: "Jab Tak Hai Jaan", year: 2012, tags: ["hindi"], poster: "/1TlzJZrzUlaC95Noqt3oMoxQxCu.jpg" },
+    { title: "Kal Ho Naa Ho", year: 2003, tags: ["hindi"], poster: "/zhMI6I0kSLnewTMwE0A8Tz3Cj2f.jpg" },
+    { title: "Animal", year: 2023, tags: ["hindi"], poster: "/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg" },
+    { title: "Dear Zindagi", year: 2016, tags: ["hindi"], poster: "/oUg0N2isgZ5rrxdXnsemcKolfKZ.jpg" },
 
-    // === HOLLYWOOD ===
-    { title: "Interstellar", year: 2014, tags: ["loved", "philosophy"], poster: "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg" },
-    { title: "Inception", year: 2010, tags: ["loved"], poster: "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg" },
-    { title: "The Dark Knight", year: 2008, tags: ["loved"], poster: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
-    { title: "Fight Club", year: 1999, tags: ["loved", "philosophy"], poster: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg" },
-    { title: "The Shawshank Redemption", year: 1994, tags: ["loved"], poster: "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg" },
-    { title: "Forrest Gump", year: 1994, tags: ["comfort"], poster: "/saHP97rTPS5eLmrLQEcANmKrsFl.jpg" },
-    { title: "The Social Network", year: 2010, tags: ["loved"], poster: "/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg" },
-    { title: "Good Will Hunting", year: 1997, tags: ["loved", "philosophy"], poster: "/z2FnLKpFi1HPO7BEJxdkv6hpJSU.jpg" },
-    { title: "Dead Poets Society", year: 1989, tags: ["loved", "philosophy"], poster: "/l5NbiHKUmahlAT3Q1ig8Tyl9xrc.jpg" },
-    { title: "The Matrix", year: 1999, tags: ["philosophy"], poster: "/p96dm7sCMn4VYAStA6siNz30G1r.jpg" },
-    { title: "Whiplash", year: 2014, tags: ["loved"], poster: "/7fn624j5lj3xTme2SgiLCeuedmO.jpg" },
-    { title: "La La Land", year: 2016, tags: ["loved", "comfort"], poster: "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg" },
-    { title: "The Wolf of Wall Street", year: 2013, tags: [], poster: "/kW9LmvYHAaS9iA0tHmZVq8hQYoq.jpg" },
-    { title: "Joker", year: 2019, tags: ["philosophy"], poster: "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg" },
-    { title: "Oppenheimer", year: 2023, tags: ["philosophy"], poster: "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
-    { title: "The Truman Show", year: 1998, tags: ["loved", "philosophy"], poster: "/vuza0WqY239yBXOadKlGwJsZJFE.jpg" },
-    { title: "Marriage Story", year: 2019, tags: ["loved"], poster: "/2JRyCKaRKyJAVpsIHeLvPw5nHmw.jpg" },
-    { title: "Manchester by the Sea", year: 2016, tags: [], poster: "/o9VXYOuaJxCEKOxbA86xqtwmqYn.jpg" },
-    { title: "The Amazing Spider-Man", year: 2012, tags: [], poster: "/jexoNYnPd6vVrmygwF6QZmWPFdu.jpg" },
-    { title: "The Amazing Spider-Man 2", year: 2014, tags: [], poster: "/bU7nTmvmy0h3VUP01v1T2imgH6N.jpg" },
+    // === ENGLISH ===
+    { title: "Interstellar", year: 2014, tags: ["favourites", "english"], poster: "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg" },
+    { title: "Inception", year: 2010, tags: ["favourites", "english"], poster: "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg" },
+    { title: "The Dark Knight", year: 2008, tags: ["favourites", "english"], poster: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+    { title: "Fight Club", year: 1999, tags: ["favourites", "english"], poster: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg" },
+    { title: "The Shawshank Redemption", year: 1994, tags: ["favourites", "english"], poster: "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg" },
+    { title: "Forrest Gump", year: 1994, tags: ["english"], poster: "/saHP97rTPS5eLmrLQEcANmKrsFl.jpg" },
+    { title: "The Social Network", year: 2010, tags: ["favourites", "english"], poster: "/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg" },
+    { title: "Good Will Hunting", year: 1997, tags: ["favourites", "english"], poster: "/z2FnLKpFi1HPO7BEJxdkv6hpJSU.jpg" },
+    { title: "Dead Poets Society", year: 1989, tags: ["favourites", "english"], poster: "/l5NbiHKUmahlAT3Q1ig8Tyl9xrc.jpg" },
+    { title: "The Matrix", year: 1999, tags: ["english"], poster: "/p96dm7sCMn4VYAStA6siNz30G1r.jpg" },
+    { title: "Whiplash", year: 2014, tags: ["favourites", "english"], poster: "/7fn624j5lj3xTme2SgiLCeuedmO.jpg" },
+    { title: "La La Land", year: 2016, tags: ["favourites", "english"], poster: "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg" },
+    { title: "The Wolf of Wall Street", year: 2013, tags: ["english"], poster: "/kW9LmvYHAaS9iA0tHmZVq8hQYoq.jpg" },
+    { title: "Joker", year: 2019, tags: ["english"], poster: "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg" },
+    { title: "Oppenheimer", year: 2023, tags: ["english"], poster: "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
+    { title: "The Truman Show", year: 1998, tags: ["favourites", "english"], poster: "/vuza0WqY239yBXOadKlGwJsZJFE.jpg" },
+    { title: "Marriage Story", year: 2019, tags: ["favourites", "english"], poster: "/2JRyCKaRKyJAVpsIHeLvPw5nHmw.jpg" },
+    { title: "Manchester by the Sea", year: 2016, tags: ["english"], poster: "/o9VXYOuaJxCEKOxbA86xqtwmqYn.jpg" },
+    { title: "The Amazing Spider-Man", year: 2012, tags: ["english"], poster: "/jexoNYnPd6vVrmygwF6QZmWPFdu.jpg" },
+    { title: "The Amazing Spider-Man 2", year: 2014, tags: ["english"], poster: "/bU7nTmvmy0h3VUP01v1T2imgH6N.jpg" },
+    { title: "BlacKkKlansman", year: 2018, tags: ["english"], poster: "/8jxqAvSDoneSKRczaK8v9X5gqBp.jpg" },
+    { title: "Grown Ups 2", year: 2013, tags: ["english"], poster: "/hT6ijOtjtYrnyDhN7VA2QWyGFAm.jpg" },
+    { title: "Bo Burnham: Inside", year: 2021, tags: ["favourites", "english"], poster: "/ku1UvTWYvhFQbSesOD6zteY7bXT.jpg" },
+    { title: "Bo Burnham: Make Happy", year: 2016, tags: ["favourites", "english"], poster: "/qVThhskXZZHDfj4m8jOx2CxIVIW.jpg" },
+    { title: "Pixels", year: 2015, tags: ["english"], poster: "/d26S5EfVXLNxRXqyFy1yyl3qRq3.jpg" },
+    { title: "Justice League", year: 2017, tags: ["english"], poster: "/eifGNCSDuxJeS1loAXil5bIGgvC.jpg" },
+    { title: "Puss in Boots: The Last Wish", year: 2022, tags: ["english"], poster: "/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
+    { title: "Hulk", year: 2003, tags: ["english"], poster: "/UllIft2jLSBaay3zQyMV4GNdfy.jpg" },
+    { title: "Venom: Let There Be Carnage", year: 2021, tags: ["english"], poster: "/pzKsRuKLFmYrW5Q0q8E8G78Tcgo.jpg" },
+    { title: "Aquaman", year: 2018, tags: ["english"], poster: "/ufl63EFcc5XpByEV2Ecdw6WJZAI.jpg" },
+    { title: "Bohemian Rhapsody", year: 2018, tags: ["english"], poster: "/lHu1wtNaczFPGFDTrjCSzeLPTKN.jpg" },
+    { title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, tags: ["favourites", "english"], poster: "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg" },
+    { title: "The Lord of the Rings: The Two Towers", year: 2002, tags: ["favourites", "english"], poster: "/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg" },
+    { title: "The Lord of the Rings: The Return of the King", year: 2003, tags: ["favourites", "english"], poster: "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg" },
+    { title: "Fantastic Fungi", year: 2019, tags: ["english"], poster: "/giIGfFqirPk3I2azp8Ow98oOnzG.jpg" },
+    { title: "Have a Good Trip", year: 2020, tags: ["english"], poster: "/x3NX8v5t8a0yabCnlskpjXPkRKP.jpg" },
+    { title: "Big Daddy", year: 1999, tags: ["english"], poster: "/cqFnFg6YS8urJT6YC95IDkn0VHz.jpg" },
+    { title: "Fantastic Beasts: The Secrets of Dumbledore", year: 2022, tags: ["english"], poster: "/3c5GNLB4yRSLBby0trHoA1DSQxQ.jpg" },
+    { title: "The Matrix Reloaded", year: 2003, tags: ["english"], poster: "/aA5qHS0FbSXO8PxcxUIHbDrJyuh.jpg" },
+    { title: "The Matrix Revolutions", year: 2003, tags: ["english"], poster: "/bkkS61w94ZVMNVd8KEyyJl2tnY5.jpg" },
+    { title: "Operation Varsity Blues", year: 2021, tags: ["english"], poster: "/qZJuctnatinO0OpnruGOWaT4Bga.jpg" },
+    { title: "Fifty Shades of Grey", year: 2015, tags: ["english"], poster: "/63kGofUkt1Mx0SIL4XI4Z5AoSgt.jpg" },
+    { title: "The Tourist", year: 2010, tags: ["english"], poster: "/oXe1nw4HcS32YVpvxwsWEVdvEXA.jpg" },
+    { title: "Man of Steel", year: 2013, tags: ["english"], poster: "/8GFtkImmK0K1VaUChR0n9O61CFU.jpg" },
+    { title: "The Batman", year: 2022, tags: ["english"], poster: "/74xTEgt7R36Fpooo50r9T25onhq.jpg" },
+    { title: "Ex Machina", year: 2015, tags: ["favourites", "english"], poster: "/dmJW8IAKHKxFNiUnoDR7JfsK7Rp.jpg" },
+    { title: "Mr. & Mrs. Smith", year: 2005, tags: ["english"], poster: "/kjD700RtyhveN3ZbOnSvUSne0Qj.jpg" },
+    { title: "The Girl Next Door", year: 2004, tags: ["english"], poster: "/5mVyFHSY2rSsNgD4NfEwV82HigU.jpg" },
+    { title: "Love & Other Drugs", year: 2010, tags: ["english"], poster: "/wZLM2uKJRYNchLmiCIjosX0rXy8.jpg" },
+    { title: "A Trip to Infinity", year: 2022, tags: ["english"], poster: "/24EXccaDuDEMYp7eVvsCicj5K41.jpg" },
+    { title: "Harry Potter and the Philosopher's Stone", year: 2001, tags: ["english"], poster: "/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg" },
+    { title: "Harry Potter and the Chamber of Secrets", year: 2002, tags: ["english"], poster: "/sdEOH0992YZ0QSxgXNIGLq1ToUi.jpg" },
+    { title: "Harry Potter and the Prisoner of Azkaban", year: 2004, tags: ["favourites", "english"], poster: "/aWxwnYoe8p2d2fcxOqtvAtJ72Rw.jpg" },
+    { title: "Harry Potter and the Goblet of Fire", year: 2005, tags: ["english"], poster: "/fECBtHlr0RB3foNHDiCBXeg9Bv9.jpg" },
+    { title: "Harry Potter and the Order of the Phoenix", year: 2007, tags: ["english"], poster: "/5aOyriWkPec0zUDxmHFP9qMmBaj.jpg" },
+    { title: "Harry Potter and the Half-Blood Prince", year: 2009, tags: ["english"], poster: "/z7uo9zmQdQwU5ZJHFpv2Upl30i1.jpg" },
+    { title: "Harry Potter and the Deathly Hallows: Part 1", year: 2010, tags: ["english"], poster: "/iGoXIpQb7Pot00EEdwpwPajheZ5.jpg" },
+    { title: "Harry Potter and the Deathly Hallows: Part 2", year: 2011, tags: ["favourites", "english"], poster: "/c54HpQmuwXjHq2C9wmoACjxoom3.jpg" },
 
-    // === MORE BOLLYWOOD ===
-    { title: "Jab Tak Hai Jaan", year: 2012, tags: ["bollywood", "comfort"], poster: "/1TlzJZrzUlaC95Noqt3oMoxQxCu.jpg" },
-    { title: "Kal Ho Naa Ho", year: 2003, tags: ["bollywood", "comfort"], poster: "/zhMI6I0kSLnewTMwE0A8Tz3Cj2f.jpg" },
-
-    // === ANIME FILMS ===
-    { title: "The End of Evangelion", year: 1997, tags: ["loved", "anime", "philosophy"], poster: "/j6G24dqI4WgUtChhWjfnI4lnmiK.jpg" },
-
-    // === MORE HOLLYWOOD ===
-    { title: "BlacKkKlansman", year: 2018, tags: [], poster: "/8jxqAvSDoneSKRczaK8v9X5gqBp.jpg" },
-    { title: "Grown Ups 2", year: 2013, tags: ["comfort"], poster: "/hT6ijOtjtYrnyDhN7VA2QWyGFAm.jpg" },
-    { title: "Bo Burnham: Inside", year: 2021, tags: ["loved", "philosophy"], poster: "/ku1UvTWYvhFQbSesOD6zteY7bXT.jpg" },
-    { title: "Pixels", year: 2015, tags: ["comfort"], poster: "/d26S5EfVXLNxRXqyFy1yyl3qRq3.jpg" },
-    { title: "Justice League", year: 2017, tags: [], poster: "/eifGNCSDuxJeS1loAXil5bIGgvC.jpg" },
-    { title: "Puss in Boots: The Last Wish", year: 2022, tags: ["comfort"], poster: "/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
-    { title: "Hulk", year: 2003, tags: [], poster: "/UllIft2jLSBaay3zQyMV4GNdfy.jpg" },
-    { title: "Venom: Let There Be Carnage", year: 2021, tags: [], poster: "/pzKsRuKLFmYrW5Q0q8E8G78Tcgo.jpg" },
-    { title: "Aquaman", year: 2018, tags: [], poster: "/ufl63EFcc5XpByEV2Ecdw6WJZAI.jpg" },
-    { title: "Spider-Man: Across the Spider-Verse", year: 2023, tags: ["loved", "anime"], poster: "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
-    { title: "Spider-Man: Into the Spider-Verse", year: 2018, tags: ["loved", "anime"], poster: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg" },
-    { title: "Bohemian Rhapsody", year: 2018, tags: [], poster: "/lHu1wtNaczFPGFDTrjCSzeLPTKN.jpg" },
-    { title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, tags: ["loved"], poster: "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg" },
-    { title: "The Lord of the Rings: The Two Towers", year: 2002, tags: ["loved"], poster: "/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg" },
-    { title: "The Lord of the Rings: The Return of the King", year: 2003, tags: ["loved"], poster: "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg" },
-    { title: "Fantastic Fungi", year: 2019, tags: ["philosophy"], poster: "/giIGfFqirPk3I2azp8Ow98oOnzG.jpg" },
-    { title: "Have a Good Trip", year: 2020, tags: [], poster: "/x3NX8v5t8a0yabCnlskpjXPkRKP.jpg" },
-    { title: "Big Daddy", year: 1999, tags: ["comfort"], poster: "/cqFnFg6YS8urJT6YC95IDkn0VHz.jpg" },
-    { title: "Bo Burnham: Make Happy", year: 2016, tags: ["loved", "philosophy"], poster: "/qVThhskXZZHDfj4m8jOx2CxIVIW.jpg" },
-    { title: "Fantastic Beasts: The Secrets of Dumbledore", year: 2022, tags: [], poster: "/3c5GNLB4yRSLBby0trHoA1DSQxQ.jpg" },
-    { title: "The Matrix Reloaded", year: 2003, tags: ["philosophy"], poster: "/aA5qHS0FbSXO8PxcxUIHbDrJyuh.jpg" },
-    { title: "The Matrix Revolutions", year: 2003, tags: ["philosophy"], poster: "/bkkS61w94ZVMNVd8KEyyJl2tnY5.jpg" },
-    { title: "Animal", year: 2023, tags: ["bollywood"], poster: "/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg" },
-    { title: "Operation Varsity Blues", year: 2021, tags: [], poster: "/qZJuctnatinO0OpnruGOWaT4Bga.jpg" },
-    { title: "Fifty Shades of Grey", year: 2015, tags: [], poster: "/63kGofUkt1Mx0SIL4XI4Z5AoSgt.jpg" },
-
-    // === HARRY POTTER ===
-    { title: "Harry Potter and the Philosopher's Stone", year: 2001, tags: ["loved", "comfort"], poster: "/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg" },
-    { title: "Harry Potter and the Chamber of Secrets", year: 2002, tags: ["comfort"], poster: "/sdEOH0992YZ0QSxgXNIGLq1ToUi.jpg" },
-    { title: "Harry Potter and the Prisoner of Azkaban", year: 2004, tags: ["loved", "comfort"], poster: "/aWxwnYoe8p2d2fcxOqtvAtJ72Rw.jpg" },
-    { title: "Harry Potter and the Goblet of Fire", year: 2005, tags: ["comfort"], poster: "/fECBtHlr0RB3foNHDiCBXeg9Bv9.jpg" },
-    { title: "Harry Potter and the Order of the Phoenix", year: 2007, tags: ["comfort"], poster: "/5aOyriWkPec0zUDxmHFP9qMmBaj.jpg" },
-    { title: "Harry Potter and the Half-Blood Prince", year: 2009, tags: ["comfort"], poster: "/z7uo9zmQdQwU5ZJHFpv2Upl30i1.jpg" },
-    { title: "Harry Potter and the Deathly Hallows: Part 1", year: 2010, tags: ["comfort"], poster: "/iGoXIpQb7Pot00EEdwpwPajheZ5.jpg" },
-    { title: "Harry Potter and the Deathly Hallows: Part 2", year: 2011, tags: ["loved", "comfort"], poster: "/c54HpQmuwXjHq2C9wmoACjxoom3.jpg" },
-    { title: "The Tourist", year: 2010, tags: [], poster: "/oXe1nw4HcS32YVpvxwsWEVdvEXA.jpg" },
-    { title: "Man of Steel", year: 2013, tags: [], poster: "/8GFtkImmK0K1VaUChR0n9O61CFU.jpg" },
-    { title: "The Batman", year: 2022, tags: [], poster: "/74xTEgt7R36Fpooo50r9T25onhq.jpg" },
-    { title: "Ex Machina", year: 2015, tags: ["loved", "philosophy"], poster: "/dmJW8IAKHKxFNiUnoDR7JfsK7Rp.jpg" },
-    { title: "Mr. & Mrs. Smith", year: 2005, tags: [], poster: "/kjD700RtyhveN3ZbOnSvUSne0Qj.jpg" },
-    { title: "The Girl Next Door", year: 2004, tags: ["comfort"], poster: "/5mVyFHSY2rSsNgD4NfEwV82HigU.jpg" },
-    { title: "Love & Other Drugs", year: 2010, tags: [], poster: "/wZLM2uKJRYNchLmiCIjosX0rXy8.jpg" },
-    { title: "Dear Zindagi", year: 2016, tags: ["bollywood", "comfort"], poster: "/oUg0N2isgZ5rrxdXnsemcKolfKZ.jpg" },
-    { title: "A Trip to Infinity", year: 2022, tags: ["philosophy"], poster: "/24EXccaDuDEMYp7eVvsCicj5K41.jpg" },
+    // === ANIME ===
+    { title: "The End of Evangelion", year: 1997, tags: ["favourites", "anime"], poster: "/j6G24dqI4WgUtChhWjfnI4lnmiK.jpg" },
+    { title: "Spider-Man: Across the Spider-Verse", year: 2023, tags: ["favourites", "anime"], poster: "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
+    { title: "Spider-Man: Into the Spider-Verse", year: 2018, tags: ["favourites", "anime"], poster: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg" },
 
   ];
 
