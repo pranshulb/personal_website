@@ -77,11 +77,9 @@
   <a href="/" class="back-link">← back to cafe</a>
   <h1>books i've read</h1>
   <div class="filters">
-    <button class="filter-btn active" data-filter="all">all</button>
-    <button class="filter-btn" data-filter="5">★★★★★</button>
-    <button class="filter-btn" data-filter="4">★★★★</button>
-    <button class="filter-btn" data-filter="3">★★★</button>
-    <button class="filter-btn" data-filter="low">★★ & below</button>
+    <button class="filter-btn active" data-sort="default">as-is</button>
+    <button class="filter-btn" data-sort="rating-desc">highest rated</button>
+    <button class="filter-btn" data-sort="rating-asc">lowest rated</button>
   </div>
 
   <p class="count"><span id="book-count">0</span> books</p>
@@ -283,18 +281,19 @@
     { title: "The Last Straw (Diary of a Wimpy Kid, #3)", author: "Jeff Kinney", rating: 4, year: "2009", cover: "https://covers.openlibrary.org/b/isbn/9780810970687-M.jpg" },
   ];
 
-  let activeFilter = 'all';
+  let activeSort = 'default';
+  const originalOrder = [...books];
 
   function renderBooks() {
     const grid = document.getElementById('bookGrid');
-    let filtered;
-    if (activeFilter === 'all') filtered = books;
-    else if (activeFilter === 'low') filtered = books.filter(b => b.rating <= 2);
-    else filtered = books.filter(b => b.rating === parseInt(activeFilter));
+    let sorted;
+    if (activeSort === 'rating-desc') sorted = [...books].sort((a, b) => b.rating - a.rating);
+    else if (activeSort === 'rating-asc') sorted = [...books].sort((a, b) => a.rating - b.rating);
+    else sorted = [...originalOrder];
 
-    document.getElementById('book-count').textContent = filtered.length;
+    document.getElementById('book-count').textContent = sorted.length;
 
-    grid.innerHTML = filtered.map(b => {
+    grid.innerHTML = sorted.map(b => {
       const cleanTitle = b.title.split('(')[0].trim();
       const shortTitle = cleanTitle.length > 30 ? cleanTitle.substring(0, 27) + '...' : cleanTitle;
       return `
@@ -318,7 +317,7 @@
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
+      activeSort = btn.dataset.sort;
       renderBooks();
     });
   });
