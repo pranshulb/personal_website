@@ -27,12 +27,20 @@
     .back-link { display: inline-block; margin-bottom: 2rem; color: #b09a8a; text-decoration: none; font-size: 0.95rem; }
     .back-link:hover { color: #c47a7a; }
     .filters { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .filter-btn {
-      background: none; border: 1px solid #d4c4b4; color: #b09a8a;
-      font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
-      padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer; transition: all 0.3s ease;
+    .sort-bar {
+      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+      font-size: 0.9rem; color: #b09a8a;
     }
-    .filter-btn:hover, .filter-btn.active { background: rgba(196,122,122,0.1); border-color: #c47a7a; color: #c47a7a; }
+    .sort-bar label { color: #7a6a5f; }
+    .sort-bar select {
+      font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
+      background: #faf5ef; border: 1px solid #d4c4b4; color: #3a2f2f;
+      padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;
+    }
+    .sort-bar select:focus { outline: none; border-color: #c47a7a; }
+    .radio-group { display: flex; gap: 0.1rem; align-items: center; }
+    .radio-group input[type="radio"] { accent-color: #c47a7a; margin: 0; cursor: pointer; }
+    .radio-group label { cursor: pointer; font-size: 0.85rem; color: #7a6a5f; padding: 0 0.3rem; }
     .book-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -76,10 +84,18 @@
 <div class="container">
   <a href="/" class="back-link">← back to cafe</a>
   <h1>books i've read</h1>
-  <div class="filters">
-    <button class="filter-btn active" data-sort="default">as-is</button>
-    <button class="filter-btn" data-sort="rating-desc">highest rated</button>
-    <button class="filter-btn" data-sort="rating-asc">lowest rated</button>
+  <div class="sort-bar">
+    <label>sort</label>
+    <select id="sortBy">
+      <option value="default">default</option>
+      <option value="rating">my rating</option>
+      <option value="title">title</option>
+      <option value="author">author</option>
+    </select>
+    <div class="radio-group">
+      <input type="radio" name="order" id="orderAsc" value="asc"> <label for="orderAsc">asc.</label>
+      <input type="radio" name="order" id="orderDesc" value="desc" checked> <label for="orderDesc">desc.</label>
+    </div>
   </div>
 
   <p class="count"><span id="book-count">0</span> books</p>
@@ -281,15 +297,17 @@
     { title: "The Last Straw (Diary of a Wimpy Kid, #3)", author: "Jeff Kinney", rating: 4, year: "2009", cover: "https://covers.openlibrary.org/b/isbn/9780810970687-M.jpg" },
   ];
 
-  let activeSort = 'default';
   const originalOrder = [...books];
 
   function renderBooks() {
     const grid = document.getElementById('bookGrid');
-    let sorted;
-    if (activeSort === 'rating-desc') sorted = [...books].sort((a, b) => b.rating - a.rating);
-    else if (activeSort === 'rating-asc') sorted = [...books].sort((a, b) => a.rating - b.rating);
-    else sorted = [...originalOrder];
+    const sortBy = document.getElementById('sortBy').value;
+    const desc = document.getElementById('orderDesc').checked;
+    let sorted = [...originalOrder];
+
+    if (sortBy === 'rating') sorted.sort((a, b) => desc ? b.rating - a.rating : a.rating - b.rating);
+    else if (sortBy === 'title') sorted.sort((a, b) => { const r = a.title.localeCompare(b.title); return desc ? -r : r; });
+    else if (sortBy === 'author') sorted.sort((a, b) => { const r = a.author.localeCompare(b.author); return desc ? -r : r; });
 
     document.getElementById('book-count').textContent = sorted.length;
 
@@ -313,14 +331,8 @@
     }).join('');
   }
 
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeSort = btn.dataset.sort;
-      renderBooks();
-    });
-  });
+  document.getElementById('sortBy').addEventListener('change', renderBooks);
+  document.querySelectorAll('input[name="order"]').forEach(r => r.addEventListener('change', renderBooks));
 
   renderBooks();
 
