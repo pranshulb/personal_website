@@ -1,6 +1,7 @@
 {
   "rewrites": [
+    { "source": "/things-ive-watched", "destination": "/things-ive-watched.html" },
     { "source": "/questions", "destination": "/questions.html" },
-    { "source": "/movies", "destination": "/movies.html" }
+    { "source": "/examined", "destination": "/examined/index.html" }
   ]
 }
