@@ -301,7 +301,7 @@
     const grid = document.getElementById('bookGrid');
     const sortBy = document.getElementById('sortBy').value;
     const desc = document.getElementById('orderDesc').checked;
-    let sorted = [...originalOrder];
+    let sorted = [...books];
 
     if (sortBy === 'rating') sorted.sort((a, b) => desc ? b.rating - a.rating : a.rating - b.rating);
     else if (sortBy === 'title') sorted.sort((a, b) => { const r = a.title.localeCompare(b.title); return desc ? -r : r; });
