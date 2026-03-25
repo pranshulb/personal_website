@@ -276,35 +276,6 @@
   setInterval(createPetal, 1800);
   for (let i = 0; i < 6; i++) setTimeout(createPetal, i * 700);
 
-  // cursor petal trail
-  document.addEventListener('mousemove', (() => {
-    let last = 0;
-    return (e) => {
-      const now = Date.now();
-      if (now - last < 120) return; // throttle
-      last = now;
-      const p = document.createElement('div');
-      p.textContent = '🌸';
-      Object.assign(p.style, {
-        position: 'fixed',
-        left: e.clientX + 'px',
-        top: e.clientY + 'px',
-        fontSize: (8 + Math.random() * 6) + 'px',
-        pointerEvents: 'none',
-        zIndex: '9999',
-        opacity: '0.6',
-        transition: 'all 1.2s ease-out',
-        transform: 'translate(-50%,-50%) rotate(0deg)',
-      });
-      document.body.appendChild(p);
-      requestAnimationFrame(() => {
-        p.style.opacity = '0';
-        p.style.transform = `translate(${-15 + Math.random()*30}px, ${20 + Math.random()*30}px) rotate(${Math.random()*180}deg)`;
-      });
-      setTimeout(() => p.remove(), 1300);
-    };
-  })());
-
   // press C to copy email
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) {
