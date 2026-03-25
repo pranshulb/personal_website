@@ -26,21 +26,60 @@
     .subtitle { font-size: 1rem; color: #b09a8a; font-style: italic; margin-bottom: 2.5rem; }
     .back-link { display: inline-block; margin-bottom: 2rem; color: #b09a8a; text-decoration: none; font-size: 0.95rem; }
     .back-link:hover { color: #c47a7a; }
-    .filters { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .sort-bar {
-      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
-      font-size: 0.9rem; color: #b09a8a;
+    /* filter flyout */
+    .filter-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 2rem;
     }
-    .sort-bar label { color: #7a6a5f; }
-    .sort-bar select {
-      font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
-      background: #faf5ef; border: 1px solid #d4c4b4; color: #3a2f2f;
-      padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;
+    .filter-toggle {
+      background: none;
+      border: 1px solid #d4c4b4;
+      color: #7a6a5f;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
     }
-    .sort-bar select:focus { outline: none; border-color: #c47a7a; }
-    .radio-group { display: flex; gap: 0.1rem; align-items: center; }
-    .radio-group input[type="radio"] { accent-color: #c47a7a; margin: 0; cursor: pointer; }
-    .radio-group label { cursor: pointer; font-size: 0.85rem; color: #7a6a5f; padding: 0 0.3rem; }
+    .filter-toggle:hover, .filter-toggle.open {
+      border-color: #c47a7a;
+      color: #c47a7a;
+    }
+    .filter-flyout {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: 0.5rem;
+      overflow: hidden;
+      max-width: 0;
+      opacity: 0;
+      transition: max-width 0.4s ease, opacity 0.3s ease;
+    }
+    .filter-flyout.open {
+      max-width: 600px;
+      opacity: 1;
+    }
+    .filter-btn {
+      background: none;
+      border: 1px solid #d4c4b4;
+      color: #b09a8a;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(196,122,122,0.1);
+      border-color: #c47a7a;
+      color: #c47a7a;
+    }
     .book-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -84,17 +123,15 @@
 <div class="container">
   <a href="/" class="back-link">← back to cafe</a>
   <h1>books i've read</h1>
-  <div class="sort-bar">
-    <label>sort</label>
-    <select id="sortBy">
-      <option value="default">default</option>
-      <option value="rating">my rating</option>
-      <option value="title">title</option>
-      <option value="author">author</option>
-    </select>
-    <div class="radio-group">
-      <input type="radio" name="order" id="orderAsc" value="asc"> <label for="orderAsc">asc.</label>
-      <input type="radio" name="order" id="orderDesc" value="desc" checked> <label for="orderDesc">desc.</label>
+  <div class="filter-wrap">
+    <button class="filter-toggle" id="filterToggle">filter ›</button>
+    <div class="filter-flyout" id="filterFlyout">
+      <button class="filter-btn active" data-filter="all">all</button>
+      <button class="filter-btn" data-filter="5">★★★★★</button>
+      <button class="filter-btn" data-filter="4">★★★★</button>
+      <button class="filter-btn" data-filter="3">★★★</button>
+      <button class="filter-btn" data-filter="2">★★</button>
+      <button class="filter-btn" data-filter="1">★</button>
     </div>
   </div>
 
@@ -297,15 +334,14 @@
     { title: "The Last Straw (Diary of a Wimpy Kid, #3)", author: "Jeff Kinney", rating: 4, year: "2009", cover: "https://books.google.com/books/content?id=x4yE9zUI7aIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api" },
   ]
 
+  let activeFilter = 'all';
+
   function renderBooks() {
     const grid = document.getElementById('bookGrid');
-    const sortBy = document.getElementById('sortBy').value;
-    const desc = document.getElementById('orderDesc').checked;
-    let sorted = [...books];
-
-    if (sortBy === 'rating') sorted.sort((a, b) => desc ? b.rating - a.rating : a.rating - b.rating);
-    else if (sortBy === 'title') sorted.sort((a, b) => { const r = a.title.localeCompare(b.title); return desc ? -r : r; });
-    else if (sortBy === 'author') sorted.sort((a, b) => { const r = a.author.localeCompare(b.author); return desc ? -r : r; });
+    const sorted = (activeFilter === 'all'
+      ? [...books]
+      : books.filter(b => b.rating === parseInt(activeFilter))
+    ).sort((a, b) => a.title.localeCompare(b.title));
 
     document.getElementById('book-count').textContent = sorted.length;
 
@@ -329,8 +365,25 @@
     }).join('');
   }
 
-  document.getElementById('sortBy').addEventListener('change', renderBooks);
-  document.querySelectorAll('input[name="order"]').forEach(r => r.addEventListener('change', renderBooks));
+  // filter toggle
+  const toggle = document.getElementById('filterToggle');
+  const flyout = document.getElementById('filterFlyout');
+  toggle.addEventListener('click', () => {
+    flyout.classList.toggle('open');
+    toggle.classList.toggle('open');
+    toggle.textContent = flyout.classList.contains('open') ? 'filter ‹' : 'filter ›';
+  });
+
+  // filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      toggle.textContent = activeFilter === 'all' ? 'filter ›' : btn.textContent + ' ×';
+      renderBooks();
+    });
+  });
 
   renderBooks();
 
