@@ -80,6 +80,7 @@
       border-color: #c47a7a;
       color: #c47a7a;
     }
+    .flyout-sep { color: #d4c4b4; font-size: 1rem; padding: 0 0.1rem; }
     .book-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -124,14 +125,15 @@
   <a href="/" class="back-link">← back to cafe</a>
   <h1>books i've read</h1>
   <div class="filter-wrap">
-    <button class="filter-toggle" id="filterToggle">filter ›</button>
-    <div class="filter-flyout" id="filterFlyout">
-      <button class="filter-btn active" data-filter="all">all</button>
-      <button class="filter-btn" data-filter="5">★★★★★</button>
-      <button class="filter-btn" data-filter="4">★★★★</button>
-      <button class="filter-btn" data-filter="3">★★★</button>
-      <button class="filter-btn" data-filter="2">★★</button>
-      <button class="filter-btn" data-filter="1">★</button>
+    <button class="filter-toggle" id="sortToggle">sort ›</button>
+    <div class="filter-flyout" id="sortFlyout">
+      <button class="filter-btn active" data-sort="default">default</button>
+      <button class="filter-btn" data-sort="rating">rating</button>
+      <button class="filter-btn" data-sort="title">title</button>
+      <button class="filter-btn" data-sort="author">author</button>
+      <span class="flyout-sep">·</span>
+      <button class="filter-btn order-btn active" data-order="desc">desc</button>
+      <button class="filter-btn order-btn" data-order="asc">asc</button>
     </div>
   </div>
 
@@ -334,14 +336,16 @@
     { title: "The Last Straw (Diary of a Wimpy Kid, #3)", author: "Jeff Kinney", rating: 4, year: "2009", cover: "https://books.google.com/books/content?id=x4yE9zUI7aIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api" },
   ]
 
-  let activeFilter = 'all';
+  let activeSort = 'default';
+  let sortDesc = true;
 
   function renderBooks() {
     const grid = document.getElementById('bookGrid');
-    const sorted = (activeFilter === 'all'
-      ? [...books]
-      : books.filter(b => b.rating === parseInt(activeFilter))
-    ).sort((a, b) => a.title.localeCompare(b.title));
+    let sorted = [...books];
+
+    if (activeSort === 'rating') sorted.sort((a, b) => sortDesc ? b.rating - a.rating : a.rating - b.rating);
+    else if (activeSort === 'title') sorted.sort((a, b) => { const r = a.title.localeCompare(b.title); return sortDesc ? -r : r; });
+    else if (activeSort === 'author') sorted.sort((a, b) => { const r = a.author.localeCompare(b.author); return sortDesc ? -r : r; });
 
     document.getElementById('book-count').textContent = sorted.length;
 
@@ -365,22 +369,31 @@
     }).join('');
   }
 
-  // filter toggle
-  const toggle = document.getElementById('filterToggle');
-  const flyout = document.getElementById('filterFlyout');
+  // sort toggle
+  const toggle = document.getElementById('sortToggle');
+  const flyout = document.getElementById('sortFlyout');
   toggle.addEventListener('click', () => {
     flyout.classList.toggle('open');
     toggle.classList.toggle('open');
-    toggle.textContent = flyout.classList.contains('open') ? 'filter ‹' : 'filter ›';
+    toggle.textContent = flyout.classList.contains('open') ? 'sort ‹' : 'sort ›';
   });
 
-  // filter buttons
-  document.querySelectorAll('.filter-btn').forEach(btn => {
+  // sort buttons
+  document.querySelectorAll('.filter-btn[data-sort]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.filter-btn[data-sort]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
-      toggle.textContent = activeFilter === 'all' ? 'filter ›' : btn.textContent + ' ×';
+      activeSort = btn.dataset.sort;
+      renderBooks();
+    });
+  });
+
+  // order buttons
+  document.querySelectorAll('.order-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.order-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortDesc = btn.dataset.order === 'desc';
       renderBooks();
     });
   });
