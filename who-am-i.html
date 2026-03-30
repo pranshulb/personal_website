@@ -21,6 +21,7 @@
       max-width: 520px;
       margin: 0 0 0 2rem;
       padding: 5rem 1.5rem 3rem;
+      position: relative;
     }
 
     a { color: #3a2f2f; text-decoration-color: #ccc; text-underline-offset: 3px; }
@@ -36,6 +37,26 @@
 
     p {
       margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .margin-note {
+      position: absolute;
+      right: -180px;
+      font-size: 0.8rem;
+      color: #b09a8a;
+      font-style: italic;
+      white-space: nowrap;
+      top: 0;
+    }
+
+    @media (max-width: 750px) {
+      .margin-note {
+        position: static;
+        display: block;
+        margin-top: 0.2rem;
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -48,11 +69,11 @@
 
   <p>I am <span id="someone" style="transition: opacity 0.6s;">someone</span>.</p>
 
-  <p>I am Pranshul. but that's what my parents gave me.</p>
+  <p>I am Pranshul. but that's what my parents gave me. <span class="margin-note">← does it count?</span></p>
 
-  <p>I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
+  <p>I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story) <span class="margin-note">← genuinely ask me about this</span></p>
 
-  <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I write (but I hide it from the world), I read A LOT (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
+  <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I write (but I hide it from the world), I read A LOT (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!! <span class="margin-note">← this is not a lie</span></p>
 </div>
 
 <script>
