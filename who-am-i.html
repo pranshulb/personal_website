@@ -18,11 +18,35 @@
       overflow-x: hidden;
     }
 
+    /* SVG noise filter for paper grain */
+    .svg-filters {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
     .container {
       max-width: 520px;
       margin: 0 0 0 2rem;
       padding: 5rem 1.5rem 3rem;
       position: relative;
+    }
+
+    /* Paper grain texture on the content area */
+    .container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      filter: url(#paper-grain);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container > * {
+      position: relative;
+      z-index: 1;
     }
 
     a { color: #3a2f2f; text-decoration-color: #ccc; text-underline-offset: 3px; }
@@ -40,90 +64,84 @@
       margin-bottom: 1.5rem;
     }
 
-    /* coffee stain */
+    /* ---- Coffee stain: overlapping rings for realism ---- */
     .coffee-stain {
       position: absolute;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      border: 3px solid rgba(139, 109, 78, 0.08);
-      box-shadow:
-        inset 0 0 15px rgba(139, 109, 78, 0.04),
-        0 0 8px rgba(139, 109, 78, 0.03);
       pointer-events: none;
-      top: 60px;
-      right: -30px;
+      z-index: 2;
+    }
+    .coffee-ring {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
     }
 
-    /* ink blots */
+    /* ---- Ink blots: organic irregular shapes ---- */
     .ink-blot {
       position: absolute;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .ink-blot-dot {
+      position: absolute;
       border-radius: 50%;
-      background: rgba(58, 47, 47, 0.04);
+      background: rgba(58, 47, 47, 0.045);
       pointer-events: none;
     }
 
-    /* torn paper edges on container */
-    .paper {
-      position: relative;
-      background: rgba(255, 253, 248, 0.5);
-      padding: 2rem 2rem 2rem 0;
-      margin-top: 1rem;
-    }
-
-    .paper::before,
-    .paper::after {
-      content: '';
+    /* ---- Soft paper edge shadow (no clip-path) ---- */
+    .paper-edge-top,
+    .paper-edge-bottom {
       position: absolute;
-      left: 0;
-      right: 0;
-      height: 8px;
-      background: #faf5ef;
-      z-index: 1;
+      left: -10px;
+      right: -10px;
+      height: 1px;
+      pointer-events: none;
+      z-index: 2;
     }
-
-    .paper::before {
-      top: -4px;
-      clip-path: polygon(
-        0% 100%, 2% 40%, 5% 80%, 8% 30%, 12% 70%, 15% 20%, 18% 60%,
-        22% 40%, 25% 80%, 28% 20%, 32% 60%, 35% 30%, 38% 70%, 42% 40%,
-        45% 80%, 48% 20%, 52% 60%, 55% 30%, 58% 70%, 62% 40%, 65% 80%,
-        68% 20%, 72% 60%, 75% 30%, 78% 70%, 82% 40%, 85% 80%, 88% 20%,
-        92% 60%, 95% 30%, 98% 70%, 100% 100%
-      );
+    .paper-edge-top {
+      top: 3.2rem;
+      box-shadow:
+        0 -1px 3px rgba(58, 47, 47, 0.03),
+        0 0 8px rgba(139, 109, 78, 0.02);
+      border-top: 1px solid rgba(139, 109, 78, 0.04);
     }
-
-    .paper::after {
-      bottom: -4px;
-      clip-path: polygon(
-        0% 0%, 3% 60%, 6% 20%, 9% 70%, 13% 30%, 16% 60%, 19% 20%,
-        23% 70%, 26% 30%, 29% 60%, 33% 20%, 36% 70%, 39% 30%, 43% 60%,
-        46% 20%, 49% 70%, 53% 30%, 56% 60%, 59% 20%, 63% 70%, 66% 30%,
-        69% 60%, 73% 20%, 76% 70%, 79% 30%, 83% 60%, 86% 20%, 89% 70%,
-        93% 30%, 96% 60%, 100% 0%
-      );
+    .paper-edge-bottom {
+      bottom: 1rem;
+      box-shadow:
+        0 1px 3px rgba(58, 47, 47, 0.03),
+        0 0 8px rgba(139, 109, 78, 0.02);
+      border-bottom: 1px solid rgba(139, 109, 78, 0.04);
     }
   </style>
 </head>
 <body>
+
+<!-- SVG filters for paper grain texture -->
+<svg class="svg-filters">
+  <filter id="paper-grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix type="saturate" values="0" in="noise" result="gray-noise"/>
+    <feBlend in="SourceGraphic" in2="gray-noise" mode="multiply"/>
+  </filter>
+</svg>
 
 <div class="container">
   <a href="/" class="back">← back</a>
 
   <h1>who am i?</h1>
 
-  <div class="paper">
-    <p>I am <span id="someone" style="transition: opacity 0.6s;">someone</span>.</p>
+  <div class="paper-edge-top"></div>
 
-    <p>I am Pranshul. but that's what my parents gave me.</p>
+  <p>I am <span id="someone" style="transition: opacity 0.6s;">someone</span>.</p>
 
-    <p>I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
+  <p>I am Pranshul. but that's what my parents gave me.</p>
 
-    <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I write (but I hide it from the world), I read A LOT (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
-  </div>
+  <p>I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
 
-  <!-- coffee stain -->
-  <div class="coffee-stain"></div>
+  <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I write (but I hide it from the world), I read A LOT (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
+
+  <div class="paper-edge-bottom"></div>
 </div>
 
 <script>
@@ -141,26 +159,107 @@
     }, 600);
   }, 4000);
 
-  // random paragraph tilts
-  document.querySelectorAll('.paper p').forEach(p => {
-    const tilt = (Math.random() - 0.5) * 0.8; // -0.4 to 0.4 degrees
+  // subtle paragraph tilts — ±0.2 degrees max, barely perceptible
+  document.querySelectorAll('.container p').forEach(p => {
+    const tilt = (Math.random() - 0.5) * 0.4; // -0.2 to 0.2 degrees
     p.style.transform = `rotate(${tilt}deg)`;
   });
 
-  // ink blots
-  const container = document.querySelector('.container');
-  for (let b = 0; b < 4; b++) {
-    const blot = document.createElement('div');
-    blot.className = 'ink-blot';
-    const size = 4 + Math.random() * 8;
-    Object.assign(blot.style, {
-      width: size + 'px',
-      height: size + 'px',
-      top: (80 + Math.random() * 400) + 'px',
-      left: (Math.random() * 500) + 'px',
+  // ---- Coffee stain: multiple overlapping rings for realistic cup mark ----
+  (function() {
+    const container = document.querySelector('.container');
+    const stainGroup = document.createElement('div');
+    stainGroup.className = 'coffee-stain';
+    // Position: upper right area, overlapping text slightly
+    Object.assign(stainGroup.style, {
+      top: '90px',
+      right: '-15px',
+      width: '130px',
+      height: '130px',
     });
-    container.appendChild(blot);
-  }
+
+    // Main ring
+    const rings = [
+      { x: 0, y: 0, size: 110, borderWidth: 6, opacity: 0.07 },
+      { x: 4, y: -2, size: 108, borderWidth: 2, opacity: 0.05 },
+      { x: -3, y: 3, size: 115, borderWidth: 3, opacity: 0.04 },
+      // Inner residue rings
+      { x: 8, y: 5, size: 85, borderWidth: 1.5, opacity: 0.03 },
+      { x: 2, y: -1, size: 95, borderWidth: 1, opacity: 0.025 },
+    ];
+
+    rings.forEach(r => {
+      const ring = document.createElement('div');
+      ring.className = 'coffee-ring';
+      const color = `rgba(139, 109, 78, ${r.opacity})`;
+      Object.assign(ring.style, {
+        width: r.size + 'px',
+        height: r.size + 'px',
+        left: (65 - r.size/2 + r.x) + 'px',
+        top: (65 - r.size/2 + r.y) + 'px',
+        border: `${r.borderWidth}px solid ${color}`,
+        boxShadow: `inset 0 0 ${r.size * 0.15}px rgba(139, 109, 78, ${r.opacity * 0.4}), 0 0 ${r.size * 0.08}px rgba(139, 109, 78, ${r.opacity * 0.2})`,
+      });
+      stainGroup.appendChild(ring);
+    });
+
+    // Faint fill in center for a subtle pooled-coffee look
+    const fill = document.createElement('div');
+    fill.className = 'coffee-ring';
+    Object.assign(fill.style, {
+      width: '70px',
+      height: '70px',
+      left: '30px',
+      top: '30px',
+      background: 'radial-gradient(ellipse at 45% 40%, rgba(139, 109, 78, 0.025) 0%, rgba(139, 109, 78, 0.01) 50%, transparent 70%)',
+    });
+    stainGroup.appendChild(fill);
+
+    container.appendChild(stainGroup);
+  })();
+
+  // ---- Ink blots: organic irregular blob clusters ----
+  (function() {
+    const container = document.querySelector('.container');
+
+    // Each blot is a cluster of overlapping circles for organic shape
+    const blotConfigs = [
+      { cx: 45, cy: 180, dots: [{dx:0,dy:0,r:4},{dx:2,dy:-1,r:3},{dx:-1,dy:2,r:2.5}] },
+      { cx: 380, cy: 250, dots: [{dx:0,dy:0,r:6},{dx:3,dy:1,r:4},{dx:-2,dy:3,r:3},{dx:4,dy:-2,r:2}] },
+      { cx: 120, cy: 420, dots: [{dx:0,dy:0,r:3},{dx:1,dy:-2,r:2.5}] },
+      { cx: 460, cy: 350, dots: [{dx:0,dy:0,r:8},{dx:4,dy:2,r:5},{dx:-3,dy:4,r:4},{dx:5,dy:-1,r:3},{dx:-1,dy:-3,r:3}] },
+      { cx: 200, cy: 300, dots: [{dx:0,dy:0,r:3.5},{dx:2,dy:1,r:2}] },
+      { cx: 30, cy: 500, dots: [{dx:0,dy:0,r:5},{dx:3,dy:-1,r:3.5},{dx:-2,dy:2,r:3}] },
+    ];
+
+    blotConfigs.forEach(blot => {
+      const group = document.createElement('div');
+      group.className = 'ink-blot';
+      Object.assign(group.style, {
+        left: blot.cx + 'px',
+        top: blot.cy + 'px',
+      });
+
+      blot.dots.forEach(d => {
+        const dot = document.createElement('div');
+        dot.className = 'ink-blot-dot';
+        const size = d.r * 2;
+        // Slightly vary opacity per dot for depth
+        const opacity = 0.03 + Math.random() * 0.025;
+        Object.assign(dot.style, {
+          width: size + 'px',
+          height: size + 'px',
+          left: (d.dx - d.r) + 'px',
+          top: (d.dy - d.r) + 'px',
+          background: `rgba(58, 47, 47, ${opacity})`,
+          boxShadow: `0 0 ${d.r * 0.8}px rgba(58, 47, 47, ${opacity * 0.5})`,
+        });
+        group.appendChild(dot);
+      });
+
+      container.appendChild(group);
+    });
+  })();
 </script>
 
 </body>
