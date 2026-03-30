@@ -46,7 +46,7 @@
 
   <h1>who am i?</h1>
 
-  <p>I am someone.</p>
+  <p>I am <span id="someone" style="cursor:pointer; border-bottom: 1px dashed #b09a8a; transition: all 0.3s;">someone</span>.</p>
 
   <p>I am Pranshul. but that's what my parents gave me.</p>
 
@@ -54,6 +54,26 @@
 
   <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I write (but I hide it from the world), I read A LOT (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
 </div>
+
+<script>
+  const words = ["someone", "no one", "everyone", "still figuring that out", "a collection of atoms", "pranshul (allegedly)"];
+  const el = document.getElementById('someone');
+  let interval = null;
+  let i = 0;
+
+  el.addEventListener('mouseenter', () => {
+    i = 0;
+    interval = setInterval(() => {
+      i = (i + 1) % words.length;
+      el.textContent = words[i];
+    }, 400);
+  });
+
+  el.addEventListener('mouseleave', () => {
+    clearInterval(interval);
+    el.textContent = 'someone';
+  });
+</script>
 
 </body>
 </html>
