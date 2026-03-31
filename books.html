@@ -113,14 +113,34 @@
       10% { opacity: 0.5; } 90% { opacity: 0.3; }
       100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+      font-family: 'EB Garamond', Georgia, serif;
+    }
     @media (max-width: 600px) {
       .container { padding: 3rem 1.2rem 2rem; }
       h1 { font-size: 1.5rem; }
       .book-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; }
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1rem 1.2rem 0;
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
 <body>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <div class="container">
   <a href="/" class="back-link">← back to cafe</a>
   <h1>books i've read</h1>
@@ -414,6 +434,5 @@
   setInterval(createPetal, 2500);
   for(let i=0;i<4;i++) setTimeout(createPetal,i*1000);
 </script>
-<p style="text-align: center; margin: 3rem auto 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic; font-family: 'EB Garamond', Georgia, serif;">please please text me if you think it'd be fun to chat!!</p>
 </body>
 </html>
