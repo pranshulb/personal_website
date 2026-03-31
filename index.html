@@ -170,33 +170,69 @@
     }
 
     @media (max-width: 600px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
       .container {
         margin: 0 auto;
-        padding: 4.5rem 1.4rem 2rem;
+        padding: 1.5rem 1.6rem 2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 100%;
       }
-      h1 { font-size: 1.4rem; }
+      h1 { font-size: 1.6rem; }
       .subtitle { margin-bottom: 2rem; }
       .epigraph {
         position: relative;
         top: auto;
         right: auto;
         text-align: center;
-        padding: 1rem 1.4rem 0;
+        padding: 1.2rem 1.6rem 0;
         font-size: 0.8rem;
       }
       .social-links {
-        gap: 1rem;
+        gap: 1.2rem;
       }
       .social-links a {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
+        padding: 0.2rem 0;
       }
-      .copy-hint {
-        font-size: 0.8rem;
+      .copy-hint-desktop {
+        display: none;
+      }
+      .copy-hint-mobile {
+        display: block;
       }
 
       li {
+        font-size: 1.05rem;
+        margin: 0.8rem 0;
+      }
+
+      li a {
+        padding: 0.15rem 0;
+      }
+
+      p {
         font-size: 1rem;
       }
+    }
+
+    .copy-hint-mobile {
+      display: none;
+      font-size: 0.85rem;
+      color: #c4b0a0;
+      margin-top: 1.2rem;
+      cursor: pointer;
+    }
+
+    .copy-hint-mobile:active {
+      color: #c47a7a;
     }
   </style>
 </head>
@@ -227,7 +263,8 @@
 
     </div>
     <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please please text me if you think it'd be fun to chat!!</p>
-    <p class="copy-hint">press <kbd>C</kbd> to copy my email!</p>
+    <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
+    <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
   </div>
 </div>
 
@@ -277,16 +314,24 @@
   setInterval(createPetal, 1500);
   for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
 
-  // press C to copy email
+  function copyEmail() {
+    navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
+      const toast = document.getElementById('copyToast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+
+  // press C to copy email (desktop)
   document.addEventListener('keydown', (e) => {
     if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) {
-      navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
-        const toast = document.getElementById('copyToast');
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-      });
+      copyEmail();
     }
   });
+
+  // tap to copy (mobile)
+  const mobileCopy = document.getElementById('mobileCopy');
+  if (mobileCopy) mobileCopy.addEventListener('click', copyEmail);
 </script>
 
 </body>
