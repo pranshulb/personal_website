@@ -19,48 +19,81 @@
     }
 
     .header {
-      max-width: 700px;
+      max-width: 760px;
       margin: 0 auto;
-      padding: 3rem 2rem 1rem;
+      padding: 3rem 2rem 2rem;
     }
 
     .back-link {
       display: inline-block;
-      margin-bottom: 1.5rem;
       color: #b09a8a;
       text-decoration: none;
       font-size: 0.95rem;
+      transition: color 0.3s ease;
     }
     .back-link:hover { color: #c47a7a; }
 
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 400;
-      letter-spacing: 0.02em;
-      margin-bottom: 0.3rem;
-    }
-
-    .subtitle {
-      font-size: 1rem;
-      color: #b09a8a;
-      font-style: italic;
-      margin-bottom: 2rem;
-    }
-
+    /* Journal-style pages container */
     .pages {
-      max-width: 700px;
+      max-width: 760px;
       margin: 0 auto;
-      padding: 0 2rem 3rem;
+      padding: 0 2rem 4rem;
       display: flex;
       flex-direction: column;
-      gap: 2rem;
+      align-items: center;
+      gap: 3rem;
     }
 
-    .pages img {
+    .page-wrapper {
+      position: relative;
       width: 100%;
-      border-radius: 4px;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      max-width: 640px;
+      transition: transform 0.4s ease;
+    }
+
+    .page-wrapper:hover {
+      transform: scale(1.01);
+    }
+
+    /* Subtle alternating rotations for a scattered-pages feel */
+    .page-wrapper:nth-child(1) { transform: rotate(-0.4deg); }
+    .page-wrapper:nth-child(2) { transform: rotate(0.3deg); }
+    .page-wrapper:nth-child(3) { transform: rotate(-0.2deg); }
+    .page-wrapper:nth-child(1):hover { transform: rotate(-0.4deg) scale(1.01); }
+    .page-wrapper:nth-child(2):hover { transform: rotate(0.3deg) scale(1.01); }
+    .page-wrapper:nth-child(3):hover { transform: rotate(-0.2deg) scale(1.01); }
+
+    .page-wrapper img {
+      width: 100%;
       display: block;
+      border-radius: 3px;
+      /* Layered shadow: soft ambient + subtle edge for paper depth */
+      box-shadow:
+        0 1px 3px rgba(58, 47, 47, 0.04),
+        0 4px 16px rgba(58, 47, 47, 0.06),
+        0 12px 40px rgba(58, 47, 47, 0.05);
+      /* Subtle paper-like border */
+      border: 1px solid rgba(180, 160, 140, 0.15);
+      background: #fefcf8;
+    }
+
+    /* Thin decorative line between pages */
+    .page-divider {
+      width: 40px;
+      height: 1px;
+      background: #d4bfb0;
+      opacity: 0.5;
+      margin: 0 auto;
+    }
+
+    /* Footer flourish */
+    .footer {
+      text-align: center;
+      padding: 1rem 2rem 3rem;
+      color: #c4a0a0;
+      font-size: 0.9rem;
+      font-style: italic;
+      letter-spacing: 0.03em;
     }
 
     .epigraph {
@@ -90,9 +123,15 @@
     }
 
     @media (max-width: 600px) {
-      .header { padding: 1.5rem 1.2rem 0.5rem; }
-      h1 { font-size: 1.5rem; }
-      .pages { padding: 0 1.2rem 2rem; gap: 1.5rem; }
+      .header { padding: 1.5rem 1.2rem 1.5rem; }
+      .pages { padding: 0 1rem 3rem; gap: 2rem; }
+      .page-wrapper { max-width: 100%; }
+      .page-wrapper:nth-child(1),
+      .page-wrapper:nth-child(2),
+      .page-wrapper:nth-child(3) { transform: rotate(0deg); }
+      .page-wrapper:nth-child(1):hover,
+      .page-wrapper:nth-child(2):hover,
+      .page-wrapper:nth-child(3):hover { transform: scale(1.01); }
       .epigraph {
         position: relative;
         top: auto;
@@ -110,13 +149,28 @@
 
 <div class="header">
   <a href="/writings" class="back-link">← back to writings</a>
-  <h1>passion</h1>
 </div>
 
 <div class="pages">
-  <img src="/writings/passion-1.svg" alt="passion page 1" loading="lazy">
-  <img src="/writings/passion-2.svg" alt="passion page 2" loading="lazy">
-  <img src="/writings/passion-3.svg" alt="passion page 3" loading="lazy">
+  <div class="page-wrapper">
+    <img src="/writings/passion-1.svg" alt="passion page 1" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/passion-2.svg" alt="passion page 2" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/passion-3.svg" alt="passion page 3" loading="lazy">
+  </div>
+</div>
+
+<div class="footer">
+  ✦
 </div>
 
 <script>

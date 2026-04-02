@@ -41,51 +41,50 @@
       margin-bottom: 2.5rem;
     }
 
-    .writing-item {
-      margin-bottom: 2rem;
-      padding-bottom: 2rem;
+    .writing-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .writing-list li {
+      padding: 0.8rem 0;
       border-bottom: 1px solid #e8ddd4;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
     }
 
-    .writing-item:last-child {
-      border-bottom: none;
+    .writing-list li::before {
+      content: '·';
+      color: #c4a0a0;
+      font-size: 1.4rem;
+      line-height: 1;
     }
 
-    .writing-title {
-      font-size: 1.15rem;
-      font-weight: 500;
-      margin-bottom: 0.3rem;
-    }
-
-    .writing-title a {
+    .writing-list a {
       text-decoration: none;
     }
 
-    .writing-title a:hover {
+    .writing-list a:hover {
       text-decoration: underline;
       text-decoration-color: #c4a0a0;
     }
 
-    .writing-date {
-      font-size: 0.85rem;
-      color: #b09a8a;
-      margin-bottom: 0.5rem;
-    }
-
-    .writing-desc {
-      font-size: 0.95rem;
-      color: #6b5c5c;
-    }
-
-    .writing-tag {
-      display: inline-block;
-      font-size: 0.75rem;
+    .tag {
+      font-size: 0.7rem;
       color: #c4a0a0;
       border: 1px solid #e8ddd4;
-      padding: 0.1rem 0.5rem;
+      padding: 0.1rem 0.45rem;
       border-radius: 3px;
-      margin-right: 0.3rem;
-      margin-top: 0.4rem;
+      letter-spacing: 0.03em;
+    }
+
+    .wip-note {
+      color: #b09a8a;
+      font-style: italic;
+      margin-top: 2.5rem;
+      font-size: 0.95rem;
     }
 
     /* falling cherry blossom petals */
@@ -139,15 +138,13 @@
   <a href="/" class="back">← back</a>
 
   <h1>writings</h1>
-  <p class="subtitle">I am thinking out loud and taking you through this journey with me, inspired by <a href="https://nicklaustran.substack.com/p/whats-in-my-notes">Nick</a>.</p>
+  <p class="subtitle">things i've written, am writing, or want to write someday.</p>
 
-  <!-- WRITINGS GO HERE — add new items at the top -->
+  <ul class="writing-list">
+    <li><a href="/writings/passion">passion</a> <span class="tag">handwritten</span></li>
+  </ul>
 
-  <div class="writing-item">
-    <div class="writing-title"><a href="/writings/passion">passion</a></div>
-  </div>
-
-  <p style="color: #b09a8a; font-style: italic; margin-top: 2rem;">more coming soon...</p>
+  <p class="wip-note">more coming soon...</p>
 
 </div>
 
