@@ -1,8 +1,21 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/things-ive-watched", "destination": "/things-ive-watched.html" },
-    { "source": "/books", "destination": "/books.html" },
-    { "source": "/who-am-i", "destination": "/who-am-i.html" }
+    {
+      "source": "/things-ive-watched",
+      "destination": "/things-ive-watched.html"
+    },
+    {
+      "source": "/books",
+      "destination": "/books.html"
+    },
+    {
+      "source": "/who-am-i",
+      "destination": "/who-am-i.html"
+    },
+    {
+      "source": "/writings",
+      "destination": "/writings.html"
+    }
   ]
 }
