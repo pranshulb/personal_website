@@ -16,6 +16,10 @@
     {
       "source": "/writings",
       "destination": "/writings.html"
+    },
+    {
+      "source": "/writings/passion",
+      "destination": "/writings/passion.html"
     }
   ]
 }

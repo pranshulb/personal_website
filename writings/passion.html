@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>passion — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.8;
+      overflow-x: hidden;
+      background: #faf5ef;
+    }
+
+    .header {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 3rem 2rem 1rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      color: #b09a8a;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: #c47a7a; }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #b09a8a;
+      font-style: italic;
+      margin-bottom: 2rem;
+    }
+
+    .pages {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 2rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .pages img {
+      width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+      display: block;
+    }
+
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+    }
+
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 1.5rem 1.2rem 0.5rem; }
+      h1 { font-size: 1.5rem; }
+      .pages { padding: 0 1.2rem 2rem; gap: 1.5rem; }
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1rem 1.2rem 0;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<div class="header">
+  <a href="/writings" class="back-link">← back to writings</a>
+  <h1>passion</h1>
+</div>
+
+<div class="pages">
+  <img src="/writings/passion-1.svg" alt="passion page 1" loading="lazy">
+  <img src="/writings/passion-2.svg" alt="passion page 2" loading="lazy">
+  <img src="/writings/passion-3.svg" alt="passion page 3" loading="lazy">
+</div>
+
+<script>
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    petal.style.cssText = `
+      left: ${startX}px; top: -20px;
+      width: ${size}px; height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s; animation-delay: ${delay}s;
+      --drift: ${drift}px; --spin: ${spin}deg;
+    `;
+    petal.animate([
+      { top: '-20px' },
+      { top: `${window.innerHeight + 20}px` }
+    ], { duration: duration * 1000, delay: delay * 1000, fill: 'forwards' });
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  }
+  setInterval(createPetal, 1800);
+  for (let i = 0; i < 6; i++) setTimeout(createPetal, i * 700);
+</script>
+
+</body>
+</html>
