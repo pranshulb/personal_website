@@ -101,14 +101,14 @@
       pointer-events: none;
       z-index: 1;
       opacity: 0;
-      animation: fall linear infinite;
+      animation: fall linear forwards;
     }
 
     @keyframes fall {
-      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
-      10% { opacity: 0.5; }
+      0% { opacity: 0; transform: translateY(0) translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.6; }
       90% { opacity: 0.3; }
-      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+      100% { opacity: 0; transform: translateY(110vh) translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
     .epigraph {
