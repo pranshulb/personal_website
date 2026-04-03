@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>feeling empty — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.8;
+      overflow-x: hidden;
+      background: #faf5ef;
+    }
+
+    .header {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 2rem 2rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #b09a8a;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.3s ease;
+    }
+    .back-link:hover { color: #c47a7a; }
+
+    /* Journal-style pages container */
+    .pages {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .page-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      transition: transform 0.4s ease;
+    }
+
+    .page-wrapper:hover {
+      transform: scale(1.01);
+    }
+
+    /* Subtle alternating rotations for a scattered-pages feel */
+    .page-wrapper:nth-child(1) { transform: rotate(-0.4deg); }
+    .page-wrapper:nth-child(2) { transform: rotate(0.3deg); }
+    .page-wrapper:nth-child(3) { transform: rotate(-0.2deg); }
+    .page-wrapper:nth-child(4) { transform: rotate(0.35deg); }
+    .page-wrapper:nth-child(5) { transform: rotate(-0.3deg); }
+    .page-wrapper:nth-child(1):hover { transform: rotate(-0.4deg) scale(1.01); }
+    .page-wrapper:nth-child(2):hover { transform: rotate(0.3deg) scale(1.01); }
+    .page-wrapper:nth-child(3):hover { transform: rotate(-0.2deg) scale(1.01); }
+    .page-wrapper:nth-child(4):hover { transform: rotate(0.35deg) scale(1.01); }
+    .page-wrapper:nth-child(5):hover { transform: rotate(-0.3deg) scale(1.01); }
+
+    .page-wrapper img {
+      width: 100%;
+      display: block;
+      border-radius: 3px;
+      /* Layered shadow: soft ambient + subtle edge for paper depth */
+      box-shadow:
+        0 1px 3px rgba(58, 47, 47, 0.04),
+        0 4px 16px rgba(58, 47, 47, 0.06),
+        0 12px 40px rgba(58, 47, 47, 0.05);
+      /* Subtle paper-like border */
+      border: 1px solid rgba(180, 160, 140, 0.15);
+      background: #fefcf8;
+    }
+
+    /* Thin decorative line between pages */
+    .page-divider {
+      width: 40px;
+      height: 1px;
+      background: #d4bfb0;
+      opacity: 0.5;
+      margin: 0 auto;
+    }
+
+    /* Footer flourish */
+    .footer {
+      text-align: center;
+      padding: 1rem 2rem 3rem;
+      color: #c4a0a0;
+      font-size: 0.9rem;
+      font-style: italic;
+      letter-spacing: 0.03em;
+    }
+
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+    }
+
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    @media (max-width: 600px) {
+      .header { padding: 1.5rem 1.2rem 1.5rem; }
+      .pages { padding: 0 1rem 3rem; gap: 2rem; }
+      .page-wrapper { max-width: 100%; }
+      .page-wrapper:nth-child(1),
+      .page-wrapper:nth-child(2),
+      .page-wrapper:nth-child(3),
+      .page-wrapper:nth-child(4),
+      .page-wrapper:nth-child(5) { transform: rotate(0deg); }
+      .page-wrapper:nth-child(1):hover,
+      .page-wrapper:nth-child(2):hover,
+      .page-wrapper:nth-child(3):hover,
+      .page-wrapper:nth-child(4):hover,
+      .page-wrapper:nth-child(5):hover { transform: scale(1.01); }
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1rem 1.2rem 0;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<div class="header">
+  <a href="/writings" class="back-link">← back to writings</a>
+</div>
+
+<div class="pages">
+  <div class="page-wrapper">
+    <img src="/writings/feeling-empty-1.svg" alt="feeling empty page 1" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/feeling-empty-2.svg" alt="feeling empty page 2" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/feeling-empty-3.svg" alt="feeling empty page 3" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/feeling-empty-4.svg" alt="feeling empty page 4" loading="lazy">
+  </div>
+
+  <div class="page-divider"></div>
+
+  <div class="page-wrapper">
+    <img src="/writings/feeling-empty-5.svg" alt="feeling empty page 5" loading="lazy">
+  </div>
+</div>
+
+<div class="footer">
+  ✦
+</div>
+
+<script>
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    petal.style.cssText = `
+      left: ${startX}px; top: -20px;
+      width: ${size}px; height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s; animation-delay: ${delay}s;
+      --drift: ${drift}px; --spin: ${spin}deg;
+    `;
+    petal.animate([
+      { top: '-20px' },
+      { top: `${window.innerHeight + 20}px` }
+    ], { duration: duration * 1000, delay: delay * 1000, fill: 'forwards' });
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  }
+  setInterval(createPetal, 1800);
+  for (let i = 0; i < 6; i++) setTimeout(createPetal, i * 700);
+</script>
+
+</body>
+</html>
