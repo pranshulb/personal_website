@@ -95,14 +95,14 @@
       pointer-events: none;
       z-index: 1;
       opacity: 0;
-      animation: fall linear forwards;
+      animation: fall linear infinite;
     }
 
     @keyframes fall {
-      0% { opacity: 0; transform: translateY(0) translateX(0) rotate(0deg) scale(0.8); }
-      10% { opacity: 0.6; }
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
       90% { opacity: 0.3; }
-      100% { opacity: 0; transform: translateY(110vh) translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
     .epigraph {
@@ -154,23 +154,47 @@
 </div>
 
 <script>
-  // Cherry blossom petals
   function createPetal() {
     const petal = document.createElement('div');
-    petal.classList.add('petal');
-    petal.innerHTML = '🌸';
-    petal.style.left = Math.random() * 100 + 'vw';
-    petal.style.top = '-20px';
-    petal.style.fontSize = (Math.random() * 10 + 8) + 'px';
-    const duration = Math.random() * 6 + 6;
-    petal.style.animationDuration = duration + 's';
-    petal.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
-    petal.style.setProperty('--spin', (Math.random() * 360) + 'deg');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    petal.style.cssText = `
+      left: ${startX}px;
+      top: -20px;
+      width: ${size}px;
+      height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s;
+      animation-delay: ${delay}s;
+      --drift: ${drift}px;
+      --spin: ${spin}deg;
+    `;
+
+    petal.animate([
+      { top: '-20px' },
+      { top: `${window.innerHeight + 20}px` }
+    ], {
+      duration: duration * 1000,
+      delay: delay * 1000,
+      fill: 'forwards'
+    });
+
     document.body.appendChild(petal);
-    setTimeout(() => petal.remove(), duration * 1000);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
   }
-  setInterval(createPetal, 2000);
-  for (let i = 0; i < 3; i++) setTimeout(createPetal, i * 700);
+
+  setInterval(createPetal, 1500);
+  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
 </script>
 
 </body>
