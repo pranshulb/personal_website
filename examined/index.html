@@ -1718,7 +1718,7 @@ body.modal-open > *:not(.contradiction-interstitial) {
 <body>
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
-<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme between pink and dark modes">I'm boring</button>
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme between pink and dark modes">⚙</button>
 
 <div class="screen active" id="intro-screen" role="main" aria-labelledby="intro-title">
   <div class="intro-content">
@@ -1829,7 +1829,7 @@ function toggleTheme() {
     localStorage.setItem('examined-theme', 'dark');
   } else {
     html.setAttribute('data-theme', 'pink');
-    btn.textContent = "I'm boring";
+    btn.textContent = '⚙';
     localStorage.setItem('examined-theme', 'pink');
   }
 }
@@ -1840,13 +1840,13 @@ function toggleTheme() {
   if (saved === 'dark') {
     // user explicitly chose dark, keep it
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('theme-toggle').textContent = '✿';
+      document.getElementById('theme-toggle').textContent = '⚙';
     });
   } else {
     // default to pink
     document.documentElement.setAttribute('data-theme', 'pink');
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('theme-toggle').textContent = "I'm boring";
+      document.getElementById('theme-toggle').textContent = '⚙';
     });
   }
 })();
