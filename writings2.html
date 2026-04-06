@@ -6,371 +6,255 @@
   <title>notebook — pranshul's cafe</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
       font-family: 'EB Garamond', Georgia, serif;
       min-height: 100vh;
       color: #3a2f2f;
-      background: #faf5ef;
+      background: #f0e8de;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       overflow: hidden;
     }
 
     .epigraph {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 0.85rem;
-      color: #c4a0a0;
-      letter-spacing: 0.03em;
-      z-index: 100;
+      position: fixed; top:1.5rem; right:1.5rem;
+      font-size:0.85rem; color:#c4a0a0; letter-spacing:0.03em; z-index:200;
     }
-
     .back-link {
-      position: fixed;
-      top: 1.5rem;
-      left: 1.5rem;
-      font-size: 0.9rem;
-      color: #b09a8a;
-      text-decoration: none;
-      z-index: 100;
-      transition: color 0.3s;
+      position:fixed; top:1.5rem; left:1.5rem;
+      font-size:0.9rem; color:#b09a8a; text-decoration:none; z-index:200;
+      transition:color 0.3s;
     }
-    .back-link:hover { color: #3a2f2f; }
+    .back-link:hover { color:#3a2f2f; }
 
-    /* ========== BOOK ========== */
-    .book-scene {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+    /* ── scene ── */
+    .scene {
+      display:flex; flex-direction:column; align-items:center;
+      width:100%; padding:1rem;
+    }
+
+    /* ── book wrapper ── */
+    .book-wrap {
+      position: relative;
       width: 100%;
-      padding: 2rem 1rem;
+      max-width: 520px;
     }
 
+    /* stacked paper edges to the right of the book */
+    .paper-stack {
+      position: absolute;
+      top: 0.5%; bottom: 0.5%;
+      right: -8px;
+      width: 9px;
+      background: repeating-linear-gradient(
+        to right,
+        #e8dfd4 0px, #e8dfd4 1px,
+        #ede5da 1px, #ede5da 2px,
+        #e4dbd0 2px, #e4dbd0 3px,
+        #efe7dc 3px, #efe7dc 4px,
+        #e2d9ce 4px, #e2d9ce 5px,
+        #ece3d8 5px, #ece3d8 6px,
+        #e0d7cc 6px, #e0d7cc 7px,
+        #eae1d6 7px, #eae1d6 8px,
+        #dfd6cb 8px, #dfd6cb 9px
+      );
+      border-right: 1px solid rgba(180,160,140,0.25);
+      border-top: 1px solid rgba(180,160,140,0.12);
+      border-bottom: 1px solid rgba(180,160,140,0.12);
+      border-radius: 0 2px 2px 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* the actual 3d book */
     .book {
       position: relative;
       width: 100%;
-      max-width: 580px;
-      aspect-ratio: 0.75;
-      perspective: 2000px;
+      aspect-ratio: 0.72;
+      perspective: 2200px;
+      perspective-origin: 50% 48%;
       cursor: pointer;
     }
 
-    /* the "spine" shadow on the left */
-    .book::before {
-      content: '';
+    /* spine shadow */
+    .spine {
       position: absolute;
-      left: 0;
-      top: 2%;
-      bottom: 2%;
-      width: 3px;
-      background: linear-gradient(to right, rgba(58,47,47,0.12), transparent);
-      z-index: 50;
-      border-radius: 1px;
+      top: 0; left: 0; bottom: 0;
+      width: 5px;
+      background: linear-gradient(to right,
+        rgba(40,25,15,0.18) 0%,
+        rgba(40,25,15,0.06) 60%,
+        transparent 100%
+      );
+      z-index: 50; pointer-events: none; border-radius: 1px 0 0 1px;
     }
 
-    /* ========== PAGE LEAF ========== */
+    /* ── leaves ── */
     .leaf {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       transform-origin: left center;
       transform-style: preserve-3d;
-      transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
-      z-index: 1;
+      will-change: transform;
+      cursor: pointer;
     }
 
-    .leaf.turning {
-      transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
-    }
-
-    .leaf.flipped {
-      transform: rotateY(-180deg);
-    }
-
-    /* front of the page */
-    .leaf-front {
-      position: absolute;
-      inset: 0;
+    .face {
+      position: absolute; inset: 0;
       backface-visibility: hidden;
-      border-radius: 0 3px 3px 0;
+      -webkit-backface-visibility: hidden;
       overflow: hidden;
+      border-radius: 0 2px 2px 0;
     }
 
-    /* back of the page (visible when flipped) */
-    .leaf-back {
-      position: absolute;
-      inset: 0;
-      backface-visibility: hidden;
+    .face.back {
       transform: rotateY(180deg);
-      border-radius: 3px 0 0 3px;
-      background: #f8f3ec;
+      border-radius: 2px 0 0 2px;
+    }
+
+    /* page surface */
+    .page-surface {
+      width: 100%; height: 100%;
+      background: #fefcf8;
+      border: 1px solid rgba(180,160,140,0.18);
+      position: relative;
       overflow: hidden;
     }
 
-    /* page content styling */
-    .leaf-front .page-content,
-    .leaf-back .page-content {
-      width: 100%;
-      height: 100%;
-      background: #fefcf8;
-      border: 1px solid rgba(180, 160, 140, 0.15);
-      border-radius: inherit;
-      position: relative;
-    }
+    .face .page-surface { border-left: none; border-radius: inherit; }
+    .face.back .page-surface { border-right: none; border-radius: inherit; }
 
-    .leaf-front .page-content {
-      border-left: none;
-      border-radius: 0 3px 3px 0;
-    }
-
-    .leaf-back .page-content {
-      border-right: none;
-      border-radius: 3px 0 0 3px;
-    }
-
-    .leaf-front img,
-    .leaf-back img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-
-    /* shadow overlay that intensifies as page turns — simulates light */
-    .leaf-front::after {
+    /* paper noise texture */
+    .page-surface::before {
       content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to left,
-        rgba(0,0,0,0) 0%,
-        rgba(0,0,0,0) 85%,
-        rgba(0,0,0,0.03) 100%
-      );
+      position: absolute; inset: 0; z-index: 3;
       pointer-events: none;
-      border-radius: inherit;
-      transition: opacity 0.6s;
-      z-index: 2;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
     }
 
-    /* dynamic shadow on the page underneath when one is turning */
-    .page-shadow {
-      position: absolute;
-      inset: 0;
+    /* fold-shadow gradient overlay — updated by JS */
+    .fold-shadow {
+      position: absolute; inset: 0; z-index: 4;
+      pointer-events: none;
+      opacity: 0;
+      will-change: opacity;
+    }
+    .face .fold-shadow {
+      background: linear-gradient(to left,
+        rgba(20,10,5,0.55) 0%,
+        rgba(20,10,5,0.15) 25%,
+        rgba(20,10,5,0.02) 55%,
+        transparent 70%
+      );
+    }
+    .face.back .fold-shadow {
       background: linear-gradient(to right,
-        rgba(0,0,0,0.15) 0%,
-        rgba(0,0,0,0.06) 3%,
-        rgba(0,0,0,0) 15%
+        rgba(20,10,5,0.4) 0%,
+        rgba(20,10,5,0.1) 30%,
+        transparent 55%
+      );
+    }
+
+    /* cast shadow — on top of the book, under the turning leaf */
+    .cast-shadow {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right,
+        rgba(20,10,5,0.28) 0%,
+        rgba(20,10,5,0.12) 8%,
+        rgba(20,10,5,0.04) 25%,
+        transparent 50%
       );
       opacity: 0;
-      transition: opacity 0.5s ease;
       pointer-events: none;
-      z-index: 40;
-      border-radius: 0 3px 3px 0;
-    }
-
-    .book.is-turning .page-shadow {
-      opacity: 1;
-    }
-
-    /* paper edge lines (stacked pages effect on right side) */
-    .paper-edges {
-      position: absolute;
-      top: 0;
-      right: -1px;
-      bottom: 0;
-      width: 6px;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .paper-edges::before {
-      content: '';
-      position: absolute;
-      top: 1px;
-      right: 0;
-      bottom: -1px;
-      width: 100%;
-      background: linear-gradient(to right,
-        transparent 0%,
-        #f0eae2 20%,
-        #ede6dd 40%,
-        #eae3d9 60%,
-        #e7e0d5 80%,
-        #e4ddd2 100%
-      );
+      z-index: 200;
+      will-change: opacity;
       border-radius: 0 2px 2px 0;
-      border: 1px solid rgba(180, 160, 140, 0.1);
-      border-left: none;
     }
 
-    /* paper texture grain */
-    .leaf-front .page-content::before,
-    .leaf-back .page-content::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 1;
-      border-radius: inherit;
+    /* page content */
+    .page-surface img {
+      width: 100%; height: 100%;
+      object-fit: contain; display: block;
+      position: relative; z-index: 1;
     }
 
-    /* ========== TITLE PAGE ========== */
-    .title-page {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 3rem;
+    .title-page, .section-page {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 2.5rem;
+      position: relative; z-index: 1;
     }
-
     .title-page h1 {
-      font-size: 2.2rem;
-      font-weight: 400;
-      color: #3a2f2f;
-      margin-bottom: 1rem;
+      font-size: 2rem; font-weight: 400; color: #3a2f2f; margin-bottom: 0.8rem;
     }
-
-    .title-page .subtitle {
-      font-size: 1rem;
-      color: #b09a8a;
-      font-style: italic;
-      line-height: 1.6;
+    .title-page .sub {
+      font-size: 0.95rem; color: #b09a8a; font-style: italic; line-height: 1.7;
     }
-
-    .title-page .divider {
-      width: 40px;
-      height: 1px;
-      background: #d4bfb0;
-      margin: 1.5rem auto;
+    .title-page .div {
+      width: 36px; height: 1px; background: #d4bfb0; margin: 1.2rem auto;
     }
-
     .title-page .toc {
-      list-style: none;
-      padding: 0;
-      font-size: 1rem;
-      color: #9a8a7a;
+      list-style: none; font-size: 0.95rem; color: #9a8a7a;
     }
-
-    .title-page .toc li { padding: 0.3rem 0; }
+    .title-page .toc li { padding: 0.25rem 0; }
     .title-page .toc li::before { content: '· '; color: #c4a0a0; }
-
     .title-page .hint {
-      font-size: 0.8rem;
-      color: #c4a0a0;
-      margin-top: 2rem;
-      letter-spacing: 0.05em;
+      font-size: 0.75rem; color: #c4a0a0; margin-top: 1.8rem;
+      letter-spacing: 0.06em;
     }
-
-    /* section divider */
-    .section-page {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
     .section-page h2 {
-      font-size: 1.8rem;
-      font-weight: 400;
-      color: #3a2f2f;
-      font-style: italic;
-      text-align: center;
+      font-size: 1.7rem; font-weight: 400; font-style: italic; color: #3a2f2f;
     }
 
-    /* blank back page */
-    .blank-page {
-      width: 100%;
-      height: 100%;
-    }
+    .blank { background: #faf5ef; }
 
-    /* ========== CONTROLS ========== */
+    /* ── controls ── */
     .controls {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-      margin-top: 1.5rem;
-      user-select: none;
-      z-index: 60;
+      display: flex; align-items: center; gap: 1.8rem;
+      margin-top: 1.2rem; user-select: none; z-index: 201;
     }
-
     .nav-btn {
       background: none;
       border: 1px solid #d4bfb0;
       color: #9a8a7a;
       font-family: 'EB Garamond', Georgia, serif;
-      font-size: 1.1rem;
-      padding: 0.5rem 1.2rem;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: all 0.3s;
+      font-size: 1.05rem;
+      padding: 0.45rem 1.1rem;
+      border-radius: 3px; cursor: pointer;
+      transition: border-color 0.25s, color 0.25s;
       letter-spacing: 0.03em;
     }
-
-    .nav-btn:hover { border-color: #c47a7a; color: #c47a7a; }
-    .nav-btn:disabled { opacity: 0.3; cursor: default; border-color: #d4bfb0; color: #9a8a7a; }
-
+    .nav-btn:hover:not(:disabled) { border-color: #c47a7a; color: #c47a7a; }
+    .nav-btn:disabled { opacity: 0.28; cursor: default; }
     .page-num {
-      font-size: 0.9rem;
-      color: #b09a8a;
-      min-width: 60px;
-      text-align: center;
-      letter-spacing: 0.05em;
+      font-size: 0.88rem; color: #b09a8a;
+      min-width: 64px; text-align: center; letter-spacing: 0.05em;
     }
 
-    /* ========== PETALS ========== */
+    /* ── petals ── */
     .petal {
-      position: fixed;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0;
-      animation: fall linear infinite;
+      position: fixed; pointer-events: none; z-index: 1; opacity: 0;
     }
-
     @keyframes fall {
-      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
-      10% { opacity: 0.5; }
-      90% { opacity: 0.3; }
-      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+      0%   { opacity:0;   transform:translateX(0)          rotate(0deg)           scale(0.8); }
+      8%   { opacity:0.5; }
+      92%  { opacity:0.3; }
+      100% { opacity:0;   transform:translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
-    /* ========== MOBILE ========== */
-    @media (max-width: 640px) {
-      .epigraph {
-        position: relative;
-        top: auto;
-        right: auto;
-        text-align: center;
-        padding: 1rem 1rem 0;
-        font-size: 0.8rem;
-      }
-      .back-link {
-        position: relative;
-        top: auto;
-        left: auto;
-        display: block;
-        padding: 0.8rem 1rem 0;
-      }
-      .book-scene {
-        min-height: auto;
-        padding: 1rem 0.5rem 2rem;
-      }
-      .book { max-width: 100%; }
-      .title-page h1 { font-size: 1.6rem; }
-      .title-page { padding: 2rem 1.5rem; }
-      .section-page h2 { font-size: 1.4rem; }
-      .controls { gap: 1.2rem; margin-top: 1rem; }
-      .nav-btn { padding: 0.4rem 0.9rem; font-size: 1rem; }
+    @media (max-width:640px) {
+      .epigraph { position:relative; top:auto; right:auto; text-align:center; padding:0.8rem 1rem 0; font-size:0.78rem; }
+      .back-link { position:relative; top:auto; left:auto; display:block; padding:0.8rem 1rem 0; }
+      body { justify-content: flex-start; }
+      .scene { padding:0.5rem 0.5rem 1.5rem; }
+      .title-page h1 { font-size:1.6rem; }
+      .section-page h2 { font-size:1.4rem; }
+      .controls { gap:1rem; margin-top:0.8rem; }
+      .nav-btn { padding:0.35rem 0.8rem; font-size:0.95rem; }
     }
   </style>
 </head>
@@ -379,13 +263,15 @@
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <a href="/writings" class="back-link">← back</a>
 
-<div class="book-scene">
-  <div class="book" id="book">
-    <div class="paper-edges"></div>
-    <div class="page-shadow" id="pageShadow"></div>
-    <!-- leaves get built by JS -->
+<div class="scene">
+  <div class="book-wrap">
+    <div class="paper-stack"></div>
+    <div class="book" id="book">
+      <div class="spine"></div>
+      <div class="cast-shadow" id="castShadow"></div>
+      <!-- leaves injected by JS -->
+    </div>
   </div>
-
   <div class="controls">
     <button class="nav-btn" id="prev" disabled>← prev</button>
     <span class="page-num" id="pageNum">cover</span>
@@ -394,234 +280,241 @@
 </div>
 
 <script>
-(function() {
-  // define pages: each leaf has a front and back
-  // we pair pages so each "leaf" you flip shows front -> back
-  var pages = [
-    // cover
-    { type: 'title' },
-    // section: passion
-    { type: 'section', title: 'passion' },
-    // passion pages
-    { type: 'img', src: '/writings/passion-1.svg', alt: 'passion page 1' },
-    { type: 'img', src: '/writings/passion-2.svg', alt: 'passion page 2' },
-    { type: 'img', src: '/writings/passion-3.svg', alt: 'passion page 3' },
-    // section: feeling empty
-    { type: 'section', title: 'feeling empty' },
-    // feeling empty pages
-    { type: 'img', src: '/writings/feeling-empty-1.svg', alt: 'feeling empty page 1' },
-    { type: 'img', src: '/writings/feeling-empty-2.svg', alt: 'feeling empty page 2' },
-    { type: 'img', src: '/writings/feeling-empty-3.svg', alt: 'feeling empty page 3' },
-    { type: 'img', src: '/writings/feeling-empty-4.svg', alt: 'feeling empty page 4' },
-    { type: 'img', src: '/writings/feeling-empty-5.svg', alt: 'feeling empty page 5' },
-    // section: important and sadness
-    { type: 'section', title: 'what\'s really important<br>and about sadness' },
-    // important-and-sadness pages
-    { type: 'img', src: '/writings/important-and-sadness-1.svg', alt: 'important and sadness page 1' },
-    { type: 'img', src: '/writings/important-and-sadness-2.svg', alt: 'important and sadness page 2' },
-    { type: 'img', src: '/writings/important-and-sadness-3.svg', alt: 'important and sadness page 3' },
-    { type: 'img', src: '/writings/important-and-sadness-4.svg', alt: 'important and sadness page 4' },
-    { type: 'img', src: '/writings/important-and-sadness-5.svg', alt: 'important and sadness page 5' }
+(function(){
+  'use strict';
+
+  /* ── page definitions ── */
+  var PAGES = [
+    { t:'title' },
+    { t:'section', h:'passion' },
+    { t:'img', src:'/writings/passion-1.svg' },
+    { t:'img', src:'/writings/passion-2.svg' },
+    { t:'img', src:'/writings/passion-3.svg' },
+    { t:'section', h:'feeling empty' },
+    { t:'img', src:'/writings/feeling-empty-1.svg' },
+    { t:'img', src:'/writings/feeling-empty-2.svg' },
+    { t:'img', src:'/writings/feeling-empty-3.svg' },
+    { t:'img', src:'/writings/feeling-empty-4.svg' },
+    { t:'img', src:'/writings/feeling-empty-5.svg' },
+    { t:'section', h:"what\u2019s really important\u2026\u00A0and about sadness" },
+    { t:'img', src:'/writings/important-and-sadness-1.svg' },
+    { t:'img', src:'/writings/important-and-sadness-2.svg' },
+    { t:'img', src:'/writings/important-and-sadness-3.svg' },
+    { t:'img', src:'/writings/important-and-sadness-4.svg' },
+    { t:'img', src:'/writings/important-and-sadness-5.svg' }
   ];
 
-  function makePageHTML(p) {
-    if (p.type === 'title') {
-      return '<div class="page-content"><div class="title-page">' +
+  /* ── build a face's inner HTML ── */
+  function faceHTML(p) {
+    if (!p) return '<div class="page-surface blank"></div>';
+    if (p.t === 'title') {
+      return '<div class="page-surface"><div class="title-page">' +
         '<h1>writings</h1>' +
-        '<p class="subtitle">I am thinking out loud and taking you<br>through this journey with me.</p>' +
-        '<div class="divider"></div>' +
+        '<p class="sub">I am thinking out loud and<br>taking you through this journey with me.</p>' +
+        '<div class="div"></div>' +
         '<ul class="toc"><li>passion</li><li>feeling empty</li><li>what\'s really important and about sadness</li></ul>' +
-        '<p class="hint">click or press → to turn pages</p>' +
-        '</div></div>';
+        '<p class="hint">→ click or swipe to turn pages</p>' +
+        '</div><div class="fold-shadow"></div></div>';
     }
-    if (p.type === 'section') {
-      return '<div class="page-content"><div class="section-page"><h2>' + p.title + '</h2></div></div>';
+    if (p.t === 'section') {
+      return '<div class="page-surface"><div class="section-page"><h2>' + p.h + '</h2></div>' +
+        '<div class="fold-shadow"></div></div>';
     }
-    if (p.type === 'img') {
-      return '<div class="page-content"><img src="' + p.src + '" alt="' + p.alt + '" loading="lazy"></div>';
+    if (p.t === 'img') {
+      return '<div class="page-surface"><img src="' + p.src + '" loading="lazy">' +
+        '<div class="fold-shadow"></div></div>';
     }
-    return '<div class="page-content"><div class="blank-page"></div></div>';
+    return '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
   }
 
-  function makeBlankHTML() {
-    return '<div class="page-content"><div class="blank-page"></div></div>';
-  }
+  /* ── build leaves: each page is its own leaf ── */
+  var book      = document.getElementById('book');
+  var castShEl  = document.getElementById('castShadow');
+  var leafEls   = [];
+  var frontShadows = [];
+  var backShadows  = [];
+  var N = PAGES.length;
 
-  // pair pages into leaves: front[i] / back[i]
-  // leaf 0 front = page 0 (cover), back = page 1
-  // leaf 1 front = page 2, back = page 3
-  // etc.
-  var leaves = [];
-  for (var i = 0; i < pages.length; i += 2) {
-    var front = pages[i];
-    var back = (i + 1 < pages.length) ? pages[i + 1] : null;
-    leaves.push({ front: front, back: back });
-  }
-
-  var book = document.getElementById('book');
-  var leafEls = [];
-
-  // build leaves in reverse order so first leaf is on top
-  for (var j = leaves.length - 1; j >= 0; j--) {
+  for (var i = N - 1; i >= 0; i--) {
     var leaf = document.createElement('div');
     leaf.className = 'leaf';
-    leaf.style.zIndex = leaves.length - j;
-    leaf.dataset.index = j;
+    leaf.style.zIndex = N - i; // leaf 0 on top
 
     var front = document.createElement('div');
-    front.className = 'leaf-front';
-    front.innerHTML = makePageHTML(leaves[j].front);
+    front.className = 'face front';
+    front.innerHTML = faceHTML(PAGES[i]);
 
     var back = document.createElement('div');
-    back.className = 'leaf-back';
-    back.innerHTML = leaves[j].back ? makePageHTML(leaves[j].back) : makeBlankHTML();
+    back.className = 'face back';
+    // back shows blank paper (back of the page)
+    back.innerHTML = '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
 
     leaf.appendChild(front);
     leaf.appendChild(back);
     book.appendChild(leaf);
-    leafEls[j] = leaf;
+
+    leafEls[i] = leaf;
+    frontShadows[i] = front.querySelector('.fold-shadow');
+    backShadows[i]  = back.querySelector('.fold-shadow');
   }
 
-  var currentLeaf = 0; // index of the topmost unflipped leaf
-  var totalLeaves = leaves.length;
+  /* ── state ── */
+  var current     = 0;   // index of the topmost unflipped leaf
   var isAnimating = false;
+  var DURATION    = 850; // ms
 
-  function updateControls() {
-    document.getElementById('prev').disabled = currentLeaf === 0;
-    document.getElementById('next').disabled = currentLeaf >= totalLeaves;
+  /* ── easing ── */
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+  }
 
-    var num = document.getElementById('pageNum');
-    if (currentLeaf === 0) {
-      num.textContent = 'cover';
+  /* ── RAF flip ── */
+  function flip(leafIdx, toFlipped, onDone) {
+    var leaf     = leafEls[leafIdx];
+    var fShadow  = frontShadows[leafIdx];
+    var bShadow  = backShadows[leafIdx];
+    var startDeg = toFlipped ? 0    : -180;
+    var endDeg   = toFlipped ? -180 : 0;
+    var t0 = null;
+
+    // Bring leaf to top during flip
+    leaf.style.zIndex = 9999;
+
+    function tick(ts) {
+      if (!t0) t0 = ts;
+      var raw  = Math.min((ts - t0) / DURATION, 1);
+      var ease = easeInOutCubic(raw);
+
+      /* rotation */
+      var deg = startDeg + (endDeg - startDeg) * ease;
+
+      /* lift: peaks at raw=0.5 (sine wave) */
+      var lift = Math.sin(Math.PI * raw) * 18; // px translateZ
+
+      leaf.style.transform =
+        'rotateY(' + deg + 'deg) translateZ(' + lift + 'px)';
+
+      /* fold gradient intensities */
+      var foldRaw  = Math.sin(Math.PI * raw);      // 0→1→0
+      var halfWay  = raw < 0.5 ? raw * 2 : 1;     // 0→1 (first half)
+      var halfBack = raw > 0.5 ? (raw-0.5)*2 : 0;  // 0→1 (second half)
+
+      /* front shadow: rises as page lifts (first half) */
+      fShadow.style.opacity = Math.sin(Math.PI * Math.min(raw * 1.4, 1)) * (toFlipped ? 0.88 : 0.5);
+
+      /* back shadow: appears as page settles (second half) */
+      bShadow.style.opacity = halfBack * (toFlipped ? 0.45 : 0.75);
+
+      /* cast shadow on book (peaks at midpoint) */
+      castShEl.style.opacity = foldRaw * 0.32;
+
+      if (raw < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        leaf.style.transform = 'rotateY(' + endDeg + 'deg) translateZ(0)';
+        fShadow.style.opacity = 0;
+        bShadow.style.opacity = 0;
+        castShEl.style.opacity = 0;
+        onDone();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  /* ── controls update ── */
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var numEl   = document.getElementById('pageNum');
+
+  function updateUI() {
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current >= N;
+    if (current === 0) {
+      numEl.textContent = 'cover';
+    } else if (current >= N) {
+      numEl.textContent = N + ' / ' + N;
     } else {
-      // each leaf = 2 pages, current visible is front of currentLeaf
-      var pageIndex = currentLeaf * 2;
-      num.textContent = pageIndex + ' / ' + (pages.length - 1);
+      numEl.textContent = current + ' / ' + N;
     }
   }
 
+  /* ── flip next ── */
   function flipNext() {
-    if (currentLeaf >= totalLeaves || isAnimating) return;
+    if (current >= N || isAnimating) return;
     isAnimating = true;
-
-    var leaf = leafEls[currentLeaf];
-    leaf.classList.add('turning');
-    book.classList.add('is-turning');
-
-    // update z-index so flipping leaf is on top
-    leaf.style.zIndex = 100;
-
-    leaf.classList.add('flipped');
-
-    currentLeaf++;
-    updateControls();
-
-    setTimeout(function() {
-      leaf.style.zIndex = 0;
-      book.classList.remove('is-turning');
+    var idx = current;
+    current++;
+    updateUI();
+    flip(idx, true, function() {
+      // restore z-index to "behind" position
+      leafEls[idx].style.zIndex = 0;
       isAnimating = false;
-    }, 1000);
+    });
   }
 
+  /* ── flip prev ── */
   function flipPrev() {
-    if (currentLeaf <= 0 || isAnimating) return;
+    if (current <= 0 || isAnimating) return;
     isAnimating = true;
-
-    currentLeaf--;
-    var leaf = leafEls[currentLeaf];
-
-    leaf.style.zIndex = 100;
-    book.classList.add('is-turning');
-    leaf.classList.add('turning');
-
-    leaf.classList.remove('flipped');
-
-    updateControls();
-
-    setTimeout(function() {
-      leaf.style.zIndex = totalLeaves - currentLeaf;
-      book.classList.remove('is-turning');
+    current--;
+    var idx = current;
+    updateUI();
+    flip(idx, false, function() {
+      leafEls[idx].style.zIndex = N - idx;
       isAnimating = false;
-    }, 1000);
+    });
   }
 
-  document.getElementById('next').addEventListener('click', function(e) {
-    e.stopPropagation();
-    flipNext();
-  });
-  document.getElementById('prev').addEventListener('click', function(e) {
-    e.stopPropagation();
-    flipPrev();
-  });
+  /* ── event bindings ── */
+  nextBtn.addEventListener('click', function(e){ e.stopPropagation(); flipNext(); });
+  prevBtn.addEventListener('click', function(e){ e.stopPropagation(); flipPrev(); });
 
-  // click on book — left quarter = prev, rest = next
   book.addEventListener('click', function(e) {
-    var rect = book.getBoundingClientRect();
-    var x = e.clientX - rect.left;
-    if (x < rect.width * 0.25) {
-      flipPrev();
-    } else {
-      flipNext();
-    }
+    var r = book.getBoundingClientRect();
+    if ((e.clientX - r.left) < r.width * 0.28) flipPrev();
+    else flipNext();
   });
 
-  // keyboard
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === ' ') {
-      e.preventDefault();
-      flipNext();
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      flipPrev();
-    }
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); flipNext(); }
+    else if (e.key === 'ArrowLeft')               { e.preventDefault(); flipPrev(); }
   });
 
-  // swipe
-  var touchStartX = 0;
-  book.addEventListener('touchstart', function(e) {
-    touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
+  var tx0 = 0;
+  book.addEventListener('touchstart', function(e){ tx0 = e.changedTouches[0].screenX; }, {passive:true});
+  book.addEventListener('touchend',   function(e){
+    var d = e.changedTouches[0].screenX - tx0;
+    if (Math.abs(d) > 45) { if (d < 0) flipNext(); else flipPrev(); }
+  }, {passive:true});
 
-  book.addEventListener('touchend', function(e) {
-    var diff = e.changedTouches[0].screenX - touchStartX;
-    if (Math.abs(diff) > 50) {
-      if (diff < 0) flipNext();
-      else flipPrev();
-    }
-  }, { passive: true });
+  updateUI();
 
-  updateControls();
-
-  // petals
-  function createPetal() {
-    var petal = document.createElement('div');
-    petal.className = 'petal';
-    var startX = Math.random() * window.innerWidth;
-    var size = 8 + Math.random() * 12;
-    var duration = 8 + Math.random() * 12;
-    var drift = -60 + Math.random() * 120;
+  /* ── cherry blossom petals ── */
+  function makePetal() {
+    var p = document.createElement('div');
+    p.className = 'petal';
+    var sz   = 8 + Math.random() * 11;
+    var dur  = 9 + Math.random() * 11;
+    var del  = Math.random() * 4;
+    var dx   = -70 + Math.random() * 140;
     var spin = 180 + Math.random() * 540;
-    var delay = Math.random() * 5;
-    var colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
-    var color = colors[Math.floor(Math.random() * colors.length)];
-    petal.style.cssText =
-      'left:' + startX + 'px;top:-20px;' +
-      'width:' + size + 'px;height:' + (size * 0.7) + 'px;' +
-      'background:radial-gradient(ellipse at center,' + color + ' 0%,transparent 70%);' +
+    var cols = ['#f0b0b0','#e8a0a0','#f2c0c0','#dba0a0','#eab0b0'];
+    var col  = cols[Math.floor(Math.random()*cols.length)];
+    p.style.cssText =
+      'left:'+(Math.random()*window.innerWidth)+'px;top:-20px;' +
+      'width:'+sz+'px;height:'+(sz*0.65)+'px;' +
+      'background:radial-gradient(ellipse,'+col+' 0%,transparent 70%);' +
       'border-radius:50% 0 50% 0;' +
-      'animation-duration:' + duration + 's;animation-delay:' + delay + 's;' +
-      '--drift:' + drift + 'px;--spin:' + spin + 'deg;';
-    petal.animate([
-      { top: '-20px' },
-      { top: (window.innerHeight + 20) + 'px' }
-    ], { duration: duration * 1000, delay: delay * 1000, fill: 'forwards' });
-    document.body.appendChild(petal);
-    setTimeout(function() { petal.remove(); }, (duration + delay) * 1000);
+      '--drift:'+dx+'px;--spin:'+spin+'deg;' +
+      'animation:fall '+(dur)+'s '+(del)+'s linear forwards;';
+    document.body.appendChild(p);
+    setTimeout(function(){ p.remove(); }, (dur+del)*1000);
   }
-  setInterval(createPetal, 1800);
-  for (var k = 0; k < 6; k++) setTimeout(createPetal, k * 700);
+  setInterval(makePetal, 1600);
+  for (var k=0; k<7; k++) setTimeout(makePetal, k*500);
+
 })();
 </script>
-
 </body>
 </html>
