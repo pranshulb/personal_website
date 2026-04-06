@@ -31,20 +31,17 @@
     }
     .back-link:hover { color:#3a2f2f; }
 
-    /* ── scene ── */
     .scene {
       display:flex; flex-direction:column; align-items:center;
       width:100%; padding:1rem;
     }
 
-    /* ── book wrapper ── */
     .book-wrap {
       position: relative;
       width: 100%;
       max-width: 520px;
     }
 
-    /* stacked paper edges to the right of the book */
     .paper-stack {
       position: absolute;
       top: 0.5%; bottom: 0.5%;
@@ -70,7 +67,6 @@
       z-index: 0;
     }
 
-    /* the actual 3d book */
     .book {
       position: relative;
       width: 100%;
@@ -80,7 +76,6 @@
       cursor: pointer;
     }
 
-    /* spine shadow */
     .spine {
       position: absolute;
       top: 0; left: 0; bottom: 0;
@@ -115,7 +110,6 @@
       border-radius: 2px 0 0 2px;
     }
 
-    /* page surface */
     .page-surface {
       width: 100%; height: 100%;
       background: #fefcf8;
@@ -135,7 +129,7 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
     }
 
-    /* fold-shadow gradient overlay — updated by JS */
+    /* fold-shadow gradient overlay */
     .fold-shadow {
       position: absolute; inset: 0; z-index: 4;
       pointer-events: none;
@@ -158,7 +152,7 @@
       );
     }
 
-    /* cast shadow — on top of the book, under the turning leaf */
+    /* cast shadow */
     .cast-shadow {
       position: absolute; inset: 0;
       background: linear-gradient(to right,
@@ -174,7 +168,6 @@
       border-radius: 0 2px 2px 0;
     }
 
-    /* page content */
     .page-surface img {
       width: 100%; height: 100%;
       object-fit: contain; display: block;
@@ -209,8 +202,21 @@
     .section-page h2 {
       font-size: 1.7rem; font-weight: 400; font-style: italic; color: #3a2f2f;
     }
-
     .blank { background: #faf5ef; }
+
+    /* page peek on hover */
+    .leaf.peek {
+      animation: pagePeek 0.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    }
+    .leaf.unpeek {
+      animation: pageUnpeek 0.35s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+    }
+    @keyframes pagePeek {
+      to { transform: rotateY(-12deg) translateZ(6px); }
+    }
+    @keyframes pageUnpeek {
+      to { transform: rotateY(0deg) translateZ(0); }
+    }
 
     /* ── controls ── */
     .controls {
@@ -240,10 +246,16 @@
       position: fixed; pointer-events: none; z-index: 1; opacity: 0;
     }
     @keyframes fall {
-      0%   { opacity:0;   transform:translateX(0)          rotate(0deg)           scale(0.8); }
+      0%   { opacity:0;   transform:translateX(0) rotate(0deg) scale(0.8); }
       8%   { opacity:0.5; }
       92%  { opacity:0.3; }
       100% { opacity:0;   transform:translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    /* sr-only for accessibility */
+    .sr-only {
+      position:absolute; width:1px; height:1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap; border:0;
     }
 
     @media (max-width:640px) {
@@ -269,7 +281,6 @@
     <div class="book" id="book">
       <div class="spine"></div>
       <div class="cast-shadow" id="castShadow"></div>
-      <!-- leaves injected by JS -->
     </div>
   </div>
   <div class="controls">
@@ -279,11 +290,22 @@
   </div>
 </div>
 
+<!-- aria live region for screen readers -->
+<div aria-live="polite" aria-atomic="true" class="sr-only" id="announcer"></div>
+
 <script>
 (function(){
   'use strict';
 
-  /* ── page definitions ── */
+  /* ══════════════════════════════════════
+     CONFIG
+     ══════════════════════════════════════ */
+  var DURATION = 900;
+  var isMobile = window.matchMedia('(max-width:640px)').matches || 'ontouchstart' in window;
+
+  /* ══════════════════════════════════════
+     PAGE DATA
+     ══════════════════════════════════════ */
   var PAGES = [
     { t:'title' },
     { t:'section', h:'passion' },
@@ -303,8 +325,11 @@
     { t:'img', src:'/writings/important-and-sadness-4.svg' },
     { t:'img', src:'/writings/important-and-sadness-5.svg' }
   ];
+  var N = PAGES.length;
 
-  /* ── build a face's inner HTML ── */
+  /* ══════════════════════════════════════
+     BUILD FACE HTML
+     ══════════════════════════════════════ */
   function faceHTML(p) {
     if (!p) return '<div class="page-surface blank"></div>';
     if (p.t === 'title') {
@@ -313,7 +338,7 @@
         '<p class="sub">I am thinking out loud and<br>taking you through this journey with me.</p>' +
         '<div class="div"></div>' +
         '<ul class="toc"><li>passion</li><li>feeling empty</li><li>what\'s really important and about sadness</li></ul>' +
-        '<p class="hint">→ click or swipe to turn pages</p>' +
+        '<p class="hint">\u2192 drag the page edge, click, or press arrow keys</p>' +
         '</div><div class="fold-shadow"></div></div>';
     }
     if (p.t === 'section') {
@@ -327,18 +352,20 @@
     return '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
   }
 
-  /* ── build leaves: each page is its own leaf ── */
-  var book      = document.getElementById('book');
-  var castShEl  = document.getElementById('castShadow');
-  var leafEls   = [];
+  /* ══════════════════════════════════════
+     BUILD LEAVES
+     ══════════════════════════════════════ */
+  var book         = document.getElementById('book');
+  var castShEl     = document.getElementById('castShadow');
+  var announcer    = document.getElementById('announcer');
+  var leafEls      = [];
   var frontShadows = [];
   var backShadows  = [];
-  var N = PAGES.length;
 
   for (var i = N - 1; i >= 0; i--) {
     var leaf = document.createElement('div');
     leaf.className = 'leaf';
-    leaf.style.zIndex = N - i; // leaf 0 on top
+    leaf.style.zIndex = N - i;
 
     var front = document.createElement('div');
     front.className = 'face front';
@@ -346,7 +373,6 @@
 
     var back = document.createElement('div');
     back.className = 'face back';
-    // back shows blank paper (back of the page)
     back.innerHTML = '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
 
     leaf.appendChild(front);
@@ -358,63 +384,138 @@
     backShadows[i]  = back.querySelector('.fold-shadow');
   }
 
-  /* ── state ── */
-  var current     = 0;   // index of the topmost unflipped leaf
+  /* ══════════════════════════════════════
+     STATE
+     ══════════════════════════════════════ */
+  var current     = 0;
   var isAnimating = false;
-  var DURATION    = 850; // ms
 
-  /* ── easing ── */
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+  /* ══════════════════════════════════════
+     EASING — spring settle
+     ══════════════════════════════════════ */
+  function easeFlip(t) {
+    if (t < 0.5) {
+      return 4 * t * t * t;
+    }
+    var p = -2 * t + 2;
+    var base = 1 - Math.pow(p, 3) / 2;
+    // tiny spring overshoot then settle
+    var spring = Math.sin(t * Math.PI * 1.2) * 0.018 * (1 - t);
+    return base + spring;
   }
 
-  /* ── RAF flip ── */
+  /* ══════════════════════════════════════
+     PAGE-TURN SOUND (synthesized)
+     ══════════════════════════════════════ */
+  var audioCtx = null;
+  function playPageSound() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e) { return; }
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    var bufferSize = Math.floor(audioCtx.sampleRate * 0.12);
+    var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.25;
+    }
+    var noise  = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    var filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 900;
+    filter.Q.value = 0.4;
+    var gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start(audioCtx.currentTime);
+    noise.stop(audioCtx.currentTime + 0.12);
+  }
+
+  /* ══════════════════════════════════════
+     SHADOW HELPERS
+     ══════════════════════════════════════ */
+  function updateShadows(leafIdx, raw, toFlipped) {
+    var fShadow = frontShadows[leafIdx];
+    var bShadow = backShadows[leafIdx];
+
+    if (isMobile) {
+      // simplified two-state shadows on mobile
+      if (raw < 0.08) {
+        fShadow.style.transition = 'opacity 0.4s ease';
+        fShadow.style.opacity = toFlipped ? 0.55 : 0.3;
+      }
+      if (raw > 0.92) {
+        fShadow.style.opacity = 0;
+        bShadow.style.opacity = 0;
+      }
+      castShEl.style.opacity = (raw > 0.15 && raw < 0.85) ? 0.22 : 0;
+    } else {
+      // desktop: per-frame non-linear shadows (claudisc tip: pow 0.6 lingers mid-flip)
+      var foldRaw = Math.pow(Math.sin(Math.PI * raw), 0.6);
+      fShadow.style.opacity = foldRaw * (toFlipped ? 0.88 : 0.5);
+      var halfBack = raw > 0.5 ? (raw - 0.5) * 2 : 0;
+      bShadow.style.opacity = Math.pow(halfBack, 0.7) * (toFlipped ? 0.45 : 0.75);
+      castShEl.style.opacity = foldRaw * 0.35;
+    }
+  }
+
+  function clearShadows(leafIdx) {
+    frontShadows[leafIdx].style.transition = '';
+    frontShadows[leafIdx].style.opacity = 0;
+    backShadows[leafIdx].style.opacity = 0;
+    castShEl.style.opacity = 0;
+  }
+
+  /* ══════════════════════════════════════
+     COMPUTE TRANSFORM (shared by flip + drag)
+     ══════════════════════════════════════ */
+  function computeTransform(deg, raw) {
+    // lift: translateZ peaks at midpoint
+    var lift = Math.sin(Math.PI * raw) * 22;
+    // curl: skewY peaks at midpoint (paper bend illusion)
+    var curl = Math.sin(Math.PI * raw) * 7;
+    // foreshortening: scaleX shrinks slightly mid-turn
+    var scaleX = 1 - Math.sin(Math.PI * raw) * 0.035;
+
+    return 'rotateY(' + deg + 'deg) ' +
+           'translateZ(' + lift + 'px) ' +
+           'scaleX(' + scaleX + ') ' +
+           'skewY(' + (deg < -90 ? -curl : curl) + 'deg)';
+  }
+
+  /* ══════════════════════════════════════
+     RAF FLIP ANIMATION
+     ══════════════════════════════════════ */
   function flip(leafIdx, toFlipped, onDone) {
     var leaf     = leafEls[leafIdx];
-    var fShadow  = frontShadows[leafIdx];
-    var bShadow  = backShadows[leafIdx];
-    var startDeg = toFlipped ? 0    : -180;
+    var startDeg = toFlipped ? 0 : -180;
     var endDeg   = toFlipped ? -180 : 0;
-    var t0 = null;
+    var t0       = null;
 
-    // Bring leaf to top during flip
     leaf.style.zIndex = 9999;
 
     function tick(ts) {
       if (!t0) t0 = ts;
       var raw  = Math.min((ts - t0) / DURATION, 1);
-      var ease = easeInOutCubic(raw);
+      var ease = easeFlip(raw);
 
-      /* rotation */
       var deg = startDeg + (endDeg - startDeg) * ease;
 
-      /* lift: peaks at raw=0.5 (sine wave) */
-      var lift = Math.sin(Math.PI * raw) * 18; // px translateZ
-
-      leaf.style.transform =
-        'rotateY(' + deg + 'deg) translateZ(' + lift + 'px)';
-
-      /* fold gradient intensities */
-      var foldRaw  = Math.sin(Math.PI * raw);      // 0→1→0
-      var halfWay  = raw < 0.5 ? raw * 2 : 1;     // 0→1 (first half)
-      var halfBack = raw > 0.5 ? (raw-0.5)*2 : 0;  // 0→1 (second half)
-
-      /* front shadow: rises as page lifts (first half) */
-      fShadow.style.opacity = Math.sin(Math.PI * Math.min(raw * 1.4, 1)) * (toFlipped ? 0.88 : 0.5);
-
-      /* back shadow: appears as page settles (second half) */
-      bShadow.style.opacity = halfBack * (toFlipped ? 0.45 : 0.75);
-
-      /* cast shadow on book (peaks at midpoint) */
-      castShEl.style.opacity = foldRaw * 0.32;
+      leaf.style.transform = computeTransform(deg, raw);
+      updateShadows(leafIdx, raw, toFlipped);
 
       if (raw < 1) {
         requestAnimationFrame(tick);
       } else {
         leaf.style.transform = 'rotateY(' + endDeg + 'deg) translateZ(0)';
-        fShadow.style.opacity = 0;
-        bShadow.style.opacity = 0;
-        castShEl.style.opacity = 0;
+        clearShadows(leafIdx);
         onDone();
       }
     }
@@ -422,7 +523,9 @@
     requestAnimationFrame(tick);
   }
 
-  /* ── controls update ── */
+  /* ══════════════════════════════════════
+     UI UPDATE
+     ══════════════════════════════════════ */
   var prevBtn = document.getElementById('prev');
   var nextBtn = document.getElementById('next');
   var numEl   = document.getElementById('pageNum');
@@ -430,33 +533,36 @@
   function updateUI() {
     prevBtn.disabled = current === 0;
     nextBtn.disabled = current >= N;
-    if (current === 0) {
-      numEl.textContent = 'cover';
-    } else if (current >= N) {
-      numEl.textContent = N + ' / ' + N;
-    } else {
-      numEl.textContent = current + ' / ' + N;
-    }
+    var label;
+    if (current === 0)       label = 'cover';
+    else if (current >= N)   label = N + ' / ' + N;
+    else                     label = current + ' / ' + N;
+    numEl.textContent = label;
+    announcer.textContent = 'Page ' + label;
   }
 
-  /* ── flip next ── */
+  /* ══════════════════════════════════════
+     FLIP NEXT / PREV
+     ══════════════════════════════════════ */
   function flipNext() {
     if (current >= N || isAnimating) return;
     isAnimating = true;
+    playPageSound();
+    clearPeek();
     var idx = current;
     current++;
     updateUI();
     flip(idx, true, function() {
-      // restore z-index to "behind" position
       leafEls[idx].style.zIndex = 0;
       isAnimating = false;
     });
   }
 
-  /* ── flip prev ── */
   function flipPrev() {
     if (current <= 0 || isAnimating) return;
     isAnimating = true;
+    playPageSound();
+    clearPeek();
     current--;
     var idx = current;
     updateUI();
@@ -466,32 +572,247 @@
     });
   }
 
-  /* ── event bindings ── */
-  nextBtn.addEventListener('click', function(e){ e.stopPropagation(); flipNext(); });
-  prevBtn.addEventListener('click', function(e){ e.stopPropagation(); flipPrev(); });
+  /* ══════════════════════════════════════
+     PAGE PEEK ON HOVER
+     ══════════════════════════════════════ */
+  var peekActive = false;
+  var peekTimeout = null;
 
-  book.addEventListener('click', function(e) {
-    var r = book.getBoundingClientRect();
-    if ((e.clientX - r.left) < r.width * 0.28) flipPrev();
-    else flipNext();
+  function clearPeek() {
+    if (peekActive && current < N) {
+      var leaf = leafEls[current];
+      leaf.classList.remove('peek');
+      leaf.classList.add('unpeek');
+      peekActive = false;
+      clearTimeout(peekTimeout);
+      peekTimeout = setTimeout(function() { leaf.classList.remove('unpeek'); }, 350);
+    }
+  }
+
+  if (!isMobile) {
+    book.addEventListener('mousemove', function(e) {
+      if (isAnimating || isDragging || current >= N) return;
+      var r = book.getBoundingClientRect();
+      var ratio = (e.clientX - r.left) / r.width;
+      var leaf = leafEls[current];
+
+      if (ratio > 0.78) {
+        if (!peekActive) {
+          leaf.classList.remove('unpeek');
+          leaf.classList.add('peek');
+          peekActive = true;
+          clearTimeout(peekTimeout);
+        }
+      } else {
+        if (peekActive) {
+          leaf.classList.remove('peek');
+          leaf.classList.add('unpeek');
+          peekActive = false;
+          peekTimeout = setTimeout(function() { leaf.classList.remove('unpeek'); }, 350);
+        }
+      }
+    });
+
+    book.addEventListener('mouseleave', function() {
+      clearPeek();
+    });
+  }
+
+  /* ══════════════════════════════════════
+     DRAG-TO-FLIP
+     ══════════════════════════════════════ */
+  var isDragging   = false;
+  var dragLeafIdx  = null;
+  var dragDir      = null;
+  var dragStartX   = 0;
+  var dragBookRect = null;
+  var dragMoved    = false;
+
+  function getDragAngle(clientX) {
+    var ratio = (clientX - dragBookRect.left) / dragBookRect.width;
+    ratio = Math.max(0, Math.min(1, ratio));
+    // map position to angle: right edge = 0°, left edge = -180°
+    return -(1 - ratio) * 180;
+  }
+
+  function startDrag(clientX) {
+    if (isAnimating) return;
+    dragBookRect = book.getBoundingClientRect();
+    var relX = clientX - dragBookRect.left;
+    var ratio = relX / dragBookRect.width;
+    dragMoved = false;
+    dragStartX = clientX;
+
+    if (ratio > 0.60 && current < N) {
+      dragDir = 'next';
+      dragLeafIdx = current;
+      current++;
+      updateUI();
+    } else if (ratio < 0.35 && current > 0) {
+      dragDir = 'prev';
+      current--;
+      dragLeafIdx = current;
+      updateUI();
+    } else {
+      return;
+    }
+
+    isDragging = true;
+    clearPeek();
+    leafEls[dragLeafIdx].style.zIndex = 9999;
+  }
+
+  function moveDrag(clientX) {
+    if (!isDragging) return;
+    if (Math.abs(clientX - dragStartX) > 5) dragMoved = true;
+    if (!dragMoved) return;
+
+    var deg = getDragAngle(clientX);
+    deg = Math.max(-180, Math.min(0, deg));
+    var raw = Math.abs(deg) / 180;
+
+    leafEls[dragLeafIdx].style.transform = computeTransform(deg, raw);
+    updateShadows(dragLeafIdx, raw, dragDir === 'next');
+  }
+
+  function endDrag(clientX) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // if barely moved, treat as a click
+    if (!dragMoved) {
+      // revert state change
+      if (dragDir === 'next') current--;
+      else current++;
+      updateUI();
+      leafEls[dragLeafIdx].style.zIndex = (dragDir === 'next') ? N - dragLeafIdx : 0;
+
+      // do a regular click flip
+      if (dragDir === 'next') flipNext();
+      else flipPrev();
+      return;
+    }
+
+    var deg = getDragAngle(clientX);
+    var progress = Math.abs(deg) / 180;
+    var shouldComplete = (dragDir === 'next') ? progress > 0.35 : progress < 0.65;
+
+    if (shouldComplete) {
+      // snap to completion
+      isAnimating = true;
+      playPageSound();
+      var targetDeg = (dragDir === 'next') ? -180 : 0;
+      var currentDeg = Math.max(-180, Math.min(0, deg));
+      var t0 = null;
+      var snapDur = 380;
+
+      function snapTick(ts) {
+        if (!t0) t0 = ts;
+        var raw = Math.min((ts - t0) / snapDur, 1);
+        var ease = easeFlip(raw);
+        var d = currentDeg + (targetDeg - currentDeg) * ease;
+        var absRaw = Math.abs(d) / 180;
+
+        leafEls[dragLeafIdx].style.transform = computeTransform(d, absRaw);
+        updateShadows(dragLeafIdx, absRaw, dragDir === 'next');
+
+        if (raw < 1) {
+          requestAnimationFrame(snapTick);
+        } else {
+          leafEls[dragLeafIdx].style.transform = 'rotateY(' + targetDeg + 'deg) translateZ(0)';
+          clearShadows(dragLeafIdx);
+          leafEls[dragLeafIdx].style.zIndex = (dragDir === 'next') ? 0 : N - dragLeafIdx;
+          isAnimating = false;
+        }
+      }
+      requestAnimationFrame(snapTick);
+
+    } else {
+      // snap back — revert
+      isAnimating = true;
+      var revertDeg = (dragDir === 'next') ? 0 : -180;
+      var curDeg2 = Math.max(-180, Math.min(0, deg));
+      var t02 = null;
+      var revertDur = 320;
+
+      if (dragDir === 'next') current--;
+      else current++;
+      updateUI();
+
+      function revertTick(ts) {
+        if (!t02) t02 = ts;
+        var raw = Math.min((ts - t02) / revertDur, 1);
+        var ease = easeFlip(raw);
+        var d = curDeg2 + (revertDeg - curDeg2) * ease;
+        var absRaw = Math.abs(d) / 180;
+
+        leafEls[dragLeafIdx].style.transform = computeTransform(d, absRaw);
+        updateShadows(dragLeafIdx, absRaw, dragDir === 'next');
+
+        if (raw < 1) {
+          requestAnimationFrame(revertTick);
+        } else {
+          leafEls[dragLeafIdx].style.transform = 'rotateY(' + revertDeg + 'deg) translateZ(0)';
+          clearShadows(dragLeafIdx);
+          leafEls[dragLeafIdx].style.zIndex = N - dragLeafIdx;
+          isAnimating = false;
+        }
+      }
+      requestAnimationFrame(revertTick);
+    }
+  }
+
+  /* ══════════════════════════════════════
+     EVENT BINDINGS
+     ══════════════════════════════════════ */
+  nextBtn.addEventListener('click', function(e) { e.stopPropagation(); flipNext(); });
+  prevBtn.addEventListener('click', function(e) { e.stopPropagation(); flipPrev(); });
+
+  // mouse drag
+  book.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    startDrag(e.clientX);
+  });
+  document.addEventListener('mousemove', function(e) {
+    moveDrag(e.clientX);
+  });
+  document.addEventListener('mouseup', function(e) {
+    if (isDragging) {
+      endDrag(e.clientX);
+    }
   });
 
+  // touch drag
+  book.addEventListener('touchstart', function(e) {
+    startDrag(e.touches[0].clientX);
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e) {
+    if (isDragging) { e.preventDefault(); moveDrag(e.touches[0].clientX); }
+  }, { passive: false });
+  document.addEventListener('touchend', function(e) {
+    if (isDragging) endDrag(e.changedTouches[0].clientX);
+  }, { passive: true });
+
+  // keyboard
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); flipNext(); }
     else if (e.key === 'ArrowLeft')               { e.preventDefault(); flipPrev(); }
   });
 
-  var tx0 = 0;
-  book.addEventListener('touchstart', function(e){ tx0 = e.changedTouches[0].screenX; }, {passive:true});
-  book.addEventListener('touchend',   function(e){
-    var d = e.changedTouches[0].screenX - tx0;
-    if (Math.abs(d) > 45) { if (d < 0) flipNext(); else flipPrev(); }
-  }, {passive:true});
-
   updateUI();
 
-  /* ── cherry blossom petals ── */
+  /* ══════════════════════════════════════
+     CHERRY BLOSSOMS (with memory leak fix)
+     ══════════════════════════════════════ */
+  var MAX_PETALS = 25;
+  var petalBox = document.createElement('div');
+  petalBox.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;';
+  document.body.appendChild(petalBox);
+
   function makePetal() {
+    while (petalBox.children.length >= MAX_PETALS) {
+      petalBox.removeChild(petalBox.firstChild);
+    }
     var p = document.createElement('div');
     p.className = 'petal';
     var sz   = 8 + Math.random() * 11;
@@ -507,12 +828,17 @@
       'background:radial-gradient(ellipse,'+col+' 0%,transparent 70%);' +
       'border-radius:50% 0 50% 0;' +
       '--drift:'+dx+'px;--spin:'+spin+'deg;' +
-      'animation:fall '+(dur)+'s '+(del)+'s linear forwards;';
-    document.body.appendChild(p);
-    setTimeout(function(){ p.remove(); }, (dur+del)*1000);
+      'animation:fall '+dur+'s '+del+'s linear forwards;';
+    petalBox.appendChild(p);
+    setTimeout(function(){ if (p.parentNode) p.parentNode.removeChild(p); }, (dur+del)*1000 + 100);
   }
-  setInterval(makePetal, 1600);
-  for (var k=0; k<7; k++) setTimeout(makePetal, k*500);
+
+  var petalInterval = setInterval(makePetal, 1600);
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) { clearInterval(petalInterval); }
+    else { petalInterval = setInterval(makePetal, 1600); }
+  });
+  for (var k = 0; k < 7; k++) setTimeout(makePetal, k * 500);
 
 })();
 </script>
