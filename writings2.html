@@ -17,7 +17,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     .epigraph {
@@ -27,83 +27,201 @@
       font-size: 0.85rem;
       color: #c4a0a0;
       letter-spacing: 0.03em;
-      z-index: 10;
+      z-index: 100;
     }
 
-    .back {
+    .back-link {
       position: fixed;
       top: 1.5rem;
       left: 1.5rem;
       font-size: 0.9rem;
       color: #b09a8a;
       text-decoration: none;
-      z-index: 10;
+      z-index: 100;
       transition: color 0.3s;
     }
-    .back:hover { color: #3a2f2f; }
+    .back-link:hover { color: #3a2f2f; }
 
-    /* notebook container */
-    .notebook-wrap {
+    /* ========== BOOK ========== */
+    .book-scene {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: 2rem 1rem;
       width: 100%;
+      padding: 2rem 1rem;
     }
 
-    .notebook {
+    .book {
       position: relative;
       width: 100%;
-      max-width: 640px;
-      aspect-ratio: 3/4;
-      perspective: 1800px;
-    }
-
-    /* each page is absolutely positioned */
-    .page {
-      position: absolute;
-      inset: 0;
-      transform-origin: left center;
-      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1),
-                  opacity 0.4s ease;
-      transform-style: preserve-3d;
-      backface-visibility: hidden;
+      max-width: 580px;
+      aspect-ratio: 0.75;
+      perspective: 2000px;
       cursor: pointer;
     }
 
-    .page img {
+    /* the "spine" shadow on the left */
+    .book::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 2%;
+      bottom: 2%;
+      width: 3px;
+      background: linear-gradient(to right, rgba(58,47,47,0.12), transparent);
+      z-index: 50;
+      border-radius: 1px;
+    }
+
+    /* ========== PAGE LEAF ========== */
+    .leaf {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
+      z-index: 1;
+    }
+
+    .leaf.turning {
+      transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    .leaf.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    /* front of the page */
+    .leaf-front {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 0 3px 3px 0;
+      overflow: hidden;
+    }
+
+    /* back of the page (visible when flipped) */
+    .leaf-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      border-radius: 3px 0 0 3px;
+      background: #f8f3ec;
+      overflow: hidden;
+    }
+
+    /* page content styling */
+    .leaf-front .page-content,
+    .leaf-back .page-content {
+      width: 100%;
+      height: 100%;
+      background: #fefcf8;
+      border: 1px solid rgba(180, 160, 140, 0.15);
+      border-radius: inherit;
+      position: relative;
+    }
+
+    .leaf-front .page-content {
+      border-left: none;
+      border-radius: 0 3px 3px 0;
+    }
+
+    .leaf-back .page-content {
+      border-right: none;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .leaf-front img,
+    .leaf-back img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       display: block;
-      border-radius: 2px;
-      background: #fefcf8;
-      box-shadow:
-        0 2px 8px rgba(58, 47, 47, 0.06),
-        0 8px 30px rgba(58, 47, 47, 0.08);
-      border: 1px solid rgba(180, 160, 140, 0.15);
     }
 
-    /* stacked pages */
-    .page[data-state="upcoming"] {
-      transform: rotateY(0deg);
-      z-index: 1;
+    /* shadow overlay that intensifies as page turns — simulates light */
+    .leaf-front::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to left,
+        rgba(0,0,0,0) 0%,
+        rgba(0,0,0,0) 85%,
+        rgba(0,0,0,0.03) 100%
+      );
+      pointer-events: none;
+      border-radius: inherit;
+      transition: opacity 0.6s;
+      z-index: 2;
     }
 
-    .page[data-state="current"] {
-      transform: rotateY(0deg);
-      z-index: 10;
+    /* dynamic shadow on the page underneath when one is turning */
+    .page-shadow {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right,
+        rgba(0,0,0,0.15) 0%,
+        rgba(0,0,0,0.06) 3%,
+        rgba(0,0,0,0) 15%
+      );
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      z-index: 40;
+      border-radius: 0 3px 3px 0;
     }
 
-    .page[data-state="flipped"] {
-      transform: rotateY(-180deg);
-      z-index: 5;
+    .book.is-turning .page-shadow {
+      opacity: 1;
+    }
+
+    /* paper edge lines (stacked pages effect on right side) */
+    .paper-edges {
+      position: absolute;
+      top: 0;
+      right: -1px;
+      bottom: 0;
+      width: 6px;
+      z-index: 0;
       pointer-events: none;
     }
 
-    /* title page */
+    .paper-edges::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      right: 0;
+      bottom: -1px;
+      width: 100%;
+      background: linear-gradient(to right,
+        transparent 0%,
+        #f0eae2 20%,
+        #ede6dd 40%,
+        #eae3d9 60%,
+        #e7e0d5 80%,
+        #e4ddd2 100%
+      );
+      border-radius: 0 2px 2px 0;
+      border: 1px solid rgba(180, 160, 140, 0.1);
+      border-left: none;
+    }
+
+    /* paper texture grain */
+    .leaf-front .page-content::before,
+    .leaf-back .page-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      border-radius: inherit;
+    }
+
+    /* ========== TITLE PAGE ========== */
     .title-page {
       width: 100%;
       height: 100%;
@@ -111,12 +229,6 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #fefcf8;
-      border-radius: 2px;
-      box-shadow:
-        0 2px 8px rgba(58, 47, 47, 0.06),
-        0 8px 30px rgba(58, 47, 47, 0.08);
-      border: 1px solid rgba(180, 160, 140, 0.15);
       text-align: center;
       padding: 3rem;
     }
@@ -149,14 +261,8 @@
       color: #9a8a7a;
     }
 
-    .title-page .toc li {
-      padding: 0.3rem 0;
-    }
-
-    .title-page .toc li::before {
-      content: '· ';
-      color: #c4a0a0;
-    }
+    .title-page .toc li { padding: 0.3rem 0; }
+    .title-page .toc li::before { content: '· '; color: #c4a0a0; }
 
     .title-page .hint {
       font-size: 0.8rem;
@@ -165,19 +271,13 @@
       letter-spacing: 0.05em;
     }
 
-    /* section divider page */
+    /* section divider */
     .section-page {
       width: 100%;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #fefcf8;
-      border-radius: 2px;
-      box-shadow:
-        0 2px 8px rgba(58, 47, 47, 0.06),
-        0 8px 30px rgba(58, 47, 47, 0.08);
-      border: 1px solid rgba(180, 160, 140, 0.15);
     }
 
     .section-page h2 {
@@ -185,15 +285,23 @@
       font-weight: 400;
       color: #3a2f2f;
       font-style: italic;
+      text-align: center;
     }
 
-    /* controls */
+    /* blank back page */
+    .blank-page {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ========== CONTROLS ========== */
     .controls {
       display: flex;
       align-items: center;
       gap: 2rem;
       margin-top: 1.5rem;
       user-select: none;
+      z-index: 60;
     }
 
     .nav-btn {
@@ -209,17 +317,8 @@
       letter-spacing: 0.03em;
     }
 
-    .nav-btn:hover {
-      border-color: #c47a7a;
-      color: #c47a7a;
-    }
-
-    .nav-btn:disabled {
-      opacity: 0.3;
-      cursor: default;
-      border-color: #d4bfb0;
-      color: #9a8a7a;
-    }
+    .nav-btn:hover { border-color: #c47a7a; color: #c47a7a; }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; border-color: #d4bfb0; color: #9a8a7a; }
 
     .page-num {
       font-size: 0.9rem;
@@ -229,35 +328,7 @@
       letter-spacing: 0.05em;
     }
 
-    /* stacked paper edge effect */
-    .notebook::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      right: -2px;
-      bottom: -3px;
-      width: 100%;
-      background: #f5efe8;
-      border-radius: 2px;
-      border: 1px solid rgba(180, 160, 140, 0.1);
-      z-index: -1;
-      box-shadow: 0 4px 12px rgba(58, 47, 47, 0.04);
-    }
-
-    .notebook::before {
-      content: '';
-      position: absolute;
-      top: 6px;
-      right: -4px;
-      bottom: -6px;
-      width: 100%;
-      background: #f0e9e0;
-      border-radius: 2px;
-      border: 1px solid rgba(180, 160, 140, 0.08);
-      z-index: -2;
-    }
-
-    /* cherry blossom petals */
+    /* ========== PETALS ========== */
     .petal {
       position: fixed;
       pointer-events: none;
@@ -273,6 +344,7 @@
       100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
+    /* ========== MOBILE ========== */
     @media (max-width: 640px) {
       .epigraph {
         position: relative;
@@ -282,20 +354,18 @@
         padding: 1rem 1rem 0;
         font-size: 0.8rem;
       }
-      .back {
+      .back-link {
         position: relative;
         top: auto;
         left: auto;
         display: block;
         padding: 0.8rem 1rem 0;
       }
-      .notebook-wrap {
+      .book-scene {
         min-height: auto;
-        padding: 1rem 0.8rem 2rem;
+        padding: 1rem 0.5rem 2rem;
       }
-      .notebook {
-        max-width: 100%;
-      }
+      .book { max-width: 100%; }
       .title-page h1 { font-size: 1.6rem; }
       .title-page { padding: 2rem 1.5rem; }
       .section-page h2 { font-size: 1.4rem; }
@@ -307,84 +377,13 @@
 <body>
 
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
-<a href="/writings" class="back">← back</a>
+<a href="/writings" class="back-link">← back</a>
 
-<div class="notebook-wrap">
-  <div class="notebook" id="notebook">
-    <!-- page 0: title -->
-    <div class="page" data-index="0">
-      <div class="title-page">
-        <h1>writings</h1>
-        <p class="subtitle">I am thinking out loud and taking you<br>through this journey with me.</p>
-        <div class="divider"></div>
-        <ul class="toc">
-          <li>passion</li>
-          <li>feeling empty</li>
-          <li>what's really important and about sadness</li>
-        </ul>
-        <p class="hint">click or press → to turn pages</p>
-      </div>
-    </div>
-
-    <!-- page 1: section — passion -->
-    <div class="page" data-index="1">
-      <div class="section-page"><h2>passion</h2></div>
-    </div>
-
-    <!-- pages 2-4: passion SVGs -->
-    <div class="page" data-index="2">
-      <img src="/writings/passion-1.svg" alt="passion page 1" loading="lazy">
-    </div>
-    <div class="page" data-index="3">
-      <img src="/writings/passion-2.svg" alt="passion page 2" loading="lazy">
-    </div>
-    <div class="page" data-index="4">
-      <img src="/writings/passion-3.svg" alt="passion page 3" loading="lazy">
-    </div>
-
-    <!-- page 5: section — feeling empty -->
-    <div class="page" data-index="5">
-      <div class="section-page"><h2>feeling empty</h2></div>
-    </div>
-
-    <!-- pages 6-10: feeling empty SVGs -->
-    <div class="page" data-index="6">
-      <img src="/writings/feeling-empty-1.svg" alt="feeling empty page 1" loading="lazy">
-    </div>
-    <div class="page" data-index="7">
-      <img src="/writings/feeling-empty-2.svg" alt="feeling empty page 2" loading="lazy">
-    </div>
-    <div class="page" data-index="8">
-      <img src="/writings/feeling-empty-3.svg" alt="feeling empty page 3" loading="lazy">
-    </div>
-    <div class="page" data-index="9">
-      <img src="/writings/feeling-empty-4.svg" alt="feeling empty page 4" loading="lazy">
-    </div>
-    <div class="page" data-index="10">
-      <img src="/writings/feeling-empty-5.svg" alt="feeling empty page 5" loading="lazy">
-    </div>
-
-    <!-- page 11: section — important and sadness -->
-    <div class="page" data-index="11">
-      <div class="section-page"><h2>what's really important<br>and about sadness</h2></div>
-    </div>
-
-    <!-- pages 12-16: important-and-sadness SVGs -->
-    <div class="page" data-index="12">
-      <img src="/writings/important-and-sadness-1.svg" alt="important and sadness page 1" loading="lazy">
-    </div>
-    <div class="page" data-index="13">
-      <img src="/writings/important-and-sadness-2.svg" alt="important and sadness page 2" loading="lazy">
-    </div>
-    <div class="page" data-index="14">
-      <img src="/writings/important-and-sadness-3.svg" alt="important and sadness page 3" loading="lazy">
-    </div>
-    <div class="page" data-index="15">
-      <img src="/writings/important-and-sadness-4.svg" alt="important and sadness page 4" loading="lazy">
-    </div>
-    <div class="page" data-index="16">
-      <img src="/writings/important-and-sadness-5.svg" alt="important and sadness page 5" loading="lazy">
-    </div>
+<div class="book-scene">
+  <div class="book" id="book">
+    <div class="paper-edges"></div>
+    <div class="page-shadow" id="pageShadow"></div>
+    <!-- leaves get built by JS -->
   </div>
 
   <div class="controls">
@@ -395,58 +394,174 @@
 </div>
 
 <script>
-  const pages = document.querySelectorAll('.page');
-  const totalPages = pages.length;
-  let current = 0;
+(function() {
+  // define pages: each leaf has a front and back
+  // we pair pages so each "leaf" you flip shows front -> back
+  var pages = [
+    // cover
+    { type: 'title' },
+    // section: passion
+    { type: 'section', title: 'passion' },
+    // passion pages
+    { type: 'img', src: '/writings/passion-1.svg', alt: 'passion page 1' },
+    { type: 'img', src: '/writings/passion-2.svg', alt: 'passion page 2' },
+    { type: 'img', src: '/writings/passion-3.svg', alt: 'passion page 3' },
+    // section: feeling empty
+    { type: 'section', title: 'feeling empty' },
+    // feeling empty pages
+    { type: 'img', src: '/writings/feeling-empty-1.svg', alt: 'feeling empty page 1' },
+    { type: 'img', src: '/writings/feeling-empty-2.svg', alt: 'feeling empty page 2' },
+    { type: 'img', src: '/writings/feeling-empty-3.svg', alt: 'feeling empty page 3' },
+    { type: 'img', src: '/writings/feeling-empty-4.svg', alt: 'feeling empty page 4' },
+    { type: 'img', src: '/writings/feeling-empty-5.svg', alt: 'feeling empty page 5' },
+    // section: important and sadness
+    { type: 'section', title: 'what\'s really important<br>and about sadness' },
+    // important-and-sadness pages
+    { type: 'img', src: '/writings/important-and-sadness-1.svg', alt: 'important and sadness page 1' },
+    { type: 'img', src: '/writings/important-and-sadness-2.svg', alt: 'important and sadness page 2' },
+    { type: 'img', src: '/writings/important-and-sadness-3.svg', alt: 'important and sadness page 3' },
+    { type: 'img', src: '/writings/important-and-sadness-4.svg', alt: 'important and sadness page 4' },
+    { type: 'img', src: '/writings/important-and-sadness-5.svg', alt: 'important and sadness page 5' }
+  ];
 
-  function updatePages() {
-    pages.forEach((page, i) => {
-      if (i < current) {
-        page.dataset.state = 'flipped';
-      } else if (i === current) {
-        page.dataset.state = 'current';
-      } else {
-        page.dataset.state = 'upcoming';
-      }
-    });
+  function makePageHTML(p) {
+    if (p.type === 'title') {
+      return '<div class="page-content"><div class="title-page">' +
+        '<h1>writings</h1>' +
+        '<p class="subtitle">I am thinking out loud and taking you<br>through this journey with me.</p>' +
+        '<div class="divider"></div>' +
+        '<ul class="toc"><li>passion</li><li>feeling empty</li><li>what\'s really important and about sadness</li></ul>' +
+        '<p class="hint">click or press → to turn pages</p>' +
+        '</div></div>';
+    }
+    if (p.type === 'section') {
+      return '<div class="page-content"><div class="section-page"><h2>' + p.title + '</h2></div></div>';
+    }
+    if (p.type === 'img') {
+      return '<div class="page-content"><img src="' + p.src + '" alt="' + p.alt + '" loading="lazy"></div>';
+    }
+    return '<div class="page-content"><div class="blank-page"></div></div>';
+  }
 
-    document.getElementById('prev').disabled = current === 0;
-    document.getElementById('next').disabled = current === totalPages - 1;
+  function makeBlankHTML() {
+    return '<div class="page-content"><div class="blank-page"></div></div>';
+  }
 
-    const num = document.getElementById('pageNum');
-    if (current === 0) {
+  // pair pages into leaves: front[i] / back[i]
+  // leaf 0 front = page 0 (cover), back = page 1
+  // leaf 1 front = page 2, back = page 3
+  // etc.
+  var leaves = [];
+  for (var i = 0; i < pages.length; i += 2) {
+    var front = pages[i];
+    var back = (i + 1 < pages.length) ? pages[i + 1] : null;
+    leaves.push({ front: front, back: back });
+  }
+
+  var book = document.getElementById('book');
+  var leafEls = [];
+
+  // build leaves in reverse order so first leaf is on top
+  for (var j = leaves.length - 1; j >= 0; j--) {
+    var leaf = document.createElement('div');
+    leaf.className = 'leaf';
+    leaf.style.zIndex = leaves.length - j;
+    leaf.dataset.index = j;
+
+    var front = document.createElement('div');
+    front.className = 'leaf-front';
+    front.innerHTML = makePageHTML(leaves[j].front);
+
+    var back = document.createElement('div');
+    back.className = 'leaf-back';
+    back.innerHTML = leaves[j].back ? makePageHTML(leaves[j].back) : makeBlankHTML();
+
+    leaf.appendChild(front);
+    leaf.appendChild(back);
+    book.appendChild(leaf);
+    leafEls[j] = leaf;
+  }
+
+  var currentLeaf = 0; // index of the topmost unflipped leaf
+  var totalLeaves = leaves.length;
+  var isAnimating = false;
+
+  function updateControls() {
+    document.getElementById('prev').disabled = currentLeaf === 0;
+    document.getElementById('next').disabled = currentLeaf >= totalLeaves;
+
+    var num = document.getElementById('pageNum');
+    if (currentLeaf === 0) {
       num.textContent = 'cover';
     } else {
-      num.textContent = current + ' / ' + (totalPages - 1);
+      // each leaf = 2 pages, current visible is front of currentLeaf
+      var pageIndex = currentLeaf * 2;
+      num.textContent = pageIndex + ' / ' + (pages.length - 1);
     }
   }
 
-  function nextPage() {
-    if (current < totalPages - 1) {
-      current++;
-      updatePages();
-    }
+  function flipNext() {
+    if (currentLeaf >= totalLeaves || isAnimating) return;
+    isAnimating = true;
+
+    var leaf = leafEls[currentLeaf];
+    leaf.classList.add('turning');
+    book.classList.add('is-turning');
+
+    // update z-index so flipping leaf is on top
+    leaf.style.zIndex = 100;
+
+    leaf.classList.add('flipped');
+
+    currentLeaf++;
+    updateControls();
+
+    setTimeout(function() {
+      leaf.style.zIndex = 0;
+      book.classList.remove('is-turning');
+      isAnimating = false;
+    }, 1000);
   }
 
-  function prevPage() {
-    if (current > 0) {
-      current--;
-      updatePages();
-    }
+  function flipPrev() {
+    if (currentLeaf <= 0 || isAnimating) return;
+    isAnimating = true;
+
+    currentLeaf--;
+    var leaf = leafEls[currentLeaf];
+
+    leaf.style.zIndex = 100;
+    book.classList.add('is-turning');
+    leaf.classList.add('turning');
+
+    leaf.classList.remove('flipped');
+
+    updateControls();
+
+    setTimeout(function() {
+      leaf.style.zIndex = totalLeaves - currentLeaf;
+      book.classList.remove('is-turning');
+      isAnimating = false;
+    }, 1000);
   }
 
-  document.getElementById('next').addEventListener('click', nextPage);
-  document.getElementById('prev').addEventListener('click', prevPage);
+  document.getElementById('next').addEventListener('click', function(e) {
+    e.stopPropagation();
+    flipNext();
+  });
+  document.getElementById('prev').addEventListener('click', function(e) {
+    e.stopPropagation();
+    flipPrev();
+  });
 
-  // click on notebook: left third = prev, right two-thirds = next
-  document.getElementById('notebook').addEventListener('click', function(e) {
-    if (e.target.closest('.nav-btn')) return;
-    var rect = document.getElementById('notebook').getBoundingClientRect();
+  // click on book — left quarter = prev, rest = next
+  book.addEventListener('click', function(e) {
+    var rect = book.getBoundingClientRect();
     var x = e.clientX - rect.left;
-    if (x < rect.width / 3) {
-      prevPage();
+    if (x < rect.width * 0.25) {
+      flipPrev();
     } else {
-      nextPage();
+      flipNext();
     }
   });
 
@@ -454,30 +569,30 @@
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === ' ') {
       e.preventDefault();
-      nextPage();
+      flipNext();
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      prevPage();
+      flipPrev();
     }
   });
 
-  // swipe for mobile
+  // swipe
   var touchStartX = 0;
-  document.getElementById('notebook').addEventListener('touchstart', function(e) {
+  book.addEventListener('touchstart', function(e) {
     touchStartX = e.changedTouches[0].screenX;
   }, { passive: true });
 
-  document.getElementById('notebook').addEventListener('touchend', function(e) {
+  book.addEventListener('touchend', function(e) {
     var diff = e.changedTouches[0].screenX - touchStartX;
     if (Math.abs(diff) > 50) {
-      if (diff < 0) nextPage();
-      else prevPage();
+      if (diff < 0) flipNext();
+      else flipPrev();
     }
   }, { passive: true });
 
-  updatePages();
+  updateControls();
 
-  // cherry blossom petals
+  // petals
   function createPetal() {
     var petal = document.createElement('div');
     petal.className = 'petal';
@@ -504,7 +619,8 @@
     setTimeout(function() { petal.remove(); }, (duration + delay) * 1000);
   }
   setInterval(createPetal, 1800);
-  for (var i = 0; i < 6; i++) setTimeout(createPetal, i * 700);
+  for (var k = 0; k < 6; k++) setTimeout(createPetal, k * 700);
+})();
 </script>
 
 </body>
