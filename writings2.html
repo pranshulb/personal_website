@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>writings — pranshul's cafe</title>
+  <title>notebook — pranshul's cafe</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
 
@@ -13,83 +13,251 @@
       font-family: 'EB Garamond', Georgia, serif;
       min-height: 100vh;
       color: #3a2f2f;
-      line-height: 1.8;
       background: #faf5ef;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
     }
 
-    .container {
-      max-width: 520px;
-      margin: 0 0 0 2rem;
-      padding: 5rem 1.5rem 3rem;
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      z-index: 10;
     }
 
-    a { color: #3a2f2f; text-decoration-color: #ccc; text-underline-offset: 3px; }
-    a:hover { text-decoration-color: #3a2f2f; }
-    .back { font-size: 0.9rem; color: #b09a8a; margin-bottom: 2rem; display: inline-block; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.9rem;
+      color: #b09a8a;
+      text-decoration: none;
+      z-index: 10;
+      transition: color 0.3s;
+    }
     .back:hover { color: #3a2f2f; }
 
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 400;
-      margin-bottom: 0.5rem;
+    /* notebook container */
+    .notebook-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      width: 100%;
     }
 
-    .subtitle {
-      font-size: 0.95rem;
+    .notebook {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 3/4;
+      perspective: 1800px;
+    }
+
+    /* each page is absolutely positioned */
+    .page {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1),
+                  opacity 0.4s ease;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      cursor: pointer;
+    }
+
+    .page img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: 2px;
+      background: #fefcf8;
+      box-shadow:
+        0 2px 8px rgba(58, 47, 47, 0.06),
+        0 8px 30px rgba(58, 47, 47, 0.08);
+      border: 1px solid rgba(180, 160, 140, 0.15);
+    }
+
+    /* stacked pages */
+    .page[data-state="upcoming"] {
+      transform: rotateY(0deg);
+      z-index: 1;
+    }
+
+    .page[data-state="current"] {
+      transform: rotateY(0deg);
+      z-index: 10;
+    }
+
+    .page[data-state="flipped"] {
+      transform: rotateY(-180deg);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    /* title page */
+    .title-page {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fefcf8;
+      border-radius: 2px;
+      box-shadow:
+        0 2px 8px rgba(58, 47, 47, 0.06),
+        0 8px 30px rgba(58, 47, 47, 0.08);
+      border: 1px solid rgba(180, 160, 140, 0.15);
+      text-align: center;
+      padding: 3rem;
+    }
+
+    .title-page h1 {
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: #3a2f2f;
+      margin-bottom: 1rem;
+    }
+
+    .title-page .subtitle {
+      font-size: 1rem;
       color: #b09a8a;
       font-style: italic;
-      margin-bottom: 2.5rem;
-    }
-    .subtitle a {
-      color: #c47a7a;
-      text-decoration-color: #d4a0a0;
-    }
-    .subtitle a:hover {
-      color: #3a2f2f;
-      text-decoration-color: #3a2f2f;
+      line-height: 1.6;
     }
 
-    .writing-list {
+    .title-page .divider {
+      width: 40px;
+      height: 1px;
+      background: #d4bfb0;
+      margin: 1.5rem auto;
+    }
+
+    .title-page .toc {
       list-style: none;
       padding: 0;
+      font-size: 1rem;
+      color: #9a8a7a;
     }
 
-    .writing-list li {
-      padding: 0.6rem 0;
-      font-size: 1.1rem;
+    .title-page .toc li {
+      padding: 0.3rem 0;
+    }
+
+    .title-page .toc li::before {
+      content: '· ';
+      color: #c4a0a0;
+    }
+
+    .title-page .hint {
+      font-size: 0.8rem;
+      color: #c4a0a0;
+      margin-top: 2rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* section divider page */
+    .section-page {
+      width: 100%;
+      height: 100%;
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      justify-content: center;
+      background: #fefcf8;
+      border-radius: 2px;
+      box-shadow:
+        0 2px 8px rgba(58, 47, 47, 0.06),
+        0 8px 30px rgba(58, 47, 47, 0.08);
+      border: 1px solid rgba(180, 160, 140, 0.15);
     }
 
-    .writing-list li::before {
-      content: '·';
-      color: #c4a0a0;
-      font-size: 1.4rem;
-      line-height: 1;
+    .section-page h2 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: #3a2f2f;
+      font-style: italic;
     }
 
-    .writing-list a {
-      text-decoration: none;
+    /* controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+      user-select: none;
     }
 
-    .writing-list a:hover {
-      text-decoration: underline;
-      text-decoration-color: #c4a0a0;
-    }
-
-    .tag {
-      font-size: 0.7rem;
-      color: #c4a0a0;
-      border: 1px solid #e8ddd4;
-      padding: 0.1rem 0.45rem;
+    .nav-btn {
+      background: none;
+      border: 1px solid #d4bfb0;
+      color: #9a8a7a;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 1.1rem;
+      padding: 0.5rem 1.2rem;
       border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.3s;
       letter-spacing: 0.03em;
     }
 
+    .nav-btn:hover {
+      border-color: #c47a7a;
+      color: #c47a7a;
+    }
 
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+      border-color: #d4bfb0;
+      color: #9a8a7a;
+    }
 
-    /* falling cherry blossom petals */
+    .page-num {
+      font-size: 0.9rem;
+      color: #b09a8a;
+      min-width: 60px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    /* stacked paper edge effect */
+    .notebook::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      right: -2px;
+      bottom: -3px;
+      width: 100%;
+      background: #f5efe8;
+      border-radius: 2px;
+      border: 1px solid rgba(180, 160, 140, 0.1);
+      z-index: -1;
+      box-shadow: 0 4px 12px rgba(58, 47, 47, 0.04);
+    }
+
+    .notebook::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      right: -4px;
+      bottom: -6px;
+      width: 100%;
+      background: #f0e9e0;
+      border-radius: 2px;
+      border: 1px solid rgba(180, 160, 140, 0.08);
+      z-index: -2;
+    }
+
+    /* cherry blossom petals */
     .petal {
       position: fixed;
       pointer-events: none;
@@ -105,97 +273,238 @@
       100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
-    .epigraph {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 0.85rem;
-      color: #c4a0a0;
-      letter-spacing: 0.03em;
-      margin: 0;
-      z-index: 10;
-    }
-
     @media (max-width: 640px) {
       .epigraph {
         position: relative;
         top: auto;
         right: auto;
         text-align: center;
-        padding: 1.5rem 1.5rem 0;
+        padding: 1rem 1rem 0;
         font-size: 0.8rem;
       }
-      .container {
-        margin: 0 auto;
-        padding: 2.5rem 1.5rem 3rem;
+      .back {
+        position: relative;
+        top: auto;
+        left: auto;
+        display: block;
+        padding: 0.8rem 1rem 0;
       }
-      h1 { font-size: 1.6rem; }
-      .writing-list li { font-size: 1.05rem; }
+      .notebook-wrap {
+        min-height: auto;
+        padding: 1rem 0.8rem 2rem;
+      }
+      .notebook {
+        max-width: 100%;
+      }
+      .title-page h1 { font-size: 1.6rem; }
+      .title-page { padding: 2rem 1.5rem; }
+      .section-page h2 { font-size: 1.4rem; }
+      .controls { gap: 1.2rem; margin-top: 1rem; }
+      .nav-btn { padding: 0.4rem 0.9rem; font-size: 1rem; }
     }
   </style>
 </head>
 <body>
 
-<p class="epigraph">cherry blossoms fall at 5 centimeters per second.</p>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+<a href="/writings" class="back">← back</a>
 
-<div class="container">
-  <a href="/" class="back">← back</a>
+<div class="notebook-wrap">
+  <div class="notebook" id="notebook">
+    <!-- page 0: title -->
+    <div class="page" data-index="0">
+      <div class="title-page">
+        <h1>writings</h1>
+        <p class="subtitle">I am thinking out loud and taking you<br>through this journey with me.</p>
+        <div class="divider"></div>
+        <ul class="toc">
+          <li>passion</li>
+          <li>feeling empty</li>
+          <li>what's really important and about sadness</li>
+        </ul>
+        <p class="hint">click or press → to turn pages</p>
+      </div>
+    </div>
 
-  <h1>writings</h1>
-  <p class="subtitle">I am thinking out loud and taking you through this journey with me.</p>
+    <!-- page 1: section — passion -->
+    <div class="page" data-index="1">
+      <div class="section-page"><h2>passion</h2></div>
+    </div>
 
-  <ul class="writing-list">
-    <li><a href="/writings/passion">passion</a></li>
-    <li><a href="/writings/feeling-empty">feeling empty</a></li>
-    <li><a href="/writings/important-and-sadness">what's really important and about sadness</a></li>
-  </ul>
+    <!-- pages 2-4: passion SVGs -->
+    <div class="page" data-index="2">
+      <img src="/writings/passion-1.svg" alt="passion page 1" loading="lazy">
+    </div>
+    <div class="page" data-index="3">
+      <img src="/writings/passion-2.svg" alt="passion page 2" loading="lazy">
+    </div>
+    <div class="page" data-index="4">
+      <img src="/writings/passion-3.svg" alt="passion page 3" loading="lazy">
+    </div>
 
+    <!-- page 5: section — feeling empty -->
+    <div class="page" data-index="5">
+      <div class="section-page"><h2>feeling empty</h2></div>
+    </div>
 
+    <!-- pages 6-10: feeling empty SVGs -->
+    <div class="page" data-index="6">
+      <img src="/writings/feeling-empty-1.svg" alt="feeling empty page 1" loading="lazy">
+    </div>
+    <div class="page" data-index="7">
+      <img src="/writings/feeling-empty-2.svg" alt="feeling empty page 2" loading="lazy">
+    </div>
+    <div class="page" data-index="8">
+      <img src="/writings/feeling-empty-3.svg" alt="feeling empty page 3" loading="lazy">
+    </div>
+    <div class="page" data-index="9">
+      <img src="/writings/feeling-empty-4.svg" alt="feeling empty page 4" loading="lazy">
+    </div>
+    <div class="page" data-index="10">
+      <img src="/writings/feeling-empty-5.svg" alt="feeling empty page 5" loading="lazy">
+    </div>
 
+    <!-- page 11: section — important and sadness -->
+    <div class="page" data-index="11">
+      <div class="section-page"><h2>what's really important<br>and about sadness</h2></div>
+    </div>
+
+    <!-- pages 12-16: important-and-sadness SVGs -->
+    <div class="page" data-index="12">
+      <img src="/writings/important-and-sadness-1.svg" alt="important and sadness page 1" loading="lazy">
+    </div>
+    <div class="page" data-index="13">
+      <img src="/writings/important-and-sadness-2.svg" alt="important and sadness page 2" loading="lazy">
+    </div>
+    <div class="page" data-index="14">
+      <img src="/writings/important-and-sadness-3.svg" alt="important and sadness page 3" loading="lazy">
+    </div>
+    <div class="page" data-index="15">
+      <img src="/writings/important-and-sadness-4.svg" alt="important and sadness page 4" loading="lazy">
+    </div>
+    <div class="page" data-index="16">
+      <img src="/writings/important-and-sadness-5.svg" alt="important and sadness page 5" loading="lazy">
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="nav-btn" id="prev" disabled>← prev</button>
+    <span class="page-num" id="pageNum">cover</span>
+    <button class="nav-btn" id="next">next →</button>
+  </div>
 </div>
 
 <script>
-  function createPetal() {
-    const petal = document.createElement('div');
-    petal.className = 'petal';
-    const startX = Math.random() * window.innerWidth;
-    const size = 8 + Math.random() * 12;
-    const duration = 8 + Math.random() * 12;
-    const drift = -60 + Math.random() * 120;
-    const spin = 180 + Math.random() * 540;
-    const delay = Math.random() * 5;
+  const pages = document.querySelectorAll('.page');
+  const totalPages = pages.length;
+  let current = 0;
 
-    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-
-    petal.style.cssText = `
-      left: ${startX}px;
-      top: -20px;
-      width: ${size}px;
-      height: ${size * 0.7}px;
-      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
-      border-radius: 50% 0 50% 0;
-      animation-duration: ${duration}s;
-      animation-delay: ${delay}s;
-      --drift: ${drift}px;
-      --spin: ${spin}deg;
-    `;
-
-    petal.animate([
-      { top: '-20px' },
-      { top: `${window.innerHeight + 20}px` }
-    ], {
-      duration: duration * 1000,
-      delay: delay * 1000,
-      fill: 'forwards'
+  function updatePages() {
+    pages.forEach((page, i) => {
+      if (i < current) {
+        page.dataset.state = 'flipped';
+      } else if (i === current) {
+        page.dataset.state = 'current';
+      } else {
+        page.dataset.state = 'upcoming';
+      }
     });
 
-    document.body.appendChild(petal);
-    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === totalPages - 1;
+
+    const num = document.getElementById('pageNum');
+    if (current === 0) {
+      num.textContent = 'cover';
+    } else {
+      num.textContent = current + ' / ' + (totalPages - 1);
+    }
   }
 
-  setInterval(createPetal, 1500);
-  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
+  function nextPage() {
+    if (current < totalPages - 1) {
+      current++;
+      updatePages();
+    }
+  }
+
+  function prevPage() {
+    if (current > 0) {
+      current--;
+      updatePages();
+    }
+  }
+
+  document.getElementById('next').addEventListener('click', nextPage);
+  document.getElementById('prev').addEventListener('click', prevPage);
+
+  // click on notebook: left third = prev, right two-thirds = next
+  document.getElementById('notebook').addEventListener('click', function(e) {
+    if (e.target.closest('.nav-btn')) return;
+    var rect = document.getElementById('notebook').getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    if (x < rect.width / 3) {
+      prevPage();
+    } else {
+      nextPage();
+    }
+  });
+
+  // keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      nextPage();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevPage();
+    }
+  });
+
+  // swipe for mobile
+  var touchStartX = 0;
+  document.getElementById('notebook').addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.getElementById('notebook').addEventListener('touchend', function(e) {
+    var diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) nextPage();
+      else prevPage();
+    }
+  }, { passive: true });
+
+  updatePages();
+
+  // cherry blossom petals
+  function createPetal() {
+    var petal = document.createElement('div');
+    petal.className = 'petal';
+    var startX = Math.random() * window.innerWidth;
+    var size = 8 + Math.random() * 12;
+    var duration = 8 + Math.random() * 12;
+    var drift = -60 + Math.random() * 120;
+    var spin = 180 + Math.random() * 540;
+    var delay = Math.random() * 5;
+    var colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    var color = colors[Math.floor(Math.random() * colors.length)];
+    petal.style.cssText =
+      'left:' + startX + 'px;top:-20px;' +
+      'width:' + size + 'px;height:' + (size * 0.7) + 'px;' +
+      'background:radial-gradient(ellipse at center,' + color + ' 0%,transparent 70%);' +
+      'border-radius:50% 0 50% 0;' +
+      'animation-duration:' + duration + 's;animation-delay:' + delay + 's;' +
+      '--drift:' + drift + 'px;--spin:' + spin + 'deg;';
+    petal.animate([
+      { top: '-20px' },
+      { top: (window.innerHeight + 20) + 'px' }
+    ], { duration: duration * 1000, delay: delay * 1000, fill: 'forwards' });
+    document.body.appendChild(petal);
+    setTimeout(function() { petal.remove(); }, (duration + delay) * 1000);
+  }
+  setInterval(createPetal, 1800);
+  for (var i = 0; i < 6; i++) setTimeout(createPetal, i * 700);
 </script>
 
 </body>
