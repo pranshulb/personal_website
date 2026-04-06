@@ -12,10 +12,11 @@
     body {
       font-family: 'EB Garamond', Georgia, serif;
       min-height: 100vh;
-      color: #3a2f2f;
+      color: #3d3229;
       line-height: 1.8;
       overflow-x: hidden;
-      background: #faf5ef;
+      background: linear-gradient(180deg, #faf5ef 0%, #fdf2f0 50%, #faf5ef 100%);
+      background-attachment: fixed;
     }
 
     .container {
@@ -34,7 +35,7 @@
     }
 
     h1 a {
-      color: #3a2f2f;
+      color: #3d3229;
       text-decoration: none;
     }
 
@@ -62,21 +63,34 @@
     }
 
     a {
-      color: #3a2f2f;
+      color: #3d3229;
       text-decoration: none;
-      border-bottom: 1px solid #d4a0a0;
+      border-bottom: 1px solid transparent;
+      background-image: linear-gradient(#e8c4c4, #e8c4c4);
+      background-size: 0% 1px;
+      background-position: center bottom;
+      background-repeat: no-repeat;
       transition: all 0.3s ease;
     }
 
     a:hover {
       color: #c47a7a;
+      background-size: 100% 1px;
+    }
+
+    li a {
+      border-bottom: 1px solid #e8c4c4;
+      background-image: none;
+    }
+
+    li a:hover {
       border-bottom-color: #c47a7a;
     }
 
     .socials {
       margin-top: 3rem;
       padding-top: 1.5rem;
-      border-top: 1px solid rgba(0,0,0,0.06);
+      border-top: 1px solid rgba(61,50,41,0.06);
     }
 
     .social-links {
@@ -225,6 +239,17 @@
 
     .copy-hint-mobile:active {
       color: #c47a7a;
+    }
+
+    @view-transition {
+      navigation: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
