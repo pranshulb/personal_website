@@ -18,6 +18,10 @@
       "destination": "/writings.html"
     },
     {
+      "source": "/writings2",
+      "destination": "/writings2.html"
+    },
+    {
       "source": "/writings/passion",
       "destination": "/writings/passion.html"
     }

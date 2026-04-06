@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>writings — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.8;
+      background: #faf5ef;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 0 0 2rem;
+      padding: 5rem 1.5rem 3rem;
+    }
+
+    a { color: #3a2f2f; text-decoration-color: #ccc; text-underline-offset: 3px; }
+    a:hover { text-decoration-color: #3a2f2f; }
+    .back { font-size: 0.9rem; color: #b09a8a; margin-bottom: 2rem; display: inline-block; }
+    .back:hover { color: #3a2f2f; }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #b09a8a;
+      font-style: italic;
+      margin-bottom: 2.5rem;
+    }
+    .subtitle a {
+      color: #c47a7a;
+      text-decoration-color: #d4a0a0;
+    }
+    .subtitle a:hover {
+      color: #3a2f2f;
+      text-decoration-color: #3a2f2f;
+    }
+
+    .writing-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .writing-list li {
+      padding: 0.6rem 0;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .writing-list li::before {
+      content: '·';
+      color: #c4a0a0;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .writing-list a {
+      text-decoration: none;
+    }
+
+    .writing-list a:hover {
+      text-decoration: underline;
+      text-decoration-color: #c4a0a0;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      color: #c4a0a0;
+      border: 1px solid #e8ddd4;
+      padding: 0.1rem 0.45rem;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+    }
+
+
+
+    /* falling cherry blossom petals */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+    }
+
+    @media (max-width: 640px) {
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1.5rem 1.5rem 0;
+        font-size: 0.8rem;
+      }
+      .container {
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 3rem;
+      }
+      h1 { font-size: 1.6rem; }
+      .writing-list li { font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+
+<p class="epigraph">cherry blossoms fall at 5 centimeters per second.</p>
+
+<div class="container">
+  <a href="/" class="back">← back</a>
+
+  <h1>writings</h1>
+  <p class="subtitle">I am thinking out loud and taking you through this journey with me.</p>
+
+  <ul class="writing-list">
+    <li><a href="/writings/passion">passion</a></li>
+    <li><a href="/writings/feeling-empty">feeling empty</a></li>
+    <li><a href="/writings/important-and-sadness">what's really important and about sadness</a></li>
+  </ul>
+
+
+
+</div>
+
+<script>
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    petal.style.cssText = `
+      left: ${startX}px;
+      top: -20px;
+      width: ${size}px;
+      height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s;
+      animation-delay: ${delay}s;
+      --drift: ${drift}px;
+      --spin: ${spin}deg;
+    `;
+
+    petal.animate([
+      { top: '-20px' },
+      { top: `${window.innerHeight + 20}px` }
+    ], {
+      duration: duration * 1000,
+      delay: delay * 1000,
+      fill: 'forwards'
+    });
+
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  }
+
+  setInterval(createPetal, 1500);
+  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
+</script>
+
+</body>
+</html>
