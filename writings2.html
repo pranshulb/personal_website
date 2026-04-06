@@ -13,7 +13,7 @@
       font-family: 'EB Garamond', Georgia, serif;
       min-height: 100vh;
       color: #3a2f2f;
-      background: #f0e8de;
+      background: #e8dfd4;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -22,117 +22,167 @@
     }
 
     .epigraph {
-      position: fixed; top:1.5rem; right:1.5rem;
-      font-size:0.85rem; color:#c4a0a0; letter-spacing:0.03em; z-index:200;
+      position: fixed; top:1.2rem; right:1.5rem;
+      font-size:0.82rem; color:#b09a8a; letter-spacing:0.03em; z-index:200;
     }
     .back-link {
-      position:fixed; top:1.5rem; left:1.5rem;
-      font-size:0.9rem; color:#b09a8a; text-decoration:none; z-index:200;
+      position:fixed; top:1.2rem; left:1.5rem;
+      font-size:0.88rem; color:#b09a8a; text-decoration:none; z-index:200;
       transition:color 0.3s;
     }
     .back-link:hover { color:#3a2f2f; }
 
     .scene {
       display:flex; flex-direction:column; align-items:center;
-      width:100%; padding:1.5rem 1rem;
-      min-height:100vh;
       justify-content:center;
+      width:100%; min-height:100vh;
+      padding:2rem 1rem;
     }
 
-    /* book container — StPageFlip renders into this */
-    .book-container {
-      position: relative;
+    /* ── the book container ── */
+    /* StPageFlip sets display:none initially and shows it on init.
+       We give it a shadow, constrain width to force portrait (single-page) mode */
+    .flip-book {
+      box-shadow:
+        0 0 20px 0 rgba(0,0,0,0.25),
+        0 10px 40px -10px rgba(0,0,0,0.3);
+      border-radius: 3px;
+      z-index: 100;
+      margin: 0 auto;
     }
 
-    /* each page div */
+    /* ── page styling (StPageFlip adds .page, .--left, .--right) ── */
     .page {
-      background: #fefcf8;
+      background-color: #faf6f0;
+      color: #3a2f2f;
+      border: solid 1px #d4c4b0;
       overflow: hidden;
+      padding: 0;
+    }
+
+    /* inset shadows on page edges — simulates book gutter depth */
+    .page.--left {
+      border-right: 0;
+      box-shadow: inset -7px 0 30px -7px rgba(0,0,0,0.3);
+    }
+    .page.--right {
+      border-left: 0;
+      box-shadow: inset 7px 0 30px -7px rgba(0,0,0,0.3);
+    }
+
+    /* hard pages (covers) */
+    .page.hard {
+      background-color: #f0e6d6;
+      border: solid 1px #c4b49a;
+    }
+
+    /* cover styling */
+    .page.page-cover {
+      background-color: #ebe0cc;
+      color: #5a4a3a;
+      border: solid 1px #c4b49a;
+    }
+    .page.page-cover-top {
+      box-shadow: inset 0 0 30px 0 rgba(36,10,3,0.15), -2px 0 5px 2px rgba(0,0,0,0.15);
+    }
+    .page.page-cover-bottom {
+      box-shadow: inset 0 0 30px 0 rgba(36,10,3,0.15), 10px 0 8px 0 rgba(0,0,0,0.15);
+    }
+
+    /* page content container */
+    .page-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       position: relative;
     }
 
-    /* paper texture on every page */
-    .page::before {
-      content: '';
-      position: absolute; inset: 0; z-index: 2;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-    }
-
-    .page-inner {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 1;
-    }
-
-    .page-inner img {
-      width: 100%; height: 100%;
+    .page-content img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
     }
 
-    /* title page */
-    .title-content {
+    /* paper noise texture overlay */
+    .page::after {
+      content: '';
+      position: absolute; inset: 0; z-index: 2;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+    }
+
+    /* title / cover content */
+    .cover-content {
       text-align: center;
-      padding: 2.5rem;
+      padding: 2rem;
+      width: 100%; height: 100%;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      width: 100%; height: 100%;
     }
-    .title-content h1 {
-      font-size: 2.2rem; font-weight: 400; color: #3a2f2f;
-      margin-bottom: 0.8rem;
+    .cover-content h1 {
+      font-size: 2rem; font-weight: 400; color: #3a2f2f;
+      margin-bottom: 0.6rem;
     }
-    .title-content .sub {
-      font-size: 1rem; color: #b09a8a; font-style: italic; line-height: 1.7;
+    .cover-content .sub {
+      font-size: 0.92rem; color: #9a8a7a; font-style: italic; line-height: 1.7;
     }
-    .title-content .divider {
-      width: 36px; height: 1px; background: #d4bfb0; margin: 1.2rem auto;
+    .cover-content .div {
+      width: 30px; height: 1px; background: #c4b49a; margin: 1rem auto;
     }
-    .title-content .toc {
-      list-style: none; font-size: 0.95rem; color: #9a8a7a; padding: 0;
+    .cover-content .toc {
+      list-style: none; font-size: 0.9rem; color: #8a7a6a; padding: 0;
     }
-    .title-content .toc li { padding: 0.25rem 0; }
-    .title-content .toc li::before { content: '· '; color: #c4a0a0; }
-    .title-content .hint {
-      font-size: 0.75rem; color: #c4a0a0; margin-top: 1.8rem;
-      letter-spacing: 0.06em;
+    .cover-content .toc li { padding: 0.2rem 0; }
+    .cover-content .toc li::before { content: '· '; color: #c4a0a0; }
+    .cover-content .hint {
+      font-size: 0.72rem; color: #b09a8a; margin-top: 1.5rem;
+      letter-spacing: 0.05em;
     }
 
-    /* section divider pages */
+    /* section divider */
     .section-content {
       text-align: center;
-      display: flex; align-items: center; justify-content: center;
       width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
     }
     .section-content h2 {
-      font-size: 1.7rem; font-weight: 400; font-style: italic; color: #3a2f2f;
+      font-size: 1.5rem; font-weight: 400; font-style: italic; color: #5a4a3a;
     }
 
-    /* controls */
+    /* back cover */
+    .end-mark {
+      font-size: 1.2rem; color: #c4a0a0; letter-spacing: 0.1em;
+    }
+
+    /* ── controls ── */
     .controls {
-      display: flex; align-items: center; gap: 1.8rem;
-      margin-top: 1.2rem; user-select: none; z-index: 201;
+      display: flex; align-items: center; gap: 1.5rem;
+      margin-top: 1rem; user-select: none; z-index: 201;
     }
     .nav-btn {
       background: none;
-      border: 1px solid #d4bfb0;
-      color: #9a8a7a;
+      border: 1px solid #c4b49a;
+      color: #8a7a6a;
       font-family: 'EB Garamond', Georgia, serif;
-      font-size: 1.05rem;
-      padding: 0.45rem 1.1rem;
+      font-size: 1rem;
+      padding: 0.4rem 1rem;
       border-radius: 3px; cursor: pointer;
       transition: border-color 0.25s, color 0.25s;
       letter-spacing: 0.03em;
     }
     .nav-btn:hover:not(:disabled) { border-color: #c47a7a; color: #c47a7a; }
-    .nav-btn:disabled { opacity: 0.28; cursor: default; }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
     .page-num {
-      font-size: 0.88rem; color: #b09a8a;
-      min-width: 64px; text-align: center; letter-spacing: 0.05em;
+      font-size: 0.85rem; color: #9a8a7a;
+      min-width: 60px; text-align: center; letter-spacing: 0.05em;
     }
 
-    /* petals */
+    /* ── petals ── */
     .petal-container {
       position: fixed; inset: 0;
       pointer-events: none; z-index: 1; overflow: hidden;
@@ -142,21 +192,21 @@
     }
     @keyframes fall {
       0%   { opacity:0;   transform:translateX(0) rotate(0deg) scale(0.8); }
-      8%   { opacity:0.5; }
-      92%  { opacity:0.3; }
+      8%   { opacity:0.4; }
+      92%  { opacity:0.2; }
       100% { opacity:0;   transform:translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
     @media (max-width:640px) {
-      .epigraph { position:relative; top:auto; right:auto; text-align:center; padding:0.8rem 1rem 0; font-size:0.78rem; }
-      .back-link { position:relative; top:auto; left:auto; display:block; padding:0.8rem 1rem 0; }
+      .epigraph { position:relative; top:auto; right:auto; text-align:center; padding:0.6rem 1rem 0; font-size:0.75rem; }
+      .back-link { position:relative; top:auto; left:auto; display:block; padding:0.6rem 1rem 0; }
       body { justify-content: flex-start; }
-      .scene { padding:0.5rem 0.5rem 1.5rem; justify-content:flex-start; padding-top:1rem; }
-      .title-content h1 { font-size:1.6rem; }
-      .title-content { padding: 1.5rem; }
-      .section-content h2 { font-size:1.3rem; }
-      .controls { gap:1rem; margin-top:0.8rem; }
-      .nav-btn { padding:0.35rem 0.8rem; font-size:0.95rem; }
+      .scene { padding:0.8rem 0.4rem 1.5rem; justify-content:flex-start; min-height:auto; }
+      .cover-content h1 { font-size:1.5rem; }
+      .cover-content { padding:1.2rem; }
+      .section-content h2 { font-size:1.2rem; }
+      .controls { gap:0.8rem; margin-top:0.6rem; }
+      .nav-btn { padding:0.3rem 0.7rem; font-size:0.9rem; }
     }
   </style>
 </head>
@@ -166,14 +216,16 @@
 <a href="/writings" class="back-link">← back</a>
 
 <div class="scene">
-  <div class="book-container" id="book">
-    <!-- cover -->
-    <div class="page" data-density="hard">
-      <div class="page-inner">
-        <div class="title-content">
+  <!-- StPageFlip container — constrained width forces portrait (single-page) mode -->
+  <div id="book" style="max-width:480px;">
+
+    <!-- cover (hard page) -->
+    <div class="page page-cover page-cover-top" data-density="hard">
+      <div class="page-content">
+        <div class="cover-content">
           <h1>writings</h1>
           <p class="sub">I am thinking out loud and<br>taking you through this journey with me.</p>
-          <div class="divider"></div>
+          <div class="div"></div>
           <ul class="toc">
             <li>passion</li>
             <li>feeling empty</li>
@@ -186,74 +238,45 @@
 
     <!-- section: passion -->
     <div class="page">
-      <div class="page-inner">
+      <div class="page-content">
         <div class="section-content"><h2>passion</h2></div>
       </div>
     </div>
 
-    <!-- passion pages -->
-    <div class="page">
-      <div class="page-inner"><img src="/writings/passion-1.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/passion-2.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/passion-3.svg" loading="lazy"></div>
-    </div>
+    <div class="page"><div class="page-content"><img src="/writings/passion-1.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/passion-2.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/passion-3.svg" loading="lazy"></div></div>
 
     <!-- section: feeling empty -->
     <div class="page">
-      <div class="page-inner">
+      <div class="page-content">
         <div class="section-content"><h2>feeling empty</h2></div>
       </div>
     </div>
 
-    <!-- feeling empty pages -->
-    <div class="page">
-      <div class="page-inner"><img src="/writings/feeling-empty-1.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/feeling-empty-2.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/feeling-empty-3.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/feeling-empty-4.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/feeling-empty-5.svg" loading="lazy"></div>
-    </div>
+    <div class="page"><div class="page-content"><img src="/writings/feeling-empty-1.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/feeling-empty-2.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/feeling-empty-3.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/feeling-empty-4.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/feeling-empty-5.svg" loading="lazy"></div></div>
 
     <!-- section: important and sadness -->
     <div class="page">
-      <div class="page-inner">
+      <div class="page-content">
         <div class="section-content"><h2>what's really important…<br>and about sadness</h2></div>
       </div>
     </div>
 
-    <!-- important-and-sadness pages -->
-    <div class="page">
-      <div class="page-inner"><img src="/writings/important-and-sadness-1.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/important-and-sadness-2.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/important-and-sadness-3.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/important-and-sadness-4.svg" loading="lazy"></div>
-    </div>
-    <div class="page">
-      <div class="page-inner"><img src="/writings/important-and-sadness-5.svg" loading="lazy"></div>
-    </div>
+    <div class="page"><div class="page-content"><img src="/writings/important-and-sadness-1.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/important-and-sadness-2.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/important-and-sadness-3.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/important-and-sadness-4.svg" loading="lazy"></div></div>
+    <div class="page"><div class="page-content"><img src="/writings/important-and-sadness-5.svg" loading="lazy"></div></div>
 
-    <!-- back cover -->
-    <div class="page" data-density="hard">
-      <div class="page-inner">
-        <div class="section-content" style="color:#c4a0a0;font-size:0.9rem;letter-spacing:0.05em;">✦</div>
+    <!-- back cover (hard page) -->
+    <div class="page page-cover page-cover-bottom" data-density="hard">
+      <div class="page-content">
+        <div class="section-content"><span class="end-mark">✦</span></div>
       </div>
     </div>
   </div>
@@ -269,40 +292,62 @@
 (function() {
   'use strict';
 
-  /* ── compute book size ── */
-  var isMobile = window.innerWidth <= 640;
-  var maxW = isMobile ? window.innerWidth - 20 : 520;
-  var pageW = Math.min(maxW, 520);
-  var pageH = Math.round(pageW / 0.72);
-
-  /* ── init StPageFlip ── */
   var bookEl = document.getElementById('book');
+
   var pageFlip = new St.PageFlip(bookEl, {
-    width: pageW,
-    height: pageH,
+    width:  430,
+    height: 600,
     size: 'stretch',
-    minWidth: 280,
-    maxWidth: 620,
-    minHeight: 390,
-    maxHeight: 860,
+    minWidth: 260,
+    maxWidth: 480,
+    minHeight: 360,
+    maxHeight: 670,
     showCover: true,
+    usePortrait: true,
     mobileScrollSupport: true,
     useMouseEvents: true,
-    swipeDistance: 40,
-    flippingTime: 800,
-    usePortrait: true,
+    swipeDistance: 30,
+    flippingTime: 900,
     startZIndex: 0,
     autoSize: true,
-    maxShadowOpacity: 0.45,
+    maxShadowOpacity: 0.5,
     showPageCorners: true,
     drawShadow: true
   });
 
   pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
-  /* ── page sound ── */
+  /* ── controls ── */
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var numEl   = document.getElementById('pageNum');
+  var total   = pageFlip.getPageCount();
+
+  function updateUI() {
+    var cur = pageFlip.getCurrentPageIndex();
+    prevBtn.disabled = cur <= 0;
+    nextBtn.disabled = cur >= total - 1;
+    if (cur <= 0)              numEl.textContent = 'cover';
+    else if (cur >= total - 1) numEl.textContent = (total - 1) + ' / ' + (total - 1);
+    else                       numEl.textContent = cur + ' / ' + (total - 1);
+  }
+
+  nextBtn.addEventListener('click', function() { pageFlip.flipNext(); });
+  prevBtn.addEventListener('click', function() { pageFlip.flipPrev(); });
+
+  pageFlip.on('flip', function() { updateUI(); });
+  pageFlip.on('changeState', function() { updateUI(); });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); pageFlip.flipNext(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); pageFlip.flipPrev(); }
+  });
+
+  updateUI();
+
+  /* ── page turn sound ── */
   var audioCtx = null;
-  function playPageSound() {
+  function playFlipSound() {
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
       catch(e) { return; }
@@ -311,70 +356,36 @@
     var len = Math.floor(audioCtx.sampleRate * 0.1);
     var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.2;
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.18;
     var src = audioCtx.createBufferSource();
     src.buffer = buf;
     var filt = audioCtx.createBiquadFilter();
-    filt.type = 'bandpass'; filt.frequency.value = 900; filt.Q.value = 0.4;
+    filt.type = 'bandpass'; filt.frequency.value = 850; filt.Q.value = 0.5;
     var gain = audioCtx.createGain();
     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
     src.connect(filt); filt.connect(gain); gain.connect(audioCtx.destination);
     src.start(); src.stop(audioCtx.currentTime + 0.1);
   }
-
-  /* ── controls ── */
-  var prevBtn = document.getElementById('prev');
-  var nextBtn = document.getElementById('next');
-  var numEl   = document.getElementById('pageNum');
-  var totalPages = pageFlip.getPageCount();
-
-  function updateUI() {
-    var cur = pageFlip.getCurrentPageIndex();
-    prevBtn.disabled = cur <= 0;
-    nextBtn.disabled = cur >= totalPages - 1;
-    if (cur <= 0)                    numEl.textContent = 'cover';
-    else if (cur >= totalPages - 1)  numEl.textContent = totalPages + ' / ' + totalPages;
-    else                             numEl.textContent = cur + ' / ' + (totalPages - 1);
-  }
-
-  nextBtn.addEventListener('click', function() { pageFlip.flipNext(); });
-  prevBtn.addEventListener('click', function() { pageFlip.flipPrev(); });
-
-  pageFlip.on('flip', function(e) {
-    playPageSound();
-    updateUI();
-  });
-
-  pageFlip.on('changeState', function(e) {
-    updateUI();
-  });
-
-  /* keyboard */
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); pageFlip.flipNext(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); pageFlip.flipPrev(); }
-  });
-
-  updateUI();
+  pageFlip.on('flip', function() { playFlipSound(); });
 
   /* ── cherry blossoms ── */
-  var MAX_PETALS = 25;
-  var petalBox = document.createElement('div');
-  petalBox.className = 'petal-container';
-  document.body.appendChild(petalBox);
+  var MAX = 20;
+  var box = document.createElement('div');
+  box.className = 'petal-container';
+  document.body.appendChild(box);
 
-  function makePetal() {
-    while (petalBox.children.length >= MAX_PETALS) petalBox.removeChild(petalBox.firstChild);
+  function petal() {
+    while (box.children.length >= MAX) box.removeChild(box.firstChild);
     var p = document.createElement('div');
     p.className = 'petal';
-    var sz   = 8 + Math.random() * 11;
-    var dur  = 9 + Math.random() * 11;
-    var del  = Math.random() * 4;
-    var dx   = -70 + Math.random() * 140;
+    var sz = 8 + Math.random() * 10;
+    var dur = 10 + Math.random() * 10;
+    var del = Math.random() * 4;
+    var dx = -60 + Math.random() * 120;
     var spin = 180 + Math.random() * 540;
     var cols = ['#f0b0b0','#e8a0a0','#f2c0c0','#dba0a0','#eab0b0'];
-    var col  = cols[Math.floor(Math.random()*cols.length)];
+    var col = cols[Math.floor(Math.random()*cols.length)];
     p.style.cssText =
       'left:'+(Math.random()*window.innerWidth)+'px;top:-20px;' +
       'width:'+sz+'px;height:'+(sz*0.65)+'px;' +
@@ -382,17 +393,16 @@
       'border-radius:50% 0 50% 0;' +
       '--drift:'+dx+'px;--spin:'+spin+'deg;' +
       'animation:fall '+dur+'s '+del+'s linear forwards;';
-    petalBox.appendChild(p);
-    setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, (dur+del)*1000+100);
+    box.appendChild(p);
+    setTimeout(function(){ if(p.parentNode) p.removeChild ? p.parentNode.removeChild(p) : null; }, (dur+del)*1000+200);
   }
 
-  var petalInt = setInterval(makePetal, 1600);
+  var pi = setInterval(petal, 1800);
   document.addEventListener('visibilitychange', function() {
-    if (document.hidden) clearInterval(petalInt);
-    else petalInt = setInterval(makePetal, 1600);
+    if (document.hidden) clearInterval(pi);
+    else pi = setInterval(petal, 1800);
   });
-  for (var k=0; k<7; k++) setTimeout(makePetal, k*500);
-
+  for (var k=0; k<5; k++) setTimeout(petal, k*600);
 })();
 </script>
 </body>
