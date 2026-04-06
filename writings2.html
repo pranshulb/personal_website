@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>notebook — pranshul's cafe</title>
+  <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -17,7 +18,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
     .epigraph {
@@ -33,192 +34,82 @@
 
     .scene {
       display:flex; flex-direction:column; align-items:center;
-      width:100%; padding:1rem;
+      width:100%; padding:1.5rem 1rem;
+      min-height:100vh;
+      justify-content:center;
     }
 
-    .book-wrap {
+    /* book container — StPageFlip renders into this */
+    .book-container {
       position: relative;
-      width: 100%;
-      max-width: 520px;
     }
 
-    .paper-stack {
-      position: absolute;
-      top: 0.5%; bottom: 0.5%;
-      right: -8px;
-      width: 9px;
-      background: repeating-linear-gradient(
-        to right,
-        #e8dfd4 0px, #e8dfd4 1px,
-        #ede5da 1px, #ede5da 2px,
-        #e4dbd0 2px, #e4dbd0 3px,
-        #efe7dc 3px, #efe7dc 4px,
-        #e2d9ce 4px, #e2d9ce 5px,
-        #ece3d8 5px, #ece3d8 6px,
-        #e0d7cc 6px, #e0d7cc 7px,
-        #eae1d6 7px, #eae1d6 8px,
-        #dfd6cb 8px, #dfd6cb 9px
-      );
-      border-right: 1px solid rgba(180,160,140,0.25);
-      border-top: 1px solid rgba(180,160,140,0.12);
-      border-bottom: 1px solid rgba(180,160,140,0.12);
-      border-radius: 0 2px 2px 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .book {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 0.72;
-      perspective: 2200px;
-      perspective-origin: 50% 48%;
-      cursor: pointer;
-    }
-
-    .spine {
-      position: absolute;
-      top: 0; left: 0; bottom: 0;
-      width: 5px;
-      background: linear-gradient(to right,
-        rgba(40,25,15,0.18) 0%,
-        rgba(40,25,15,0.06) 60%,
-        transparent 100%
-      );
-      z-index: 50; pointer-events: none; border-radius: 1px 0 0 1px;
-    }
-
-    /* ── leaves ── */
-    .leaf {
-      position: absolute; inset: 0;
-      transform-origin: left center;
-      transform-style: preserve-3d;
-      will-change: transform;
-      cursor: pointer;
-    }
-
-    .face {
-      position: absolute; inset: 0;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      overflow: hidden;
-      border-radius: 0 2px 2px 0;
-    }
-
-    .face.back {
-      transform: rotateY(180deg);
-      border-radius: 2px 0 0 2px;
-    }
-
-    .page-surface {
-      width: 100%; height: 100%;
+    /* each page div */
+    .page {
       background: #fefcf8;
-      border: 1px solid rgba(180,160,140,0.18);
-      position: relative;
       overflow: hidden;
+      position: relative;
     }
 
-    .face .page-surface { border-left: none; border-radius: inherit; }
-    .face.back .page-surface { border-right: none; border-radius: inherit; }
-
-    /* paper noise texture */
-    .page-surface::before {
+    /* paper texture on every page */
+    .page::before {
       content: '';
-      position: absolute; inset: 0; z-index: 3;
+      position: absolute; inset: 0; z-index: 2;
       pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
     }
 
-    /* fold-shadow gradient overlay */
-    .fold-shadow {
-      position: absolute; inset: 0; z-index: 4;
-      pointer-events: none;
-      opacity: 0;
-      will-change: opacity;
-    }
-    .face .fold-shadow {
-      background: linear-gradient(to left,
-        rgba(20,10,5,0.55) 0%,
-        rgba(20,10,5,0.15) 25%,
-        rgba(20,10,5,0.02) 55%,
-        transparent 70%
-      );
-    }
-    .face.back .fold-shadow {
-      background: linear-gradient(to right,
-        rgba(20,10,5,0.4) 0%,
-        rgba(20,10,5,0.1) 30%,
-        transparent 55%
-      );
-    }
-
-    /* cast shadow */
-    .cast-shadow {
-      position: absolute; inset: 0;
-      background: linear-gradient(to right,
-        rgba(20,10,5,0.28) 0%,
-        rgba(20,10,5,0.12) 8%,
-        rgba(20,10,5,0.04) 25%,
-        transparent 50%
-      );
-      opacity: 0;
-      pointer-events: none;
-      z-index: 200;
-      will-change: opacity;
-      border-radius: 0 2px 2px 0;
-    }
-
-    .page-surface img {
+    .page-inner {
       width: 100%; height: 100%;
-      object-fit: contain; display: block;
+      display: flex; align-items: center; justify-content: center;
       position: relative; z-index: 1;
     }
 
-    .title-page, .section-page {
+    .page-inner img {
       width: 100%; height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* title page */
+    .title-content {
+      text-align: center;
+      padding: 2.5rem;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      text-align: center; padding: 2.5rem;
-      position: relative; z-index: 1;
+      width: 100%; height: 100%;
     }
-    .title-page h1 {
-      font-size: 2rem; font-weight: 400; color: #3a2f2f; margin-bottom: 0.8rem;
+    .title-content h1 {
+      font-size: 2.2rem; font-weight: 400; color: #3a2f2f;
+      margin-bottom: 0.8rem;
     }
-    .title-page .sub {
-      font-size: 0.95rem; color: #b09a8a; font-style: italic; line-height: 1.7;
+    .title-content .sub {
+      font-size: 1rem; color: #b09a8a; font-style: italic; line-height: 1.7;
     }
-    .title-page .div {
+    .title-content .divider {
       width: 36px; height: 1px; background: #d4bfb0; margin: 1.2rem auto;
     }
-    .title-page .toc {
-      list-style: none; font-size: 0.95rem; color: #9a8a7a;
+    .title-content .toc {
+      list-style: none; font-size: 0.95rem; color: #9a8a7a; padding: 0;
     }
-    .title-page .toc li { padding: 0.25rem 0; }
-    .title-page .toc li::before { content: '· '; color: #c4a0a0; }
-    .title-page .hint {
+    .title-content .toc li { padding: 0.25rem 0; }
+    .title-content .toc li::before { content: '· '; color: #c4a0a0; }
+    .title-content .hint {
       font-size: 0.75rem; color: #c4a0a0; margin-top: 1.8rem;
       letter-spacing: 0.06em;
     }
-    .section-page h2 {
+
+    /* section divider pages */
+    .section-content {
+      text-align: center;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+    }
+    .section-content h2 {
       font-size: 1.7rem; font-weight: 400; font-style: italic; color: #3a2f2f;
     }
-    .blank { background: #faf5ef; }
 
-    /* page peek on hover */
-    .leaf.peek {
-      animation: pagePeek 0.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-    }
-    .leaf.unpeek {
-      animation: pageUnpeek 0.35s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-    }
-    @keyframes pagePeek {
-      to { transform: rotateY(-12deg) translateZ(6px); }
-    }
-    @keyframes pageUnpeek {
-      to { transform: rotateY(0deg) translateZ(0); }
-    }
-
-    /* ── controls ── */
+    /* controls */
     .controls {
       display: flex; align-items: center; gap: 1.8rem;
       margin-top: 1.2rem; user-select: none; z-index: 201;
@@ -241,9 +132,13 @@
       min-width: 64px; text-align: center; letter-spacing: 0.05em;
     }
 
-    /* ── petals ── */
+    /* petals */
+    .petal-container {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 1; overflow: hidden;
+    }
     .petal {
-      position: fixed; pointer-events: none; z-index: 1; opacity: 0;
+      position: absolute; pointer-events: none; opacity: 0;
     }
     @keyframes fall {
       0%   { opacity:0;   transform:translateX(0) rotate(0deg) scale(0.8); }
@@ -252,19 +147,14 @@
       100% { opacity:0;   transform:translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
     }
 
-    /* sr-only for accessibility */
-    .sr-only {
-      position:absolute; width:1px; height:1px; overflow:hidden;
-      clip:rect(0,0,0,0); white-space:nowrap; border:0;
-    }
-
     @media (max-width:640px) {
       .epigraph { position:relative; top:auto; right:auto; text-align:center; padding:0.8rem 1rem 0; font-size:0.78rem; }
       .back-link { position:relative; top:auto; left:auto; display:block; padding:0.8rem 1rem 0; }
       body { justify-content: flex-start; }
-      .scene { padding:0.5rem 0.5rem 1.5rem; }
-      .title-page h1 { font-size:1.6rem; }
-      .section-page h2 { font-size:1.4rem; }
+      .scene { padding:0.5rem 0.5rem 1.5rem; justify-content:flex-start; padding-top:1rem; }
+      .title-content h1 { font-size:1.6rem; }
+      .title-content { padding: 1.5rem; }
+      .section-content h2 { font-size:1.3rem; }
       .controls { gap:1rem; margin-top:0.8rem; }
       .nav-btn { padding:0.35rem 0.8rem; font-size:0.95rem; }
     }
@@ -276,13 +166,98 @@
 <a href="/writings" class="back-link">← back</a>
 
 <div class="scene">
-  <div class="book-wrap">
-    <div class="paper-stack"></div>
-    <div class="book" id="book">
-      <div class="spine"></div>
-      <div class="cast-shadow" id="castShadow"></div>
+  <div class="book-container" id="book">
+    <!-- cover -->
+    <div class="page" data-density="hard">
+      <div class="page-inner">
+        <div class="title-content">
+          <h1>writings</h1>
+          <p class="sub">I am thinking out loud and<br>taking you through this journey with me.</p>
+          <div class="divider"></div>
+          <ul class="toc">
+            <li>passion</li>
+            <li>feeling empty</li>
+            <li>what's really important and about sadness</li>
+          </ul>
+          <p class="hint">drag the corner to turn pages</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- section: passion -->
+    <div class="page">
+      <div class="page-inner">
+        <div class="section-content"><h2>passion</h2></div>
+      </div>
+    </div>
+
+    <!-- passion pages -->
+    <div class="page">
+      <div class="page-inner"><img src="/writings/passion-1.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/passion-2.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/passion-3.svg" loading="lazy"></div>
+    </div>
+
+    <!-- section: feeling empty -->
+    <div class="page">
+      <div class="page-inner">
+        <div class="section-content"><h2>feeling empty</h2></div>
+      </div>
+    </div>
+
+    <!-- feeling empty pages -->
+    <div class="page">
+      <div class="page-inner"><img src="/writings/feeling-empty-1.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/feeling-empty-2.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/feeling-empty-3.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/feeling-empty-4.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/feeling-empty-5.svg" loading="lazy"></div>
+    </div>
+
+    <!-- section: important and sadness -->
+    <div class="page">
+      <div class="page-inner">
+        <div class="section-content"><h2>what's really important…<br>and about sadness</h2></div>
+      </div>
+    </div>
+
+    <!-- important-and-sadness pages -->
+    <div class="page">
+      <div class="page-inner"><img src="/writings/important-and-sadness-1.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/important-and-sadness-2.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/important-and-sadness-3.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/important-and-sadness-4.svg" loading="lazy"></div>
+    </div>
+    <div class="page">
+      <div class="page-inner"><img src="/writings/important-and-sadness-5.svg" loading="lazy"></div>
+    </div>
+
+    <!-- back cover -->
+    <div class="page" data-density="hard">
+      <div class="page-inner">
+        <div class="section-content" style="color:#c4a0a0;font-size:0.9rem;letter-spacing:0.05em;">✦</div>
+      </div>
     </div>
   </div>
+
   <div class="controls">
     <button class="nav-btn" id="prev" disabled>← prev</button>
     <span class="page-num" id="pageNum">cover</span>
@@ -290,529 +265,107 @@
   </div>
 </div>
 
-<!-- aria live region for screen readers -->
-<div aria-live="polite" aria-atomic="true" class="sr-only" id="announcer"></div>
-
 <script>
-(function(){
+(function() {
   'use strict';
 
-  /* ══════════════════════════════════════
-     CONFIG
-     ══════════════════════════════════════ */
-  var DURATION = 900;
-  var isMobile = window.matchMedia('(max-width:640px)').matches || 'ontouchstart' in window;
+  /* ── compute book size ── */
+  var isMobile = window.innerWidth <= 640;
+  var maxW = isMobile ? window.innerWidth - 20 : 520;
+  var pageW = Math.min(maxW, 520);
+  var pageH = Math.round(pageW / 0.72);
 
-  /* ══════════════════════════════════════
-     PAGE DATA
-     ══════════════════════════════════════ */
-  var PAGES = [
-    { t:'title' },
-    { t:'section', h:'passion' },
-    { t:'img', src:'/writings/passion-1.svg' },
-    { t:'img', src:'/writings/passion-2.svg' },
-    { t:'img', src:'/writings/passion-3.svg' },
-    { t:'section', h:'feeling empty' },
-    { t:'img', src:'/writings/feeling-empty-1.svg' },
-    { t:'img', src:'/writings/feeling-empty-2.svg' },
-    { t:'img', src:'/writings/feeling-empty-3.svg' },
-    { t:'img', src:'/writings/feeling-empty-4.svg' },
-    { t:'img', src:'/writings/feeling-empty-5.svg' },
-    { t:'section', h:"what\u2019s really important\u2026\u00A0and about sadness" },
-    { t:'img', src:'/writings/important-and-sadness-1.svg' },
-    { t:'img', src:'/writings/important-and-sadness-2.svg' },
-    { t:'img', src:'/writings/important-and-sadness-3.svg' },
-    { t:'img', src:'/writings/important-and-sadness-4.svg' },
-    { t:'img', src:'/writings/important-and-sadness-5.svg' }
-  ];
-  var N = PAGES.length;
+  /* ── init StPageFlip ── */
+  var bookEl = document.getElementById('book');
+  var pageFlip = new St.PageFlip(bookEl, {
+    width: pageW,
+    height: pageH,
+    size: 'stretch',
+    minWidth: 280,
+    maxWidth: 620,
+    minHeight: 390,
+    maxHeight: 860,
+    showCover: true,
+    mobileScrollSupport: true,
+    useMouseEvents: true,
+    swipeDistance: 40,
+    flippingTime: 800,
+    usePortrait: true,
+    startZIndex: 0,
+    autoSize: true,
+    maxShadowOpacity: 0.45,
+    showPageCorners: true,
+    drawShadow: true
+  });
 
-  /* ══════════════════════════════════════
-     BUILD FACE HTML
-     ══════════════════════════════════════ */
-  function faceHTML(p) {
-    if (!p) return '<div class="page-surface blank"></div>';
-    if (p.t === 'title') {
-      return '<div class="page-surface"><div class="title-page">' +
-        '<h1>writings</h1>' +
-        '<p class="sub">I am thinking out loud and<br>taking you through this journey with me.</p>' +
-        '<div class="div"></div>' +
-        '<ul class="toc"><li>passion</li><li>feeling empty</li><li>what\'s really important and about sadness</li></ul>' +
-        '<p class="hint">\u2192 drag the page edge, click, or press arrow keys</p>' +
-        '</div><div class="fold-shadow"></div></div>';
-    }
-    if (p.t === 'section') {
-      return '<div class="page-surface"><div class="section-page"><h2>' + p.h + '</h2></div>' +
-        '<div class="fold-shadow"></div></div>';
-    }
-    if (p.t === 'img') {
-      return '<div class="page-surface"><img src="' + p.src + '" loading="lazy">' +
-        '<div class="fold-shadow"></div></div>';
-    }
-    return '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
-  }
+  pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
-  /* ══════════════════════════════════════
-     BUILD LEAVES
-     ══════════════════════════════════════ */
-  var book         = document.getElementById('book');
-  var castShEl     = document.getElementById('castShadow');
-  var announcer    = document.getElementById('announcer');
-  var leafEls      = [];
-  var frontShadows = [];
-  var backShadows  = [];
-
-  for (var i = N - 1; i >= 0; i--) {
-    var leaf = document.createElement('div');
-    leaf.className = 'leaf';
-    leaf.style.zIndex = N - i;
-
-    var front = document.createElement('div');
-    front.className = 'face front';
-    front.innerHTML = faceHTML(PAGES[i]);
-
-    var back = document.createElement('div');
-    back.className = 'face back';
-    back.innerHTML = '<div class="page-surface blank"><div class="fold-shadow"></div></div>';
-
-    leaf.appendChild(front);
-    leaf.appendChild(back);
-    book.appendChild(leaf);
-
-    leafEls[i] = leaf;
-    frontShadows[i] = front.querySelector('.fold-shadow');
-    backShadows[i]  = back.querySelector('.fold-shadow');
-  }
-
-  /* ══════════════════════════════════════
-     STATE
-     ══════════════════════════════════════ */
-  var current     = 0;
-  var isAnimating = false;
-
-  /* ══════════════════════════════════════
-     EASING — spring settle
-     ══════════════════════════════════════ */
-  function easeFlip(t) {
-    if (t < 0.5) {
-      return 4 * t * t * t;
-    }
-    var p = -2 * t + 2;
-    var base = 1 - Math.pow(p, 3) / 2;
-    // tiny spring overshoot then settle
-    var spring = Math.sin(t * Math.PI * 1.2) * 0.018 * (1 - t);
-    return base + spring;
-  }
-
-  /* ══════════════════════════════════════
-     PAGE-TURN SOUND (synthesized)
-     ══════════════════════════════════════ */
+  /* ── page sound ── */
   var audioCtx = null;
   function playPageSound() {
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
       catch(e) { return; }
     }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    var bufferSize = Math.floor(audioCtx.sampleRate * 0.12);
-    var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    var data = buffer.getChannelData(0);
-    for (var i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.25;
-    }
-    var noise  = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    var filter = audioCtx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 900;
-    filter.Q.value = 0.4;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    var len = Math.floor(audioCtx.sampleRate * 0.1);
+    var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.2;
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    var filt = audioCtx.createBiquadFilter();
+    filt.type = 'bandpass'; filt.frequency.value = 900; filt.Q.value = 0.4;
     var gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-    noise.start(audioCtx.currentTime);
-    noise.stop(audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    src.connect(filt); filt.connect(gain); gain.connect(audioCtx.destination);
+    src.start(); src.stop(audioCtx.currentTime + 0.1);
   }
 
-  /* ══════════════════════════════════════
-     SHADOW HELPERS
-     ══════════════════════════════════════ */
-  function updateShadows(leafIdx, raw, toFlipped) {
-    var fShadow = frontShadows[leafIdx];
-    var bShadow = backShadows[leafIdx];
-
-    if (isMobile) {
-      // simplified two-state shadows on mobile
-      if (raw < 0.08) {
-        fShadow.style.transition = 'opacity 0.4s ease';
-        fShadow.style.opacity = toFlipped ? 0.55 : 0.3;
-      }
-      if (raw > 0.92) {
-        fShadow.style.opacity = 0;
-        bShadow.style.opacity = 0;
-      }
-      castShEl.style.opacity = (raw > 0.15 && raw < 0.85) ? 0.22 : 0;
-    } else {
-      // desktop: per-frame non-linear shadows (claudisc tip: pow 0.6 lingers mid-flip)
-      var foldRaw = Math.pow(Math.sin(Math.PI * raw), 0.6);
-      fShadow.style.opacity = foldRaw * (toFlipped ? 0.88 : 0.5);
-      var halfBack = raw > 0.5 ? (raw - 0.5) * 2 : 0;
-      bShadow.style.opacity = Math.pow(halfBack, 0.7) * (toFlipped ? 0.45 : 0.75);
-      castShEl.style.opacity = foldRaw * 0.35;
-    }
-  }
-
-  function clearShadows(leafIdx) {
-    frontShadows[leafIdx].style.transition = '';
-    frontShadows[leafIdx].style.opacity = 0;
-    backShadows[leafIdx].style.opacity = 0;
-    castShEl.style.opacity = 0;
-  }
-
-  /* ══════════════════════════════════════
-     COMPUTE TRANSFORM (shared by flip + drag)
-     ══════════════════════════════════════ */
-  function computeTransform(deg, raw) {
-    // lift: translateZ peaks at midpoint
-    var lift = Math.sin(Math.PI * raw) * 22;
-    // curl: skewY peaks at midpoint (paper bend illusion)
-    var curl = Math.sin(Math.PI * raw) * 7;
-    // foreshortening: scaleX shrinks slightly mid-turn
-    var scaleX = 1 - Math.sin(Math.PI * raw) * 0.035;
-
-    return 'rotateY(' + deg + 'deg) ' +
-           'translateZ(' + lift + 'px) ' +
-           'scaleX(' + scaleX + ') ' +
-           'skewY(' + (deg < -90 ? -curl : curl) + 'deg)';
-  }
-
-  /* ══════════════════════════════════════
-     RAF FLIP ANIMATION
-     ══════════════════════════════════════ */
-  function flip(leafIdx, toFlipped, onDone) {
-    var leaf     = leafEls[leafIdx];
-    var startDeg = toFlipped ? 0 : -180;
-    var endDeg   = toFlipped ? -180 : 0;
-    var t0       = null;
-
-    leaf.style.zIndex = 9999;
-
-    function tick(ts) {
-      if (!t0) t0 = ts;
-      var raw  = Math.min((ts - t0) / DURATION, 1);
-      var ease = easeFlip(raw);
-
-      var deg = startDeg + (endDeg - startDeg) * ease;
-
-      leaf.style.transform = computeTransform(deg, raw);
-      updateShadows(leafIdx, raw, toFlipped);
-
-      if (raw < 1) {
-        requestAnimationFrame(tick);
-      } else {
-        leaf.style.transform = 'rotateY(' + endDeg + 'deg) translateZ(0)';
-        clearShadows(leafIdx);
-        onDone();
-      }
-    }
-
-    requestAnimationFrame(tick);
-  }
-
-  /* ══════════════════════════════════════
-     UI UPDATE
-     ══════════════════════════════════════ */
+  /* ── controls ── */
   var prevBtn = document.getElementById('prev');
   var nextBtn = document.getElementById('next');
   var numEl   = document.getElementById('pageNum');
+  var totalPages = pageFlip.getPageCount();
 
   function updateUI() {
-    prevBtn.disabled = current === 0;
-    nextBtn.disabled = current >= N;
-    var label;
-    if (current === 0)       label = 'cover';
-    else if (current >= N)   label = N + ' / ' + N;
-    else                     label = current + ' / ' + N;
-    numEl.textContent = label;
-    announcer.textContent = 'Page ' + label;
+    var cur = pageFlip.getCurrentPageIndex();
+    prevBtn.disabled = cur <= 0;
+    nextBtn.disabled = cur >= totalPages - 1;
+    if (cur <= 0)                    numEl.textContent = 'cover';
+    else if (cur >= totalPages - 1)  numEl.textContent = totalPages + ' / ' + totalPages;
+    else                             numEl.textContent = cur + ' / ' + (totalPages - 1);
   }
 
-  /* ══════════════════════════════════════
-     FLIP NEXT / PREV
-     ══════════════════════════════════════ */
-  function flipNext() {
-    if (current >= N || isAnimating) return;
-    isAnimating = true;
+  nextBtn.addEventListener('click', function() { pageFlip.flipNext(); });
+  prevBtn.addEventListener('click', function() { pageFlip.flipPrev(); });
+
+  pageFlip.on('flip', function(e) {
     playPageSound();
-    clearPeek();
-    var idx = current;
-    current++;
     updateUI();
-    flip(idx, true, function() {
-      leafEls[idx].style.zIndex = 0;
-      isAnimating = false;
-    });
-  }
+  });
 
-  function flipPrev() {
-    if (current <= 0 || isAnimating) return;
-    isAnimating = true;
-    playPageSound();
-    clearPeek();
-    current--;
-    var idx = current;
+  pageFlip.on('changeState', function(e) {
     updateUI();
-    flip(idx, false, function() {
-      leafEls[idx].style.zIndex = N - idx;
-      isAnimating = false;
-    });
-  }
-
-  /* ══════════════════════════════════════
-     PAGE PEEK ON HOVER
-     ══════════════════════════════════════ */
-  var peekActive = false;
-  var peekTimeout = null;
-
-  function clearPeek() {
-    if (peekActive && current < N) {
-      var leaf = leafEls[current];
-      leaf.classList.remove('peek');
-      leaf.classList.add('unpeek');
-      peekActive = false;
-      clearTimeout(peekTimeout);
-      peekTimeout = setTimeout(function() { leaf.classList.remove('unpeek'); }, 350);
-    }
-  }
-
-  if (!isMobile) {
-    book.addEventListener('mousemove', function(e) {
-      if (isAnimating || isDragging || current >= N) return;
-      var r = book.getBoundingClientRect();
-      var ratio = (e.clientX - r.left) / r.width;
-      var leaf = leafEls[current];
-
-      if (ratio > 0.78) {
-        if (!peekActive) {
-          leaf.classList.remove('unpeek');
-          leaf.classList.add('peek');
-          peekActive = true;
-          clearTimeout(peekTimeout);
-        }
-      } else {
-        if (peekActive) {
-          leaf.classList.remove('peek');
-          leaf.classList.add('unpeek');
-          peekActive = false;
-          peekTimeout = setTimeout(function() { leaf.classList.remove('unpeek'); }, 350);
-        }
-      }
-    });
-
-    book.addEventListener('mouseleave', function() {
-      clearPeek();
-    });
-  }
-
-  /* ══════════════════════════════════════
-     DRAG-TO-FLIP
-     ══════════════════════════════════════ */
-  var isDragging   = false;
-  var dragLeafIdx  = null;
-  var dragDir      = null;
-  var dragStartX   = 0;
-  var dragBookRect = null;
-  var dragMoved    = false;
-
-  function getDragAngle(clientX) {
-    var ratio = (clientX - dragBookRect.left) / dragBookRect.width;
-    ratio = Math.max(0, Math.min(1, ratio));
-    // map position to angle: right edge = 0°, left edge = -180°
-    return -(1 - ratio) * 180;
-  }
-
-  function startDrag(clientX) {
-    if (isAnimating) return;
-    dragBookRect = book.getBoundingClientRect();
-    var relX = clientX - dragBookRect.left;
-    var ratio = relX / dragBookRect.width;
-    dragMoved = false;
-    dragStartX = clientX;
-
-    if (ratio > 0.60 && current < N) {
-      dragDir = 'next';
-      dragLeafIdx = current;
-      current++;
-      updateUI();
-    } else if (ratio < 0.35 && current > 0) {
-      dragDir = 'prev';
-      current--;
-      dragLeafIdx = current;
-      updateUI();
-    } else {
-      return;
-    }
-
-    isDragging = true;
-    clearPeek();
-    leafEls[dragLeafIdx].style.zIndex = 9999;
-  }
-
-  function moveDrag(clientX) {
-    if (!isDragging) return;
-    if (Math.abs(clientX - dragStartX) > 5) dragMoved = true;
-    if (!dragMoved) return;
-
-    var deg = getDragAngle(clientX);
-    deg = Math.max(-180, Math.min(0, deg));
-    var raw = Math.abs(deg) / 180;
-
-    leafEls[dragLeafIdx].style.transform = computeTransform(deg, raw);
-    updateShadows(dragLeafIdx, raw, dragDir === 'next');
-  }
-
-  function endDrag(clientX) {
-    if (!isDragging) return;
-    isDragging = false;
-
-    // if barely moved, treat as a click
-    if (!dragMoved) {
-      // revert state change
-      if (dragDir === 'next') current--;
-      else current++;
-      updateUI();
-      leafEls[dragLeafIdx].style.zIndex = (dragDir === 'next') ? N - dragLeafIdx : 0;
-
-      // do a regular click flip
-      if (dragDir === 'next') flipNext();
-      else flipPrev();
-      return;
-    }
-
-    var deg = getDragAngle(clientX);
-    var progress = Math.abs(deg) / 180;
-    var shouldComplete = (dragDir === 'next') ? progress > 0.35 : progress < 0.65;
-
-    if (shouldComplete) {
-      // snap to completion
-      isAnimating = true;
-      playPageSound();
-      var targetDeg = (dragDir === 'next') ? -180 : 0;
-      var currentDeg = Math.max(-180, Math.min(0, deg));
-      var t0 = null;
-      var snapDur = 380;
-
-      function snapTick(ts) {
-        if (!t0) t0 = ts;
-        var raw = Math.min((ts - t0) / snapDur, 1);
-        var ease = easeFlip(raw);
-        var d = currentDeg + (targetDeg - currentDeg) * ease;
-        var absRaw = Math.abs(d) / 180;
-
-        leafEls[dragLeafIdx].style.transform = computeTransform(d, absRaw);
-        updateShadows(dragLeafIdx, absRaw, dragDir === 'next');
-
-        if (raw < 1) {
-          requestAnimationFrame(snapTick);
-        } else {
-          leafEls[dragLeafIdx].style.transform = 'rotateY(' + targetDeg + 'deg) translateZ(0)';
-          clearShadows(dragLeafIdx);
-          leafEls[dragLeafIdx].style.zIndex = (dragDir === 'next') ? 0 : N - dragLeafIdx;
-          isAnimating = false;
-        }
-      }
-      requestAnimationFrame(snapTick);
-
-    } else {
-      // snap back — revert
-      isAnimating = true;
-      var revertDeg = (dragDir === 'next') ? 0 : -180;
-      var curDeg2 = Math.max(-180, Math.min(0, deg));
-      var t02 = null;
-      var revertDur = 320;
-
-      if (dragDir === 'next') current--;
-      else current++;
-      updateUI();
-
-      function revertTick(ts) {
-        if (!t02) t02 = ts;
-        var raw = Math.min((ts - t02) / revertDur, 1);
-        var ease = easeFlip(raw);
-        var d = curDeg2 + (revertDeg - curDeg2) * ease;
-        var absRaw = Math.abs(d) / 180;
-
-        leafEls[dragLeafIdx].style.transform = computeTransform(d, absRaw);
-        updateShadows(dragLeafIdx, absRaw, dragDir === 'next');
-
-        if (raw < 1) {
-          requestAnimationFrame(revertTick);
-        } else {
-          leafEls[dragLeafIdx].style.transform = 'rotateY(' + revertDeg + 'deg) translateZ(0)';
-          clearShadows(dragLeafIdx);
-          leafEls[dragLeafIdx].style.zIndex = N - dragLeafIdx;
-          isAnimating = false;
-        }
-      }
-      requestAnimationFrame(revertTick);
-    }
-  }
-
-  /* ══════════════════════════════════════
-     EVENT BINDINGS
-     ══════════════════════════════════════ */
-  nextBtn.addEventListener('click', function(e) { e.stopPropagation(); flipNext(); });
-  prevBtn.addEventListener('click', function(e) { e.stopPropagation(); flipPrev(); });
-
-  // mouse drag
-  book.addEventListener('mousedown', function(e) {
-    e.preventDefault();
-    startDrag(e.clientX);
-  });
-  document.addEventListener('mousemove', function(e) {
-    moveDrag(e.clientX);
-  });
-  document.addEventListener('mouseup', function(e) {
-    if (isDragging) {
-      endDrag(e.clientX);
-    }
   });
 
-  // touch drag
-  book.addEventListener('touchstart', function(e) {
-    startDrag(e.touches[0].clientX);
-  }, { passive: true });
-  document.addEventListener('touchmove', function(e) {
-    if (isDragging) { e.preventDefault(); moveDrag(e.touches[0].clientX); }
-  }, { passive: false });
-  document.addEventListener('touchend', function(e) {
-    if (isDragging) endDrag(e.changedTouches[0].clientX);
-  }, { passive: true });
-
-  // keyboard
+  /* keyboard */
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); flipNext(); }
-    else if (e.key === 'ArrowLeft')               { e.preventDefault(); flipPrev(); }
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); pageFlip.flipNext(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); pageFlip.flipPrev(); }
   });
 
   updateUI();
 
-  /* ══════════════════════════════════════
-     CHERRY BLOSSOMS (with memory leak fix)
-     ══════════════════════════════════════ */
+  /* ── cherry blossoms ── */
   var MAX_PETALS = 25;
   var petalBox = document.createElement('div');
-  petalBox.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;';
+  petalBox.className = 'petal-container';
   document.body.appendChild(petalBox);
 
   function makePetal() {
-    while (petalBox.children.length >= MAX_PETALS) {
-      petalBox.removeChild(petalBox.firstChild);
-    }
+    while (petalBox.children.length >= MAX_PETALS) petalBox.removeChild(petalBox.firstChild);
     var p = document.createElement('div');
     p.className = 'petal';
     var sz   = 8 + Math.random() * 11;
@@ -830,15 +383,15 @@
       '--drift:'+dx+'px;--spin:'+spin+'deg;' +
       'animation:fall '+dur+'s '+del+'s linear forwards;';
     petalBox.appendChild(p);
-    setTimeout(function(){ if (p.parentNode) p.parentNode.removeChild(p); }, (dur+del)*1000 + 100);
+    setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); }, (dur+del)*1000+100);
   }
 
-  var petalInterval = setInterval(makePetal, 1600);
+  var petalInt = setInterval(makePetal, 1600);
   document.addEventListener('visibilitychange', function() {
-    if (document.hidden) { clearInterval(petalInterval); }
-    else { petalInterval = setInterval(makePetal, 1600); }
+    if (document.hidden) clearInterval(petalInt);
+    else petalInt = setInterval(makePetal, 1600);
   });
-  for (var k = 0; k < 7; k++) setTimeout(makePetal, k * 500);
+  for (var k=0; k<7; k++) setTimeout(makePetal, k*500);
 
 })();
 </script>
