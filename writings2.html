@@ -43,6 +43,23 @@
     .book-cage {
       width: 100%;
       max-width: 460px;
+      position: relative;
+    }
+
+    /* page edge stack — visible pages on right side */
+    .book-cage::after {
+      content: '';
+      position: absolute;
+      top: 4px; bottom: 4px; right: -6px;
+      width: 6px;
+      z-index: -1;
+      border-radius: 0 2px 2px 0;
+      background: repeating-linear-gradient(
+        to right,
+        #ece5d8 0px, #ece5d8 1px,
+        #f2ece2 1px, #f2ece2 2px
+      );
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.06);
     }
 
     /* target the actual StPageFlip-generated wrapper */
@@ -52,6 +69,27 @@
         0 6px 24px rgba(58, 47, 47, 0.08),
         0 16px 48px rgba(58, 47, 47, 0.06) !important;
       border-radius: 3px;
+    }
+
+    /* idle shadow breathing */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes shadow-breathe {
+        0%, 100% {
+          box-shadow:
+            0 1px 4px rgba(58, 47, 47, 0.06),
+            0 6px 24px rgba(58, 47, 47, 0.08),
+            0 16px 48px rgba(58, 47, 47, 0.06) !important;
+        }
+        50% {
+          box-shadow:
+            0 2px 6px rgba(58, 47, 47, 0.08),
+            0 8px 28px rgba(58, 47, 47, 0.10),
+            0 20px 56px rgba(58, 47, 47, 0.08) !important;
+        }
+      }
+      .stf__parent {
+        animation: shadow-breathe 6s ease-in-out infinite;
+      }
     }
 
     /* ── page styling ── */
@@ -64,6 +102,19 @@
       position: relative;
     }
 
+    /* vignette — edges slightly warmer like real held paper */
+    .page::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      pointer-events: none;
+      background:
+        /* subtle edge vignette */
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 60%, rgba(180, 140, 90, 0.05) 100%),
+        /* faint corner aging */
+        radial-gradient(circle at 0% 0%, rgba(180,130,60,0.04) 0%, transparent 30%),
+        radial-gradient(circle at 100% 100%, rgba(180,130,60,0.04) 0%, transparent 30%);
+    }
+
     /* gutter shadows — StPageFlip adds --left / --right */
     .page.--left {
       border-right: 0;
@@ -72,6 +123,15 @@
     .page.--right {
       border-left: 0;
       box-shadow: inset 5px 0 20px -5px rgba(0,0,0,0.12);
+    }
+
+    /* spine shadow gradient — darkening toward the binding */
+    .page.--right::after {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 30px; height: 100%; z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(to right, rgba(0,0,0,0.06) 0%, transparent 100%);
     }
 
     /* hard pages (covers) */
@@ -98,12 +158,16 @@
       object-fit: contain; display: block;
     }
 
-    /* paper texture */
-    .page::after {
+    /* paper texture — grain overlay */
+    .page > .page-content::after {
       content: '';
       position: absolute; inset: 0; z-index: 2;
       pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.012'/%3E%3C/svg%3E");
+      opacity: 0.045;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 220px;
+      background-repeat: repeat;
     }
 
     /* cover content */
@@ -115,6 +179,8 @@
     }
     .cover-content h1 {
       font-size: 2rem; font-weight: 400; color: #3a2f2f; margin-bottom: 0.6rem;
+      /* embossed/debossed title effect */
+      text-shadow: -1px -1px 1px rgba(255,255,255,0.4), 1px 1px 2px rgba(0,0,0,0.12);
     }
     .cover-content .sub {
       font-size: 0.92rem; color: #9a8a7a; font-style: italic; line-height: 1.7;
@@ -129,14 +195,18 @@
     .cover-content .toc li::before { content: '· '; color: #c4a0a0; }
     .cover-content .hint {
       font-size: 0.72rem; color: #b09a8a; margin-top: 1.5rem; letter-spacing: 0.05em;
+      opacity: 1;
+      transition: opacity 1s ease;
     }
+    .cover-content .hint.hidden { opacity: 0; }
 
-    /* section dividers */
+    /* section dividers — slightly warmer tone */
     .section-content {
       text-align: center;
       width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
       padding: 2rem;
+      background: linear-gradient(135deg, rgba(240,230,215,0.3) 0%, transparent 100%);
     }
     .section-content h2 {
       font-size: 1.5rem; font-weight: 400; font-style: italic; color: #6a5a4a;
@@ -163,6 +233,27 @@
       min-width: 60px; text-align: center; letter-spacing: 0.05em;
     }
 
+    /* ── corner peek hint ── */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes corner-peek {
+        0%, 100% { transform: translate(0, 0) rotate(0); }
+        35% { transform: translate(-12px, -10px) rotate(-3deg); }
+        50% { transform: translate(-8px, -6px) rotate(-2deg); }
+      }
+      .corner-hint {
+        position: absolute;
+        bottom: 0; right: 0;
+        width: 40px; height: 40px;
+        z-index: 10;
+        pointer-events: none;
+        background: linear-gradient(225deg, rgba(200,180,160,0.25) 0%, transparent 60%);
+        border-radius: 0 0 0 8px;
+        animation: corner-peek 2.5s ease-in-out 1.5s 1 forwards;
+        opacity: 0;
+      }
+      .corner-hint.active { opacity: 1; }
+    }
+
     /* ── petals ── */
     .petal-container {
       position: fixed; inset: 0;
@@ -187,6 +278,7 @@
       .section-content h2 { font-size:1.2rem; }
       .controls { gap:0.8rem; margin-top:0.6rem; }
       .nav-btn { padding:0.3rem 0.7rem; font-size:0.9rem; }
+      .book-cage::after { right: -4px; width: 4px; }
     }
   </style>
 </head>
@@ -212,7 +304,7 @@
               <li>feeling empty</li>
               <li>what's really important and about sadness</li>
             </ul>
-            <p class="hint">drag the corner to turn pages</p>
+            <p class="hint" id="hint">tap or drag the corner to turn pages</p>
           </div>
         </div>
       </div>
@@ -273,10 +365,10 @@
     mobileScrollSupport: true,
     useMouseEvents: true,
     swipeDistance: 30,
-    flippingTime: 900,
+    flippingTime: 800,
     startZIndex: 0,
     autoSize: true,
-    maxShadowOpacity: 0.25,
+    maxShadowOpacity: 0.3,
     showPageCorners: true,
     drawShadow: true
   });
@@ -294,8 +386,8 @@
     prevBtn.disabled = cur <= 0;
     nextBtn.disabled = cur >= total - 1;
     if (cur <= 0)              numEl.textContent = 'cover';
-    else if (cur >= total - 1) numEl.textContent = (total - 1) + ' / ' + (total - 1);
-    else                       numEl.textContent = cur + ' / ' + (total - 1);
+    else if (cur >= total - 1) numEl.textContent = 'end';
+    else                       numEl.textContent = cur + ' / ' + (total - 2);
   }
 
   nextBtn.addEventListener('click', function() { pageFlip.flipNext(); });
@@ -304,6 +396,7 @@
   pageFlip.on('flip', function() { updateUI(); });
   pageFlip.on('changeState', function() { updateUI(); });
 
+  /* keyboard navigation */
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); pageFlip.flipNext(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); pageFlip.flipPrev(); }
@@ -311,28 +404,118 @@
 
   updateUI();
 
-  /* page-turn sound */
+  /* ── tap zones (kindle-style) ── */
+  var wrapper = bookEl.closest('.book-cage') || bookEl;
+  wrapper.addEventListener('click', function(e) {
+    // don't interfere with StPageFlip's own drag/flip
+    if (e.target.closest('.nav-btn') || e.target.closest('a')) return;
+    var rect = wrapper.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var relX = x / rect.width;
+    // right 55% = next, left 35% = prev, middle 10% dead zone
+    if (relX > 0.55) pageFlip.flipNext();
+    else if (relX < 0.35) pageFlip.flipPrev();
+  });
+
+  /* ── page-turn sound (3-phase: peel + sweep + thud) ── */
   var audioCtx = null;
   function playFlip() {
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     }
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    var len = Math.floor(audioCtx.sampleRate * 0.1);
-    var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    var now = audioCtx.currentTime;
+    var duration = 0.2 + Math.random() * 0.04; // slight variation
+
+    // noise source
+    var bufLen = Math.floor(audioCtx.sampleRate * duration);
+    var buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
     var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.18;
-    var src = audioCtx.createBufferSource(); src.buffer = buf;
-    var filt = audioCtx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 850; filt.Q.value = 0.5;
+    for (var i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1);
+    var noise = audioCtx.createBufferSource(); noise.buffer = buf;
+
+    // bandpass sweep — the character of paper
+    var bandpass = audioCtx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(2400 + Math.random() * 400, now);
+    bandpass.frequency.exponentialRampToValueAtTime(800, now + duration * 0.85);
+    bandpass.Q.value = 1.5 + Math.random() * 0.5;
+
+    // high-shelf for peel crispness
+    var shelf = audioCtx.createBiquadFilter();
+    shelf.type = 'highshelf';
+    shelf.frequency.value = 4000;
+    shelf.gain.setValueAtTime(5, now);
+    shelf.gain.linearRampToValueAtTime(-3, now + 0.04);
+
+    // amplitude envelope
     var gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    src.connect(filt); filt.connect(gain); gain.connect(audioCtx.destination);
-    src.start(); src.stop(audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.12, now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    // stereo panning
+    var panner = audioCtx.createStereoPanner();
+    panner.pan.setValueAtTime(-0.2, now);
+    panner.pan.linearRampToValueAtTime(0.2, now + duration);
+
+    noise.connect(bandpass);
+    bandpass.connect(shelf);
+    shelf.connect(gain);
+    gain.connect(panner);
+    panner.connect(audioCtx.destination);
+    noise.start(now);
+    noise.stop(now + duration);
+
+    // landing thud
+    var thud = audioCtx.createOscillator();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(110, now + duration * 0.75);
+    thud.frequency.exponentialRampToValueAtTime(55, now + duration + 0.06);
+    var thudGain = audioCtx.createGain();
+    thudGain.gain.setValueAtTime(0, now + duration * 0.75);
+    thudGain.gain.linearRampToValueAtTime(0.08, now + duration * 0.78);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + duration + 0.08);
+    thud.connect(thudGain);
+    thudGain.connect(audioCtx.destination);
+    thud.start(now + duration * 0.75);
+    thud.stop(now + duration + 0.1);
   }
   pageFlip.on('flip', playFlip);
 
-  /* cherry blossoms */
+  /* haptic feedback (android) */
+  pageFlip.on('flip', function() {
+    if ('vibrate' in navigator) navigator.vibrate(10);
+  });
+
+  /* ── corner peek hint (one-time) ── */
+  if (!localStorage.getItem('notebook-hint-seen')) {
+    var hintEl = document.createElement('div');
+    hintEl.className = 'corner-hint';
+    // attach to the StPageFlip wrapper once it renders
+    setTimeout(function() {
+      var parent = document.querySelector('.stf__parent');
+      if (parent) {
+        parent.style.position = 'relative';
+        parent.appendChild(hintEl);
+        requestAnimationFrame(function() { hintEl.classList.add('active'); });
+        setTimeout(function() {
+          hintEl.classList.remove('active');
+          setTimeout(function() { if (hintEl.parentNode) hintEl.parentNode.removeChild(hintEl); }, 500);
+        }, 4500);
+      }
+      localStorage.setItem('notebook-hint-seen', '1');
+    }, 800);
+  }
+
+  /* hide text hint after first flip */
+  var hintText = document.getElementById('hint');
+  pageFlip.on('flip', function onFirstFlip() {
+    if (hintText) hintText.classList.add('hidden');
+    pageFlip.off('flip', onFirstFlip);
+  });
+
+  /* ── cherry blossoms ── */
   var MAX = 20;
   var box = document.createElement('div'); box.className = 'petal-container';
   document.body.appendChild(box);
