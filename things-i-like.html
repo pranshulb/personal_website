@@ -5,186 +5,228 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>things i like — pranshul's cafe</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
-      font-family: 'EB Garamond', Georgia, serif;
-      min-height: 100vh;
+    ::selection {
+      background: #f2d0c0;
       color: #3a2f2f;
-      line-height: 1.8;
-      background: #faf5ef;
-      overflow-x: hidden;
     }
 
-    a { color: #3a2f2f; text-decoration-color: #d4a0a0; text-underline-offset: 3px; }
-    a:hover { color: #c47a7a; text-decoration-color: #c47a7a; }
+    body {
+      font-family: 'Fraunces', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      background: #faf5ef;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* paper grain texture */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.04;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 220px;
+      z-index: 100;
+    }
+
     .back {
       position: fixed;
       top: 1.5rem;
       left: 1.5rem;
       font-size: 0.9rem;
-      color: #b09a8a;
+      color: #c4b0a0;
       text-decoration: none;
       z-index: 10;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      letter-spacing: 0.05em;
     }
     .back:hover { color: #3a2f2f; }
 
     h1 {
       position: fixed;
-      top: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.4rem;
-      font-weight: 400;
+      bottom: 2rem;
+      right: 2.5rem;
+      font-size: 0.85rem;
+      font-weight: 300;
       color: #c4a0a0;
       z-index: 10;
-      letter-spacing: 0.02em;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      letter-spacing: 0.08em;
     }
 
-    .scatter {
+    .field {
       position: relative;
       width: 100%;
       min-height: 100vh;
-      padding: 5rem 2rem 3rem;
     }
 
     .thing {
       position: absolute;
-      font-size: 1.15rem;
-      color: #5a4a40;
       white-space: nowrap;
-      transition: color 0.3s ease, transform 0.3s ease;
       cursor: default;
+      transition: all 600ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
     }
 
     .thing:hover {
-      color: #c47a7a;
-      transform: scale(1.05);
+      transform: scale(1.08) !important;
+      filter: none !important;
     }
 
-    .socials {
+    /* gentle drift animation */
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) rotate(var(--r)); }
+      25% { transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * -0.3)) rotate(calc(var(--r) + 0.5deg)); }
+      50% { transform: translate(var(--dx), var(--dy)) rotate(calc(var(--r) - 0.3deg)); }
+      75% { transform: translate(calc(var(--dx) * -0.3), calc(var(--dy) * 0.6)) rotate(calc(var(--r) + 0.2deg)); }
+    }
+
+    /* vignette edges */
+    .vignette {
       position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .socials a {
-      color: #c4b0a0;
-      font-size: 0.85rem;
-      text-decoration: none;
-      border-bottom: none;
-    }
-
-    .socials a:hover {
-      color: #c47a7a;
-    }
-
-    /* falling cherry blossom petals */
-    .petal {
-      position: fixed;
+      inset: 0;
       pointer-events: none;
-      z-index: 1;
-      opacity: 0;
-      animation: fall linear infinite;
+      z-index: 5;
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 55%, rgba(180,140,90,0.06) 100%),
+        radial-gradient(circle at 0% 0%, rgba(180,130,60,0.04) 0%, transparent 30%),
+        radial-gradient(circle at 100% 100%, rgba(180,130,60,0.04) 0%, transparent 30%);
     }
 
-    @keyframes fall {
-      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
-      10% { opacity: 0.5; }
-      90% { opacity: 0.3; }
-      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
-    }
-
-    .epigraph {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 0.85rem;
-      color: #c4a0a0;
-      letter-spacing: 0.03em;
-      margin: 0;
-      z-index: 10;
-    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4bfb0; border-radius: 3px; }
 
     @media (max-width: 640px) {
-      .epigraph { display: none; }
-      h1 { font-size: 1.2rem; }
-      .thing { font-size: 1.05rem; }
-      .socials { gap: 1rem; }
-      .socials a { font-size: 0.8rem; }
+      h1 { bottom: 1rem; right: 1rem; font-size: 0.75rem; }
+      .back { top: 1rem; left: 1rem; }
     }
   </style>
 </head>
 <body>
 
-<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <a href="/" class="back">← back</a>
 <h1>things i like</h1>
+<div class="vignette"></div>
 
-<div class="scatter" id="scatter"></div>
-
+<div class="field" id="field"></div>
 
 <script>
   const things = [
-    "apricity", "The Humans", "The Name of the Wind", "Eragon",
-    "Manchester by the Sea", "Catch Me If You Can", "Exurb1a", "green"
+    { text: "apricity", style: "serif" },
+    { text: "The Humans", style: "book" },
+    { text: "The Name of the Wind", style: "book" },
+    { text: "Eragon", style: "book" },
+    { text: "Manchester by the Sea", style: "film" },
+    { text: "Catch Me If You Can", style: "film" },
+    { text: "Exurb1a", style: "wild" },
+    { text: "green", style: "color" },
   ];
 
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  // visual treatments per style
+  const styles = {
+    serif: (el) => {
+      el.style.fontFamily = "'Cormorant Garamond', Georgia, serif";
+      el.style.fontWeight = "300";
+      el.style.fontStyle = "italic";
+      el.style.fontSize = (2.2 + Math.random() * 1.2) + "rem";
+      el.style.color = "#c47a7a";
+      el.style.letterSpacing = "0.06em";
+    },
+    book: (el) => {
+      el.style.fontFamily = "'Fraunces', Georgia, serif";
+      const w = [200, 300, 400][Math.floor(Math.random() * 3)];
+      el.style.fontWeight = w;
+      el.style.fontStyle = Math.random() > 0.5 ? "italic" : "normal";
+      el.style.fontSize = (1.1 + Math.random() * 0.8) + "rem";
+      el.style.color = "#5a4a40";
+      el.style.opacity = 0.6 + Math.random() * 0.35;
+    },
+    film: (el) => {
+      el.style.fontFamily = "'Cormorant Garamond', Georgia, serif";
+      el.style.fontWeight = "400";
+      el.style.fontSize = (1.15 + Math.random() * 0.7) + "rem";
+      el.style.color = "#7a6a5f";
+      el.style.letterSpacing = "0.04em";
+      el.style.opacity = 0.65 + Math.random() * 0.3;
+    },
+    wild: (el) => {
+      el.style.fontFamily = "'Fraunces', Georgia, serif";
+      el.style.fontWeight = "600";
+      el.style.fontSize = (1.8 + Math.random() * 1) + "rem";
+      el.style.color = "#3a2f2f";
+      el.style.fontVariationSettings = "'SOFT' 100, 'WONK' 1";
+    },
+    color: (el) => {
+      el.style.fontFamily = "'Fraunces', Georgia, serif";
+      el.style.fontWeight = "300";
+      el.style.fontSize = (1.4 + Math.random() * 0.6) + "rem";
+      el.style.color = "#5a7a5a";
+      el.style.fontStyle = "italic";
+      el.style.letterSpacing = "0.1em";
     }
-    return arr;
+  };
+
+  // shuffle
+  for (let i = things.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [things[i], things[j]] = [things[j], things[i]];
   }
 
-  const container = document.getElementById('scatter');
-  const shuffled = shuffle([...things]);
+  const field = document.getElementById('field');
   const placed = [];
+  const isMobile = window.innerWidth < 640;
 
-  // place each word at a random position, avoiding overlaps
-  shuffled.forEach((text, i) => {
+  things.forEach((item, idx) => {
     const el = document.createElement('span');
     el.className = 'thing';
-    el.textContent = text;
-    // vary opacity slightly for depth
-    el.style.opacity = 0.55 + Math.random() * 0.45;
-    // vary size slightly
-    const scale = 0.9 + Math.random() * 0.4;
-    el.style.fontSize = (1.15 * scale) + 'rem';
-    // slight random rotation
-    el.style.transform = `rotate(${-3 + Math.random() * 6}deg)`;
+    el.textContent = item.text;
 
-    container.appendChild(el);
+    // apply style
+    styles[item.style](el);
 
-    // position after appending so we can measure
+    // rotation
+    const rot = -4 + Math.random() * 8;
+    el.style.setProperty('--r', rot + 'deg');
+    el.style.transform = `rotate(${rot}deg)`;
+
+    // gentle drift
+    const dx = (-4 + Math.random() * 8);
+    const dy = (-3 + Math.random() * 6);
+    el.style.setProperty('--dx', dx + 'px');
+    el.style.setProperty('--dy', dy + 'px');
+    el.style.animation = `drift ${18 + Math.random() * 14}s ease-in-out infinite`;
+    el.style.animationDelay = `${-Math.random() * 20}s`;
+
+    field.appendChild(el);
+
+    // measure and place
     const rect = el.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
-    const padX = 40;
-    const padY = 30;
-    const maxX = container.clientWidth - w - padX;
-    const topMin = 80;
-    const maxY = Math.max(container.clientHeight - 120, 400);
+    const padX = isMobile ? 20 : 60;
+    const padY = 50;
+    const maxX = field.clientWidth - w - padX;
+    const topMin = isMobile ? 70 : 100;
+    const maxY = Math.max(window.innerHeight - 100, 500);
 
     let x, y, tries = 0, ok = false;
-    while (tries < 80) {
-      x = padX + Math.random() * maxX;
+    while (tries < 150) {
+      x = padX + Math.random() * Math.max(maxX, 100);
       y = topMin + Math.random() * (maxY - topMin);
       ok = true;
       for (const p of placed) {
-        if (Math.abs(x - p.x) < (w + p.w) * 0.55 && Math.abs(y - p.y) < (h + p.h) * 0.7) {
-          ok = false;
-          break;
-        }
+        const overlapX = Math.abs(x - p.x) < (Math.max(w, p.w) + 30);
+        const overlapY = Math.abs(y - p.y) < (Math.max(h, p.h) + 15);
+        if (overlapX && overlapY) { ok = false; break; }
       }
       if (ok) break;
       tries++;
@@ -193,36 +235,20 @@
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     placed.push({ x, y, w, h });
+
+    // stagger entrance
+    el.style.opacity = '0';
+    el.style.transform = `rotate(${rot}deg) translateY(12px)`;
+    setTimeout(() => {
+      el.style.transition = 'opacity 900ms cubic-bezier(0.16, 1, 0.3, 1), transform 900ms cubic-bezier(0.16, 1, 0.3, 1)';
+      el.style.opacity = el.dataset.targetOpacity || el.style.opacity || '1';
+      el.style.transform = `rotate(${rot}deg)`;
+    }, 200 + idx * 180);
+
+    // store target opacity before entrance animation clears it
+    el.dataset.targetOpacity = el.style.opacity;
+    el.style.opacity = '0';
   });
-
-  // cherry blossoms
-  function createPetal() {
-    const petal = document.createElement('div');
-    petal.className = 'petal';
-    const startX = Math.random() * window.innerWidth;
-    const size = 8 + Math.random() * 12;
-    const duration = 8 + Math.random() * 12;
-    const drift = -60 + Math.random() * 120;
-    const spin = 180 + Math.random() * 540;
-    const delay = Math.random() * 5;
-    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-
-    petal.style.cssText = `
-      left: ${startX}px; top: -20px; width: ${size}px; height: ${size * 0.7}px;
-      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
-      border-radius: 50% 0 50% 0;
-      animation-duration: ${duration}s; animation-delay: ${delay}s;
-      --drift: ${drift}px; --spin: ${spin}deg;
-    `;
-    petal.animate([{ top: '-20px' }, { top: `${window.innerHeight + 20}px` }], {
-      duration: duration * 1000, delay: delay * 1000, fill: 'forwards'
-    });
-    document.body.appendChild(petal);
-    setTimeout(() => petal.remove(), (duration + delay) * 1000);
-  }
-  setInterval(createPetal, 1500);
-  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
 </script>
 
 </body>
