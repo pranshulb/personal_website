@@ -34,32 +34,56 @@
       margin-bottom: 2.5rem;
     }
 
-    h2 {
-      font-size: 1.15rem;
-      font-weight: 400;
-      color: #c47a7a;
-      margin-top: 2.5rem;
-      margin-bottom: 0.8rem;
-      letter-spacing: 0.03em;
-    }
-
-    h2:first-of-type {
-      margin-top: 0;
-    }
-
     p {
       margin-bottom: 1rem;
       font-size: 1.05rem;
     }
 
+    /* collapsible sections */
+    details {
+      margin-bottom: 0.8rem;
+    }
+
+    summary {
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #c47a7a;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
+      transition: color 0.3s ease;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: '→';
+      color: #d4a0a0;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    summary:hover {
+      color: #3a2f2f;
+    }
+
     .items {
       list-style: none;
-      padding: 0;
-      margin-bottom: 1rem;
+      padding: 0 0 0 1.4rem;
+      margin: 0.4rem 0 0.8rem;
     }
 
     .items li {
-      margin: 0.4rem 0;
+      margin: 0.3rem 0;
       font-size: 1.05rem;
       color: #5a4a40;
     }
@@ -67,12 +91,6 @@
     .items li::before {
       content: '· ';
       color: #d4a0a0;
-    }
-
-    .note {
-      font-style: italic;
-      color: #b09a8a;
-      font-size: 0.95rem;
     }
 
     .socials {
@@ -153,28 +171,37 @@
 
   <h1>things i like</h1>
 
-  <h2>words</h2>
-  <ul class="items">
-    <li>apricity — the warmth of the sun in winter</li>
-  </ul>
+  <details>
+    <summary>words</summary>
+    <ul class="items">
+      <li>apricity — the warmth of the sun in winter</li>
+    </ul>
+  </details>
 
-  <h2>books</h2>
-  <ul class="items">
-    <li>Matt Haig</li>
-    <li>Patrick Rothfuss</li>
-    <li>Eragon</li>
-  </ul>
+  <details>
+    <summary>books</summary>
+    <ul class="items">
+      <li>Matt Haig</li>
+      <li>Patrick Rothfuss</li>
+      <li>Eragon</li>
+    </ul>
+  </details>
 
-  <h2>movies</h2>
-  <ul class="items">
-    <li>Manchester by the Sea</li>
-    <li>Catch Me If You Can</li>
-  </ul>
+  <details>
+    <summary>movies</summary>
+    <ul class="items">
+      <li>Manchester by the Sea</li>
+      <li>Catch Me If You Can</li>
+    </ul>
+  </details>
 
-  <ul class="items">
-    <li>Exurb1a</li>
-    <li>the colour green</li>
-  </ul>
+  <details>
+    <summary>other</summary>
+    <ul class="items">
+      <li>Exurb1a</li>
+      <li>the colour green</li>
+    </ul>
+  </details>
 
   <div class="socials">
     <div class="social-links">
