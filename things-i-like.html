@@ -93,7 +93,6 @@
 
     .thing {
       position: absolute;
-      white-space: nowrap;
       cursor: grab;
       transition: filter 300ms ease;
       will-change: transform;
@@ -169,12 +168,15 @@
     { text: "green", style: "color" },
   ];
 
+  // scale font sizes for mobile
+  const s = isMobile ? 0.7 : 1;
+
   const styles = {
     serif: (el) => {
       el.style.fontFamily = "'Cormorant Garamond', Georgia, serif";
       el.style.fontWeight = "300";
       el.style.fontStyle = "italic";
-      el.style.fontSize = (2.2 + Math.random() * 1.2) + "rem";
+      el.style.fontSize = ((2.2 + Math.random() * 1.2) * s) + "rem";
       el.style.color = "#c47a7a";
       el.style.letterSpacing = "0.06em";
     },
@@ -183,27 +185,27 @@
       const w = [200, 300, 400][Math.floor(Math.random() * 3)];
       el.style.fontWeight = w;
       el.style.fontStyle = Math.random() > 0.5 ? "italic" : "normal";
-      el.style.fontSize = (1.1 + Math.random() * 0.8) + "rem";
+      el.style.fontSize = ((1.1 + Math.random() * 0.8) * s) + "rem";
       el.style.color = "#5a4a40";
     },
     film: (el) => {
       el.style.fontFamily = "'Cormorant Garamond', Georgia, serif";
       el.style.fontWeight = "400";
-      el.style.fontSize = (1.15 + Math.random() * 0.7) + "rem";
+      el.style.fontSize = ((1.15 + Math.random() * 0.7) * s) + "rem";
       el.style.color = "#7a6a5f";
       el.style.letterSpacing = "0.04em";
     },
     wild: (el) => {
       el.style.fontFamily = "'Fraunces', Georgia, serif";
       el.style.fontWeight = "600";
-      el.style.fontSize = (1.8 + Math.random() * 1) + "rem";
+      el.style.fontSize = ((1.8 + Math.random() * 1) * s) + "rem";
       el.style.color = "#3a2f2f";
       el.style.fontVariationSettings = "'SOFT' 100, 'WONK' 1";
     },
     color: (el) => {
       el.style.fontFamily = "'Fraunces', Georgia, serif";
       el.style.fontWeight = "300";
-      el.style.fontSize = (1.4 + Math.random() * 0.6) + "rem";
+      el.style.fontSize = ((1.4 + Math.random() * 0.6) * s) + "rem";
       el.style.color = "#5a7a5a";
       el.style.fontStyle = "italic";
       el.style.letterSpacing = "0.1em";
@@ -247,22 +249,30 @@
 
     field.appendChild(el);
 
+    // on mobile, constrain width so long titles wrap within screen
+    if (isMobile) {
+      el.style.maxWidth = (window.innerWidth - 40) + 'px';
+      el.style.whiteSpace = 'normal';
+    }
+
     const rect = el.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
-    const padX = isMobile ? 20 : 60;
-    const maxX = field.clientWidth - w - padX;
-    const topMin = isMobile ? 70 : 100;
-    const maxY = Math.max(window.innerHeight - 180, 400);
+    const padX = isMobile ? 15 : 60;
+    const maxX = Math.max(field.clientWidth - w - padX, padX);
+    const topMin = isMobile ? 50 : 100;
+    const maxY = Math.max(window.innerHeight - (isMobile ? 120 : 180), 350);
 
     let x, y, tries = 0, ok = false;
     while (tries < 150) {
       x = padX + Math.random() * Math.max(maxX, 100);
       y = topMin + Math.random() * (maxY - topMin);
       ok = true;
+      const gapX = isMobile ? 15 : 30;
+      const gapY = isMobile ? 8 : 15;
       for (const p of placed) {
-        if (Math.abs(x - p.x) < (Math.max(w, p.w) + 30) &&
-            Math.abs(y - p.y) < (Math.max(h, p.h) + 15)) {
+        if (Math.abs(x - p.x) < (Math.max(w, p.w) + gapX) &&
+            Math.abs(y - p.y) < (Math.max(h, p.h) + gapY)) {
           ok = false; break;
         }
       }
