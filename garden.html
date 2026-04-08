@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>garden — pranshul's cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #f5ede3;
+      font-family: 'EB Garamond', Georgia, serif;
+    }
+
+    ::selection { background: rgba(224, 140, 160, 0.35); color: #4a2f1a; }
+
+    canvas { position: fixed; top: 0; left: 0; display: block; }
+    #bg { z-index: 1; }
+    #fg { z-index: 2; }
+
+    .grain {
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      pointer-events: none; z-index: 3;
+      opacity: 0.28;
+    }
+
+    .back {
+      position: fixed; top: 1.5rem; left: 1.5rem;
+      color: #b09a8a;
+      text-decoration: none; font-size: 0.9rem;
+      font-family: 'EB Garamond', serif;
+      z-index: 10;
+      border-bottom: none;
+      transition: color 0.3s ease;
+    }
+    .back:hover { color: #3a2f2f; }
+
+    .title {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      color: rgba(74, 47, 26, 0.22);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; font-weight: 300;
+      font-style: italic; letter-spacing: 0.06em;
+      z-index: 10; pointer-events: none;
+    }
+
+    .hint {
+      position: fixed; bottom: 1.5rem; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(74, 47, 26, 0.28);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem; font-style: italic;
+      font-weight: 300;
+      z-index: 10; pointer-events: none;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      transition: opacity 2s ease;
+    }
+
+    .epigraph {
+      position: fixed; bottom: 3.5rem; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(74, 47, 26, 0.15);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.75rem; font-style: italic;
+      font-weight: 300;
+      z-index: 10; pointer-events: none;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      .title { font-size: 0.85rem; top: 1rem; right: 1rem; }
+      .back { font-size: 0.9rem; top: 1rem; left: 1rem; }
+      .hint { font-size: 0.72rem; bottom: 1rem; }
+      .epigraph { font-size: 0.65rem; bottom: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<canvas id="fg"></canvas>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<a href="/" class="back">← back</a>
+<span class="title">pranshul's garden</span>
+<p class="epigraph">cherry blossoms fall at 5 centimeters per second</p>
+<p class="hint">move to stir the wind · click to shake the tree</p>
+
+<script>
+(() => {
+  const bgEl = document.getElementById('bg');
+  const fgEl = document.getElementById('fg');
+  const bgC = bgEl.getContext('2d');
+  const fgC = fgEl.getContext('2d');
+
+  let W, H, dpr;
+  let mx = 0, my = 0;
+  let windX = 0, windY = 0;
+  let shakeX = 0, shakeV = 0;
+  let sceneDirty = true;
+  let t = 0;
+
+  // Tree
+  let branches = [];
+  let blossoms = [];
+  let airPetals = [];
+  let groundPetals = [];
+
+  // Palette
+  const PINKS = [
+    '#f2b5c4','#eda5b5','#e89aab','#f7cdd7','#fce4ec',
+    '#f5bfcd','#edb0c0','#fdd5de','#f0c8d2','#fff0f3',
+    '#e8a0b0','#d4798d','#f8d5dd'
+  ];
+  const DEEP_PINKS = ['#d4798d','#c96b7f','#e07a92','#cc7088'];
+  const ALL_PINKS = [...PINKS, ...DEEP_PINKS];
+  const BARK = ['#3e2815','#4a2f1a','#5c3a24','#6b4430','#7a5040'];
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function qBez(a, b, c, t) { return (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c; }
+
+  // ── RESIZE ──
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    bgEl.width = fgEl.width = W * dpr;
+    bgEl.height = fgEl.height = H * dpr;
+    bgEl.style.width = fgEl.style.width = W + 'px';
+    bgEl.style.height = fgEl.style.height = H + 'px';
+    bgC.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fgC.setTransform(dpr, 0, 0, dpr, 0, 0);
+    generateTree();
+    groundPetals = [];
+    sceneDirty = true;
+  }
+
+  // ── TREE GENERATION ──
+  function generateTree() {
+    branches = [];
+    blossoms = [];
+
+    const baseX = W * (0.46 + Math.random() * 0.08);
+    const baseY = H * 0.92;
+    const scale = Math.min(W, H) / 900;
+
+    // Trunk
+    const trunkH = H * (0.30 + Math.random() * 0.06);
+    const topX = baseX + (Math.random() - 0.5) * 20;
+    const topY = baseY - trunkH;
+
+    grow(baseX, baseY, topX, topY, 20 * scale, 0, 0);
+  }
+
+  function grow(x1, y1, x2, y2, w, depth, parentAngle) {
+    if (depth > 10 || w < 0.8) return;
+
+    // Bezier bend
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 3) return;
+    const angle = Math.atan2(dy, dx);
+    const bend = (Math.random() - 0.5) * len * 0.2;
+    const perp = angle + Math.PI / 2;
+    const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
+    const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
+
+    branches.push({ x1, y1, cx, cy, x2, y2, w, depth });
+
+    // Blossoms on thinner branches
+    if (w < 8 && depth > 2) {
+      const n = Math.floor(3 + Math.random() * 7);
+      for (let i = 0; i < n; i++) {
+        const bt = 0.4 + Math.random() * 0.6;
+        const bx = qBez(x1, cx, x2, bt) + (Math.random() - 0.5) * (15 + w * 2);
+        const by = qBez(y1, cy, y2, bt) + (Math.random() - 0.5) * (15 + w * 2);
+        blossoms.push({
+          x: bx, y: by,
+          r: 2.5 + Math.random() * 6,
+          color: Math.random() < 0.2 ? pick(DEEP_PINKS) : pick(PINKS),
+          phase: Math.random() * Math.PI * 2,
+          swayPhase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    // End-of-branch blossom cluster (denser)
+    if (w < 5 && depth > 3) {
+      const n = Math.floor(5 + Math.random() * 10);
+      for (let i = 0; i < n; i++) {
+        const spread = 10 + Math.random() * 18;
+        blossoms.push({
+          x: x2 + (Math.random() - 0.5) * spread,
+          y: y2 + (Math.random() - 0.5) * spread,
+          r: 3 + Math.random() * 7,
+          color: Math.random() < 0.25 ? pick(DEEP_PINKS) : pick(PINKS),
+          phase: Math.random() * Math.PI * 2,
+          swayPhase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    // Children
+    let nKids;
+    if (depth === 0) nKids = 4 + Math.floor(Math.random() * 2); // trunk splits wide
+    else if (depth < 3) nKids = 2 + Math.floor(Math.random() * 2);
+    else nKids = 1 + Math.floor(Math.random() * 2);
+
+    for (let i = 0; i < nKids; i++) {
+      let childAngle;
+      if (depth === 0) {
+        // Force wide symmetric spread for main branches
+        const spread = 2.2;
+        childAngle = -Math.PI / 2 + ((i / (nKids - 1)) - 0.5) * spread;
+        childAngle += (Math.random() - 0.5) * 0.3;
+      } else {
+        childAngle = angle + (Math.random() - 0.5) * 0.9;
+        // Slight upward bias, increasing droop at tips
+        if (depth > 4) childAngle += 0.12;
+        // Prevent branches going straight down
+        if (childAngle > Math.PI * 0.3) childAngle = Math.PI * 0.3;
+      }
+
+      const childLen = len * (0.5 + Math.random() * 0.25);
+      const childW = w * (0.55 + Math.random() * 0.15);
+
+      // Branch point along parent
+      const bt = depth === 0 ? (0.7 + Math.random() * 0.25) : (0.65 + Math.random() * 0.35);
+      const bx = qBez(x1, cx, x2, bt);
+      const by = qBez(y1, cy, y2, bt);
+
+      const ex = bx + Math.cos(childAngle) * childLen;
+      const ey = by + Math.sin(childAngle) * childLen;
+
+      grow(bx, by, ex, ey, childW, depth + 1, childAngle);
+    }
+  }
+
+  // ── PETAL SYSTEM ──
+  function spawnPetal(fromTree) {
+    let px, py, vx, vy;
+    if (fromTree && blossoms.length) {
+      const b = blossoms[Math.floor(Math.random() * blossoms.length)];
+      px = b.x + (Math.random() - 0.5) * 8;
+      py = b.y + (Math.random() - 0.5) * 8;
+      vx = (Math.random() - 0.5) * 2.5;
+      vy = -0.5 + Math.random() * 1.5;
+    } else {
+      px = Math.random() * W * 1.2 - W * 0.1;
+      py = -10 - Math.random() * 40;
+      vx = (Math.random() - 0.5) * 0.4;
+      vy = 0.3 + Math.random() * 0.4;
+    }
+    airPetals.push({
+      x: px, y: py, vx, vy,
+      r: 2.5 + Math.random() * 4,
+      rot: Math.random() * Math.PI * 2,
+      rotV: (Math.random() - 0.5) * 0.06,
+      sway: Math.random() * Math.PI * 2,
+      swaySpd: 0.008 + Math.random() * 0.015,
+      swayAmp: 0.2 + Math.random() * 0.5,
+      color: Math.random() < 0.15 ? pick(DEEP_PINKS) : pick(PINKS),
+      alpha: 0.4 + Math.random() * 0.5,
+      life: 1
+    });
+  }
+
+  function updatePetals() {
+    windX += (mx * 1.8 - windX) * 0.015;
+    windY += (my * 0.4 - windY) * 0.015;
+
+    for (let i = airPetals.length - 1; i >= 0; i--) {
+      const p = airPetals[i];
+      p.vx += windX * 0.008 + Math.sin(t * 0.7 + p.sway) * 0.003;
+      p.vy += 0.008; // gentle gravity
+      p.sway += p.swaySpd;
+      p.vx += Math.sin(p.sway) * p.swayAmp * 0.008;
+      p.vx *= 0.995;
+      p.vy *= 0.998;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.rotV;
+
+      // Ground line (with undulation)
+      const groundY = H * 0.87 + Math.sin(p.x * 0.012) * 6;
+
+      if (p.y > groundY) {
+        // Land on ground
+        if (groundPetals.length < 250) {
+          groundPetals.push({
+            x: p.x, y: groundY + Math.random() * 4,
+            r: p.r * (0.7 + Math.random() * 0.3),
+            rot: p.rot,
+            color: p.color,
+            alpha: p.alpha * 0.6
+          });
+        }
+        airPetals.splice(i, 1);
+        continue;
+      }
+
+      if (p.x < -60 || p.x > W + 60 || p.y < -80) {
+        airPetals.splice(i, 1);
+      }
+    }
+
+    // Maintain ~60 airborne petals
+    if (airPetals.length < 60 && Math.random() < 0.25) {
+      spawnPetal(Math.random() < 0.6);
+    }
+  }
+
+  // ── SHAKE ──
+  function updateShake() {
+    if (shakeX !== 0 || shakeV !== 0) {
+      shakeV -= shakeX * 0.12;
+      shakeV *= 0.88;
+      shakeX += shakeV;
+      if (Math.abs(shakeX) < 0.05 && Math.abs(shakeV) < 0.05) {
+        shakeX = 0; shakeV = 0;
+      }
+      sceneDirty = true;
+    }
+  }
+
+  // ── DRAW BACKGROUND ──
+  function drawBg() {
+    const c = bgC;
+    c.clearRect(0, 0, W, H);
+
+    // Sky — warm watercolor gradient
+    const sky = c.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#ddd0e3');
+    sky.addColorStop(0.25, '#e8d4d8');
+    sky.addColorStop(0.45, '#f2ddd2');
+    sky.addColorStop(0.65, '#f6e6db');
+    sky.addColorStop(1, '#f5ede3');
+    c.fillStyle = sky;
+    c.fillRect(0, 0, W, H);
+
+    // Watercolor wash spots — break up the flat gradient
+    const washes = [
+      { x: W * 0.15, y: H * 0.08, rx: W * 0.22, ry: H * 0.12, color: 'rgba(215, 185, 205, 0.07)' },
+      { x: W * 0.75, y: H * 0.12, rx: W * 0.2, ry: H * 0.1, color: 'rgba(235, 200, 190, 0.06)' },
+      { x: W * 0.45, y: H * 0.22, rx: W * 0.3, ry: H * 0.15, color: 'rgba(225, 195, 210, 0.05)' },
+      { x: W * 0.85, y: H * 0.04, rx: W * 0.15, ry: H * 0.08, color: 'rgba(210, 180, 195, 0.06)' },
+    ];
+    for (const w of washes) {
+      c.beginPath();
+      c.ellipse(w.x, w.y, w.rx, w.ry, 0, 0, Math.PI * 2);
+      c.fillStyle = w.color;
+      c.fill();
+    }
+
+    // Distant hills
+    drawHills(c, H * 0.68, 'rgba(195, 185, 170, 0.2)', 0.003, 35, 0);
+    drawHills(c, H * 0.73, 'rgba(185, 178, 162, 0.18)', 0.004, 28, 1.5);
+    drawHills(c, H * 0.77, 'rgba(178, 170, 155, 0.15)', 0.005, 22, 3);
+
+    // Ground
+    drawGround(c);
+
+    // Tree
+    c.save();
+    c.translate(shakeX, 0);
+    drawTree(c);
+    c.restore();
+  }
+
+  function drawHills(c, baseY, color, freq, amp, offset) {
+    c.fillStyle = color;
+    c.beginPath();
+    c.moveTo(-10, H);
+    for (let x = -10; x <= W + 10; x += 8) {
+      const y = baseY + Math.sin(x * freq + offset) * amp + Math.sin(x * freq * 2.3 + offset * 1.7) * amp * 0.4;
+      c.lineTo(x, y);
+    }
+    c.lineTo(W + 10, H);
+    c.closePath();
+    c.fill();
+  }
+
+  function drawGround(c) {
+    const gY = H * 0.87;
+    // Main ground
+    const grd = c.createLinearGradient(0, gY - 10, 0, H);
+    grd.addColorStop(0, '#cdbf9f');
+    grd.addColorStop(0.3, '#c4b595');
+    grd.addColorStop(1, '#b5a580');
+    c.fillStyle = grd;
+    c.beginPath();
+    c.moveTo(-10, H);
+    for (let x = -10; x <= W + 10; x += 6) {
+      c.lineTo(x, gY + Math.sin(x * 0.012) * 6 + Math.sin(x * 0.025) * 3);
+    }
+    c.lineTo(W + 10, H);
+    c.closePath();
+    c.fill();
+
+    // Grass tufts
+    c.strokeStyle = 'rgba(85, 115, 60, 0.2)';
+    c.lineWidth = 1.2;
+    for (let i = 0; i < 80; i++) {
+      const gx = Math.random() * W;
+      const gy = gY + Math.sin(gx * 0.012) * 6 + Math.random() * (H - gY);
+      const gh = 4 + Math.random() * 12;
+      c.beginPath();
+      c.moveTo(gx, gy);
+      c.quadraticCurveTo(
+        gx + (Math.random() - 0.5) * 6,
+        gy - gh * 0.6,
+        gx + (Math.random() - 0.5) * 3,
+        gy - gh
+      );
+      c.stroke();
+    }
+  }
+
+  function drawTree(c) {
+    // Sort branches by depth (draw thick first)
+    const sorted = [...branches].sort((a, b) => a.depth - b.depth);
+
+    for (const b of sorted) {
+      c.beginPath();
+      c.moveTo(b.x1, b.y1);
+      c.quadraticCurveTo(b.cx, b.cy, b.x2, b.y2);
+      c.strokeStyle = BARK[Math.min(b.depth, BARK.length - 1)];
+      c.lineWidth = b.w;
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      c.stroke();
+    }
+
+    // Bark texture on trunk (thin darker lines)
+    for (const b of sorted) {
+      if (b.w < 8) continue;
+      c.globalAlpha = 0.12;
+      for (let i = 0; i < 3; i++) {
+        const off = (Math.random() - 0.5) * b.w * 0.5;
+        c.beginPath();
+        c.moveTo(b.x1 + off, b.y1);
+        c.quadraticCurveTo(b.cx + off, b.cy, b.x2 + off, b.y2);
+        c.strokeStyle = '#2a1a0a';
+        c.lineWidth = 0.8;
+        c.stroke();
+      }
+      c.globalAlpha = 1;
+    }
+  }
+
+  // ── DRAW FOREGROUND (every frame) ──
+  function drawFg() {
+    const c = fgC;
+    c.clearRect(0, 0, W, H);
+
+    c.save();
+    c.translate(shakeX, 0);
+
+    // Blossoms (with breathing + sway)
+    for (const b of blossoms) {
+      const pulse = 1 + Math.sin(t * 1.2 + b.phase) * 0.12;
+      const sway = Math.sin(t * 0.5 + b.swayPhase) * windX * 3;
+      const r = b.r * pulse;
+      const bx = b.x + sway;
+
+      // Outer glow
+      c.globalAlpha = 0.25;
+      c.beginPath();
+      c.arc(bx, b.y, r * 1.6, 0, Math.PI * 2);
+      const glow = c.createRadialGradient(bx, b.y, 0, bx, b.y, r * 1.6);
+      glow.addColorStop(0, b.color);
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = glow;
+      c.fill();
+
+      // Core
+      c.globalAlpha = 0.65;
+      c.beginPath();
+      c.arc(bx, b.y, r, 0, Math.PI * 2);
+      c.fillStyle = b.color;
+      c.fill();
+
+      // Highlight
+      c.globalAlpha = 0.3;
+      c.beginPath();
+      c.arc(bx - r * 0.25, b.y - r * 0.25, r * 0.45, 0, Math.PI * 2);
+      c.fillStyle = '#fff';
+      c.fill();
+    }
+    c.globalAlpha = 1;
+    c.restore();
+
+    // Ground petals (static)
+    for (const p of groundPetals) {
+      drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha);
+    }
+
+    // Air petals
+    for (const p of airPetals) {
+      drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha * p.life);
+    }
+  }
+
+  function drawPetalShape(c, x, y, size, rot, color, alpha) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    c.beginPath();
+    // Teardrop petal shape
+    c.moveTo(0, -size);
+    c.bezierCurveTo(size * 0.6, -size * 0.7, size * 0.55, size * 0.4, 0, size * 0.8);
+    c.bezierCurveTo(-size * 0.55, size * 0.4, -size * 0.6, -size * 0.7, 0, -size);
+    c.fill();
+    // Subtle center vein
+    c.globalAlpha = alpha * 0.15;
+    c.strokeStyle = '#a06070';
+    c.lineWidth = 0.4;
+    c.beginPath();
+    c.moveTo(0, -size * 0.7);
+    c.lineTo(0, size * 0.5);
+    c.stroke();
+    c.restore();
+  }
+
+  // ── MAIN LOOP ──
+  function frame() {
+    t += 0.016;
+    updatePetals();
+    updateShake();
+
+    if (sceneDirty) {
+      drawBg();
+      sceneDirty = false;
+    }
+    drawFg();
+    requestAnimationFrame(frame);
+  }
+
+  // ── EVENTS ──
+  window.addEventListener('resize', resize);
+
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX / W - 0.5) * 2;
+    my = (e.clientY / H - 0.5) * 2;
+  });
+
+  document.addEventListener('click', e => {
+    // Don't shake when clicking the back link
+    if (e.target.closest('.back')) return;
+    shakeV = (Math.random() > 0.5 ? 1 : -1) * (6 + Math.random() * 5);
+    for (let i = 0; i < 45; i++) spawnPetal(true);
+  });
+
+  document.addEventListener('touchmove', e => {
+    const touch = e.touches[0];
+    mx = (touch.clientX / W - 0.5) * 2;
+    my = (touch.clientY / H - 0.5) * 2;
+  }, { passive: true });
+
+  document.addEventListener('touchstart', e => {
+    if (e.target.closest('.back')) return;
+    shakeV = (Math.random() > 0.5 ? 1 : -1) * (6 + Math.random() * 5);
+    for (let i = 0; i < 45; i++) spawnPetal(true);
+  }, { passive: true });
+
+  // Fade out hint after 6 seconds
+  setTimeout(() => {
+    const hint = document.querySelector('.hint');
+    if (hint) hint.style.opacity = '0';
+  }, 6000);
+
+  // ── INIT ──
+  resize();
+  // Seed with petals already in the air
+  for (let i = 0; i < 45; i++) {
+    spawnPetal(true);
+    const p = airPetals[airPetals.length - 1];
+    p.y = Math.random() * H * 0.85;
+    p.x = Math.random() * W;
+  }
+  // Seed a few on the ground
+  for (let i = 0; i < 30; i++) {
+    const gx = Math.random() * W;
+    const gy = H * 0.87 + Math.sin(gx * 0.012) * 6 + Math.random() * (H * 0.1);
+    groundPetals.push({
+      x: gx, y: gy,
+      r: 2 + Math.random() * 4,
+      rot: Math.random() * Math.PI * 2,
+      color: pick(PINKS),
+      alpha: 0.2 + Math.random() * 0.3
+    });
+  }
+  frame();
+})();
+</script>
+
+</body>
+</html>
