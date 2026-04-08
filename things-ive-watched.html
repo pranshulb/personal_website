@@ -556,11 +556,21 @@
   // RENDERING (don't need to touch this)
   // ============================================================
 
-  // letterboxd slug generator
+  // manual overrides for slugs that don't auto-generate correctly
+  const SLUG_OVERRIDES = {
+    "Bhootnath": "bhoothnath",
+    "Kesari Chapter 2: The Untold Story of Jallianwala Bagh": "kesari-chapter-2-the-untold-story-of-jallianwala",
+    "Have a Good Trip": "have-a-good-trip-adventures-in-psychedelics",
+    "Mr. & Mrs. Smith": "mr-mrs-smith-2005",
+  };
+
   // letterboxd for movies, imdb for tv shows
   function watchUrl(title, year, tags) {
     if (tags && tags.includes('tv')) {
       return `https://www.imdb.com/find/?q=${encodeURIComponent(title + ' ' + year)}&s=tt&ttype=tv`;
+    }
+    if (SLUG_OVERRIDES[title]) {
+      return `https://letterboxd.com/film/${SLUG_OVERRIDES[title]}/`;
     }
     let slug = title.toLowerCase()
       .replace(/['']/g, '')           // remove apostrophes
