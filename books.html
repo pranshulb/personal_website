@@ -87,7 +87,8 @@
       gap: 1.5rem;
       margin-bottom: 3rem;
     }
-    .book-card { cursor: default; transition: transform 0.3s ease; }
+    .book-card { cursor: pointer; transition: transform 0.3s ease; text-decoration: none; color: inherit; display: block; }
+    .book-card a { text-decoration: none; color: inherit; display: block; }
     .book-card:hover { transform: translateY(-4px); }
     .book-cover {
       width: 100%; aspect-ratio: 2/3; background: #ede5db;
@@ -370,8 +371,10 @@
     grid.innerHTML = sorted.map(b => {
       const cleanTitle = b.title.split('(')[0].trim();
       const shortTitle = cleanTitle.length > 30 ? cleanTitle.substring(0, 27) + '...' : cleanTitle;
+      const goodreadsQuery = encodeURIComponent(cleanTitle + ' ' + b.author);
+      const goodreadsUrl = `https://www.goodreads.com/search?q=${goodreadsQuery}`;
       return `
-        <div class="book-card">
+        <a href="${goodreadsUrl}" target="_blank" rel="noopener" class="book-card">
           <div class="book-cover">
             ${b.cover
               ? `<img src="${b.cover}" alt="${cleanTitle}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-cover>📖<div class=mini-title>${shortTitle}</div></div>'">`
@@ -382,7 +385,7 @@
           <div class="book-author">${b.author}</div>
           ${b.rating ? `<div class="book-rating">${'★'.repeat(b.rating)}${'☆'.repeat(5 - b.rating)}</div>` : ''}
           ${b.note ? `<div class="book-note">"${b.note}"</div>` : ''}
-        </div>
+        </a>
       `;
     }).join('');
   }
