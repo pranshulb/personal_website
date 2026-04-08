@@ -15,57 +15,75 @@
       color: #3a2f2f;
       line-height: 1.8;
       background: #faf5ef;
-    }
-
-    .container {
-      max-width: 520px;
-      margin: 0 0 0 2rem;
-      padding: 5rem 1.5rem 3rem;
+      overflow-x: hidden;
     }
 
     a { color: #3a2f2f; text-decoration-color: #d4a0a0; text-underline-offset: 3px; }
     a:hover { color: #c47a7a; text-decoration-color: #c47a7a; }
-    .back { font-size: 0.9rem; color: #b09a8a; margin-bottom: 2rem; display: inline-block; text-decoration: none; }
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.9rem;
+      color: #b09a8a;
+      text-decoration: none;
+      z-index: 10;
+    }
     .back:hover { color: #3a2f2f; }
 
     h1 {
-      font-size: 1.8rem;
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.4rem;
       font-weight: 400;
-      margin-bottom: 2rem;
+      color: #c4a0a0;
+      z-index: 10;
+      letter-spacing: 0.02em;
     }
 
-    .flow {
-      font-size: 1.1rem;
+    .scatter {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      padding: 5rem 2rem 3rem;
+    }
+
+    .thing {
+      position: absolute;
+      font-size: 1.15rem;
       color: #5a4a40;
-      line-height: 2;
+      white-space: nowrap;
+      transition: color 0.3s ease, transform 0.3s ease;
+      cursor: default;
     }
 
-    .flow .sep {
-      color: #d4a0a0;
-      margin: 0 0.15rem;
+    .thing:hover {
+      color: #c47a7a;
+      transform: scale(1.05);
     }
 
     .socials {
-      margin-top: 3rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .social-links {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
       display: flex;
       gap: 1.5rem;
       flex-wrap: wrap;
-      margin-top: 0.5rem;
+      justify-content: center;
     }
 
-    .social-links a {
-      color: #b09a8a;
-      border-bottom: none;
-      font-size: 0.9rem;
+    .socials a {
+      color: #c4b0a0;
+      font-size: 0.85rem;
       text-decoration: none;
+      border-bottom: none;
     }
 
-    .social-links a:hover {
+    .socials a:hover {
       color: #c47a7a;
     }
 
@@ -97,64 +115,94 @@
     }
 
     @media (max-width: 640px) {
-      .epigraph {
-        position: relative;
-        top: auto;
-        right: auto;
-        text-align: center;
-        padding: 1rem 1.25rem 0;
-        font-size: 0.8rem;
-      }
-      .container {
-        margin: 0 auto;
-        padding: 3rem 1.25rem 2.5rem;
-      }
-      h1 { font-size: 1.5rem; }
-      .flow { font-size: 1rem; }
+      .epigraph { display: none; }
+      h1 { font-size: 1.2rem; }
+      .thing { font-size: 1.05rem; }
+      .socials { gap: 1rem; }
+      .socials a { font-size: 0.8rem; }
     }
   </style>
 </head>
 <body>
 
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+<a href="/" class="back">← back</a>
+<h1>things i like</h1>
 
-<div class="container">
-  <a href="/" class="back">← back</a>
+<div class="scatter" id="scatter"></div>
 
-  <h1>things i like</h1>
-
-  <p class="flow" id="likes"></p>
-
-  <script>
-    const things = [
-      "apricity", "The Humans", "The Name of the Wind", "Eragon",
-      "Manchester by the Sea", "Catch Me If You Can", "Exurb1a", "green"
-    ];
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-    const el = document.getElementById('likes');
-    el.innerHTML = shuffle([...things]).join(' <span class="sep">·</span> ');
-  </script>
-
-  <div class="socials">
-    <div class="social-links">
-      <a href="mailto:pranshulbohra@gmail.com">email</a>
-      <a href="https://pranshulbohra.substack.com/">substack</a>
-      <a href="http://goodreads.com/pranshulb">goodreads</a>
-      <a href="https://curius.app/pranshul-bohra">curius</a>
-      <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
-    </div>
-    <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please please text me if you think it'd be fun to chat!!</p>
-  </div>
-
+<div class="socials">
+  <a href="mailto:pranshulbohra@gmail.com">email</a>
+  <a href="https://pranshulbohra.substack.com/">substack</a>
+  <a href="http://goodreads.com/pranshulb">goodreads</a>
+  <a href="https://curius.app/pranshul-bohra">curius</a>
+  <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
 </div>
 
 <script>
+  const things = [
+    "apricity", "The Humans", "The Name of the Wind", "Eragon",
+    "Manchester by the Sea", "Catch Me If You Can", "Exurb1a", "green"
+  ];
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const container = document.getElementById('scatter');
+  const shuffled = shuffle([...things]);
+  const placed = [];
+
+  // place each word at a random position, avoiding overlaps
+  shuffled.forEach((text, i) => {
+    const el = document.createElement('span');
+    el.className = 'thing';
+    el.textContent = text;
+    // vary opacity slightly for depth
+    el.style.opacity = 0.55 + Math.random() * 0.45;
+    // vary size slightly
+    const scale = 0.9 + Math.random() * 0.4;
+    el.style.fontSize = (1.15 * scale) + 'rem';
+    // slight random rotation
+    el.style.transform = `rotate(${-3 + Math.random() * 6}deg)`;
+
+    container.appendChild(el);
+
+    // position after appending so we can measure
+    const rect = el.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const padX = 40;
+    const padY = 30;
+    const maxX = container.clientWidth - w - padX;
+    const topMin = 80;
+    const maxY = Math.max(container.clientHeight - 120, 400);
+
+    let x, y, tries = 0, ok = false;
+    while (tries < 80) {
+      x = padX + Math.random() * maxX;
+      y = topMin + Math.random() * (maxY - topMin);
+      ok = true;
+      for (const p of placed) {
+        if (Math.abs(x - p.x) < (w + p.w) * 0.55 && Math.abs(y - p.y) < (h + p.h) * 0.7) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) break;
+      tries++;
+    }
+
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    placed.push({ x, y, w, h });
+  });
+
+  // cherry blossoms
   function createPetal() {
     const petal = document.createElement('div');
     petal.className = 'petal';
