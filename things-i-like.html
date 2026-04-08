@@ -291,12 +291,15 @@
 
   // --- DRAG ---
   let dragEl = null, dragOffX = 0, dragOffY = 0, hasDragged = false;
+  let startX = 0, startY = 0;
+  const DRAG_THRESHOLD = 5; // px — must move this far before it counts as a drag
 
   function startDrag(el, clientX, clientY) {
     dragEl = el;
     hasDragged = false;
+    startX = clientX;
+    startY = clientY;
     const rect = el.getBoundingClientRect();
-    const fieldRect = field.getBoundingClientRect();
     dragOffX = clientX - rect.left;
     dragOffY = clientY - rect.top;
     el.classList.add('dragging');
@@ -306,7 +309,9 @@
 
   function moveDrag(clientX, clientY) {
     if (!dragEl) return;
-    hasDragged = true;
+    const dist = Math.hypot(clientX - startX, clientY - startY);
+    if (dist > DRAG_THRESHOLD) hasDragged = true;
+    if (!hasDragged) return;
     const fieldRect = field.getBoundingClientRect();
     const x = clientX - fieldRect.left - dragOffX;
     const y = clientY - fieldRect.top - dragOffY;
@@ -323,6 +328,11 @@
     dragEl.style.transition = 'filter 300ms ease';
     dragEl = null;
   }
+
+  // prevent native <a> clicks — we handle navigation manually
+  field.addEventListener('click', (e) => {
+    if (e.target.closest('.thing')) e.preventDefault();
+  });
 
   // mouse
   field.addEventListener('mousedown', (e) => {
