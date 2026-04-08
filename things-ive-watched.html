@@ -557,8 +557,11 @@
   // ============================================================
 
   // letterboxd slug generator
-  function letterboxdUrl(title, year, tags) {
-    // link everything — letterboxd has some tv too, rest go to search
+  // letterboxd for movies, imdb for tv shows
+  function watchUrl(title, year, tags) {
+    if (tags && tags.includes('tv')) {
+      return `https://www.imdb.com/find/?q=${encodeURIComponent(title + ' ' + year)}&s=tt&ttype=tv`;
+    }
     let slug = title.toLowerCase()
       .replace(/['']/g, '')           // remove apostrophes
       .replace(/[&]/g, 'and')         // & → and
@@ -587,7 +590,7 @@
     }
 
     grid.innerHTML = filtered.map(m => {
-      const url = letterboxdUrl(m.title, m.year, m.tags);
+      const url = watchUrl(m.title, m.year, m.tags);
       const inner = `
         <div class="movie-poster">
           ${m.poster
