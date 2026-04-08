@@ -91,29 +91,6 @@
       min-height: 100vh;
     }
 
-    /* SVG lines layer */
-    .lines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .lines line {
-      stroke: #d4a0a0;
-      stroke-width: 1;
-      stroke-dasharray: 4 4;
-      opacity: 0;
-      transition: opacity 800ms ease;
-    }
-
-    .lines line.visible {
-      opacity: 0.5;
-    }
-
     .thing {
       position: absolute;
       white-space: nowrap;
@@ -123,14 +100,17 @@
       z-index: 2;
       user-select: none;
       -webkit-user-select: none;
+      text-decoration: none;
+      border-bottom: none;
+    }
+
+    a.thing:hover {
+      text-decoration-color: currentColor;
+      border-bottom: 1px solid currentColor;
     }
 
     .thing:active {
       cursor: grabbing;
-    }
-
-    .thing.selected {
-      filter: drop-shadow(0 0 8px rgba(196, 122, 122, 0.4));
     }
 
     .thing.dragging {
@@ -173,22 +153,20 @@
 
 <a href="/" class="back">← back</a>
 <h1>things i like</h1>
-<p class="hint">drag to rearrange · click two things to connect them</p>
+<p class="hint">drag to rearrange</p>
 <div class="vignette"></div>
 
-<div class="field" id="field">
-  <svg class="lines" id="lines"></svg>
-</div>
+<div class="field" id="field"></div>
 
 <script>
   const things = [
     { text: "apricity", style: "serif" },
-    { text: "The Humans", style: "book" },
-    { text: "The Name of the Wind", style: "book" },
-    { text: "Eragon", style: "book" },
-    { text: "Manchester by the Sea", style: "film" },
-    { text: "Catch Me If You Can", style: "film" },
-    { text: "Exurb1a", style: "wild" },
+    { text: "The Humans", style: "book", url: "https://www.goodreads.com/book/show/16130537-the-humans" },
+    { text: "The Name of the Wind", style: "book", url: "https://www.goodreads.com/book/show/186074.The_Name_of_the_Wind" },
+    { text: "Eragon", style: "book", url: "https://www.goodreads.com/book/show/113436.Eragon" },
+    { text: "Manchester by the Sea", style: "film", url: "https://letterboxd.com/film/manchester-by-the-sea/" },
+    { text: "Catch Me If You Can", style: "film", url: "https://letterboxd.com/film/catch-me-if-you-can/" },
+    { text: "Exurb1a", style: "wild", url: "https://www.youtube.com/@Exurb1a" },
     { text: "green", style: "color" },
   ];
 
@@ -240,18 +218,20 @@
   }
 
   const field = document.getElementById('field');
-  const linesSvg = document.getElementById('lines');
   const placed = [];
   const elements = [];
-  const connections = [];
-  let selectedEl = null;
   const isMobile = window.innerWidth < 640;
 
   things.forEach((item, idx) => {
-    const el = document.createElement('span');
+    const el = document.createElement(item.url ? 'a' : 'span');
     el.className = 'thing';
     el.textContent = item.text;
     el.dataset.idx = idx;
+    if (item.url) {
+      el.href = item.url;
+      el.target = '_blank';
+      el.rel = 'noopener';
+    }
 
     styles[item.style](el);
 
@@ -334,7 +314,6 @@
     dragEl.style.left = x + 'px';
     dragEl.style.top = y + 'px';
     dragEl.style.transform = `rotate(${rot}deg)`;
-    updateLines();
   }
 
   function endDrag() {
@@ -354,9 +333,8 @@
   });
   window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
   window.addEventListener('mouseup', (e) => {
-    if (dragEl && !hasDragged) {
-      // it was a click, not a drag — handle linking
-      handleClick(dragEl);
+    if (dragEl && !hasDragged && dragEl.href) {
+      window.open(dragEl.href, '_blank');
     }
     endDrag();
   });
@@ -375,80 +353,10 @@
     moveDrag(t.clientX, t.clientY);
   }, { passive: false });
   window.addEventListener('touchend', (e) => {
-    if (dragEl && !hasDragged) {
-      handleClick(dragEl);
+    if (dragEl && !hasDragged && dragEl.href) {
+      window.open(dragEl.href, '_blank');
     }
     endDrag();
-  });
-
-  // --- LINKING ---
-  function handleClick(el) {
-    if (selectedEl === el) {
-      el.classList.remove('selected');
-      selectedEl = null;
-      return;
-    }
-
-    if (selectedEl) {
-      // connect the two
-      drawLine(selectedEl, el);
-      selectedEl.classList.remove('selected');
-      selectedEl = null;
-    } else {
-      selectedEl = el;
-      el.classList.add('selected');
-    }
-  }
-
-  function getCenter(el) {
-    const rect = el.getBoundingClientRect();
-    const fieldRect = field.getBoundingClientRect();
-    return {
-      x: rect.left - fieldRect.left + rect.width / 2,
-      y: rect.top - fieldRect.top + rect.height / 2
-    };
-  }
-
-  function drawLine(a, b) {
-    // check if already connected
-    const key = [a.dataset.idx, b.dataset.idx].sort().join('-');
-    if (connections.find(c => c.key === key)) return;
-
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    const ca = getCenter(a);
-    const cb = getCenter(b);
-    line.setAttribute('x1', ca.x);
-    line.setAttribute('y1', ca.y);
-    line.setAttribute('x2', cb.x);
-    line.setAttribute('y2', cb.y);
-    linesSvg.appendChild(line);
-
-    // fade in
-    requestAnimationFrame(() => line.classList.add('visible'));
-
-    connections.push({ key, line, a, b });
-  }
-
-  function updateLines() {
-    connections.forEach(({ line, a, b }) => {
-      const ca = getCenter(a);
-      const cb = getCenter(b);
-      line.setAttribute('x1', ca.x);
-      line.setAttribute('y1', ca.y);
-      line.setAttribute('x2', cb.x);
-      line.setAttribute('y2', cb.y);
-    });
-  }
-
-  // also update lines during drift
-  setInterval(updateLines, 500);
-
-  // click on empty space deselects
-  field.addEventListener('click', (e) => {
-    if (!e.target.closest('.thing') && selectedEl) {
-      selectedEl.classList.remove('selected');
-      selectedEl = null;
-    }
   });
 </script>
 
