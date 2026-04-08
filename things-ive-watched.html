@@ -132,6 +132,11 @@
       margin-bottom: 3rem;
     }
 
+    .movie-link {
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
     .movie-card {
       cursor: default;
       transition: transform 0.3s ease;
@@ -551,6 +556,20 @@
   // RENDERING (don't need to touch this)
   // ============================================================
 
+  // letterboxd slug generator
+  function letterboxdUrl(title, year, tags) {
+    if (tags && tags.includes('tv')) return null; // tv shows aren't on letterboxd
+    let slug = title.toLowerCase()
+      .replace(/['']/g, '')           // remove apostrophes
+      .replace(/[&]/g, 'and')         // & → and
+      .replace(/[()]/g, '')           // remove parens
+      .replace(/[:!?,\.]/g, '')       // remove punctuation
+      .replace(/\s+/g, '-')           // spaces → dashes
+      .replace(/-+/g, '-')            // collapse multiple dashes
+      .replace(/^-|-$/g, '');         // trim leading/trailing dashes
+    return `https://letterboxd.com/film/${slug}/`;
+  }
+
   let activeFilter = 'all';
 
   function renderMovies() {
@@ -567,8 +586,9 @@
       return;
     }
 
-    grid.innerHTML = filtered.map(m => `
-      <div class="movie-card" data-tags="${(m.tags || []).join(',')}">
+    grid.innerHTML = filtered.map(m => {
+      const url = letterboxdUrl(m.title, m.year, m.tags);
+      const inner = `
         <div class="movie-poster">
           ${m.poster
             ? `<img src="${TMDB_IMG}${m.poster}" alt="${m.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-poster>🎬</div>'">`
@@ -579,8 +599,11 @@
         <div class="movie-year">${m.year || ''}</div>
         ${m.rating ? `<div class="movie-rating">${'★'.repeat(Math.floor(m.rating))}${m.rating % 1 ? '½' : ''}${'☆'.repeat(5 - Math.ceil(m.rating))}</div>` : ''}
         ${m.note ? `<div class="movie-note">"${m.note}"</div>` : ''}
-      </div>
-    `).join('');
+      `;
+      return url
+        ? `<a href="${url}" target="_blank" rel="noopener" class="movie-card movie-link" data-tags="${(m.tags || []).join(',')}">${inner}</a>`
+        : `<div class="movie-card" data-tags="${(m.tags || []).join(',')}">${inner}</div>`;
+    }).join('');
   }
 
   // filter toggle
