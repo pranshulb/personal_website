@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>things i like — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.8;
+      background: #faf5ef;
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 0 0 2rem;
+      padding: 5rem 1.5rem 3rem;
+    }
+
+    a { color: #3a2f2f; text-decoration-color: #d4a0a0; text-underline-offset: 3px; }
+    a:hover { color: #c47a7a; text-decoration-color: #c47a7a; }
+    .back { font-size: 0.9rem; color: #b09a8a; margin-bottom: 2rem; display: inline-block; text-decoration: none; }
+    .back:hover { color: #3a2f2f; }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #c47a7a;
+      margin-top: 2.5rem;
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.03em;
+    }
+
+    h2:first-of-type {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+    }
+
+    .items {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
+
+    .items li {
+      margin: 0.4rem 0;
+      font-size: 1.05rem;
+      color: #5a4a40;
+    }
+
+    .items li::before {
+      content: '· ';
+      color: #d4a0a0;
+    }
+
+    .note {
+      font-style: italic;
+      color: #b09a8a;
+      font-size: 0.95rem;
+    }
+
+    .socials {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .social-links a {
+      color: #b09a8a;
+      border-bottom: none;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+
+    .social-links a:hover {
+      color: #c47a7a;
+    }
+
+    /* falling cherry blossom petals */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+    }
+
+    @media (max-width: 640px) {
+      .epigraph {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        padding: 1rem 1.25rem 0;
+        font-size: 0.8rem;
+      }
+      .container {
+        margin: 0 auto;
+        padding: 3rem 1.25rem 2.5rem;
+      }
+      h1 { font-size: 1.5rem; }
+      p, .items li { font-size: 1rem; line-height: 1.75; }
+    }
+  </style>
+</head>
+<body>
+
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<div class="container">
+  <a href="/" class="back">← back</a>
+
+  <h1>things i like</h1>
+
+  <h2>books that changed something</h2>
+  <ul class="items">
+    <li>Meditations — Marcus Aurelius</li>
+    <li>Letters from a Stoic — Seneca</li>
+    <li>Four Thousand Weeks — Oliver Burkeman</li>
+    <li>Tao Te Ching — Laozi</li>
+    <li>The Stranger — Albert Camus</li>
+    <li>The Song of Achilles — Madeline Miller</li>
+    <li>The Name of the Wind — Patrick Rothfuss</li>
+  </ul>
+
+  <h2>movies i keep thinking about</h2>
+  <ul class="items">
+    <li>5 Centimeters Per Second</li>
+    <li>Manchester by the Sea</li>
+    <li>Catch Me If You Can</li>
+  </ul>
+  <p class="note">full list at <a href="/things-ive-watched">things i've watched</a></p>
+
+  <h2>videos that hit different</h2>
+  <ul class="items">
+    <li>Sam Harris — Death and the Present Moment</li>
+    <li>David Foster Wallace — This Is Water</li>
+    <li>Feynman — Computer Heuristics</li>
+    <li>Sapolsky — Uniqueness of Humans</li>
+    <li>Gabor Maté — When the Body Says No</li>
+    <li><a href="https://www.youtube.com/@Exurb1a">Exurb1a</a> — all of it, really</li>
+  </ul>
+
+  <h2>things i do that make me feel alive</h2>
+  <ul class="items">
+    <li>hosting people — dinners, events, anything where I can connect strangers</li>
+    <li>bachata (and sometimes salsa)</li>
+    <li>basketball — point guard energy</li>
+    <li>long walks with no destination</li>
+    <li>driving with the windows down</li>
+    <li>writing (even though I hide most of it)</li>
+    <li>vipassana meditation</li>
+    <li>a really good conversation with a friend at 2am</li>
+  </ul>
+
+  <h2>small things</h2>
+  <ul class="items">
+    <li>honey on toast</li>
+    <li>Greek yoghurt with frozen berries</li>
+    <li>the Too Good To Go app</li>
+    <li>book clubs</li>
+    <li>sending actual letters to friends</li>
+    <li>board games (monopoly — but I play the people, not the game)</li>
+  </ul>
+
+  <h2>ideas i keep returning to</h2>
+  <ul class="items">
+    <li>friendship over romance — always</li>
+    <li>action should precede motivation</li>
+    <li>happiness is overrated (contentment isn't)</li>
+    <li>"what would you do if you couldn't fail? give that a fucking go."</li>
+    <li>the hard problem of consciousness</li>
+    <li>conditional love is more special than unconditional love</li>
+  </ul>
+
+  <h2>people/blogs/corners of the internet</h2>
+  <ul class="items">
+    <li><a href="https://socratica.info/">Socratica</a></li>
+    <li><a href="https://www.gleech.org/">Gleech</a> — Gavin Leech</li>
+    <li><a href="https://curius.app/pranshul-bohra">Curius</a></li>
+    <li><a href="https://www.goodreads.com/user/show/52233098-pranshul">Goodreads</a></li>
+  </ul>
+
+  <div class="socials">
+    <div class="social-links">
+      <a href="mailto:pranshulbohra@gmail.com">email</a>
+      <a href="https://pranshulbohra.substack.com/">substack</a>
+      <a href="http://goodreads.com/pranshulb">goodreads</a>
+      <a href="https://curius.app/pranshul-bohra">curius</a>
+      <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
+    </div>
+    <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please please text me if you think it'd be fun to chat!!</p>
+  </div>
+
+</div>
+
+<script>
+  function createPetal() {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const startX = Math.random() * window.innerWidth;
+    const size = 8 + Math.random() * 12;
+    const duration = 8 + Math.random() * 12;
+    const drift = -60 + Math.random() * 120;
+    const spin = 180 + Math.random() * 540;
+    const delay = Math.random() * 5;
+    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    petal.style.cssText = `
+      left: ${startX}px; top: -20px; width: ${size}px; height: ${size * 0.7}px;
+      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
+      border-radius: 50% 0 50% 0;
+      animation-duration: ${duration}s; animation-delay: ${delay}s;
+      --drift: ${drift}px; --spin: ${spin}deg;
+    `;
+    petal.animate([{ top: '-20px' }, { top: `${window.innerHeight + 20}px` }], {
+      duration: duration * 1000, delay: delay * 1000, fill: 'forwards'
+    });
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  }
+  setInterval(createPetal, 1500);
+  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
+</script>
+
+</body>
+</html>
