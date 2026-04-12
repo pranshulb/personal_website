@@ -123,8 +123,6 @@
 
   <h1>who am i?</h1>
 
-  <p>I am <span id="someone" style="transition: opacity 0.6s;">someone</span>.</p>
-
   <p>I am Pranshul. but that's what my parents gave me.</p>
 
   <p>I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
@@ -174,20 +172,7 @@
   setInterval(createPetal, 1500);
   for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
 
-  // fast oscillation — stops on hover
-  const el = document.getElementById('someone');
-  el.style.cursor = 'pointer';
-  let toggle = false;
-  let paused = false;
-  function flick() {
-    if (paused) return;
-    toggle = !toggle;
-    el.textContent = toggle ? 'no one' : 'someone';
-    requestAnimationFrame(flick);
-  }
-  flick();
-  el.addEventListener('mouseenter', () => { paused = true; });
-  el.addEventListener('mouseleave', () => { paused = false; requestAnimationFrame(flick); });
+
 </script>
 
 </body>
