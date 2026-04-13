@@ -83,6 +83,53 @@
 
     li em { color: #9a8a7a; font-style: italic; }
 
+    /* expandable thoughts */
+    li details {
+      margin-top: 0.5rem;
+    }
+
+    li details summary {
+      font-size: 0.85rem;
+      color: #c47a7a;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      list-style: none;
+      transition: color 0.3s ease;
+    }
+
+    li details summary::-webkit-details-marker { display: none; }
+    li details summary::before {
+      content: '+ ';
+      font-size: 0.8rem;
+    }
+    li details[open] summary::before {
+      content: '− ';
+    }
+
+    li details summary:hover { color: #3a2f2f; }
+
+    li details .thoughts {
+      margin-top: 0.6rem;
+      padding: 0.8rem 1rem;
+      font-size: 0.92rem;
+      line-height: 1.75;
+      color: #6a5a50;
+      border-left: 2px solid #e0d0c8;
+      background: rgba(250, 245, 239, 0.5);
+    }
+
+    li details .thoughts p {
+      margin-bottom: 0.7rem;
+    }
+
+    li details .thoughts p:last-child {
+      margin-bottom: 0;
+    }
+
+    li details .thoughts a {
+      color: #c47a7a;
+    }
+
     /* petals */
     .petal {
       position: fixed;
@@ -173,6 +220,17 @@
     <li>is there afterlife?</li>
     <li>how important is beauty?</li>
     <li>if attention/memory are indicators of consciousness and we are losing both rn then are we on the path to becoming less conscious?</li>
+    <li>how important is memory? what if we put a chip in the brain and almost anything is instantly recallable?
+      <details>
+        <summary>my thoughts</summary>
+        <div class="thoughts">
+          <p>I really want to understand memory, and whether it's possible to make it infinitely better: either by prosthesis of some kind for our brains or something else.</p>
+          <p>My interest stems from something called Tools for Thought (I recommend reading: <a href="https://numinous.productions/ttft/">How can we develop transformative tools for thought?</a>). Being good at a lot of the sciences sometimes just means memorising stuff in a certain pattern. I.e., being good at special relativity requires having done classical mechanics, calculus, electromagnetism basics, etc; being good at each of those things in turn requires having done other things. Hence, being good at special relativity is just having done and having memorised all these subsets of concepts.</p>
+          <p>Also, I would like to remember beauty better and more vividly; remember my friends and their mannerisms and the moments we shared better. Like I think of my favourite book from 5 years ago, I barely remember anything about it. This saddens me.</p>
+          <p>Neuralink is very interesting to me, I intuit that a chip in the brain and the ability to access the internet in real-time might be the key to memory. I have moments when I know what I want to say but I can't think of the right word. What if I could! This gives me goosebumps :) I think I might work on this, along with working on my sleep and health to better my memory too.</p>
+        </div>
+      </details>
+    </li>
   </ol>
 
 </div>
