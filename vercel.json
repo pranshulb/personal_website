@@ -34,6 +34,10 @@
       "destination": "/writings/passion.html"
     },
     {
+      "source": "/private",
+      "destination": "/private.html"
+    },
+    {
       "source": "/bookmarks/:match*",
       "destination": "http://89.167.65.46:8091/bookmarks/:match*"
     },
