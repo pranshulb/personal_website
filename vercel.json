@@ -6,6 +6,16 @@
       "source": "/track",
       "destination": "https://analytics.pranshul.cafe",
       "statusCode": 302
+    },
+    {
+      "source": "/bookmarks/:path*",
+      "destination": "http://89.167.65.46:9090/bookmarks/:path*",
+      "statusCode": 302
+    },
+    {
+      "source": "/bookmarks",
+      "destination": "http://89.167.65.46:9090/bookmarks/",
+      "statusCode": 302
     }
   ],
   "rewrites": [
@@ -36,10 +46,6 @@
     {
       "source": "/private",
       "destination": "/private.html"
-    },
-    {
-      "source": "/bookmarks/:match*",
-      "destination": "http://89.167.65.46:8091/bookmarks/:match*"
     },
     {
       "source": "/london-events",
