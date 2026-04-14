@@ -32,6 +32,14 @@
     {
       "source": "/bookmarks/:path*",
       "destination": "http://89.167.65.46:9090/bookmarks/:path*"
+    },
+    {
+      "source": "/london-events",
+      "destination": "http://89.167.65.46:8080/london-events/"
+    },
+    {
+      "source": "/london-events/:path*",
+      "destination": "http://89.167.65.46:8080/london-events/:path*"
     }
   ]
 }
