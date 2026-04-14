@@ -1,6 +1,13 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/analytics",
+      "destination": "https://analytics.pranshul.cafe",
+      "statusCode": 302
+    }
+  ],
   "rewrites": [
     {
       "source": "/things-ive-watched",
