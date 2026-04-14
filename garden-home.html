@@ -180,6 +180,7 @@
   let sunX, sunY; // for god rays
   let lanterns = [], fireflies = [], cursorTrail = [], fairyLights = [];
   let treeBaseX = 0, treeBaseY = 0; // for path
+  let glowSprite = null; // pre-rendered glow for lanterns/fireflies/fairy lights
 
   /* ================================================================
      COLORS — spring palette
@@ -229,6 +230,15 @@
       el.style.width = W + 'px'; el.style.height = H + 'px';
     });
     [bgC, scC, ovC].forEach(c => c.setTransform(dpr, 0, 0, dpr, 0, 0));
+    // Pre-render a reusable glow sprite (saves ~30 createRadialGradient/frame)
+    const gs = 64; glowSprite = document.createElement('canvas');
+    glowSprite.width = gs; glowSprite.height = gs;
+    const gc = glowSprite.getContext('2d');
+    const gg = gc.createRadialGradient(gs/2, gs/2, 0, gs/2, gs/2, gs/2);
+    gg.addColorStop(0, 'rgba(255,255,255,1)');
+    gg.addColorStop(0.3, 'rgba(255,255,255,0.4)');
+    gg.addColorStop(1, 'rgba(255,255,255,0)');
+    gc.fillStyle = gg; gc.fillRect(0, 0, gs, gs);
     genTree(); genGrass(); initBokeh(); initBirds(); initMotes(); initButterflies();
     initLanterns(); initFireflies(); initFairyLights();
     groundPetals = []; cursorTrail = []; bgDirty = true;
@@ -266,7 +276,7 @@
   }
 
   function grow(out, x1, y1, x2, y2, w, d) {
-    if (d > 9 || w < 0.7) return;
+    if (d > 8 || w < 0.8) return;
     const dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy);
     if (len < 3) return;
     const ang = Math.atan2(dy, dx);
@@ -280,25 +290,25 @@
     out.push({ x1, y1, cx, cy, x2, y2, w, d });
 
     // Blossoms along thinner branches
-    if (w < 10 && d > 2) {
-      const n = Math.floor(rng(1, 4));
+    if (w < 9 && d > 2) {
+      const n = Math.floor(rng(1, 3));
       for (let i = 0; i < n; i++) {
         const bt = rng(0.35, 1), sp = 10 + w * 2;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + rng(-sp, sp),
           y: qB(y1, cy, y2, bt) + rng(-sp, sp),
-          r: rng(3, 10), color: pickBlossomColor(),
+          r: rng(3, 9), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
     }
-    // Dense blossom clusters at tips — cherry tree hallmark
+    // Dense blossom clusters at tips
     if (w < 5 && d > 3) {
-      const n = Math.floor(rng(4, 9));
+      const n = Math.floor(rng(3, 7));
       for (let i = 0; i < n; i++) {
         blossoms.push({
-          x: x2 + rng(-20, 20), y: y2 + rng(-20, 20),
-          r: rng(3.5, 10), color: pickBlossomColor(),
+          x: x2 + rng(-18, 18), y: y2 + rng(-18, 18),
+          r: rng(3, 9), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
@@ -442,7 +452,7 @@
 
   function initFireflies() {
     fireflies = [];
-    const count = isMobile ? 5 : 10;
+    const count = isMobile ? 4 : 6;
     for (let i = 0; i < count; i++) {
       fireflies.push({
         x: treeCX + rng(-crownR * 0.8, crownR * 0.8),
@@ -676,19 +686,19 @@
       c.fillStyle = g; c.beginPath(); c.ellipse(cx, sy, rx, rx * 0.13, 0, 0, 6.28); c.fill();
     }
 
-    // Dappled light spots on ground under tree
-    if (!isMobile) {
+    // Dappled light spots on ground (using pre-rendered glow sprite)
+    if (!isMobile && glowSprite) {
       const gY = H * 0.87;
-      for (let i = 0; i < 12; i++) {
+      c.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 8; i++) {
         const dx = rng(-crownR * 0.6, crownR * 0.6);
         const spotX = treeCX + dx + sw(gY, treeCX + dx) * 0.3;
-        const spotY = gY + rng(2, 20);
-        const spotR = rng(8, 25);
-        c.globalAlpha = 0.04 + Math.sin(t * 0.3 + i * 2.1) * 0.015;
-        const dg = c.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotR);
-        dg.addColorStop(0, 'rgba(255,245,200,0.3)'); dg.addColorStop(1, 'rgba(255,240,190,0)');
-        c.fillStyle = dg; c.beginPath(); c.ellipse(spotX, spotY, spotR, spotR * 0.3, 0, 0, 6.28); c.fill();
+        const spotY = gY + rng(2, 16);
+        const spotR = rng(10, 28);
+        c.globalAlpha = 0.025 + Math.sin(t * 0.3 + i * 2.1) * 0.01;
+        c.drawImage(glowSprite, spotX - spotR, spotY - spotR * 0.3, spotR * 2, spotR * 0.6);
       }
+      c.globalCompositeOperation = 'source-over';
       c.globalAlpha = 1;
     }
 
@@ -713,62 +723,44 @@
     }
     c.globalAlpha = 1;
 
-    // Blossoms — proper 5-petal cherry flowers for large, circles for small
+    // Blossoms — 5-petal only for largest, ellipses for medium, circles for small
     for (const b of blossoms) {
       const pulse = 1 + Math.sin(t * 1.1 + b.ph) * 0.08;
       const s = sw(b.y, b.x, b.swPh);
       const r = b.r * pulse, bx = b.x + s;
 
-      if (r > 5.5) {
-        // Full cherry blossom: 5 petals with bezier curves
-        c.globalAlpha = 0.58;
-        const petalR = r * 0.5;
-        const innerR = r * 0.22;
+      if (r > 7) {
+        // Full cherry blossom: 5 petals with bezier curves (only biggest)
+        c.globalAlpha = 0.55;
+        const petalR = r * 0.48, innerR = r * 0.2;
         for (let i = 0; i < 5; i++) {
           const a = b.ph + (i / 5) * 6.28;
-          const px = bx + Math.cos(a) * innerR;
-          const py = b.y + Math.sin(a) * innerR;
+          const px = bx + Math.cos(a) * innerR, py = b.y + Math.sin(a) * innerR;
           const tipX = bx + Math.cos(a) * (innerR + petalR);
           const tipY = b.y + Math.sin(a) * (innerR + petalR);
-          const perpA = a + Math.PI / 2;
-          const hw = petalR * 0.48;
+          const perpA = a + Math.PI / 2, hw = petalR * 0.45;
           c.beginPath(); c.moveTo(px, py);
-          c.quadraticCurveTo(
-            px + Math.cos(a) * petalR * 0.5 + Math.cos(perpA) * hw,
-            py + Math.sin(a) * petalR * 0.5 + Math.sin(perpA) * hw,
-            tipX, tipY
-          );
-          c.quadraticCurveTo(
-            px + Math.cos(a) * petalR * 0.5 - Math.cos(perpA) * hw,
-            py + Math.sin(a) * petalR * 0.5 - Math.sin(perpA) * hw,
-            px, py
-          );
+          c.quadraticCurveTo(px + Math.cos(a) * petalR * 0.5 + Math.cos(perpA) * hw,
+            py + Math.sin(a) * petalR * 0.5 + Math.sin(perpA) * hw, tipX, tipY);
+          c.quadraticCurveTo(px + Math.cos(a) * petalR * 0.5 - Math.cos(perpA) * hw,
+            py + Math.sin(a) * petalR * 0.5 - Math.sin(perpA) * hw, px, py);
           c.fillStyle = b.color; c.fill();
         }
         // Stamen center
-        c.globalAlpha = 0.5;
+        c.globalAlpha = 0.45;
         c.beginPath(); c.arc(bx, b.y, r * 0.1, 0, 6.28);
         c.fillStyle = '#E8C840'; c.fill();
-        // Stamen dots
-        c.globalAlpha = 0.35;
-        for (let i = 0; i < 5; i++) {
-          const sa = (i / 5) * 6.28 + b.ph * 0.3;
-          c.beginPath(); c.arc(bx + Math.cos(sa) * r * 0.17, b.y + Math.sin(sa) * r * 0.17, r * 0.035, 0, 6.28);
-          c.fillStyle = '#D4A830'; c.fill();
-        }
-      } else if (r > 3.5) {
-        // Medium: 3-petal simplified
-        c.globalAlpha = 0.48;
+      } else if (r > 4.5) {
+        // Medium: ellipse cluster (3 overlapping ellipses — cheaper than bezier petals)
+        c.globalAlpha = 0.48; c.fillStyle = b.color;
         for (let i = 0; i < 3; i++) {
           const a = b.ph + (i / 3) * 6.28;
-          c.beginPath(); c.ellipse(bx + Math.cos(a) * r * 0.25, b.y + Math.sin(a) * r * 0.25, r * 0.42, r * 0.28, a, 0, 6.28);
-          c.fillStyle = b.color; c.fill();
+          c.beginPath(); c.ellipse(bx + Math.cos(a) * r * 0.2, b.y + Math.sin(a) * r * 0.2, r * 0.4, r * 0.25, a, 0, 6.28);
+          c.fill();
         }
-        c.globalAlpha = 0.35; c.beginPath(); c.arc(bx, b.y, r * 0.08, 0, 6.28);
-        c.fillStyle = '#E8C840'; c.fill();
       } else {
-        // Small: soft circle
-        c.globalAlpha = 0.35;
+        // Small: single circle
+        c.globalAlpha = r > 3.5 ? 0.42 : 0.32;
         c.beginPath(); c.arc(bx, b.y, r, 0, 6.28);
         c.fillStyle = b.color; c.fill();
       }
@@ -807,16 +799,14 @@
         j === 0 ? c.moveTo(lx, ly) : c.lineTo(lx, ly);
       }
       c.stroke();
-      // Draw light bulbs
+      // Draw light bulbs (sprite glow + circle bulb)
       for (const l of fl.lights) {
         const lx = qB(b.x1 + s1, b.cx + sc2, b.x2 + s2, l.t);
         const ly = qB(b.y1, b.cy, b.y2, l.t) + l.droop;
         const twinkle = 0.6 + Math.sin(t * 1.5 + l.ph) * 0.4;
-        // Glow
-        c.globalAlpha = 0.12 * twinkle;
-        const gg = c.createRadialGradient(lx, ly, 0, lx, ly, 8);
-        gg.addColorStop(0, 'rgba(255,230,150,0.4)'); gg.addColorStop(1, 'rgba(255,220,130,0)');
-        c.fillStyle = gg; c.beginPath(); c.arc(lx, ly, 8, 0, 6.28); c.fill();
+        // Glow (sprite instead of per-frame gradient)
+        c.globalAlpha = 0.1 * twinkle;
+        c.drawImage(glowSprite, lx - 8, ly - 8, 16, 16);
         // Bulb
         c.globalAlpha = 0.55 * twinkle;
         c.fillStyle = l.color; c.beginPath(); c.arc(lx, ly, 1.8, 0, 6.28); c.fill();
@@ -824,50 +814,36 @@
     }
     c.globalAlpha = 1;
 
-    // Paper lanterns hanging from branches
+    // Paper lanterns hanging from branches (using pre-rendered glow sprite)
     for (const la of lanterns) {
       const s = sw(la.branchY, la.branchX, la.swPh);
       const ax = la.branchX + s;
       const ay = la.branchY;
-      // Lantern swings with wind (pendulum)
       const swing = Math.sin(t * 0.5 + la.ph) * 2 + windX * 4;
-      const lx = ax + swing;
-      const ly = ay + la.ropeLen;
-      const sz = la.size;
+      const lx = ax + swing, ly = ay + la.ropeLen, sz = la.size;
       // Rope
       c.strokeStyle = 'rgba(80,60,40,0.25)'; c.lineWidth = 0.7;
       c.beginPath(); c.moveTo(ax, ay); c.lineTo(lx, ly - sz * 0.5); c.stroke();
-      // Lantern glow (larger, behind lantern body)
+      // Glow (pre-rendered sprite, tinted via globalCompositeOperation)
       la.flicker += 0.03;
-      const flickerA = 0.12 + Math.sin(la.flicker) * 0.04 + Math.sin(la.flicker * 3.1) * 0.02;
+      const flickerA = 0.14 + Math.sin(la.flicker) * 0.04;
       const glowR = sz * 2.5;
       c.globalAlpha = flickerA;
-      const lg = c.createRadialGradient(lx, ly, 0, lx, ly, glowR);
-      lg.addColorStop(0, la.glowColor + '0.3)');
-      lg.addColorStop(0.4, la.glowColor + '0.1)');
-      lg.addColorStop(1, la.glowColor + '0)');
-      c.fillStyle = lg; c.beginPath(); c.arc(lx, ly, glowR, 0, 6.28); c.fill();
-      // Lantern body — rounded rectangle shape
-      c.globalAlpha = 0.65;
-      c.fillStyle = la.color;
-      c.beginPath();
-      // Barrel shape: wider in middle
+      c.drawImage(glowSprite, lx - glowR, ly - glowR, glowR * 2, glowR * 2);
+      // Lantern body — barrel shape
+      c.globalAlpha = 0.65; c.fillStyle = la.color;
       const hw = sz * 0.45, hh = sz * 0.55;
+      c.beginPath();
       c.moveTo(lx - hw * 0.6, ly - hh);
       c.quadraticCurveTo(lx - hw, ly, lx - hw * 0.6, ly + hh);
       c.quadraticCurveTo(lx, ly + hh * 1.2, lx + hw * 0.6, ly + hh);
       c.quadraticCurveTo(lx + hw, ly, lx + hw * 0.6, ly - hh);
       c.quadraticCurveTo(lx, ly - hh * 1.1, lx - hw * 0.6, ly - hh);
       c.fill();
-      // Top/bottom caps
+      // Caps
       c.fillStyle = '#8B6040'; c.globalAlpha = 0.4;
       c.fillRect(lx - hw * 0.5, ly - hh - 1, hw, 2);
       c.fillRect(lx - hw * 0.5, ly + hh - 1, hw, 2);
-      // Inner glow on lantern
-      c.globalAlpha = 0.2;
-      const ig = c.createRadialGradient(lx, ly, 0, lx, ly, sz * 0.4);
-      ig.addColorStop(0, 'rgba(255,255,220,0.5)'); ig.addColorStop(1, 'rgba(255,240,180,0)');
-      c.fillStyle = ig; c.beginPath(); c.arc(lx, ly, sz * 0.4, 0, 6.28); c.fill();
     }
     c.globalAlpha = 1;
 
@@ -885,25 +861,20 @@
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
 
-    // God rays — subtle rotating light shafts from sun
+    // God rays — simple warm triangles from sun (no per-frame gradients)
     if (!isMobile) {
       c.save();
-      const rayCount = 5;
-      const rayWidth = 0.09;
-      const rayLen = Math.max(W, H) * 1.3;
-      for (let i = 0; i < rayCount; i++) {
-        const baseAng = (i / rayCount) * Math.PI * 0.55 + Math.PI * 0.32;
+      for (let i = 0; i < 3; i++) {
+        const baseAng = (i / 3) * Math.PI * 0.5 + Math.PI * 0.35;
         const ang = baseAng + t * 0.002 + Math.sin(t * 0.08 + i * 1.7) * 0.02;
-        c.globalAlpha = 0.018 + Math.sin(t * 0.15 + i * 1.3) * 0.008;
+        const rayLen = Math.max(W, H) * 1.2;
+        const rw = 0.08;
+        c.globalAlpha = 0.016 + Math.sin(t * 0.15 + i * 1.3) * 0.006;
+        c.fillStyle = 'rgba(255,238,200,0.06)';
         c.beginPath(); c.moveTo(sunX, sunY);
-        c.lineTo(sunX + Math.cos(ang - rayWidth) * rayLen, sunY + Math.sin(ang - rayWidth) * rayLen);
-        c.lineTo(sunX + Math.cos(ang + rayWidth) * rayLen, sunY + Math.sin(ang + rayWidth) * rayLen);
-        c.closePath();
-        const rg = c.createRadialGradient(sunX, sunY, 0, sunX, sunY, rayLen * 0.7);
-        rg.addColorStop(0, 'rgba(255,240,205,0.1)');
-        rg.addColorStop(0.5, 'rgba(255,230,190,0.04)');
-        rg.addColorStop(1, 'rgba(255,225,180,0)');
-        c.fillStyle = rg; c.fill();
+        c.lineTo(sunX + Math.cos(ang - rw) * rayLen, sunY + Math.sin(ang - rw) * rayLen);
+        c.lineTo(sunX + Math.cos(ang + rw) * rayLen, sunY + Math.sin(ang + rw) * rayLen);
+        c.closePath(); c.fill();
       }
       c.restore();
     }
@@ -1030,12 +1001,9 @@
 
       if (ff.brightness > 0.01) {
         const glowR = ff.r * 6;
-        c.globalAlpha = ff.brightness * 0.15;
-        const fg = c.createRadialGradient(ff.x, ff.y, 0, ff.x, ff.y, glowR);
-        fg.addColorStop(0, 'rgba(200,255,100,0.4)');
-        fg.addColorStop(0.3, 'rgba(180,240,80,0.15)');
-        fg.addColorStop(1, 'rgba(160,220,60,0)');
-        c.fillStyle = fg; c.beginPath(); c.arc(ff.x, ff.y, glowR, 0, 6.28); c.fill();
+        // Glow (sprite)
+        c.globalAlpha = ff.brightness * 0.18;
+        c.drawImage(glowSprite, ff.x - glowR, ff.y - glowR, glowR * 2, glowR * 2);
         // Core
         c.globalAlpha = ff.brightness * 0.7;
         c.fillStyle = '#E0FF90';
@@ -1046,17 +1014,11 @@
     // Cursor sparkle trail
     for (let i = cursorTrail.length - 1; i >= 0; i--) {
       const p = cursorTrail[i];
-      p.life -= 0.015; p.x += p.vx; p.y += p.vy; p.vy += 0.003;
+      p.life -= 0.018; p.x += p.vx; p.y += p.vy; p.vy += 0.003;
       if (p.life <= 0) { cursorTrail.splice(i, 1); continue; }
-      const a = p.life * p.life; // ease out
-      c.globalAlpha = a * 0.6;
+      c.globalAlpha = p.life * p.life * 0.55;
       c.fillStyle = p.color;
       c.beginPath(); c.arc(p.x, p.y, p.r * p.life, 0, 6.28); c.fill();
-      // Tiny glow
-      if (a > 0.3) {
-        c.globalAlpha = a * 0.12;
-        c.beginPath(); c.arc(p.x, p.y, p.r * 3, 0, 6.28); c.fill();
-      }
     }
     c.globalAlpha = 1;
   }
