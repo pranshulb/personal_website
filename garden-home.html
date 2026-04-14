@@ -178,6 +178,8 @@
   let bokehSprites = [], bokehState = [];
   let treeCX = 0, treeCY = 0, crownR = 100; // for bloom + dappled
   let sunX, sunY; // for god rays
+  let lanterns = [], fireflies = [], cursorTrail = [], fairyLights = [];
+  let treeBaseX = 0, treeBaseY = 0; // for path
 
   /* ================================================================
      COLORS — spring palette
@@ -228,7 +230,8 @@
     });
     [bgC, scC, ovC].forEach(c => c.setTransform(dpr, 0, 0, dpr, 0, 0));
     genTree(); genGrass(); initBokeh(); initBirds(); initMotes(); initButterflies();
-    groundPetals = []; bgDirty = true;
+    initLanterns(); initFireflies(); initFairyLights();
+    groundPetals = []; cursorTrail = []; bgDirty = true;
   }
 
   /* ================================================================
@@ -239,6 +242,7 @@
     const sc = Math.min(W, H) / 820;
     const treeX = isMobile ? W * rng(0.45, 0.55) : W * rng(0.65, 0.75);
     const baseY = H * 0.91;
+    treeBaseX = treeX; treeBaseY = baseY;
     const trS = isMobile ? 0.7 : 1;
     const trH = H * rng(0.28, 0.35) * trS;
     grow(raw, treeX, baseY, treeX + rng(-8, 8), baseY - trH, 24 * sc * trS, 0);
@@ -410,6 +414,72 @@
     }
   }
 
+  function initLanterns() {
+    lanterns = [];
+    // Pick 3-4 branches to hang lanterns from (thin-ish, not too deep, not trunk)
+    const candidates = sortedBranches.filter(b => b.d >= 2 && b.d <= 5 && b.w >= 2 && b.w <= 10);
+    const count = Math.min(isMobile ? 2 : 4, candidates.length);
+    const used = new Set();
+    for (let i = 0; i < count; i++) {
+      let tries = 0, idx;
+      do { idx = Math.floor(Math.random() * candidates.length); tries++; } while (used.has(idx) && tries < 20);
+      used.add(idx);
+      const b = candidates[idx];
+      const bt = rng(0.5, 0.9);
+      lanterns.push({
+        branchX: qB(b.x1, b.cx, b.x2, bt),
+        branchY: qB(b.y1, b.cy, b.y2, bt),
+        ropeLen: rng(12, 28),
+        size: rng(6, 11),
+        color: pick(['#F0A838','#E89430','#F5B848','#E8A040']),
+        glowColor: pick(['rgba(255,200,80,','rgba(255,180,60,','rgba(255,210,100,']),
+        ph: Math.random() * 6.28,
+        swPh: Math.random() * 6.28,
+        flicker: Math.random() * 6.28
+      });
+    }
+  }
+
+  function initFireflies() {
+    fireflies = [];
+    const count = isMobile ? 5 : 10;
+    for (let i = 0; i < count; i++) {
+      fireflies.push({
+        x: treeCX + rng(-crownR * 0.8, crownR * 0.8),
+        y: treeCY + rng(-crownR * 0.6, crownR * 0.6),
+        vx: rng(-0.08, 0.08), vy: rng(-0.06, 0.06),
+        r: rng(1.2, 2.5),
+        ph: Math.random() * 6.28,
+        cycle: rng(0.008, 0.02), // glow cycle speed
+        brightness: 0, state: 'off',
+        onTimer: rng(40, 120), offTimer: rng(80, 300),
+        timer: Math.random() * 200
+      });
+    }
+  }
+
+  function initFairyLights() {
+    fairyLights = [];
+    // String fairy lights along 2 branches
+    const candidates = sortedBranches.filter(b => b.d >= 1 && b.d <= 3 && b.w >= 4);
+    const count = Math.min(2, candidates.length);
+    for (let i = 0; i < count; i++) {
+      const b = candidates[Math.floor(Math.random() * candidates.length)];
+      const lights = [];
+      const numLights = Math.floor(rng(5, 9));
+      for (let j = 0; j < numLights; j++) {
+        const bt = (j + 0.5) / numLights;
+        lights.push({
+          t: bt,
+          droop: rng(3, 10) * Math.sin(bt * Math.PI), // catenary sag
+          color: pick(['#FFE8A0','#FFF0C0','#FFD880','#FFF5D0']),
+          ph: Math.random() * 6.28
+        });
+      }
+      fairyLights.push({ branch: b, lights });
+    }
+  }
+
   /* ================================================================
      PETAL PHYSICS
   ================================================================ */
@@ -557,6 +627,27 @@
     }
     c.globalAlpha = 1;
 
+    // Stone path winding toward tree base
+    if (!isMobile) {
+      const pathEndX = treeBaseX, pathEndY = treeBaseY;
+      const pathStartX = W * 0.35, pathStartY = H + 20;
+      const steps = 14;
+      c.globalAlpha = 0.18;
+      for (let i = 0; i < steps; i++) {
+        const t = i / (steps - 1);
+        const tt = t * t * (3 - 2 * t); // smoothstep
+        const px = pathStartX + (pathEndX - pathStartX) * tt + Math.sin(t * 4.5) * 18;
+        const py = pathStartY + (pathEndY - pathStartY) * tt;
+        const stoneR = rng(4, 8) * (1 - t * 0.3);
+        // Stepping stone
+        c.fillStyle = pick(['#a09880','#b0a890','#95897a','#a89a88']);
+        c.beginPath();
+        c.ellipse(px, py, stoneR * rng(0.9, 1.1), stoneR * rng(0.5, 0.7), rng(-0.3, 0.3), 0, 6.28);
+        c.fill();
+      }
+      c.globalAlpha = 1;
+    }
+
     // Ghibli warm overlay — very subtle golden wash over everything
     c.globalCompositeOperation = 'overlay';
     c.fillStyle = 'rgba(255,230,180,0.04)';
@@ -702,6 +793,84 @@
     c.fillRect(treeCX - crownR * 1.2, treeCY - crownR * 1.2, crownR * 2.4, crownR * 2.4);
     c.restore();
 
+    // Fairy lights strung along branches
+    for (const fl of fairyLights) {
+      const b = fl.branch;
+      const s1 = sw(b.y1, b.x1) * 0.4, s2 = sw(b.y2, b.x2), sc2 = (s1 + s2) * 0.5;
+      // Draw wire
+      c.strokeStyle = 'rgba(80,60,40,0.12)'; c.lineWidth = 0.5;
+      c.beginPath();
+      for (let j = 0; j < fl.lights.length; j++) {
+        const l = fl.lights[j];
+        const lx = qB(b.x1 + s1, b.cx + sc2, b.x2 + s2, l.t);
+        const ly = qB(b.y1, b.cy, b.y2, l.t) + l.droop;
+        j === 0 ? c.moveTo(lx, ly) : c.lineTo(lx, ly);
+      }
+      c.stroke();
+      // Draw light bulbs
+      for (const l of fl.lights) {
+        const lx = qB(b.x1 + s1, b.cx + sc2, b.x2 + s2, l.t);
+        const ly = qB(b.y1, b.cy, b.y2, l.t) + l.droop;
+        const twinkle = 0.6 + Math.sin(t * 1.5 + l.ph) * 0.4;
+        // Glow
+        c.globalAlpha = 0.12 * twinkle;
+        const gg = c.createRadialGradient(lx, ly, 0, lx, ly, 8);
+        gg.addColorStop(0, 'rgba(255,230,150,0.4)'); gg.addColorStop(1, 'rgba(255,220,130,0)');
+        c.fillStyle = gg; c.beginPath(); c.arc(lx, ly, 8, 0, 6.28); c.fill();
+        // Bulb
+        c.globalAlpha = 0.55 * twinkle;
+        c.fillStyle = l.color; c.beginPath(); c.arc(lx, ly, 1.8, 0, 6.28); c.fill();
+      }
+    }
+    c.globalAlpha = 1;
+
+    // Paper lanterns hanging from branches
+    for (const la of lanterns) {
+      const s = sw(la.branchY, la.branchX, la.swPh);
+      const ax = la.branchX + s;
+      const ay = la.branchY;
+      // Lantern swings with wind (pendulum)
+      const swing = Math.sin(t * 0.5 + la.ph) * 2 + windX * 4;
+      const lx = ax + swing;
+      const ly = ay + la.ropeLen;
+      const sz = la.size;
+      // Rope
+      c.strokeStyle = 'rgba(80,60,40,0.25)'; c.lineWidth = 0.7;
+      c.beginPath(); c.moveTo(ax, ay); c.lineTo(lx, ly - sz * 0.5); c.stroke();
+      // Lantern glow (larger, behind lantern body)
+      la.flicker += 0.03;
+      const flickerA = 0.12 + Math.sin(la.flicker) * 0.04 + Math.sin(la.flicker * 3.1) * 0.02;
+      const glowR = sz * 2.5;
+      c.globalAlpha = flickerA;
+      const lg = c.createRadialGradient(lx, ly, 0, lx, ly, glowR);
+      lg.addColorStop(0, la.glowColor + '0.3)');
+      lg.addColorStop(0.4, la.glowColor + '0.1)');
+      lg.addColorStop(1, la.glowColor + '0)');
+      c.fillStyle = lg; c.beginPath(); c.arc(lx, ly, glowR, 0, 6.28); c.fill();
+      // Lantern body — rounded rectangle shape
+      c.globalAlpha = 0.65;
+      c.fillStyle = la.color;
+      c.beginPath();
+      // Barrel shape: wider in middle
+      const hw = sz * 0.45, hh = sz * 0.55;
+      c.moveTo(lx - hw * 0.6, ly - hh);
+      c.quadraticCurveTo(lx - hw, ly, lx - hw * 0.6, ly + hh);
+      c.quadraticCurveTo(lx, ly + hh * 1.2, lx + hw * 0.6, ly + hh);
+      c.quadraticCurveTo(lx + hw, ly, lx + hw * 0.6, ly - hh);
+      c.quadraticCurveTo(lx, ly - hh * 1.1, lx - hw * 0.6, ly - hh);
+      c.fill();
+      // Top/bottom caps
+      c.fillStyle = '#8B6040'; c.globalAlpha = 0.4;
+      c.fillRect(lx - hw * 0.5, ly - hh - 1, hw, 2);
+      c.fillRect(lx - hw * 0.5, ly + hh - 1, hw, 2);
+      // Inner glow on lantern
+      c.globalAlpha = 0.2;
+      const ig = c.createRadialGradient(lx, ly, 0, lx, ly, sz * 0.4);
+      ig.addColorStop(0, 'rgba(255,255,220,0.5)'); ig.addColorStop(1, 'rgba(255,240,180,0)');
+      c.fillStyle = ig; c.beginPath(); c.arc(lx, ly, sz * 0.4, 0, 6.28); c.fill();
+    }
+    c.globalAlpha = 1;
+
     // Ground petals (on spring-green ground they pop beautifully)
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
@@ -834,6 +1003,62 @@
       if (b.y > H + sp.r + 30) { b.y = -sp.r - 30; b.x = rng(0, W); }
     }
     c.globalAlpha = 1;
+
+    // Fireflies — blinking warmly in the canopy
+    for (const ff of fireflies) {
+      ff.timer--;
+      if (ff.timer <= 0) {
+        if (ff.state === 'off') { ff.state = 'rising'; ff.timer = ff.onTimer; }
+        else { ff.state = 'off'; ff.timer = ff.offTimer; ff.brightness = 0; }
+      }
+      // Update brightness
+      if (ff.state === 'rising') {
+        ff.brightness = Math.min(1, ff.brightness + 0.04);
+        if (ff.brightness >= 1) ff.state = 'on';
+      } else if (ff.state === 'on') {
+        ff.brightness = 0.8 + Math.sin(t * 3 + ff.ph) * 0.2;
+      } else if (ff.state === 'off') {
+        ff.brightness = Math.max(0, ff.brightness - 0.02);
+      }
+      // Drift
+      ff.x += ff.vx + windX * 0.01 + Math.sin(t * 0.4 + ff.ph) * 0.05;
+      ff.y += ff.vy + Math.cos(t * 0.3 + ff.ph * 1.3) * 0.04;
+      // Keep in canopy area
+      const dx = ff.x - treeCX, dy = ff.y - treeCY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > crownR * 0.9) { ff.vx -= dx * 0.0003; ff.vy -= dy * 0.0003; }
+
+      if (ff.brightness > 0.01) {
+        const glowR = ff.r * 6;
+        c.globalAlpha = ff.brightness * 0.15;
+        const fg = c.createRadialGradient(ff.x, ff.y, 0, ff.x, ff.y, glowR);
+        fg.addColorStop(0, 'rgba(200,255,100,0.4)');
+        fg.addColorStop(0.3, 'rgba(180,240,80,0.15)');
+        fg.addColorStop(1, 'rgba(160,220,60,0)');
+        c.fillStyle = fg; c.beginPath(); c.arc(ff.x, ff.y, glowR, 0, 6.28); c.fill();
+        // Core
+        c.globalAlpha = ff.brightness * 0.7;
+        c.fillStyle = '#E0FF90';
+        c.beginPath(); c.arc(ff.x, ff.y, ff.r, 0, 6.28); c.fill();
+      }
+    }
+
+    // Cursor sparkle trail
+    for (let i = cursorTrail.length - 1; i >= 0; i--) {
+      const p = cursorTrail[i];
+      p.life -= 0.015; p.x += p.vx; p.y += p.vy; p.vy += 0.003;
+      if (p.life <= 0) { cursorTrail.splice(i, 1); continue; }
+      const a = p.life * p.life; // ease out
+      c.globalAlpha = a * 0.6;
+      c.fillStyle = p.color;
+      c.beginPath(); c.arc(p.x, p.y, p.r * p.life, 0, 6.28); c.fill();
+      // Tiny glow
+      if (a > 0.3) {
+        c.globalAlpha = a * 0.12;
+        c.beginPath(); c.arc(p.x, p.y, p.r * 3, 0, 6.28); c.fill();
+      }
+    }
+    c.globalAlpha = 1;
   }
 
   /* ================================================================
@@ -866,7 +1091,21 @@
      EVENTS
   ================================================================ */
   window.addEventListener('resize', resize);
-  document.addEventListener('mousemove', e => { mx = (e.clientX / W - 0.5) * 2; my = (e.clientY / H - 0.5) * 2; });
+  let lastCursorX = 0, lastCursorY = 0;
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX / W - 0.5) * 2; my = (e.clientY / H - 0.5) * 2;
+    // Cursor sparkle trail — only spawn if mouse moved enough
+    const cdx = e.clientX - lastCursorX, cdy = e.clientY - lastCursorY;
+    if (cdx * cdx + cdy * cdy > 64 && cursorTrail.length < 30) {
+      cursorTrail.push({
+        x: e.clientX, y: e.clientY,
+        vx: rng(-0.4, 0.4), vy: rng(-0.5, 0.1),
+        r: rng(1.5, 3), life: 1,
+        color: pick(['#FFE8A0','#FFF0C8','#F5D070','#FFD890','#f7cdd7','#fce4ec'])
+      });
+      lastCursorX = e.clientX; lastCursorY = e.clientY;
+    }
+  });
 
   document.addEventListener('click', e => {
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
