@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/analytics",
+      "source": "/track",
       "destination": "https://analytics.pranshul.cafe",
       "statusCode": 302
     }
