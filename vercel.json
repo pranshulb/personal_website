@@ -24,6 +24,14 @@
     {
       "source": "/writings/passion",
       "destination": "/writings/passion.html"
+    },
+    {
+      "source": "/bookmarks",
+      "destination": "http://89.167.65.46:9090/bookmarks/"
+    },
+    {
+      "source": "/bookmarks/:path*",
+      "destination": "http://89.167.65.46:9090/bookmarks/:path*"
     }
   ]
 }
