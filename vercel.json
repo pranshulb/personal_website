@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/things-ive-watched",
@@ -27,7 +28,7 @@
     },
     {
       "source": "/bookmarks/:match*",
-      "destination": "http://89.167.65.46:9090/bookmarks/:match*"
+      "destination": "http://89.167.65.46:8091/bookmarks/:match*"
     },
     {
       "source": "/london-events",
