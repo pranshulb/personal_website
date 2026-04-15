@@ -245,41 +245,46 @@
     blossomSprites = {};
     const allColors = [...PINKS, ...DEEP, ...WHITE, ...BUDS];
     for (const col of allColors) {
-      const sizes = [8, 16, 24]; // sprite sizes in px
+      const sizes = [10, 20, 32]; // sprite sizes in px
       blossomSprites[col] = sizes.map(sz => {
         const oc = document.createElement('canvas');
         oc.width = sz * 2; oc.height = sz * 2;
         const cc = oc.getContext('2d');
         const cx = sz, cy = sz;
-        if (sz >= 20) {
-          // Large: 5 soft overlapping petals
-          const pr = sz * 0.38, ir = sz * 0.15;
+        if (sz >= 28) {
+          // Large: 5 bold overlapping petals — painted full opacity on sprite
+          const pr = sz * 0.4, ir = sz * 0.16;
           for (let i = 0; i < 5; i++) {
             const a = (i / 5) * 6.28;
-            cc.globalAlpha = 0.45;
+            cc.globalAlpha = 0.85;
             cc.fillStyle = col;
             cc.beginPath();
-            cc.ellipse(cx + Math.cos(a) * (ir + pr * 0.4), cy + Math.sin(a) * (ir + pr * 0.4),
-              pr, pr * 0.6, a, 0, 6.28);
+            cc.ellipse(cx + Math.cos(a) * (ir + pr * 0.35), cy + Math.sin(a) * (ir + pr * 0.35),
+              pr, pr * 0.55, a, 0, 6.28);
             cc.fill();
           }
-          cc.globalAlpha = 0.35;
+          // Soft white highlight in center for depth
+          cc.globalAlpha = 0.25;
+          cc.fillStyle = '#fff';
+          cc.beginPath(); cc.arc(cx, cy, sz * 0.18, 0, 6.28); cc.fill();
+          // Stamen
+          cc.globalAlpha = 0.6;
           cc.fillStyle = '#E8C840';
-          cc.beginPath(); cc.arc(cx, cy, sz * 0.1, 0, 6.28); cc.fill();
-        } else if (sz >= 12) {
-          // Medium: 3 overlapping circles
+          cc.beginPath(); cc.arc(cx, cy, sz * 0.08, 0, 6.28); cc.fill();
+        } else if (sz >= 16) {
+          // Medium: 3 overlapping circles, bolder
           for (let i = 0; i < 3; i++) {
             const a = (i / 3) * 6.28;
-            cc.globalAlpha = 0.4;
+            cc.globalAlpha = 0.75;
             cc.fillStyle = col;
-            cc.beginPath(); cc.arc(cx + Math.cos(a) * sz * 0.15, cy + Math.sin(a) * sz * 0.15, sz * 0.38, 0, 6.28);
+            cc.beginPath(); cc.arc(cx + Math.cos(a) * sz * 0.13, cy + Math.sin(a) * sz * 0.13, sz * 0.36, 0, 6.28);
             cc.fill();
           }
         } else {
-          // Small: soft circle
-          cc.globalAlpha = 0.4;
+          // Small: solid soft dot
+          cc.globalAlpha = 0.8;
           cc.fillStyle = col;
-          cc.beginPath(); cc.arc(cx, cy, sz * 0.45, 0, 6.28); cc.fill();
+          cc.beginPath(); cc.arc(cx, cy, sz * 0.42, 0, 6.28); cc.fill();
         }
         return { canvas: oc, size: sz };
       });
@@ -321,7 +326,7 @@
   }
 
   function grow(out, x1, y1, x2, y2, w, d) {
-    if (d > 8 || w < 0.7) return;
+    if (d > 9 || w < 0.7) return;
     const dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy);
     if (len < 3) return;
     const ang = Math.atan2(dy, dx);
@@ -334,27 +339,27 @@
     const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
     out.push({ x1, y1, cx, cy, x2, y2, w, d });
 
-    // Blossoms along thinner branches — sparse
-    if (w < 8 && d > 2) {
-      const n = Math.floor(rng(1, 3));
+    // Blossoms along branches
+    if (w < 10 && d > 1) {
+      const n = Math.floor(rng(2, 5));
       for (let i = 0; i < n; i++) {
-        const bt = rng(0.4, 1), sp = 8 + w * 1.5;
+        const bt = rng(0.3, 1), sp = 10 + w * 2;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + rng(-sp, sp),
           y: qB(y1, cy, y2, bt) + rng(-sp, sp),
-          r: rng(3, 8), color: pickBlossomColor(),
+          r: rng(3, 9), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
     }
-    // Blossom cloud clusters at tips — the cherry tree hallmark
-    if (w < 4.5 && d > 3) {
-      const n = Math.floor(rng(4, 8));
+    // Dense blossom clouds at tips — the cherry tree hallmark
+    if (w < 5 && d > 2) {
+      const n = Math.floor(rng(6, 12));
       for (let i = 0; i < n; i++) {
-        const spread = 12 + (8 - d) * 3; // tighter clusters at deeper branches
+        const spread = 14 + (9 - d) * 3;
         blossoms.push({
           x: x2 + rng(-spread, spread), y: y2 + rng(-spread, spread),
-          r: rng(3, 9), color: pickBlossomColor(),
+          r: rng(3.5, 10), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
@@ -783,11 +788,10 @@
       const r = b.r * pulse, bx = b.x + s;
       const sprites = blossomSprites[b.color];
       if (!sprites) continue;
-      // Pick sprite size: 0=small(8), 1=med(16), 2=large(24)
-      const si = r > 6.5 ? 2 : r > 4 ? 1 : 0;
+      const si = r > 6 ? 2 : r > 3.5 ? 1 : 0;
       const sp = sprites[si];
-      const drawSz = r * 2.2; // scale sprite to blossom radius
-      c.globalAlpha = r > 6 ? 0.6 : r > 4 ? 0.5 : 0.38;
+      const drawSz = r * 2.5;
+      c.globalAlpha = r > 6 ? 0.82 : r > 4 ? 0.7 : 0.55;
       c.drawImage(sp.canvas, bx - drawSz / 2, b.y - drawSz / 2, drawSz, drawSz);
     }
     c.globalAlpha = 1;
