@@ -256,7 +256,7 @@
     treeBaseX = treeX; treeBaseY = baseY;
     const trS = isMobile ? 0.7 : 1;
     const trH = H * rng(0.28, 0.35) * trS;
-    grow(raw, treeX, baseY, treeX + rng(-8, 8), baseY - trH, 24 * sc * trS, 0);
+    grow(raw, treeX, baseY, treeX + rng(-6, 6), baseY - trH, 28 * sc * trS, 0);
     raw.sort((a, b) => a.d - b.d);
     sortedBranches = raw;
     thickBranches = raw.filter(b => b.w >= 5);
@@ -277,65 +277,75 @@
   }
 
   function grow(out, x1, y1, x2, y2, w, d) {
-    if (d > 8 || w < 0.8) return;
+    if (d > 8 || w < 0.7) return;
     const dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy);
     if (len < 3) return;
     const ang = Math.atan2(dy, dx);
 
-    // Cherry tree: pronounced graceful bends
-    const bendScale = d < 2 ? 0.18 : 0.25;
+    // Graceful calligraphic bends — more dramatic on main limbs
+    const bendScale = d === 0 ? 0.12 : d < 3 ? 0.22 : 0.3;
     const bend = rng(-1, 1) * len * bendScale;
     const perp = ang + Math.PI / 2;
     const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
     const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
     out.push({ x1, y1, cx, cy, x2, y2, w, d });
 
-    // Blossoms along thinner branches
-    if (w < 9 && d > 2) {
+    // Blossoms along thinner branches — sparse
+    if (w < 8 && d > 2) {
       const n = Math.floor(rng(1, 3));
       for (let i = 0; i < n; i++) {
-        const bt = rng(0.35, 1), sp = 10 + w * 2;
+        const bt = rng(0.4, 1), sp = 8 + w * 1.5;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + rng(-sp, sp),
           y: qB(y1, cy, y2, bt) + rng(-sp, sp),
-          r: rng(3, 9), color: pickBlossomColor(),
+          r: rng(3, 8), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
     }
-    // Dense blossom clusters at tips
-    if (w < 5 && d > 3) {
-      const n = Math.floor(rng(3, 7));
+    // Blossom cloud clusters at tips — the cherry tree hallmark
+    if (w < 4.5 && d > 3) {
+      const n = Math.floor(rng(4, 8));
       for (let i = 0; i < n; i++) {
+        const spread = 12 + (8 - d) * 3; // tighter clusters at deeper branches
         blossoms.push({
-          x: x2 + rng(-18, 18), y: y2 + rng(-18, 18),
+          x: x2 + rng(-spread, spread), y: y2 + rng(-spread, spread),
           r: rng(3, 9), color: pickBlossomColor(),
           ph: Math.random() * 6.28, swPh: Math.random() * 6.28
         });
       }
     }
 
-    // Branching — cherry tree: wide canopy, arching tips
+    // Cherry tree branching: few bold main limbs, graceful arching sub-branches
     let nk;
-    if (d === 0) nk = Math.floor(rng(3, 6));       // many main branches
-    else if (d < 3) nk = Math.floor(rng(2, 4));
-    else nk = 1 + (Math.random() < 0.38 ? 1 : 0);
+    if (d === 0) nk = Math.floor(rng(2, 4));        // 2-3 bold main limbs
+    else if (d === 1) nk = Math.floor(rng(2, 4));    // each main limb forks 2-3
+    else if (d < 4) nk = Math.floor(rng(1, 3));
+    else nk = 1 + (Math.random() < 0.3 ? 1 : 0);    // tips: mostly single, occasional fork
 
     for (let i = 0; i < nk; i++) {
       let ca;
       if (d === 0) {
-        // Main branches: wide symmetric spread
-        ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * 2.8 + rng(-0.15, 0.15);
-      } else if (d < 3) {
-        ca = ang + rng(-0.5, 0.5);
-      } else {
+        // Main limbs: arch upward and outward, evenly spread
+        const spread = 2.2;
+        ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * spread + rng(-0.12, 0.12);
+      } else if (d === 1) {
+        // Secondary: continue outward arc
+        ca = ang + rng(-0.4, 0.4);
+      } else if (d < 4) {
+        // Mid branches: spread out
         ca = ang + rng(-0.45, 0.45);
-        if (d > 5) ca += 0.12; // graceful droop at tips
-        ca = clamp(ca, -Math.PI + 0.3, 1.2);
+      } else {
+        // Outer branches: gentle droop for that weeping cherry look
+        ca = ang + rng(-0.35, 0.35);
+        ca += 0.08; // slight downward tendency
+        ca = clamp(ca, -Math.PI + 0.3, 1.1);
       }
-      const cl = len * rng(0.48, 0.72);
-      const cw = w * rng(0.52, 0.7);  // Murray's Law taper
-      const bt = d === 0 ? rng(0.6, 0.95) : rng(0.5, 1);
+      // Main limbs are LONGER, sub-branches get progressively shorter
+      const lenMul = d === 0 ? rng(0.65, 0.85) : d < 3 ? rng(0.55, 0.75) : rng(0.45, 0.68);
+      const cl = len * lenMul;
+      const cw = w * rng(0.55, 0.72);  // Murray's Law taper
+      const bt = d === 0 ? rng(0.7, 0.95) : rng(0.55, 1);
       const bx = qB(x1, cx, x2, bt), by_ = qB(y1, cy, y2, bt);
       grow(out, bx, by_, bx + Math.cos(ca) * cl, by_ + Math.sin(ca) * cl, cw, d + 1);
     }
@@ -693,65 +703,69 @@
       c.globalAlpha = 1;
     }
 
-    // Branches
+    // Branches — dark base stroke + lighter highlight for 3D bark
     c.lineCap = 'round'; c.lineJoin = 'round';
     for (const b of sortedBranches) {
       const s1 = sw(b.y1, b.x1) * 0.4, s2 = sw(b.y2, b.x2), sc = (s1 + s2) * 0.5;
+      // Main bark stroke
       c.beginPath(); c.moveTo(b.x1 + s1, b.y1);
       c.quadraticCurveTo(b.cx + sc, b.cy, b.x2 + s2, b.y2);
-      // Bark color with warm reddish tones
       c.strokeStyle = BARK[Math.min(b.d, BARK.length - 1)];
       c.lineWidth = b.w; c.stroke();
+      // Highlight edge (lighter, offset) for roundness — only on visible branches
+      if (b.w > 2.5) {
+        c.globalAlpha = 0.12;
+        c.beginPath(); c.moveTo(b.x1 + s1 - 0.8, b.y1);
+        c.quadraticCurveTo(b.cx + sc - 0.8, b.cy, b.x2 + s2 - 0.8, b.y2);
+        c.strokeStyle = '#c4a080'; c.lineWidth = b.w * 0.3; c.stroke();
+        c.globalAlpha = 1;
+      }
     }
-    // Bark grain lines on thick branches
-    c.globalAlpha = 0.08; c.strokeStyle = '#1a0e05';
+    // Dark grain lines on thick branches for texture
+    c.globalAlpha = 0.07; c.strokeStyle = '#1a0e05';
     for (const b of thickBranches) {
       const s1 = sw(b.y1, b.x1) * 0.4, s2 = sw(b.y2, b.x2), sc = (s1 + s2) * 0.5;
-      const off = Math.sin(b.x1 * 0.1) * b.w * 0.3;
+      const off = Math.sin(b.x1 * 0.1) * b.w * 0.25;
       c.beginPath(); c.moveTo(b.x1 + s1 + off, b.y1);
       c.quadraticCurveTo(b.cx + sc + off, b.cy, b.x2 + s2 + off, b.y2);
-      c.lineWidth = 0.6; c.stroke();
+      c.lineWidth = 0.5; c.stroke();
     }
     c.globalAlpha = 1;
 
-    // Blossoms — 5-petal only for largest, ellipses for medium, circles for small
+    // Blossoms — painterly style: soft overlapping forms, not mechanical
     for (const b of blossoms) {
-      const pulse = 1 + Math.sin(t * 1.1 + b.ph) * 0.08;
+      const pulse = 1 + Math.sin(t * 1.1 + b.ph) * 0.06;
       const s = sw(b.y, b.x, b.swPh);
       const r = b.r * pulse, bx = b.x + s;
 
-      if (r > 7) {
-        // Full cherry blossom: 5 petals with bezier curves (only biggest)
-        c.globalAlpha = 0.55;
-        const petalR = r * 0.48, innerR = r * 0.2;
+      if (r > 6.5) {
+        // Large: 5 soft overlapping petals (painterly, not precise)
+        c.fillStyle = b.color;
+        const pr = r * 0.45, ir = r * 0.18;
         for (let i = 0; i < 5; i++) {
           const a = b.ph + (i / 5) * 6.28;
-          const px = bx + Math.cos(a) * innerR, py = b.y + Math.sin(a) * innerR;
-          const tipX = bx + Math.cos(a) * (innerR + petalR);
-          const tipY = b.y + Math.sin(a) * (innerR + petalR);
-          const perpA = a + Math.PI / 2, hw = petalR * 0.45;
-          c.beginPath(); c.moveTo(px, py);
-          c.quadraticCurveTo(px + Math.cos(a) * petalR * 0.5 + Math.cos(perpA) * hw,
-            py + Math.sin(a) * petalR * 0.5 + Math.sin(perpA) * hw, tipX, tipY);
-          c.quadraticCurveTo(px + Math.cos(a) * petalR * 0.5 - Math.cos(perpA) * hw,
-            py + Math.sin(a) * petalR * 0.5 - Math.sin(perpA) * hw, px, py);
-          c.fillStyle = b.color; c.fill();
+          const px = bx + Math.cos(a) * ir, py = b.y + Math.sin(a) * ir;
+          c.globalAlpha = 0.35 + Math.sin(b.ph + i) * 0.08; // vary per petal
+          c.beginPath(); c.ellipse(px + Math.cos(a) * pr * 0.4, py + Math.sin(a) * pr * 0.4,
+            pr, pr * 0.6, a + rng(-0.2, 0.2), 0, 6.28);
+          c.fill();
         }
-        // Stamen center
-        c.globalAlpha = 0.45;
-        c.beginPath(); c.arc(bx, b.y, r * 0.1, 0, 6.28);
+        // Warm center
+        c.globalAlpha = 0.3;
+        c.beginPath(); c.arc(bx, b.y, r * 0.12, 0, 6.28);
         c.fillStyle = '#E8C840'; c.fill();
-      } else if (r > 4.5) {
-        // Medium: ellipse cluster (3 overlapping ellipses — cheaper than bezier petals)
-        c.globalAlpha = 0.48; c.fillStyle = b.color;
+      } else if (r > 4) {
+        // Medium: 3 soft overlapping circles (cloud-like)
+        c.fillStyle = b.color;
         for (let i = 0; i < 3; i++) {
           const a = b.ph + (i / 3) * 6.28;
-          c.beginPath(); c.ellipse(bx + Math.cos(a) * r * 0.2, b.y + Math.sin(a) * r * 0.2, r * 0.4, r * 0.25, a, 0, 6.28);
+          c.globalAlpha = 0.32 + i * 0.04;
+          c.beginPath(); c.arc(bx + Math.cos(a) * r * 0.2, b.y + Math.sin(a) * r * 0.2, r * 0.45, 0, 6.28);
           c.fill();
         }
       } else {
-        // Small: single circle
-        c.globalAlpha = r > 3.5 ? 0.42 : 0.32;
+        // Small: soft circle with slight transparency variation
+        c.globalAlpha = 0.25 + r * 0.04;
         c.beginPath(); c.arc(bx, b.y, r, 0, 6.28);
         c.fillStyle = b.color; c.fill();
       }
