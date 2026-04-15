@@ -198,18 +198,26 @@
   /* ================================================================
      UTILITIES
   ================================================================ */
+  // Seeded PRNG (mulberry32) — tree looks the same every load
+  let _seed = 0;
+  function srand(s) { _seed = s | 0; }
+  function sRng() { _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0; let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  // Seeded versions for tree generation
+  function sPick(a) { return a[Math.floor(sRng() * a.length)]; }
+  function sRngR(a, b) { return a + sRng() * (b - a); }
+
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const rng = (a, b) => a + Math.random() * (b - a);
   const qB = (a, b, c, t) => (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   function pickBlossomColor() {
-    const r = Math.random();
-    if (r < 0.12) return pick(WHITE);
-    if (r < 0.40) return pick(PINKS.slice(3)); // light pinks
-    if (r < 0.72) return pick(PINKS);           // mid pinks
-    if (r < 0.88) return pick(DEEP);             // deep rose
-    return pick(BUDS);                            // warm buds
+    const r = sRng();
+    if (r < 0.12) return sPick(WHITE);
+    if (r < 0.40) return sPick(PINKS.slice(3));
+    if (r < 0.72) return sPick(PINKS);
+    if (r < 0.88) return sPick(DEEP);
+    return sPick(BUDS);                            // warm buds
   }
 
   // Unified wind sway: height-based, trunk barely moves, tips dance
@@ -298,14 +306,15 @@
      TREE — enhanced recursive cherry tree
   ================================================================ */
   function genTree() {
+    srand(42); // fixed seed — same tree every time
     const raw = []; blossoms = [];
     const sc = Math.min(W, H) / 820;
-    const treeX = isMobile ? W * rng(0.45, 0.55) : W * rng(0.65, 0.75);
+    const treeX = isMobile ? W * 0.5 : W * 0.7;
     const baseY = H * 0.91;
     treeBaseX = treeX; treeBaseY = baseY;
     const trS = isMobile ? 0.7 : 1;
-    const trH = H * rng(0.28, 0.35) * trS;
-    grow(raw, treeX, baseY, treeX + rng(-6, 6), baseY - trH, 28 * sc * trS, 0);
+    const trH = H * 0.32 * trS;
+    grow(raw, treeX, baseY, treeX + 2, baseY - trH, 28 * sc * trS, 0);
     raw.sort((a, b) => a.d - b.d);
     sortedBranches = raw;
     thickBranches = raw.filter(b => b.w >= 5);
@@ -331,9 +340,8 @@
     if (len < 3) return;
     const ang = Math.atan2(dy, dx);
 
-    // Graceful calligraphic bends — more dramatic on main limbs
     const bendScale = d === 0 ? 0.12 : d < 3 ? 0.22 : 0.3;
-    const bend = rng(-1, 1) * len * bendScale;
+    const bend = sRngR(-1, 1) * len * bendScale;
     const perp = ang + Math.PI / 2;
     const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
     const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
@@ -341,60 +349,54 @@
 
     // Blossoms along branches
     if (w < 10 && d > 1) {
-      const n = Math.floor(rng(2, 5));
+      const n = Math.floor(sRngR(2, 5));
       for (let i = 0; i < n; i++) {
-        const bt = rng(0.3, 1), sp = 10 + w * 2;
+        const bt = sRngR(0.3, 1), sp = 10 + w * 2;
         blossoms.push({
-          x: qB(x1, cx, x2, bt) + rng(-sp, sp),
-          y: qB(y1, cy, y2, bt) + rng(-sp, sp),
-          r: rng(3, 9), color: pickBlossomColor(),
-          ph: Math.random() * 6.28, swPh: Math.random() * 6.28
+          x: qB(x1, cx, x2, bt) + sRngR(-sp, sp),
+          y: qB(y1, cy, y2, bt) + sRngR(-sp, sp),
+          r: sRngR(3, 9), color: pickBlossomColor(),
+          ph: sRng() * 6.28, swPh: sRng() * 6.28
         });
       }
     }
-    // Dense blossom clouds at tips — the cherry tree hallmark
+    // Dense blossom clouds at tips
     if (w < 5 && d > 2) {
-      const n = Math.floor(rng(6, 12));
+      const n = Math.floor(sRngR(6, 12));
       for (let i = 0; i < n; i++) {
         const spread = 14 + (9 - d) * 3;
         blossoms.push({
-          x: x2 + rng(-spread, spread), y: y2 + rng(-spread, spread),
-          r: rng(3.5, 10), color: pickBlossomColor(),
-          ph: Math.random() * 6.28, swPh: Math.random() * 6.28
+          x: x2 + sRngR(-spread, spread), y: y2 + sRngR(-spread, spread),
+          r: sRngR(3.5, 10), color: pickBlossomColor(),
+          ph: sRng() * 6.28, swPh: sRng() * 6.28
         });
       }
     }
 
-    // Cherry tree branching: few bold main limbs, graceful arching sub-branches
+    // Branching
     let nk;
-    if (d === 0) nk = Math.floor(rng(2, 4));        // 2-3 bold main limbs
-    else if (d === 1) nk = Math.floor(rng(2, 4));    // each main limb forks 2-3
-    else if (d < 4) nk = Math.floor(rng(1, 3));
-    else nk = 1 + (Math.random() < 0.3 ? 1 : 0);    // tips: mostly single, occasional fork
+    if (d === 0) nk = Math.floor(sRngR(2, 4));
+    else if (d === 1) nk = Math.floor(sRngR(2, 4));
+    else if (d < 4) nk = Math.floor(sRngR(1, 3));
+    else nk = 1 + (sRng() < 0.3 ? 1 : 0);
 
     for (let i = 0; i < nk; i++) {
       let ca;
       if (d === 0) {
-        // Main limbs: arch upward and outward, evenly spread
-        const spread = 2.2;
-        ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * spread + rng(-0.12, 0.12);
+        ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * 2.2 + sRngR(-0.12, 0.12);
       } else if (d === 1) {
-        // Secondary: continue outward arc
-        ca = ang + rng(-0.4, 0.4);
+        ca = ang + sRngR(-0.4, 0.4);
       } else if (d < 4) {
-        // Mid branches: spread out
-        ca = ang + rng(-0.45, 0.45);
+        ca = ang + sRngR(-0.45, 0.45);
       } else {
-        // Outer branches: gentle droop for that weeping cherry look
-        ca = ang + rng(-0.35, 0.35);
-        ca += 0.08; // slight downward tendency
+        ca = ang + sRngR(-0.35, 0.35);
+        ca += 0.08;
         ca = clamp(ca, -Math.PI + 0.3, 1.1);
       }
-      // Main limbs are LONGER, sub-branches get progressively shorter
-      const lenMul = d === 0 ? rng(0.65, 0.85) : d < 3 ? rng(0.55, 0.75) : rng(0.45, 0.68);
+      const lenMul = d === 0 ? sRngR(0.65, 0.85) : d < 3 ? sRngR(0.55, 0.75) : sRngR(0.45, 0.68);
       const cl = len * lenMul;
-      const cw = w * rng(0.55, 0.72);  // Murray's Law taper
-      const bt = d === 0 ? rng(0.7, 0.95) : rng(0.55, 1);
+      const cw = w * sRngR(0.55, 0.72);
+      const bt = d === 0 ? sRngR(0.7, 0.95) : sRngR(0.55, 1);
       const bx = qB(x1, cx, x2, bt), by_ = qB(y1, cy, y2, bt);
       grow(out, bx, by_, bx + Math.cos(ca) * cl, by_ + Math.sin(ca) * cl, cw, d + 1);
     }
