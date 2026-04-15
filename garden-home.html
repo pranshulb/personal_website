@@ -352,7 +352,7 @@
       grass.push({
         x: gx, y: gY + Math.sin(gx * 0.012) * 6 + Math.random() * (H - gY) * 0.45,
         h: rng(5, 16), bx: rng(-5, 5), tx: rng(-3, 3),
-        col: `rgba(${60 + Math.floor(rng(0, 50))},${110 + Math.floor(rng(0, 50))},${35 + Math.floor(rng(0, 30))},${rng(0.12, 0.28).toFixed(2)})`
+        col: `rgba(${120 + Math.floor(rng(0, 40))},${130 + Math.floor(rng(0, 35))},${80 + Math.floor(rng(0, 30))},${rng(0.1, 0.22).toFixed(2)})`
       });
     }
     for (let i = 0; i < 35; i++) {
@@ -602,18 +602,26 @@
       c.fillStyle = hazeCol; c.fillRect(0, by - a, W, H - by + a * 2);
     }
 
-    // Warm earth ground (matching cream palette)
+    // Soft spring meadow ground — muted sage/moss, warm not neon
     const gY = H * 0.87;
     const grd = c.createLinearGradient(0, gY - 10, 0, H);
-    grd.addColorStop(0,   '#cdbf9f');  // warm sand
-    grd.addColorStop(0.3, '#c4b595');  // mid earth
-    grd.addColorStop(1,   '#b5a580');  // deeper earth
+    grd.addColorStop(0,   '#c2c8a0');  // warm sage
+    grd.addColorStop(0.3, '#b5bb94');  // soft moss
+    grd.addColorStop(0.7, '#a8b088');  // muted meadow
+    grd.addColorStop(1,   '#9aa57c');  // deeper sage
     c.fillStyle = grd; c.beginPath(); c.moveTo(-10, H);
     for (let x = -10; x <= W + 10; x += 8)
       c.lineTo(x, gY + Math.sin(x * 0.012) * 6 + Math.sin(x * 0.025) * 3);
     c.lineTo(W + 10, H); c.closePath(); c.fill();
 
-    // Wildflowers on ground
+    // Soft grass tufts (warm sage, not bright green)
+    c.lineWidth = 1;
+    for (const g of grass) {
+      c.strokeStyle = g.col; c.beginPath(); c.moveTo(g.x, g.y);
+      c.quadraticCurveTo(g.x + g.bx, g.y - g.h * 0.6, g.x + g.tx, g.y - g.h);
+      c.stroke();
+    }
+    // Wildflowers — spring colors scattered across meadow
     for (const f of wildflowers) {
       c.globalAlpha = f.a; c.beginPath(); c.arc(f.x, f.y, f.r, 0, 6.28);
       c.fillStyle = f.color; c.fill();
