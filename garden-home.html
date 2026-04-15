@@ -180,10 +180,13 @@
   let treeCX = 0, treeCY = 0, crownR = 100;
 
   /* ================================================================
-     COLORS — 5cm/s palette: pale blush petals against golden sky
+     COLORS — cherry blossom pinks + warm golden light
   ================================================================ */
   const PETAL_SOFT  = ['#F8D7DA','#FFAEC0','#F5C6CE','#FFB8C8','#FFC8D5','#FFD4DD','#FFEEF2'];
   const PETAL_DEEP  = ['#E8A0B0','#D0889A','#C87A8C'];
+  const BLOSSOM_PINKS = ['#f2b5c4','#eda5b5','#e89aab','#f7cdd7','#fce4ec','#f5bfcd','#fdd5de','#fff0f3'];
+  const BLOSSOM_DEEP  = ['#d4798d','#c96b7f','#e07a92'];
+  const BLOSSOM_WHITE = ['#FDF0F4','#FEF5F7','#FFEEF2','#FFF8FA'];
 
   /* ================================================================
      UTILITIES
@@ -198,6 +201,14 @@
   const rng = (a, b) => a + Math.random() * (b - a);
   const qB = (a, b, c, t) => (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  function pickBlossomColor() {
+    const r = sRng();
+    if (r < 0.15) return sPick(BLOSSOM_WHITE);
+    if (r < 0.55) return sPick(BLOSSOM_PINKS);
+    if (r < 0.80) return sPick(BLOSSOM_PINKS.slice(3));
+    return sPick(BLOSSOM_DEEP);
+  }
 
   // Wind sway — slower, dreamier
   function sw(y, x, ph) {
@@ -263,7 +274,7 @@
     const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
     out.push({ x1, y1, cx, cy, x2, y2, w, d });
 
-    // Dense blossom clusters — more than before for thick silhouette clouds
+    // Dense cherry blossom clusters — lush and pink
     if (w < 12 && d > 1) {
       const n = Math.floor(sRngR(3, 7));
       for (let i = 0; i < n; i++) {
@@ -271,17 +282,19 @@
         blossoms.push({
           x: qB(x1, cx, x2, bt) + sRngR(-sp, sp),
           y: qB(y1, cy, y2, bt) + sRngR(-sp, sp),
-          r: sRngR(4, 12), ph: sRng() * 6.28, swPh: sRng() * 6.28
+          r: sRngR(5, 13), color: pickBlossomColor(),
+          ph: sRng() * 6.28, swPh: sRng() * 6.28
         });
       }
     }
     if (w < 6 && d > 1) {
-      const n = Math.floor(sRngR(8, 16));
+      const n = Math.floor(sRngR(8, 18));
       for (let i = 0; i < n; i++) {
-        const spread = 18 + (9 - d) * 4;
+        const spread = 20 + (9 - d) * 4;
         blossoms.push({
           x: x2 + sRngR(-spread, spread), y: y2 + sRngR(-spread, spread),
-          r: sRngR(4, 14), ph: sRng() * 6.28, swPh: sRng() * 6.28
+          r: sRngR(5, 15), color: pickBlossomColor(),
+          ph: sRng() * 6.28, swPh: sRng() * 6.28
         });
       }
     }
@@ -528,10 +541,10 @@
       c.fillStyle = g; c.beginPath(); c.ellipse(cx, sy, rx, rx * 0.13, 0, 0, 6.28); c.fill();
     }
 
-    // ---- TREE AS DARK SILHOUETTE ----
-    const SILHOUETTE = '#1A0D07';
+    // ---- Tree branches — warm dark brown ----
+    const BARK_COLOR = '#3A2415';
     c.lineCap = 'round'; c.lineJoin = 'round';
-    c.strokeStyle = SILHOUETTE;
+    c.strokeStyle = BARK_COLOR;
     for (const b of sortedBranches) {
       const s1 = sw(b.y1, b.x1) * 0.4, s2 = sw(b.y2, b.x2), sc = (s1 + s2) * 0.5;
       c.beginPath(); c.moveTo(b.x1 + s1, b.y1);
@@ -539,21 +552,25 @@
       c.lineWidth = b.w; c.stroke();
     }
 
-    // ---- Blossom clusters: dark silhouettes with warm backlit rims ----
+    // ---- Cherry blossom clusters — actual pink, lit by golden hour ----
     for (const b of blossoms) {
-      const pulse = 1 + Math.sin(t * 0.6 + b.ph) * 0.03;
+      const pulse = 1 + Math.sin(t * 0.6 + b.ph) * 0.04;
       const s = sw(b.y, b.x, b.swPh);
       const r = b.r * pulse, bx = b.x + s;
 
-      // Dark blossom body
-      c.globalAlpha = 0.45;
-      c.fillStyle = '#2C1A10';
-      c.beginPath(); c.arc(bx, b.y, r * 0.75, 0, 6.28); c.fill();
+      // Main blossom — pink/white
+      c.globalAlpha = 0.75;
+      c.fillStyle = b.color;
+      c.beginPath(); c.arc(bx, b.y, r * 0.8, 0, 6.28); c.fill();
 
-      // Warm backlight rim — golden light catching the edges
-      c.globalAlpha = 0.2;
-      c.fillStyle = '#F0A050';
-      c.beginPath(); c.arc(bx + r * 0.18, b.y - r * 0.1, r * 0.85, 0, 6.28); c.fill();
+      // Softer outer glow for volume
+      c.globalAlpha = 0.35;
+      c.beginPath(); c.arc(bx, b.y, r, 0, 6.28); c.fill();
+
+      // Warm golden highlight from backlight — sun catching the top edge
+      c.globalAlpha = 0.18;
+      c.fillStyle = '#FFD89050';
+      c.beginPath(); c.arc(bx + r * 0.2, b.y - r * 0.15, r * 0.7, 0, 6.28); c.fill();
     }
     c.globalAlpha = 1;
 
