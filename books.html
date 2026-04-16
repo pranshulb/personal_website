@@ -27,42 +27,13 @@
     .subtitle { font-size: 1rem; color: #b09a8a; font-style: italic; margin-bottom: 2.5rem; }
     .back-link { display: inline-block; margin-bottom: 2rem; color: #b09a8a; text-decoration: none; border-bottom: none; font-size: 0.9rem; transition: color 0.3s ease; }
     .back-link:hover { color: #3a2f2f; }
-    /* filter flyout */
+    /* filters — always visible */
     .filter-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    .filter-toggle {
-      background: none;
-      border: 1px solid #d4c4b4;
-      color: #7a6a5f;
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 0.9rem;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
-    .filter-toggle:hover, .filter-toggle.open {
-      border-color: #c47a7a;
-      color: #c47a7a;
-    }
-    .filter-flyout {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.4rem;
-      margin-left: 0.5rem;
-      overflow: hidden;
-      max-width: 0;
-      opacity: 0;
-      transition: max-width 0.4s ease, opacity 0.3s ease;
-    }
-    .filter-flyout.open {
-      max-width: 600px;
-      opacity: 1;
+      margin-bottom: 2rem;
     }
     .filter-btn {
       background: none;
@@ -148,15 +119,12 @@
   <a href="/" class="back-link">← back</a>
   <h1>books i've read</h1>
   <div class="filter-wrap">
-    <button class="filter-toggle" id="sortToggle">sort ›</button>
-    <div class="filter-flyout" id="sortFlyout">
-      <button class="filter-btn active" data-sort="default">recent</button>
-      <button class="filter-btn" data-sort="title">title</button>
-      <button class="filter-btn" data-sort="rating">my rating</button>
-      <span class="flyout-sep">·</span>
-      <button class="filter-btn order-btn" data-order="asc">asc</button>
-      <button class="filter-btn order-btn active" data-order="desc">desc</button>
-    </div>
+    <button class="filter-btn active" data-sort="default">recent</button>
+    <button class="filter-btn" data-sort="title">title</button>
+    <button class="filter-btn" data-sort="rating">my rating</button>
+    <span class="flyout-sep">·</span>
+    <button class="filter-btn order-btn" data-order="asc">asc</button>
+    <button class="filter-btn order-btn active" data-order="desc">desc</button>
   </div>
 
   <p class="count"><span id="book-count">0</span> books</p>
@@ -391,15 +359,6 @@
       `;
     }).join('');
   }
-
-  // sort toggle
-  const toggle = document.getElementById('sortToggle');
-  const flyout = document.getElementById('sortFlyout');
-  toggle.addEventListener('click', () => {
-    flyout.classList.toggle('open');
-    toggle.classList.toggle('open');
-    toggle.textContent = flyout.classList.contains('open') ? 'sort ‹' : 'sort ›';
-  });
 
   // sort buttons
   document.querySelectorAll('.filter-btn[data-sort]').forEach(btn => {

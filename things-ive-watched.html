@@ -64,46 +64,13 @@
       color: #3a2f2f;
     }
 
-    /* filter flyout */
+    /* filters — always visible */
     .filter-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .filter-toggle {
-      background: none;
-      border: 1px solid #d4c4b4;
-      color: #7a6a5f;
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 0.9rem;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
-
-    .filter-toggle:hover, .filter-toggle.open {
-      border-color: #c47a7a;
-      color: #c47a7a;
-    }
-
-    .filter-flyout {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.4rem;
-      margin-left: 0.5rem;
-      overflow: hidden;
-      max-width: 0;
-      opacity: 0;
-      transition: max-width 0.4s ease, opacity 0.3s ease;
-    }
-
-    .filter-flyout.open {
-      max-width: 600px;
-      opacity: 1;
+      margin-bottom: 2rem;
     }
 
     .filter-btn {
@@ -269,16 +236,13 @@
 
 
   <div class="filter-wrap">
-    <button class="filter-toggle" id="filterToggle">filter ›</button>
-    <div class="filter-flyout" id="filterFlyout">
-      <button class="filter-btn active" data-filter="all">all</button>
-      <button class="filter-btn" data-filter="favourites">favourites ♥</button>
-      <button class="filter-btn" data-filter="movies">movies</button>
-      <button class="filter-btn" data-filter="tv">tv shows</button>
-      <button class="filter-btn" data-filter="english">english</button>
-      <button class="filter-btn" data-filter="hindi">hindi</button>
-      <button class="filter-btn" data-filter="anime">anime</button>
-    </div>
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="favourites">favourites ♥</button>
+    <button class="filter-btn" data-filter="movies">movies</button>
+    <button class="filter-btn" data-filter="tv">tv shows</button>
+    <button class="filter-btn" data-filter="english">english</button>
+    <button class="filter-btn" data-filter="hindi">hindi</button>
+    <button class="filter-btn" data-filter="anime">anime</button>
   </div>
 
   <p class="count"><span id="movie-count">0</span> things</p>
@@ -628,22 +592,12 @@
     }).join('');
   }
 
-  // filter toggle
-  const toggle = document.getElementById('filterToggle');
-  const flyout = document.getElementById('filterFlyout');
-  toggle.addEventListener('click', () => {
-    flyout.classList.toggle('open');
-    toggle.classList.toggle('open');
-    toggle.textContent = flyout.classList.contains('open') ? 'filter ‹' : 'filter ›';
-  });
-
   // filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.dataset.filter;
-      toggle.textContent = activeFilter === 'all' ? 'filter ›' : btn.textContent + ' ×';
       renderMovies();
     });
   });
