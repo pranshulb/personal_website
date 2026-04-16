@@ -242,7 +242,7 @@
     <button class="filter-btn" data-filter="tv">tv shows</button>
     <button class="filter-btn" data-filter="english">english</button>
     <button class="filter-btn" data-filter="hindi">hindi</button>
-    <button class="filter-btn" data-filter="anime">anime</button>
+    <button class="filter-btn" data-filter="animated">animated</button>
   </div>
 
   <p class="count"><span id="movie-count">0</span> things</p>
@@ -253,7 +253,7 @@
 <script>
   // ============================================================
   // MOVIE DATA — add your movies here!
-  // tags: favourites, english, hindi, anime
+  // tags: favourites, english, hindi, animated
   // rating: optional, out of 5 (use half like 4.5)
   // note: optional one-liner thought
   // poster: TMDB poster path (or leave blank)
@@ -486,8 +486,8 @@
     { title: "War", year: 2019, tags: ["movies", "hindi"], poster: "/aOSDKvqglKVa3SYy4CPXYUAfDlf.jpg" },
 
     // === ANIME ===
-    { title: "5 Centimeters per Second", year: 2007, tags: ["movies", "anime"], poster: "/dFipUR6W0y3PPkuVS8gjFd929m2.jpg" },
-    { title: "The End of Evangelion", year: 1997, tags: ["movies", "anime"], poster: "/j6G24dqI4WgUtChhWjfnI4lnmiK.jpg" },
+    { title: "5 Centimeters per Second", year: 2007, tags: ["movies", "animated"], poster: "/dFipUR6W0y3PPkuVS8gjFd929m2.jpg" },
+    { title: "The End of Evangelion", year: 1997, tags: ["movies", "animated"], poster: "/j6G24dqI4WgUtChhWjfnI4lnmiK.jpg" },
     { title: "Spider-Man: Across the Spider-Verse", year: 2023, tags: ["movies", "english"], poster: "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
     { title: "Spider-Man: Into the Spider-Verse", year: 2018, tags: ["movies", "english"], poster: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg" },
 
@@ -507,22 +507,22 @@
     { title: "How to Change Your Mind", year: 2022, tags: ["tv", "english"], poster: "/5rxVzVimaxhzyHGSd96ijKX7Twu.jpg" },
     { title: "Jeffrey Epstein: Filthy Rich", year: 2020, tags: ["tv", "english"], poster: "/vV72HIa2a1nnqb5nCHUf5Dn2Y5d.jpg" },
     { title: "Kota Factory", year: 2019, tags: ["tv", "hindi"], poster: "/fMBookmwL6HjIgIVTjQ6EMr3pCH.jpg" },
-    { title: "Vinland Saga", year: 2019, tags: ["tv", "anime"], poster: "/vUHlpA5c1NXkds59reY3HMb4Abs.jpg" },
-    { title: "Neon Genesis Evangelion", year: 1995, tags: ["tv", "anime"], poster: "/y2ah9t0navXyIvoHg1uIbIHO3tt.jpg" },
+    { title: "Vinland Saga", year: 2019, tags: ["tv", "animated"], poster: "/vUHlpA5c1NXkds59reY3HMb4Abs.jpg" },
+    { title: "Neon Genesis Evangelion", year: 1995, tags: ["tv", "animated"], poster: "/y2ah9t0navXyIvoHg1uIbIHO3tt.jpg" },
     { title: "WandaVision", year: 2021, tags: ["tv", "english"], poster: "/glKDfE6btIRcVB5zrjspRIs4r52.jpg" },
     { title: "What If...?", year: 2021, tags: ["tv", "english"], poster: "/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg" },
     { title: "The Flash", year: 2014, tags: ["tv", "english"], poster: "/yZevl2vHQgmosfwUdVNzviIfaWS.jpg" },
     { title: "Arrow", year: 2012, tags: ["tv", "english"], poster: "/u8ZHFj1jC384JEkTt3vNg1DfWEb.jpg" },
     { title: "Sherlock", year: 2010, tags: ["tv", "english"], poster: "/7WTsnHkbA0FaG6R9twfFde0I9hl.jpg" },
     { title: "Young Sherlock", year: 2026, tags: ["tv", "english"], poster: "/BMBWTgvL41sOYtfkmXen6nm9mG.jpg" },
-    { title: "Attack on Titan", year: 2013, tags: ["tv", "anime"], poster: "/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg" },
-    { title: "One-Punch Man", year: 2015, tags: ["tv", "anime"], poster: "/dT10AxJIXVvRwFAew4tt2RhzJrD.jpg" },
+    { title: "Attack on Titan", year: 2013, tags: ["tv", "animated"], poster: "/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg" },
+    { title: "One-Punch Man", year: 2015, tags: ["tv", "animated"], poster: "/dT10AxJIXVvRwFAew4tt2RhzJrD.jpg" },
     { title: "Zootopia", year: 2016, tags: ["movies", "english"], poster: "/hlK0e0wAQ3VLuJcsfIYPvb4JVud.jpg" },
     { title: "Zootopia 2", year: 2025, tags: ["movies", "english"], poster: "/oJ7g2CifqpStmoYQyaLQgEU32qO.jpg" },
     { title: "Pitch Perfect", year: 2012, tags: ["movies", "english"], poster: "/gsFoJk9g8W3zgaipRrrURk7LbiF.jpg" },
-    { title: "Spy x Family", year: 2022, tags: ["tv", "anime"], poster: "/7NAvPYPAu7MeHwP8E9sn81PqsRh.jpg" },
-    { title: "Jujutsu Kaisen", year: 2020, tags: ["tv", "anime"], poster: "/6qQzMJG27XOJsyAEEIisoJB45j2.jpg" },
-    { title: "Iron Man: Armored Adventures", year: 2009, tags: ["tv", "anime"], poster: "/kIJGgBwh37V2nfgnJFaN7zDIjdv.jpg" },
+    { title: "Spy x Family", year: 2022, tags: ["tv", "animated"], poster: "/7NAvPYPAu7MeHwP8E9sn81PqsRh.jpg" },
+    { title: "Jujutsu Kaisen", year: 2020, tags: ["tv", "animated"], poster: "/6qQzMJG27XOJsyAEEIisoJB45j2.jpg" },
+    { title: "Iron Man: Armored Adventures", year: 2009, tags: ["tv", "animated"], poster: "/kIJGgBwh37V2nfgnJFaN7zDIjdv.jpg" },
     { title: "Spider-Man", year: 2002, tags: ["movies", "english"], poster: "/kjdJntyBeEvqm9w97QGBdxPptzj.jpg" },
     { title: "Soul", year: 2020, tags: ["movies", "english"], poster: "/6jmppcaubzLF8wkXM36ganVISCo.jpg" },
     { title: "Inside Out 2", year: 2024, tags: ["movies", "english"], poster: "/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg" },
@@ -533,20 +533,20 @@
     { title: "Cars 2", year: 2011, tags: ["movies", "english"], poster: "/okIz1HyxeVOMzYwwHUjH2pHi74I.jpg" },
     { title: "Cars 3", year: 2017, tags: ["movies", "english"], poster: "/zg5RDxvIIAKsucjuU2EZJIHEIvz.jpg" },
     { title: "Ratatouille", year: 2007, tags: ["movies", "english"], poster: "/t3vaWRPSf6WjDSamIkKDs1iQWna.jpg" },
-    { title: "Invincible", year: 2021, tags: ["tv", "anime"], poster: "/4tblBrslcKSifMVZ3TmtT2ukMor.jpg" },
+    { title: "Invincible", year: 2021, tags: ["tv", "animated"], poster: "/4tblBrslcKSifMVZ3TmtT2ukMor.jpg" },
     { title: "Two and a Half Men", year: 2003, tags: ["tv", "english"], poster: "/xgfjxyV3g1S68opzuvG6G87muDp.jpg" },
-    { title: "Doraemon", year: 2005, tags: ["tv", "anime"], poster: "/1RAMQhfA2zjvSqy2cNggYsvAPc8.jpg" },
-    { title: "Young Justice", year: 2010, tags: ["tv", "anime"], poster: "/zMJw34G4OJhcd9NjKSRjJdDqjbR.jpg" },
-    { title: "Ultimate Spider-Man", year: 2012, tags: ["tv", "anime"], poster: "/jK3pc8XOQT8UgdvSjMFk8xLQOxE.jpg" },
-    { title: "Teen Titans", year: 2003, tags: ["tv", "anime"], poster: "/7DCq6XbJx5WGKPvSMBxYK9uJQWQ.jpg" },
-    { title: "Ben 10", year: 2005, tags: ["tv", "anime"], poster: "/eogRp6oAPK0SEvQmCrQ78LTlSdp.jpg" },
-    { title: "The Avengers: Earth's Mightiest Heroes", year: 2010, tags: ["tv", "anime"], poster: "/r1JDhMrqCOZKh7lc0vQlRYQ46cE.jpg" },
-    { title: "Ninja Hattori", year: 2012, tags: ["tv", "anime"], poster: "/gt0jlGyGW11Q1HQ7AtFAvioKOV9.jpg" },
+    { title: "Doraemon", year: 2005, tags: ["tv", "animated"], poster: "/1RAMQhfA2zjvSqy2cNggYsvAPc8.jpg" },
+    { title: "Young Justice", year: 2010, tags: ["tv", "animated"], poster: "/zMJw34G4OJhcd9NjKSRjJdDqjbR.jpg" },
+    { title: "Ultimate Spider-Man", year: 2012, tags: ["tv", "animated"], poster: "/jK3pc8XOQT8UgdvSjMFk8xLQOxE.jpg" },
+    { title: "Teen Titans", year: 2003, tags: ["tv", "animated"], poster: "/7DCq6XbJx5WGKPvSMBxYK9uJQWQ.jpg" },
+    { title: "Ben 10", year: 2005, tags: ["tv", "animated"], poster: "/eogRp6oAPK0SEvQmCrQ78LTlSdp.jpg" },
+    { title: "The Avengers: Earth's Mightiest Heroes", year: 2010, tags: ["tv", "animated"], poster: "/r1JDhMrqCOZKh7lc0vQlRYQ46cE.jpg" },
+    { title: "Ninja Hattori", year: 2012, tags: ["tv", "animated"], poster: "/gt0jlGyGW11Q1HQ7AtFAvioKOV9.jpg" },
     { title: "Taarak Mehta Ka Ooltah Chashmah", year: 2008, tags: ["tv", "hindi"], poster: "/3p9EtiZJKV5L8CBYjjL2b4T8cWP.jpg" },
     { title: "Baalveer", year: 2012, tags: ["tv", "hindi"], poster: "/vL6GVWgG5VGc3xfW4l4eFLLbuA8.jpg" },
-    { title: "Super Robot Monkey Team Hyperforce Go!", year: 2004, tags: ["tv", "anime"], poster: "/gcTY3iHLC1wm9wB4pKn2vvCxCfK.jpg" },
+    { title: "Super Robot Monkey Team Hyperforce Go!", year: 2004, tags: ["tv", "animated"], poster: "/gcTY3iHLC1wm9wB4pKn2vvCxCfK.jpg" },
     { title: "Mr. Bean", year: 1990, tags: ["tv", "english"], poster: "/pUNQV35kDaKuejnXGNiUeEBurNE.jpg" },
-    { title: "Oggy and the Cockroaches", year: 1998, tags: ["tv", "anime"], poster: "/aFAN9aKm0OblOr30ROejJCV8rGf.jpg" },
+    { title: "Oggy and the Cockroaches", year: 1998, tags: ["tv", "animated"], poster: "/aFAN9aKm0OblOr30ROejJCV8rGf.jpg" },
     { title: "Shaun the Sheep", year: 2007, tags: ["tv", "english"], poster: "/z2gPfTQd3I0JLWOAEdKYMQRLoun.jpg" },
 
   ];
