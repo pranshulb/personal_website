@@ -50,6 +50,10 @@
       "destination": "http://89.167.65.46:9090/bookmarks/"
     },
     {
+      "source": "/bookmarks/api/:path*",
+      "destination": "http://89.167.65.46:9090/bookmarks/api/:path*/"
+    },
+    {
       "source": "/bookmarks/:path*",
       "destination": "http://89.167.65.46:9090/bookmarks/:path*"
     }
