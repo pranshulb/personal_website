@@ -34,6 +34,10 @@
       "destination": "/writings/passion.html"
     },
     {
+      "source": "/things-i-like/two-men-contemplating-the-moon",
+      "destination": "/things-i-like/two-men-contemplating-the-moon.html"
+    },
+    {
       "source": "/private",
       "destination": "/private.html"
     },

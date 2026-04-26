@@ -167,6 +167,7 @@
     { text: "catch me if you can", style: "film", url: "https://letterboxd.com/film/catch-me-if-you-can/" },
     { text: "exurb1a", style: "wild", url: "https://www.youtube.com/@Exurb1a" },
     { text: "green", style: "color" },
+    { text: "two men contemplating the moon", style: "painting", url: "/things-i-like/two-men-contemplating-the-moon" },
   ];
 
   const isMobile = window.innerWidth < 640;
@@ -210,6 +211,14 @@
       el.style.color = "#5a7a5a";
       el.style.fontStyle = "italic";
       el.style.letterSpacing = "0.1em";
+    },
+    painting: (el) => {
+      el.style.fontFamily = "'Cormorant Garamond', Georgia, serif";
+      el.style.fontWeight = "300";
+      el.style.fontStyle = "italic";
+      el.style.fontSize = ((1.25 + Math.random() * 0.5) * s) + "rem";
+      el.style.color = "#5a6a7a";
+      el.style.letterSpacing = "0.03em";
     }
   };
 

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>two men contemplating the moon — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    ::selection { background: #d8c4b0; color: #2a2520; }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      background: #f4ede0;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.7;
+    }
+
+    /* paper grain texture — same as parent */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.05;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 220px;
+      z-index: 100;
+    }
+
+    .back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.9rem;
+      color: #9a8270;
+      text-decoration: none;
+      z-index: 10;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      transition: color 0.3s ease;
+    }
+    .back:hover { color: #3a2f2f; }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .image-wrap {
+      position: relative;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    }
+
+    .image-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 2px;
+      box-shadow:
+        0 4px 24px rgba(60, 40, 20, 0.12),
+        0 1px 3px rgba(60, 40, 20, 0.08);
+    }
+
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      font-style: italic;
+      color: #3a2f2f;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.01em;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+    }
+
+    .attribution {
+      font-size: 1.05rem;
+      color: #8a7565;
+      font-style: italic;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fade 1s ease 0.9s forwards;
+    }
+
+    .body-text {
+      font-size: 1.15rem;
+      color: #4a3f35;
+      max-width: 60ch;
+      opacity: 0;
+      animation: fade 1s ease 1.2s forwards;
+    }
+
+    .body-text p { margin-bottom: 1.2rem; }
+
+    .body-text em { color: #6a5545; }
+
+    @keyframes rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fade {
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 4rem 1.5rem 3rem; }
+      h1 { font-size: 1.7rem; }
+      .body-text { font-size: 1.05rem; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+<a href="/things-i-like" class="back">← back</a>
+
+<div class="container">
+  <div class="image-wrap">
+    <img src="/images/two-men-contemplating-the-moon.jpg" alt="Caspar David Friedrich, Two Men Contemplating the Moon, c. 1825-1830" loading="lazy">
+  </div>
+
+  <h1>two men contemplating the moon</h1>
+  <p class="attribution">Caspar David Friedrich, c. 1825–1830</p>
+</div>
+
+</body>
+</html>
