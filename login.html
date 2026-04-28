@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>private — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      background: #faf5ef;
+      color: #3a2f2f;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .box {
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+    }
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .sub {
+      font-size: 0.9rem;
+      color: #b09a8a;
+      font-style: italic;
+      margin-bottom: 2rem;
+    }
+    input {
+      display: block;
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.7rem;
+      border: 1px solid #e0d0c0;
+      border-radius: 8px;
+      background: #fff8f0;
+      font-family: inherit;
+      font-size: 1rem;
+      color: #3a2f2f;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #c47a7a;
+      background: #fff;
+    }
+    button {
+      width: 100%;
+      padding: 0.7rem;
+      background: #c47a7a;
+      color: #fff8f0;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      margin-top: 0.4rem;
+      transition: background 0.2s;
+    }
+    button:hover { background: #a86060; }
+    .err {
+      color: #c47a7a;
+      font-size: 0.85rem;
+      min-height: 1.2em;
+      margin: 0.4rem 0;
+      font-style: italic;
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: #b09a8a;
+      font-style: italic;
+    }
+    .footer a { color: #b09a8a; text-decoration-color: #e0d0c0; }
+    .footer a:hover { color: #3a2f2f; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🌸 private</h1>
+    <p class="sub">enter to continue</p>
+    <form method="POST" action="/api/login" id="loginForm" autocomplete="on">
+      <input type="hidden" name="next" id="next">
+      <input type="text" name="user" placeholder="username" autocomplete="username" required autofocus>
+      <input type="password" name="pass" placeholder="password" autocomplete="current-password" required>
+      <p class="err" id="err"></p>
+      <button type="submit">enter</button>
+    </form>
+    <p class="footer"><a href="/">← back to home</a></p>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.getElementById('next').value = params.get('next') || '/private';
+    if (params.get('err')) document.getElementById('err').textContent = 'wrong username or password';
+  </script>
+</body>
+</html>
