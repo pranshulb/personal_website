@@ -28,8 +28,8 @@ function b64urlEncode(str) {
 }
 
 function safeNext(n) {
-  if (!n || typeof n !== 'string') return '/private';
-  if (!n.startsWith('/') || n.startsWith('//')) return '/private';
+  if (!n || typeof n !== 'string') return '/typeshit';
+  if (!n.startsWith('/') || n.startsWith('//')) return '/typeshit';
   return n;
 }
 
@@ -43,12 +43,12 @@ export default async function handler(req) {
   const envPass = env.PRIVATE_PASS || null;
   const secret = env.PRIVATE_SECRET || DEFAULT_SECRET;
 
-  let user = '', pass = '', next = '/private';
+  let user = '', pass = '', next = '/typeshit';
   try {
     const fd = await req.formData();
     user = (fd.get('user') || '').toString();
     pass = (fd.get('pass') || '').toString();
-    next = safeNext((fd.get('next') || '/private').toString());
+    next = safeNext((fd.get('next') || '/typeshit').toString());
   } catch {
     return new Response('Bad request', { status: 400 });
   }

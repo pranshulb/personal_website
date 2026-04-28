@@ -1,10 +1,10 @@
-// Edge middleware: cookie-based auth gate for /private and /pdfs.
+// Edge middleware: cookie-based auth gate for /typeshit, /pdfs, /london-events.
 // Cookie is signed (HMAC-SHA256) and lasts 1 year. Login form lives at /login.
 // Set PRIVATE_PASS and PRIVATE_SECRET env vars in Vercel to override defaults.
 
 export const config = {
   matcher: [
-    '/private',
+    '/typeshit',
     '/pdfs',
     '/pdfs/:path*',
     '/london-events',
