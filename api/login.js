@@ -39,8 +39,8 @@ export default async function handler(req) {
   }
 
   const env = (typeof process !== 'undefined' && process.env) || {};
-  const expectedUser = env.PRIVATE_USER || DEFAULT_USER;
-  const envPass = env.PRIVATE_PASS || null;
+  const expectedUser = DEFAULT_USER;
+  const envPass = null;
   const secret = env.PRIVATE_SECRET || DEFAULT_SECRET;
 
   let user = '', pass = '', next = '/typeshit';
