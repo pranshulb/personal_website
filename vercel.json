@@ -6,11 +6,6 @@
       "source": "/track",
       "destination": "https://analytics.pranshul.cafe",
       "statusCode": 302
-    },
-    {
-      "source": "/private",
-      "destination": "/typeshit",
-      "statusCode": 308
     }
   ],
   "rewrites": [
@@ -44,7 +39,7 @@
     },
     {
       "source": "/typeshit",
-      "destination": "/private.html"
+      "destination": "/typeshit.html"
     },
     {
       "source": "/pdfs",
