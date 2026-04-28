@@ -42,6 +42,10 @@
       "destination": "/private.html"
     },
     {
+      "source": "/pdfs",
+      "destination": "/pdfs.html"
+    },
+    {
       "source": "/london-events",
       "destination": "http://89.167.65.46:8080/london-events/"
     },

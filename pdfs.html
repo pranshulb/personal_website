@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>enola's pdfs — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      color: #3a2f2f;
+      line-height: 1.7;
+      background: #faf5ef;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 5rem;
+    }
+
+    a {
+      color: #3a2f2f;
+      text-decoration-color: #d6b8b8;
+      text-underline-offset: 3px;
+      transition: text-decoration-color 0.2s ease, color 0.2s ease;
+    }
+    a:hover {
+      text-decoration-color: #c47a7a;
+      color: #c47a7a;
+    }
+
+    .back {
+      font-size: 0.9rem;
+      color: #b09a8a;
+      margin-bottom: 2.5rem;
+      display: inline-block;
+      text-decoration: none;
+      border-bottom: none;
+    }
+    .back:hover { color: #3a2f2f; }
+
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      font-style: italic;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #8a7565;
+      font-style: italic;
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      font-style: italic;
+      color: #c47a7a;
+      margin: 2.5rem 0 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .pdf-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .pdf-list li {
+      padding: 0.7rem 0;
+      border-bottom: 1px dotted #e0d0c0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .pdf-list li:last-child { border-bottom: none; }
+
+    .pdf-name {
+      font-size: 1.05rem;
+      flex: 1;
+    }
+
+    .pdf-meta {
+      font-size: 0.82rem;
+      color: #b09a8a;
+      font-style: italic;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .pdf-desc {
+      display: block;
+      font-size: 0.85rem;
+      color: #8a7565;
+      margin-top: 0.15rem;
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      font-size: 0.8rem;
+      color: #b09a8a;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* falling cherry blossom petals */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.3; }
+      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 3rem 1.2rem 3rem; }
+      h1 { font-size: 1.7rem; }
+      .pdf-list li { flex-direction: column; gap: 0.2rem; }
+      .pdf-meta { align-self: flex-start; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+  <div class="container">
+    <a href="/private" class="back">← back</a>
+
+    <h1>enola's pdfs</h1>
+    <p class="subtitle">everything i've made for you, in one place.</p>
+
+    <h2>recent</h2>
+    <ul class="pdf-list">
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/community-search-anecdotes.pdf">community search — non-religious anecdotes</a>
+          <span class="pdf-desc">16 stories of people finding belonging outside organised religion</span>
+        </span>
+        <span class="pdf-meta">apr 28 · 50kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/q1-option-a-plan.pdf">philosophy q1 — option a plan</a>
+          <span class="pdf-desc">incompatibilist thesis on free will & determinism</span>
+        </span>
+        <span class="pdf-meta">apr 23 · 42kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/thought-provoking-questions.pdf">117 thought-provoking questions</a>
+          <span class="pdf-desc">conversation starters across philosophy, ethics, identity</span>
+        </span>
+        <span class="pdf-meta">apr 7 · 67kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/invoice.pdf">judging invoice</a>
+          <span class="pdf-desc">$180 cad, 4 rounds, 60 newlands rd</span>
+        </span>
+        <span class="pdf-meta">apr 6 · 11kb</span>
+      </li>
+    </ul>
+
+    <h2>research & opportunities</h2>
+    <ul class="pdf-list">
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/london-walks.pdf">london walks — saturday routes</a>
+          <span class="pdf-desc">curated walking routes through the city</span>
+        </span>
+        <span class="pdf-meta">mar 30 · 177kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/karausky-profile.pdf">karausky profile</a>
+          <span class="pdf-desc">deep research dossier</span>
+        </span>
+        <span class="pdf-meta">mar 24 · 29kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/london-jobs.pdf">london jobs — curated list</a>
+          <span class="pdf-desc">summer & part-time roles in london</span>
+        </span>
+        <span class="pdf-meta">mar 19 · 234kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/summer-2026-top30.pdf">summer 2026 — top 30 opportunities</a>
+          <span class="pdf-desc">final ranked list of fellowships, residencies, programs</span>
+        </span>
+        <span class="pdf-meta">mar 19 · 835kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/event-management-2026.pdf">event management — 2026 roles</a>
+          <span class="pdf-desc">deep dive on event management opportunities</span>
+        </span>
+        <span class="pdf-meta">mar 19 · 528kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/opportunities-complete-2026.pdf">opportunities complete — 2026</a>
+          <span class="pdf-desc">full unfiltered opportunities database</span>
+        </span>
+        <span class="pdf-meta">mar 19 · 1.3mb</span>
+      </li>
+    </ul>
+
+    <h2>academic</h2>
+    <ul class="pdf-list">
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/music-essay-final.pdf">music psychology essay — final</a>
+          <span class="pdf-desc">edinburgh musi08069 · sections 1+2 drafted</span>
+        </span>
+        <span class="pdf-meta">mar 18 · 53kb</span>
+      </li>
+    </ul>
+
+    <h2>curius — network analysis</h2>
+    <ul class="pdf-list">
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-best-personal-sites.pdf">best personal sites</a>
+          <span class="pdf-desc">favourites from your follow graph</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 49kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-hidden-vibes.pdf">hidden vibes — social</a>
+          <span class="pdf-desc">people in your network worth knowing</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 51kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-malaika-network.pdf">malaika network</a>
+          <span class="pdf-desc">co-citation analysis around malaika</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 51kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-network-clusters.pdf">network clusters & bridges</a>
+          <span class="pdf-desc">graph structure analysis</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 76kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-outside-the-bubble.pdf">outside the bubble</a>
+          <span class="pdf-desc">interesting people outside your normal cluster</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 195kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-reading-recs.pdf">reading recs for pranshul</a>
+          <span class="pdf-desc">books & essays mined from network</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 31kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-graph-final-vibes.pdf">graph 2 — final vibes</a>
+          <span class="pdf-desc">aesthetic clustering of curius graph</span>
+        </span>
+        <span class="pdf-meta">mar 13 · 62kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-uk-kitchen-ensemble.pdf">uk kitchen / ensemble overlap</a>
+          <span class="pdf-desc">people across both communities</span>
+        </span>
+        <span class="pdf-meta">mar 13 · 32kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/curius-vibes-people.pdf">vibes people</a>
+          <span class="pdf-desc">curated taste-aligned profiles</span>
+        </span>
+        <span class="pdf-meta">mar 13 · 35kb</span>
+      </li>
+    </ul>
+
+    <h2>vibes & inspo</h2>
+    <ul class="pdf-list">
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/movies-you-probably-watched.pdf">movies you probably watched</a>
+          <span class="pdf-desc">predictive watchlist from your taste profile</span>
+        </span>
+        <span class="pdf-meta">mar 25 · 23kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/nownownow-collection.pdf">nownownow collection</a>
+          <span class="pdf-desc">findings from 2,059 /now pages</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 167kb</span>
+      </li>
+      <li>
+        <span class="pdf-name">
+          <a href="/pdfs/website-inspiration.pdf">website inspiration</a>
+          <span class="pdf-desc">design references for pranshul.cafe</span>
+        </span>
+        <span class="pdf-meta">mar 23 · 77kb</span>
+      </li>
+    </ul>
+
+    <p class="footer">~ made by sherlock & enola, with love ~</p>
+  </div>
+
+  <script>
+    // gentle cherry blossom petals
+    function makePetal() {
+      const petal = document.createElement('div');
+      petal.className = 'petal';
+      petal.textContent = '🌸';
+      petal.style.left = Math.random() * 100 + 'vw';
+      petal.style.fontSize = (Math.random() * 0.7 + 0.6) + 'rem';
+      petal.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+      petal.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
+      petal.style.animationDuration = (Math.random() * 8 + 12) + 's';
+      petal.style.animationDelay = '0s';
+      document.body.appendChild(petal);
+      setTimeout(() => petal.remove(), 22000);
+    }
+    setInterval(makePetal, 2500);
+    for (let i = 0; i < 4; i++) setTimeout(makePetal, i * 600);
+  </script>
+</body>
+</html>
