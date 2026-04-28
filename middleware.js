@@ -3,7 +3,13 @@
 // Set PRIVATE_PASS and PRIVATE_SECRET env vars in Vercel to override defaults.
 
 export const config = {
-  matcher: ['/private', '/pdfs', '/pdfs/:path*'],
+  matcher: [
+    '/private',
+    '/pdfs',
+    '/pdfs/:path*',
+    '/london-events',
+    '/london-events/:path*',
+  ],
 };
 
 const DEFAULT_SECRET = 'pranshul-cafe-cherry-blossoms-2026-fallback-secret-please-override';
