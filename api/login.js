@@ -1,9 +1,9 @@
 // POST /api/login — verify creds, set signed cookie, redirect.
 export const config = { runtime: 'edge' };
 
-const DEFAULT_USER = 'pranshul';
-// SHA-256 of "cherryblossoms2026"
-const DEFAULT_PASS_HASH = '8b8689fca7e3483e409efd20b3b97950151cfa286a5c23ad63417e3aeba0cea0';
+const DEFAULT_USER = 'pman';
+// SHA-256 of "typeshitskibidi"
+const DEFAULT_PASS_HASH = '3e1be62019d0c11581aa249614227533429ecd90d471130e6dd0a0674456dafa';
 const DEFAULT_SECRET = 'pranshul-cafe-cherry-blossoms-2026-fallback-secret-please-override';
 const COOKIE_NAME = 'pcafe_auth';
 const ONE_YEAR = 60 * 60 * 24 * 365;
