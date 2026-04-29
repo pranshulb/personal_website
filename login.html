@@ -104,7 +104,19 @@
   <script>
     const params = new URLSearchParams(location.search);
     document.getElementById('next').value = params.get('next') || '/typeshit';
-    if (params.get('err')) document.getElementById('err').textContent = 'wrong username or password';
+    const err = params.get('err');
+    if (err === 'locked') {
+      const mins = params.get('mins') || '15';
+      document.getElementById('err').textContent = `too many attempts — locked out for ${mins} minute${mins === '1' ? '' : 's'}`;
+      document.querySelector('button').disabled = true;
+      document.querySelector('button').style.opacity = '0.5';
+      document.querySelector('button').style.cursor = 'not-allowed';
+    } else if (err) {
+      const tries = params.get('tries');
+      document.getElementById('err').textContent = tries
+        ? `wrong credentials — ${tries} attempt${tries === '1' ? '' : 's'} left`
+        : 'wrong username or password';
+    }
   </script>
 </body>
 </html>
