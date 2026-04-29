@@ -64,6 +64,14 @@
     {
       "source": "/bookmarks/:path*",
       "destination": "http://89.167.65.46:9090/bookmarks/:path*"
+    },
+    {
+      "source": "/monica",
+      "destination": "http://89.167.65.46:9092/"
+    },
+    {
+      "source": "/monica/:path*",
+      "destination": "http://89.167.65.46:9092/:path*"
     }
   ]
 }
