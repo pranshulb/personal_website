@@ -59,8 +59,52 @@
       font-size: 1rem;
       color: #8a7565;
       font-style: italic;
-      margin-bottom: 3rem;
+      margin-bottom: 2rem;
     }
+
+    .search-wrap {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+
+    #search {
+      width: 100%;
+      padding: 0.7rem 0.9rem 0.7rem 2.2rem;
+      border: 1px solid #e0d0c0;
+      border-radius: 8px;
+      background: #fff8f0;
+      font-family: inherit;
+      font-size: 1rem;
+      color: #3a2f2f;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #search::placeholder { color: #c5b0a0; font-style: italic; }
+    #search:focus {
+      outline: none;
+      border-color: #c47a7a;
+      background: #fff;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    .no-results {
+      display: none;
+      color: #b09a8a;
+      font-style: italic;
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .no-results.show { display: block; }
+
+    h2.empty { display: none; }
 
     h2 {
       font-family: 'Fraunces', Georgia, serif;
@@ -148,6 +192,13 @@
 
     <h1>enola's pdfs</h1>
     <p class="subtitle">everything i've made for you, in one place.</p>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="search" placeholder="search pdfs by title or description..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+
+    <p class="no-results" id="noResults">no pdfs match that.</p>
 
     <h2>recent</h2>
     <ul class="pdf-list">
@@ -334,6 +385,50 @@
   </div>
 
   <script>
+    // pdf search — filters list items + collapses empty sections
+    (function() {
+      const input = document.getElementById('search');
+      const noRes = document.getElementById('noResults');
+      const items = Array.from(document.querySelectorAll('.pdf-list li'));
+      const headings = Array.from(document.querySelectorAll('h2'));
+
+      // cache lowercased text per item
+      items.forEach(li => { li.dataset._t = li.textContent.toLowerCase(); });
+
+      function filter() {
+        const q = input.value.trim().toLowerCase();
+        let visible = 0;
+        items.forEach(li => {
+          const match = !q || li.dataset._t.includes(q);
+          li.style.display = match ? '' : 'none';
+          if (match) visible++;
+        });
+        // hide section heading if its <ul> has no visible items
+        headings.forEach(h => {
+          let next = h.nextElementSibling;
+          while (next && next.tagName !== 'UL') next = next.nextElementSibling;
+          if (!next) return;
+          const anyVisible = Array.from(next.querySelectorAll('li')).some(li => li.style.display !== 'none');
+          h.classList.toggle('empty', !anyVisible);
+          next.style.display = anyVisible ? '' : 'none';
+        });
+        noRes.classList.toggle('show', visible === 0 && q.length > 0);
+      }
+
+      input.addEventListener('input', filter);
+      // ESC clears
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { input.value = ''; filter(); }
+      });
+      // focus on '/' from anywhere
+      document.addEventListener('keydown', e => {
+        if (e.key === '/' && document.activeElement !== input) {
+          e.preventDefault();
+          input.focus();
+        }
+      });
+    })();
+
     // gentle cherry blossom petals
     function makePetal() {
       const petal = document.createElement('div');
