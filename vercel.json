@@ -66,6 +66,14 @@
       "destination": "http://89.167.65.46:9090/bookmarks/:path*"
     },
     {
+      "source": "/location-tool",
+      "destination": "http://89.167.65.46:9093/"
+    },
+    {
+      "source": "/location-tool/:path*",
+      "destination": "http://89.167.65.46:9093/:path*"
+    },
+    {
       "source": "/monica/network",
       "destination": "http://89.167.65.46:9092/network.html"
     },
