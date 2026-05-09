@@ -142,6 +142,19 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d4bfb0; border-radius: 3px; }
 
+    .epigraph {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 0.85rem;
+      color: #c4a0a0;
+      letter-spacing: 0.03em;
+      margin: 0;
+      z-index: 10;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+    }
+
     @media (max-width: 640px) {
       h1 { bottom: 1rem; right: 1rem; font-size: 0.75rem; }
       .back { top: 1rem; left: 1rem; }
@@ -153,6 +166,7 @@
 <body>
 
 <a href="/" class="back">← back</a>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <div class="vignette"></div>
 
 <div class="field" id="field"></div>
@@ -169,7 +183,6 @@
     { text: "green", style: "color" },
     { text: "two men contemplating the moon", style: "painting", url: "/things-i-like/two-men-contemplating-the-moon" },
     { text: "charles bukowski", style: "book", url: "https://www.poetryfoundation.org/poets/charles-bukowski" },
-    { text: "cherry blossoms fall at 5 centimeters per second.", style: "serif", url: "https://letterboxd.com/film/5-centimeters-per-second/" },
   ];
 
   const isMobile = window.innerWidth < 640;
