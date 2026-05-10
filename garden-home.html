@@ -159,8 +159,8 @@
 <script>
 (() => {
   /* ================================================================
-     5 CENTIMETERS PER SECOND — Makoto Shinkai aesthetic
-     Dark silhouette tree, blown-out golden-hour sky, dreamy slow petals
+     GARDEN HOME — hand-drawn cherry blossom, illustrated warm aesthetic
+     Angular ink branches, 5-petal blossoms, warm paper background
   ================================================================ */
   const bgEl = document.getElementById('bg');
   const scEl = document.getElementById('scene');
@@ -170,23 +170,21 @@
   const ovC = ovEl.getContext('2d');
 
   let W, H, dpr, isMobile;
-  let mx = 0, my = 0, windX = 0, windY = 0;
+  let mx = 0, windX = 0;
   let shakeX = 0, shakeV = 0;
-  let bgDirty = true, t = 0, ambPh = Math.random() * 100;
+  let t = 0;
 
   let sortedBranches = [], blossoms = [];
   let airPetals = [], groundPetals = [];
-  let birds = [], motes = [], bokehSprites = [], bokehState = [];
-  let treeCX = 0, treeCY = 0, crownR = 100;
 
   /* ================================================================
-     COLORS — cherry blossom pinks + warm golden light
+     COLORS — illustrated pinks, warm paper ink
   ================================================================ */
-  const PETAL_SOFT  = ['#F8D7DA','#FFAEC0','#F5C6CE','#FFB8C8','#FFC8D5','#FFD4DD','#FFEEF2'];
-  const PETAL_DEEP  = ['#E8A0B0','#D0889A','#C87A8C'];
-  const BLOSSOM_PINKS = ['#f2b5c4','#eda5b5','#e89aab','#f7cdd7','#fce4ec','#f5bfcd','#fdd5de','#fff0f3'];
-  const BLOSSOM_DEEP  = ['#d4798d','#c96b7f','#e07a92'];
-  const BLOSSOM_WHITE = ['#FDF0F4','#FEF5F7','#FFEEF2','#FFF8FA'];
+  const PETAL_SOFT = ['#F9D5DF','#F5C2D0','#FBEAF0','#F0ABBE','#FDE8EE','#FAE0E8','#FFF5F8','#F8D0DC'];
+  const PETAL_DEEP = ['#E07A92','#D4688A','#C9607F','#E08098'];
+  const BLOSSOM_PINKS = ['#F8C8D5','#F2B0C2','#FCDEEA','#EDAABF','#F9D8E4','#F4B8CC','#FCE8F0','#EFA8BE'];
+  const BLOSSOM_WHITE = ['#FDF0F5','#FEF5F8','#FFF0F4','#FEFAF8'];
+  const BLOSSOM_DEEP  = ['#D9728A','#CC6080','#E07890'];
 
   /* ================================================================
      UTILITIES
@@ -201,20 +199,21 @@
   const rng = (a, b) => a + Math.random() * (b - a);
   const qB = (a, b, c, t) => (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const PI2 = Math.PI * 2;
 
   function pickBlossomColor() {
     const r = sRng();
-    if (r < 0.15) return sPick(BLOSSOM_WHITE);
-    if (r < 0.55) return sPick(BLOSSOM_PINKS);
-    if (r < 0.80) return sPick(BLOSSOM_PINKS.slice(3));
+    if (r < 0.12) return sPick(BLOSSOM_WHITE);
+    if (r < 0.50) return sPick(BLOSSOM_PINKS);
+    if (r < 0.78) return sPick(BLOSSOM_PINKS.slice(3));
     return sPick(BLOSSOM_DEEP);
   }
 
-  // Wind sway — slower, dreamier
+  // Gentle sway — subtle, not overdone
   function sw(y, x, ph) {
-    const n = Math.max(0, (H * 0.88 - y) / (H * 0.73));
+    const n = Math.max(0, (H * 0.90 - y) / (H * 0.75));
     const p = n * n;
-    return windX * p * 5 + Math.sin(t * 0.18 + (ph || x * 0.007)) * p * 1.2 + shakeX * p;
+    return windX * p * 4 + Math.sin(t * 0.15 + (ph || x * 0.006)) * p * 0.9 + shakeX * p;
   }
 
   /* ================================================================
@@ -229,12 +228,12 @@
       el.style.width = W + 'px'; el.style.height = H + 'px';
     });
     [bgC, scC, ovC].forEach(c => c.setTransform(dpr, 0, 0, dpr, 0, 0));
-    genTree(); initBokeh(); initBirds(); initMotes();
-    groundPetals = []; bgDirty = true;
+    genTree(); drawBg();
+    groundPetals = [];
   }
 
   /* ================================================================
-     TREE — seeded recursive structure (same shape every load)
+     TREE — seeded recursive, angular ink-drawn cherry branches
   ================================================================ */
   function genTree() {
     srand(42);
@@ -242,59 +241,55 @@
     const sc = Math.min(W, H) / 820;
     const treeX = isMobile ? W * 0.5 : W * 0.7;
     const baseY = H * 0.91;
-    const trS = isMobile ? 0.7 : 1;
-    const trH = H * 0.32 * trS;
-    grow(raw, treeX, baseY, treeX + 2, baseY - trH, 28 * sc * trS, 0);
+    const trS = isMobile ? 0.72 : 1;
+    const trH = H * 0.31 * trS;
+    grow(raw, treeX, baseY, treeX + sRngR(-4, 4), baseY - trH, 24 * sc * trS, 0);
     raw.sort((a, b) => a.d - b.d);
     sortedBranches = raw;
-
-    if (blossoms.length > 0) {
-      let sx = 0, sy = 0;
-      for (const b of blossoms) { sx += b.x; sy += b.y; }
-      treeCX = sx / blossoms.length;
-      treeCY = sy / blossoms.length;
-      let maxD = 0;
-      for (const b of blossoms) {
-        const dx = b.x - treeCX, dy = b.y - treeCY;
-        maxD = Math.max(maxD, Math.sqrt(dx * dx + dy * dy));
-      }
-      crownR = maxD * 0.85;
-    }
   }
 
   function grow(out, x1, y1, x2, y2, w, d) {
-    if (d > 9 || w < 0.7) return;
+    if (d > 8 || w < 0.65) return;
     const dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy);
     if (len < 3) return;
     const ang = Math.atan2(dy, dx);
-    const bendScale = d === 0 ? 0.12 : d < 3 ? 0.22 : 0.3;
+
+    // SHARP/ANGULAR: much less bend than before — more decisive, illustrated marks
+    const bendScale = d === 0 ? 0.05 : d < 3 ? 0.09 : 0.13;
     const bend = sRngR(-1, 1) * len * bendScale;
     const perp = ang + Math.PI / 2;
     const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
     const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
-    out.push({ x1, y1, cx, cy, x2, y2, w, d });
 
-    // Dense cherry blossom clusters — lush and pink
-    if (w < 12 && d > 1) {
-      const n = Math.floor(sRngR(3, 7));
+    // Baked jitter per branch — gives hand-drawn character without per-frame cost
+    const jAmt = Math.max(0.4, w * 0.055);
+    const jx = sRngR(-jAmt, jAmt), jy = sRngR(-jAmt, jAmt);
+
+    out.push({ x1, y1, cx, cy, x2, y2, w, d, jx, jy });
+
+    // Blossom clusters on thinner branches — detailed 5-petal flowers
+    const maxB = isMobile ? 250 : 480;
+    if (w < 5.5 && d > 2 && blossoms.length < maxB) {
+      const n = Math.floor(sRngR(2, 5));
       for (let i = 0; i < n; i++) {
-        const bt = sRngR(0.2, 1), sp = 12 + w * 2.5;
+        const bt = sRngR(0.3, 1.0), sp = 9 + w * 1.8;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + sRngR(-sp, sp),
           y: qB(y1, cy, y2, bt) + sRngR(-sp, sp),
-          r: sRngR(5, 13), color: pickBlossomColor(),
-          ph: sRng() * 6.28, swPh: sRng() * 6.28
+          r: sRngR(4, 8.5), color: pickBlossomColor(),
+          rot: sRng() * PI2, ph: sRng() * PI2, swPh: sRng() * PI2
         });
       }
     }
-    if (w < 6 && d > 1) {
-      const n = Math.floor(sRngR(8, 18));
+    // Dense tip clusters
+    if (w < 2.5 && d > 4 && blossoms.length < maxB) {
+      const n = Math.floor(sRngR(4, 9));
+      const spread = 16 + (8 - d) * 3;
       for (let i = 0; i < n; i++) {
-        const spread = 20 + (9 - d) * 4;
         blossoms.push({
           x: x2 + sRngR(-spread, spread), y: y2 + sRngR(-spread, spread),
-          r: sRngR(5, 15), color: pickBlossomColor(),
-          ph: sRng() * 6.28, swPh: sRng() * 6.28
+          r: sRngR(3, 7), color: pickBlossomColor(),
+          rot: sRng() * PI2, ph: sRng() * PI2, swPh: sRng() * PI2
         });
       }
     }
@@ -303,113 +298,97 @@
     if (d === 0) nk = Math.floor(sRngR(2, 4));
     else if (d === 1) nk = Math.floor(sRngR(2, 4));
     else if (d < 4) nk = Math.floor(sRngR(1, 3));
-    else nk = 1 + (sRng() < 0.3 ? 1 : 0);
+    else nk = 1 + (sRng() < 0.28 ? 1 : 0);
 
     for (let i = 0; i < nk; i++) {
       let ca;
-      if (d === 0) ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * 2.2 + sRngR(-0.12, 0.12);
-      else if (d === 1) ca = ang + sRngR(-0.4, 0.4);
-      else if (d < 4) ca = ang + sRngR(-0.45, 0.45);
-      else { ca = ang + sRngR(-0.35, 0.35); ca += 0.08; ca = clamp(ca, -Math.PI + 0.3, 1.1); }
-      const lenMul = d === 0 ? sRngR(0.65, 0.85) : d < 3 ? sRngR(0.55, 0.75) : sRngR(0.45, 0.68);
+      if (d === 0) ca = -Math.PI / 2 + ((i / Math.max(nk - 1, 1)) - 0.5) * 2.1 + sRngR(-0.1, 0.1);
+      else if (d === 1) ca = ang + sRngR(-0.42, 0.42);
+      else if (d < 4) ca = ang + sRngR(-0.48, 0.48);
+      else { ca = ang + sRngR(-0.36, 0.36); ca += 0.06; ca = clamp(ca, -Math.PI + 0.25, -0.12); }
+      const lenMul = d === 0 ? sRngR(0.62, 0.82) : d < 3 ? sRngR(0.54, 0.73) : sRngR(0.44, 0.67);
       const cl = len * lenMul;
-      const cw = w * sRngR(0.55, 0.72);
-      const bt = d === 0 ? sRngR(0.7, 0.95) : sRngR(0.55, 1);
+      const cw = w * sRngR(0.54, 0.70);
+      const bt = d === 0 ? sRngR(0.72, 0.95) : sRngR(0.55, 1.0);
       const bx = qB(x1, cx, x2, bt), by_ = qB(y1, cy, y2, bt);
       grow(out, bx, by_, bx + Math.cos(ca) * cl, by_ + Math.sin(ca) * cl, cw, d + 1);
     }
   }
 
   /* ================================================================
-     ENVIRONMENT — warm golden bokeh, silhouette birds, dust motes
+     BACKGROUND — warm paper, illustrated look
   ================================================================ */
-  function initBokeh() {
-    bokehSprites = []; bokehState = [];
-    for (let i = 0; i < 6; i++) {
-      const r = rng(15, 45);
-      const oc = document.createElement('canvas');
-      const s = Math.ceil(r * 2 * dpr) + 4;
-      oc.width = s; oc.height = s;
-      const ctx = oc.getContext('2d'); ctx.scale(dpr, dpr);
-      const cr = r + 2 / dpr;
-      const col = pick(['#F5C870','#F0B850','#FFD890','#F8D080','#FFC878']);
-      const g = ctx.createRadialGradient(cr, cr, 0, cr, cr, r);
-      g.addColorStop(0, col); g.addColorStop(0.4, col + '50'); g.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cr, cr, r, 0, 6.28); ctx.fill();
-      bokehSprites.push({ canvas: oc, r, w: s / dpr, h: s / dpr });
-      bokehState.push({
-        x: rng(-50, W + 50), y: rng(0, H * 0.8),
-        vx: rng(0.02, 0.08), vy: rng(0.01, 0.04),
-        alpha: rng(0.04, 0.09), ph: Math.random() * 6.28
-      });
-    }
-  }
+  function drawBg() {
+    const c = bgC; c.clearRect(0, 0, W, H);
 
-  function initBirds() {
-    birds = [];
-    for (let i = 0; i < 2; i++) {
-      birds.push({
-        x: rng(-W * 0.3, W * 1.3), y: rng(H * 0.08, H * 0.28),
-        vx: rng(0.2, 0.5) * (Math.random() > 0.5 ? 1 : -1),
-        wingPh: Math.random() * 6.28, wingSpd: rng(0.07, 0.12),
-        size: rng(3, 5), alpha: rng(0.2, 0.35)
-      });
-    }
-  }
+    // Warm paper gradient — cream to slightly blush at bottom
+    const sky = c.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0,    '#FFFAF4');
+    sky.addColorStop(0.45, '#FFF6EE');
+    sky.addColorStop(0.80, '#FFF0E8');
+    sky.addColorStop(1,    '#FDEAE0');
+    c.fillStyle = sky; c.fillRect(0, 0, W, H);
 
-  function initMotes() {
-    motes = [];
-    for (let i = 0; i < 25; i++) {
-      motes.push({
-        x: rng(0, W), y: rng(H * 0.05, H * 0.65),
-        vx: rng(-0.04, 0.04), vy: rng(-0.02, 0.02),
-        r: rng(0.5, 1.8), ph: Math.random() * 6.28, alpha: rng(0.15, 0.4)
-      });
-    }
+    // Very subtle warm blush tint near the tree crown area
+    const treeX = isMobile ? W * 0.5 : W * 0.7;
+    const glow = c.createRadialGradient(treeX, H * 0.45, 0, treeX, H * 0.5, H * 0.55);
+    glow.addColorStop(0,   'rgba(250, 210, 210, 0.07)');
+    glow.addColorStop(0.5, 'rgba(250, 205, 195, 0.035)');
+    glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
+    c.fillStyle = glow; c.fillRect(0, 0, W, H);
+
+    // Ground — simple warm strip with a faint horizon line
+    const gY = H * 0.90;
+    c.fillStyle = 'rgba(180, 140, 110, 0.045)';
+    c.fillRect(0, gY, W, H - gY);
+    // Faint ground rule — like a watercolour wash line
+    c.save();
+    c.setLineDash([3, 9]);
+    c.strokeStyle = 'rgba(160, 120, 80, 0.10)';
+    c.lineWidth = 0.8;
+    c.beginPath(); c.moveTo(0, gY); c.lineTo(W, gY); c.stroke();
+    c.restore();
   }
 
   /* ================================================================
-     PETAL PHYSICS — dramatically slower, 5cm/s dreamy drift
+     PETAL PHYSICS — gentle illustrated drift
   ================================================================ */
   function spawnPetal(fromTree) {
     let px, py, vx, vy;
     if (fromTree && blossoms.length) {
       const b = blossoms[Math.floor(Math.random() * blossoms.length)];
       px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
-      vx = rng(-0.6, 0.6); vy = rng(-0.1, 0.2);
+      vx = rng(-0.5, 0.5); vy = rng(-0.08, 0.18);
     } else {
-      px = rng(-W * 0.1, W * 1.1); py = rng(-80, -10);
-      vx = rng(-0.1, 0.1); vy = rng(0.03, 0.08);
+      px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
+      vx = rng(-0.1, 0.1); vy = rng(0.04, 0.09);
     }
     airPetals.push({
       x: px, y: py, vx, vy,
-      r: rng(3, 7), rot: Math.random() * 6.28, rotV: rng(-0.006, 0.006),
-      tumble: Math.random() * 6.28, tumSpd: rng(0.003, 0.01),
-      swp: Math.random() * 6.28, swSpd: rng(0.002, 0.005), swAmp: rng(0.15, 0.5),
-      color: Math.random() < 0.2 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
-      alpha: rng(0.4, 0.75)
+      r: rng(2.5, 5.5), rot: Math.random() * PI2, rotV: rng(-0.006, 0.006),
+      tumble: Math.random() * PI2, tumSpd: rng(0.003, 0.009),
+      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
+      color: Math.random() < 0.18 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
+      alpha: rng(0.38, 0.70)
     });
   }
 
   function updatePetals() {
-    ambPh += 0.001;
-    const amb = Math.sin(ambPh) * 0.12 + Math.sin(ambPh * 2.7) * 0.05;
-    windX += ((mx * 1.0 + amb) - windX) * 0.008;
-    windY += (my * 0.2 - windY) * 0.008;
+    windX += (mx * 0.7 - windX) * 0.006;
 
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
-      p.vx += windX * 0.0015 + Math.sin(t * 0.25 + p.swp) * 0.0008;
-      p.vy += 0.001;           // very gentle gravity
+      p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
+      p.vy += 0.0009;
       p.swp += p.swSpd;
-      p.vx += Math.sin(p.swp) * p.swAmp * 0.002;
+      p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;
       p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
-      const gy = H * 0.88;
+      const gy = H * 0.90;
       if (p.y > gy) {
-        if (groundPetals.length < 120) {
-          groundPetals.push({ x: p.x, y: gy + rng(0, 6), r: p.r * rng(0.6, 0.85),
-            rot: p.rot, color: p.color, alpha: p.alpha * 0.25, age: 0 });
+        if (groundPetals.length < 90) {
+          groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.6, 0.85),
+            rot: p.rot, color: p.color, alpha: p.alpha * 0.22, age: 0 });
         }
         airPetals.splice(i, 1); continue;
       }
@@ -420,7 +399,7 @@
       groundPetals[i].age += 0.0001;
       if (groundPetals[i].age > 1) groundPetals.splice(i, 1);
     }
-    if (airPetals.length < 40 && Math.random() < 0.1) spawnPetal(Math.random() < 0.6);
+    if (airPetals.length < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
   }
 
   function updateShake() {
@@ -431,260 +410,150 @@
   }
 
   /* ================================================================
-     DRAW: BACKGROUND — 5cm/s blown-out golden-hour sky
-  ================================================================ */
-  function drawBg() {
-    const c = bgC; c.clearRect(0, 0, W, H);
-
-    // Shinkai golden-hour sky — overexposed white-gold at top, deep amber at horizon
-    const sky = c.createLinearGradient(0, 0, 0, H * 0.88);
-    sky.addColorStop(0,    '#FFF8F0');
-    sky.addColorStop(0.12, '#FFF3E6');
-    sky.addColorStop(0.28, '#FFE8CC');
-    sky.addColorStop(0.45, '#FFDAB0');
-    sky.addColorStop(0.62, '#F5C080');
-    sky.addColorStop(0.78, '#F0A850');
-    sky.addColorStop(0.92, '#E89030');
-    sky.addColorStop(1,    '#D07828');
-    c.fillStyle = sky; c.fillRect(0, 0, W, H);
-
-    // Overexposed sun glow — center-right, intense white-gold
-    const sx = W * 0.6, sy = H * 0.38;
-    const sg = c.createRadialGradient(sx, sy, 0, sx, sy, Math.max(W, H) * 0.5);
-    sg.addColorStop(0, 'rgba(255,252,245,0.35)');
-    sg.addColorStop(0.12, 'rgba(255,245,230,0.2)');
-    sg.addColorStop(0.3, 'rgba(255,235,200,0.1)');
-    sg.addColorStop(0.55, 'rgba(255,220,170,0.04)');
-    sg.addColorStop(1, 'rgba(255,210,150,0)');
-    c.fillStyle = sg; c.fillRect(0, 0, W, H);
-
-    // Atmospheric haze — misty blue-grey band at the horizon
-    const haze = c.createLinearGradient(0, H * 0.55, 0, H * 0.88);
-    haze.addColorStop(0, 'rgba(168,182,200,0)');
-    haze.addColorStop(0.4, 'rgba(168,182,200,0.05)');
-    haze.addColorStop(1, 'rgba(150,165,185,0.1)');
-    c.fillStyle = haze; c.fillRect(0, 0, W, H);
-
-    // Distant hills — soft dark silhouettes fading into the golden haze
-    const hills = [
-      [H * 0.73, 'rgba(60,45,30,0.07)', 0.003, 28, 0],
-      [H * 0.78, 'rgba(50,35,22,0.11)', 0.004, 20, 1.5],
-      [H * 0.83, 'rgba(40,28,16,0.16)', 0.005, 14, 3],
-    ];
-    for (const [by, col, f, a, o] of hills) {
-      c.fillStyle = col; c.beginPath(); c.moveTo(-10, H);
-      for (let x = -10; x <= W + 10; x += 6)
-        c.lineTo(x, by + Math.sin(x * f + o) * a + Math.sin(x * f * 2.3 + o * 1.7) * a * 0.4);
-      c.lineTo(W + 10, H); c.closePath(); c.fill();
-    }
-
-    // Dark foreground ground — silhouette
-    const gY = H * 0.87;
-    const grd = c.createLinearGradient(0, gY - 5, 0, H);
-    grd.addColorStop(0,   'rgba(30,22,12,0.5)');
-    grd.addColorStop(0.25,'rgba(25,18,10,0.65)');
-    grd.addColorStop(0.6, 'rgba(20,14,8,0.78)');
-    grd.addColorStop(1,   'rgba(16,10,6,0.85)');
-    c.fillStyle = grd; c.beginPath(); c.moveTo(-10, H);
-    for (let x = -10; x <= W + 10; x += 6)
-      c.lineTo(x, gY + Math.sin(x * 0.012) * 4 + Math.sin(x * 0.025) * 2);
-    c.lineTo(W + 10, H); c.closePath(); c.fill();
-
-    // Warm golden overexposure wash
-    c.globalCompositeOperation = 'screen';
-    c.fillStyle = 'rgba(255,240,210,0.05)';
-    c.fillRect(0, 0, W, H);
-    c.globalCompositeOperation = 'source-over';
-  }
-
-  /* ================================================================
-     DRAW: SCENE — silhouette tree + backlight bloom + ground petals
+     DRAW SCENE — ink branches + illustrated 5-petal blossoms
   ================================================================ */
   function drawScene() {
     const c = scC; c.clearRect(0, 0, W, H);
-
-    const bloomX = treeCX + sw(treeCY, treeCX) * 0.3;
-    const bloomY = treeCY;
-
-    // ---- Backlight bloom BEHIND tree ----
-    c.save();
-    c.globalCompositeOperation = 'lighter';
-    // Large warm bloom radiating from behind the crown
-    const bg1 = c.createRadialGradient(bloomX, bloomY, crownR * 0.05, bloomX, bloomY, crownR * 1.6);
-    bg1.addColorStop(0, 'rgba(255,225,160,0.14)');
-    bg1.addColorStop(0.25, 'rgba(255,210,130,0.08)');
-    bg1.addColorStop(0.55, 'rgba(255,195,110,0.03)');
-    bg1.addColorStop(1, 'rgba(255,185,90,0)');
-    c.fillStyle = bg1;
-    c.fillRect(bloomX - crownR * 2, bloomY - crownR * 2, crownR * 4, crownR * 4);
-    // Tighter hot spot — brighter center
-    const bg2 = c.createRadialGradient(bloomX + crownR * 0.1, bloomY - crownR * 0.15, 0, bloomX, bloomY, crownR * 0.7);
-    bg2.addColorStop(0, 'rgba(255,245,210,0.1)');
-    bg2.addColorStop(0.4, 'rgba(255,230,180,0.04)');
-    bg2.addColorStop(1, 'rgba(255,215,150,0)');
-    c.fillStyle = bg2;
-    c.fillRect(bloomX - crownR * 1.5, bloomY - crownR * 1.5, crownR * 3, crownR * 3);
-    c.restore();
-
-    // ---- Tree shadow on ground ----
-    let sx = 0, cnt = 0, mnX = W, mxX = 0;
-    for (const b of sortedBranches) {
-      if (b.d > 1) {
-        const s = sw(b.y2, b.x2);
-        sx += b.x2 + s; mnX = Math.min(mnX, b.x2 + s); mxX = Math.max(mxX, b.x2 + s); cnt++;
-      }
-    }
-    if (cnt) {
-      const cx = sx / cnt, rx = Math.max((mxX - mnX) / 2, 50) * 0.6, sy = H * 0.886;
-      const g = c.createRadialGradient(cx, sy, 0, cx, sy, rx);
-      g.addColorStop(0, 'rgba(12,8,4,0.12)'); g.addColorStop(0.7, 'rgba(12,8,4,0.04)'); g.addColorStop(1, 'rgba(12,8,4,0)');
-      c.fillStyle = g; c.beginPath(); c.ellipse(cx, sy, rx, rx * 0.13, 0, 0, 6.28); c.fill();
-    }
-
-    // ---- Tree branches — warm dark brown ----
-    const BARK_COLOR = '#3A2415';
     c.lineCap = 'round'; c.lineJoin = 'round';
-    c.strokeStyle = BARK_COLOR;
+
+    // Branches — thick → thin (already sorted by d)
     for (const b of sortedBranches) {
-      const s1 = sw(b.y1, b.x1) * 0.4, s2 = sw(b.y2, b.x2), sc = (s1 + s2) * 0.5;
-      c.beginPath(); c.moveTo(b.x1 + s1, b.y1);
+      const s1 = sw(b.y1, b.x1) * 0.35;
+      const s2 = sw(b.y2, b.x2);
+      const sc = (s1 + s2) * 0.5;
+
+      // Ink colour — darkest at trunk, slightly warmer at tips
+      c.strokeStyle = b.d === 0 ? '#251506' : b.d < 3 ? '#2D180A' : '#391E0C';
+      c.lineWidth = b.w;
+      c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
+      c.beginPath();
+      c.moveTo(b.x1 + s1, b.y1);
       c.quadraticCurveTo(b.cx + sc, b.cy, b.x2 + s2, b.y2);
-      c.lineWidth = b.w; c.stroke();
+      c.stroke();
+
+      // Secondary pass on thick branches — slight pressure variation, hand-drawn feel
+      if (b.w > 5) {
+        c.lineWidth = b.w * 0.20;
+        c.globalAlpha = 0.055;
+        c.strokeStyle = '#180802';
+        c.beginPath();
+        c.moveTo(b.x1 + s1 + b.jx, b.y1 + b.jy);
+        c.quadraticCurveTo(b.cx + sc + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2 + s2, b.y2);
+        c.stroke();
+      }
+      c.globalAlpha = 1;
     }
 
-    // ---- Cherry blossom clusters — actual pink, lit by golden hour ----
+    // Blossoms — illustrated 5-petal flowers
     for (const b of blossoms) {
-      const pulse = 1 + Math.sin(t * 0.6 + b.ph) * 0.04;
       const s = sw(b.y, b.x, b.swPh);
-      const r = b.r * pulse, bx = b.x + s;
-
-      // Main blossom — pink/white
-      c.globalAlpha = 0.75;
-      c.fillStyle = b.color;
-      c.beginPath(); c.arc(bx, b.y, r * 0.8, 0, 6.28); c.fill();
-
-      // Softer outer glow for volume
-      c.globalAlpha = 0.35;
-      c.beginPath(); c.arc(bx, b.y, r, 0, 6.28); c.fill();
-
-      // Warm golden highlight from backlight — sun catching the top edge
-      c.globalAlpha = 0.18;
-      c.fillStyle = '#FFD89050';
-      c.beginPath(); c.arc(bx + r * 0.2, b.y - r * 0.15, r * 0.7, 0, 6.28); c.fill();
+      drawFlower(c, b.x + s, b.y, b.r, b.color, b.rot, b.ph);
     }
-    c.globalAlpha = 1;
 
-    // ---- Bloom spill through tree gaps (on top) ----
-    c.save();
-    c.globalCompositeOperation = 'screen';
-    const spill = c.createRadialGradient(bloomX, bloomY - crownR * 0.15, crownR * 0.1, bloomX, bloomY, crownR * 0.85);
-    spill.addColorStop(0, 'rgba(255,235,190,0.05)');
-    spill.addColorStop(0.5, 'rgba(255,220,160,0.025)');
-    spill.addColorStop(1, 'rgba(255,210,140,0)');
-    c.fillStyle = spill;
-    c.fillRect(bloomX - crownR * 1.5, bloomY - crownR * 1.5, crownR * 3, crownR * 3);
-    c.restore();
-
-    // ---- Ground petals ----
+    // Resting ground petals
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
-      if (a > 0.02) drawPetal(c, p.x, p.y, p.r, p.rot, p.color, a, 0);
+      if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
     }
   }
 
   /* ================================================================
-     DRAW: OVERLAY — dreamy slow petals, birds, motes, bokeh, lens flare
+     DRAW OVERLAY — floating petals only
   ================================================================ */
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
-
-    // ---- Birds — dark silhouettes against golden sky ----
-    c.strokeStyle = '#2C1A10'; c.lineWidth = 0.8; c.lineCap = 'round';
-    for (const bird of birds) {
-      bird.x += bird.vx + windX * 0.03;
-      bird.y += Math.sin(t * 0.2 + bird.wingPh) * 0.05;
-      bird.wingPh += bird.wingSpd;
-      if (bird.vx > 0 && bird.x > W + 60) bird.x = -60;
-      if (bird.vx < 0 && bird.x < -60) bird.x = W + 60;
-      const wu = Math.sin(bird.wingPh), s = bird.size;
-      c.save(); c.translate(bird.x, bird.y);
-      if (bird.vx < 0) c.scale(-1, 1);
-      c.globalAlpha = bird.alpha;
-      c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(-s * 0.4, -s * wu * 0.5, -s, -s * wu * 0.3); c.stroke();
-      c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(s * 0.4, -s * wu * 0.5, s, -s * wu * 0.3); c.stroke();
-      c.restore();
-    }
-
-    // ---- Golden dust motes — floating in the warm light ----
-    c.fillStyle = '#F5C060';
-    for (const m of motes) {
-      m.x += m.vx + windX * 0.012; m.y += m.vy + Math.sin(t * 0.5 + m.ph) * 0.006; m.ph += 0.004;
-      const tw = 0.25 + Math.sin(t * 1.0 + m.ph) * 0.75;
-      c.globalAlpha = m.alpha * Math.max(0, tw);
-      c.beginPath(); c.arc(m.x, m.y, m.r, 0, 6.28); c.fill();
-      if (m.x < -10) m.x = W + 10; if (m.x > W + 10) m.x = -10;
-      if (m.y < H * 0.04) m.y = H * 0.6; if (m.y > H * 0.68) m.y = H * 0.06;
-    }
-    c.globalAlpha = 1;
-
-    // ---- Air petals — dreamy slow floating over content ----
-    for (const p of airPetals) drawPetal(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
-
-    // ---- Warm golden bokeh ----
-    for (let i = 0; i < bokehState.length; i++) {
-      const b = bokehState[i], sp = bokehSprites[i];
-      b.x += b.vx + windX * 0.006; b.y += b.vy; b.ph += 0.003;
-      c.globalAlpha = b.alpha * (0.5 + Math.sin(b.ph) * 0.5);
-      c.drawImage(sp.canvas, b.x - sp.w / 2, b.y - sp.h / 2, sp.w, sp.h);
-      if (b.x > W + sp.r + 30) { b.x = -sp.r - 30; b.y = rng(0, H * 0.8); }
-      if (b.y > H + sp.r + 30) { b.y = -sp.r - 30; b.x = rng(0, W); }
-    }
-    c.globalAlpha = 1;
-
-    // ---- Lens flare — subtle Shinkai-style light artifacts ----
-    if (!isMobile) {
-      c.save();
-      c.globalCompositeOperation = 'screen';
-      const fsx = W * 0.6, fsy = H * 0.38;
-      // Main soft flare
-      const f1 = c.createRadialGradient(fsx, fsy, 0, fsx, fsy, 90);
-      f1.addColorStop(0, 'rgba(255,252,240,0.07)');
-      f1.addColorStop(0.4, 'rgba(255,245,215,0.03)');
-      f1.addColorStop(1, 'rgba(255,240,200,0)');
-      c.fillStyle = f1; c.fillRect(fsx - 110, fsy - 110, 220, 220);
-      // Secondary flare spots (lens artifacts along diagonal)
-      const spots = [[fsx * 0.72, fsy * 1.4, 18], [fsx * 0.5, fsy * 2.0, 10], [fsx * 0.88, fsy * 0.55, 14]];
-      for (const [fx, fy, fr] of spots) {
-        const fg = c.createRadialGradient(fx, fy, 0, fx, fy, fr);
-        fg.addColorStop(0, 'rgba(255,245,210,0.035)');
-        fg.addColorStop(1, 'rgba(255,235,190,0)');
-        c.fillStyle = fg; c.beginPath(); c.arc(fx, fy, fr, 0, 6.28); c.fill();
-      }
-      c.restore();
-    }
+    for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
   }
 
   /* ================================================================
-     HELPERS
+     HELPERS — 5-petal flower + petal teardrop
   ================================================================ */
-  function drawPetal(c, x, y, sz, rot, color, alpha, tumble) {
-    if (alpha < 0.02) return;
-    c.save(); c.translate(x, y); c.rotate(rot);
-    const sx = tumble ? Math.cos(tumble) : 1;
-    c.scale(sx || 0.01, 1);
-    c.globalAlpha = alpha; c.fillStyle = color;
-    c.beginPath(); c.moveTo(0, -sz);
-    c.bezierCurveTo(sz * 0.6, -sz * 0.7, sz * 0.55, sz * 0.4, 0, sz * 0.8);
-    c.bezierCurveTo(-sz * 0.55, sz * 0.4, -sz * 0.6, -sz * 0.7, 0, -sz);
-    c.fill(); c.restore();
+  function drawFlower(c, x, y, r, color, rot, ph) {
+    const pulse = 1 + Math.sin(t * 0.45 + ph) * 0.022;
+    const pr = r * pulse;
+
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+
+    // 5 petals — ellipses radiating outward
+    for (let i = 0; i < 5; i++) {
+      c.save();
+      c.rotate((i / 5) * PI2);
+      c.translate(0, -pr * 0.52);
+      c.globalAlpha = 0.68;
+      c.fillStyle = color;
+      c.beginPath();
+      c.ellipse(0, 0, pr * 0.30, pr * 0.43, 0, 0, PI2);
+      c.fill();
+      // Petal vein — very subtle
+      c.globalAlpha = 0.09;
+      c.strokeStyle = '#A05070';
+      c.lineWidth = 0.55;
+      c.beginPath();
+      c.moveTo(0, -pr * 0.36); c.lineTo(0, pr * 0.36);
+      c.stroke();
+      c.restore();
+    }
+
+    // Petal edge definition — gives crisp illustrated outline
+    for (let i = 0; i < 5; i++) {
+      c.save();
+      c.rotate((i / 5) * PI2);
+      c.translate(0, -pr * 0.52);
+      c.globalAlpha = 0.16;
+      c.strokeStyle = '#B86080';
+      c.lineWidth = 0.65;
+      c.beginPath();
+      c.ellipse(0, 0, pr * 0.30, pr * 0.43, 0, 0, PI2);
+      c.stroke();
+      c.restore();
+    }
+
+    // Stamen centre — warm golden
+    c.globalAlpha = 0.90;
+    c.fillStyle = '#FFD055';
+    c.beginPath();
+    c.arc(0, 0, pr * 0.19, 0, PI2);
+    c.fill();
+
+    // Tiny anther dots
+    c.globalAlpha = 0.60;
+    c.fillStyle = '#E08830';
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * PI2;
+      c.beginPath();
+      c.arc(Math.cos(a) * pr * 0.15, Math.sin(a) * pr * 0.15, pr * 0.052, 0, PI2);
+      c.fill();
+    }
+
+    c.restore();
+    c.globalAlpha = 1;
+  }
+
+  function drawPetalShape(c, x, y, sz, rot, color, alpha, tumble) {
+    if (alpha < 0.015) return;
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    c.beginPath();
+    c.moveTo(0, -sz);
+    c.bezierCurveTo(sz * 0.55, -sz * 0.65, sz * 0.50, sz * 0.33, 0, sz * 0.75);
+    c.bezierCurveTo(-sz * 0.50, sz * 0.33, -sz * 0.55, -sz * 0.65, 0, -sz);
+    c.fill();
+    c.restore();
   }
 
   /* ================================================================
      ANIMATION LOOP
   ================================================================ */
   function frame() {
-    t += 0.016; updatePetals(); updateShake();
-    if (bgDirty) { drawBg(); bgDirty = false; }
+    t += 0.016;
+    updatePetals();
+    updateShake();
     drawScene();
     drawOverlay();
     requestAnimationFrame(frame);
@@ -695,23 +564,22 @@
   ================================================================ */
   window.addEventListener('resize', resize);
   document.addEventListener('mousemove', e => {
-    mx = (e.clientX / W - 0.5) * 2; my = (e.clientY / H - 0.5) * 2;
+    mx = (e.clientX / W - 0.5) * 2;
   });
   document.addEventListener('click', e => {
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
     shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
-    for (let i = 0; i < 40; i++) spawnPetal(true);
+    for (let i = 0; i < 35; i++) spawnPetal(true);
   });
   document.addEventListener('touchmove', e => {
-    const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2; my = (tc.clientY / H - 0.5) * 2;
+    const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
   }, { passive: true });
   document.addEventListener('touchstart', e => {
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
     shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
-    for (let i = 0; i < 40; i++) spawnPetal(true);
+    for (let i = 0; i < 35; i++) spawnPetal(true);
   }, { passive: true });
 
-  // Copy email
   function copyEmail() {
     navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
       const toast = document.getElementById('copyToast');
@@ -729,17 +597,17 @@
      INIT
   ================================================================ */
   resize();
-  // Pre-scatter petals so scene isn't bare on load
-  for (let i = 0; i < 30; i++) {
+  // Pre-scatter petals so it feels alive on load
+  for (let i = 0; i < 22; i++) {
     spawnPetal(true);
     const p = airPetals[airPetals.length - 1];
-    p.y = rng(0, H * 0.84); p.x = rng(0, W);
+    p.y = rng(0, H * 0.85); p.x = rng(0, W);
   }
-  for (let i = 0; i < 25; i++) {
-    const gx = rng(0, W);
+  for (let i = 0; i < 18; i++) {
     groundPetals.push({
-      x: gx, y: H * 0.88 + rng(0, H * 0.06),
-      r: rng(2, 5), rot: Math.random() * 6.28, color: pick(PETAL_SOFT), alpha: rng(0.08, 0.2), age: rng(0, 0.35)
+      x: rng(0, W), y: H * 0.90 + rng(0, H * 0.05),
+      r: rng(2, 4.5), rot: Math.random() * PI2,
+      color: pick(PETAL_SOFT), alpha: rng(0.06, 0.16), age: rng(0, 0.28)
     });
   }
   frame();
