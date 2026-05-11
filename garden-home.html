@@ -174,7 +174,7 @@
   let shakeX = 0, shakeV = 0;
   let t = 0;
 
-  let sortedBranches = [], blossoms = [];
+  let sortedBranches = [], blossoms = [], flowers = [];
   let airPetals = [], groundPetals = [];
 
   /* ================================================================
@@ -240,7 +240,7 @@
   ================================================================ */
   function genTree() {
     srand(42);
-    const raw = []; blossoms = [];
+    const raw = []; blossoms = []; flowers = [];
     const sc = Math.min(W, H) / 820;
     const treeX = isMobile ? W * 0.5 : W * 0.7;
     const baseY = H * 0.91;
@@ -308,6 +308,21 @@
           r: sRngR(2.5, 6), color: sRng() < 0.5 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
           alpha: sRngR(0.7, 0.95),
           ph: sRng() * PI2, swPh: sRng() * PI2
+        });
+      }
+    }
+    // HD 5-petal cherry flowers — detailed on all fine branches
+    if (w < 4 && d > 3 && flowers.length < 400) {
+      const nf = Math.floor(sRngR(3, 7));
+      const fsp = 20 + (9 - Math.min(d, 9)) * 4;
+      for (let i = 0; i < nf; i++) {
+        flowers.push({
+          x: x2 + sRngR(-fsp, fsp), y: y2 + sRngR(-fsp, fsp),
+          sz: sRngR(4, 9),
+          angle: sRng() * PI2,
+          color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
+          alpha: sRngR(0.60, 0.92),
+          swPh: sRng() * PI2
         });
       }
     }
@@ -502,7 +517,13 @@
       drawBlossomBlob(c, b.x + s, b.y, b.r, b.color, b.alpha, b.ph);
     }
 
-    // Resting hearts on the ground
+    // HD 5-petal flowers layered on top of blobs
+    for (const f of flowers) {
+      const s = sw(f.y, f.x, f.swPh);
+      drawFlower(c, f.x + s, f.y, f.sz, f.angle, f.color, f.alpha);
+    }
+
+    // Resting petals on the ground
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
       if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
@@ -543,6 +564,45 @@
     c.moveTo(0, -sz);
     c.bezierCurveTo(sz * 0.55, -sz * 0.65, sz * 0.50, sz * 0.33, 0, sz * 0.75);
     c.bezierCurveTo(-sz * 0.50, sz * 0.33, -sz * 0.55, -sz * 0.65, 0, -sz);
+    c.fill();
+    c.restore();
+    c.globalAlpha = 1;
+  }
+
+  function drawFlower(c, x, y, sz, angle0, color, alpha) {
+    if (alpha < 0.015) return;
+    c.save();
+    c.translate(x, y);
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    for (let i = 0; i < 5; i++) {
+      const ang = angle0 + (i / 5) * PI2;
+      c.save();
+      c.rotate(ang);
+      c.beginPath();
+      c.moveTo(0, -sz);
+      c.bezierCurveTo(sz * 0.48, -sz * 0.60, sz * 0.42, sz * 0.28, 0, sz * 0.62);
+      c.bezierCurveTo(-sz * 0.42, sz * 0.28, -sz * 0.48, -sz * 0.60, 0, -sz);
+      c.fill();
+      c.restore();
+    }
+    // soft notch at each petal tip
+    c.fillStyle = color;
+    c.globalAlpha = alpha * 0.35;
+    for (let i = 0; i < 5; i++) {
+      const ang = angle0 + (i / 5) * PI2;
+      c.save();
+      c.rotate(ang);
+      c.beginPath();
+      c.arc(0, -sz * 0.88, sz * 0.18, 0, PI2);
+      c.fill();
+      c.restore();
+    }
+    // stamen
+    c.fillStyle = '#F6D84A';
+    c.globalAlpha = alpha * 0.90;
+    c.beginPath();
+    c.arc(0, 0, sz * 0.22, 0, PI2);
     c.fill();
     c.restore();
     c.globalAlpha = 1;
