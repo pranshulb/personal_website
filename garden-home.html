@@ -505,7 +505,7 @@
     // Resting hearts on the ground
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
-      if (a > 0.015) drawHeart(c, p.x, p.y, p.r, p.rot, p.color, a);
+      if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
     }
   }
 
@@ -514,7 +514,7 @@
   ================================================================ */
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
-    for (const p of airPetals) drawHeart(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
+    for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
   }
 
   /* ================================================================
@@ -531,7 +531,7 @@
     c.globalAlpha = 1;
   }
 
-  function drawHeart(c, x, y, sz, rot, color, alpha, tumble) {
+  function drawPetalShape(c, x, y, sz, rot, color, alpha, tumble) {
     if (alpha < 0.015) return;
     c.save();
     c.translate(x, y);
@@ -539,11 +539,10 @@
     if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
     c.globalAlpha = alpha;
     c.fillStyle = color;
-    // Heart path: bottom point at +sz, top dip at -sz*0.25, lobes at top
     c.beginPath();
-    c.moveTo(0, sz * 0.85);
-    c.bezierCurveTo(-sz * 1.15, sz * 0.05, -sz * 0.78, -sz * 0.85, 0, -sz * 0.20);
-    c.bezierCurveTo(sz * 0.78, -sz * 0.85, sz * 1.15, sz * 0.05, 0, sz * 0.85);
+    c.moveTo(0, -sz);
+    c.bezierCurveTo(sz * 0.55, -sz * 0.65, sz * 0.50, sz * 0.33, 0, sz * 0.75);
+    c.bezierCurveTo(-sz * 0.50, sz * 0.33, -sz * 0.55, -sz * 0.65, 0, -sz);
     c.fill();
     c.restore();
     c.globalAlpha = 1;
