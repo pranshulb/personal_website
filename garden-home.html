@@ -178,13 +178,15 @@
   let airPetals = [], groundPetals = [];
 
   /* ================================================================
-     COLORS — illustrated pinks, warm paper ink
+     COLORS — saturated watercolor pinks, dense cloud canopy
   ================================================================ */
-  const PETAL_SOFT = ['#F9D5DF','#F5C2D0','#FBEAF0','#F0ABBE','#FDE8EE','#FAE0E8','#FFF5F8','#F8D0DC'];
-  const PETAL_DEEP = ['#E07A92','#D4688A','#C9607F','#E08098'];
-  const BLOSSOM_PINKS = ['#F8C8D5','#F2B0C2','#FCDEEA','#EDAABF','#F9D8E4','#F4B8CC','#FCE8F0','#EFA8BE'];
-  const BLOSSOM_WHITE = ['#FDF0F5','#FEF5F8','#FFF0F4','#FEFAF8'];
-  const BLOSSOM_DEEP  = ['#D9728A','#CC6080','#E07890'];
+  const PETAL_SOFT = ['#F4A8BD','#EE92AB','#F0B8CC','#EBA3B8','#F5C0D0','#E8889E','#F2B0C2','#EFA0B6'];
+  const PETAL_DEEP = ['#D85878','#C04866','#CE4F70','#B83C5E','#D9637D'];
+  const BLOSSOM_HOT  = ['#E84878','#D8406A','#E25075','#D03860','#DC4870','#C9355C'];
+  const BLOSSOM_MID  = ['#F0708F','#EC628A','#E8587E','#F37A98','#EE6589'];
+  const BLOSSOM_PINK = ['#F4A0BB','#F08FAB','#F8B5C8','#EE95B0','#F2A8C0','#F5B8CD'];
+  const BLOSSOM_PALE = ['#FBD0DC','#F9C5D5','#FDDAE3','#F8C0CF','#FCE0E8'];
+  const BLOSSOM_WHITE = ['#FDF0F5','#FEF5F8','#FFF0F4'];
 
   /* ================================================================
      UTILITIES
@@ -203,10 +205,11 @@
 
   function pickBlossomColor() {
     const r = sRng();
-    if (r < 0.12) return sPick(BLOSSOM_WHITE);
-    if (r < 0.50) return sPick(BLOSSOM_PINKS);
-    if (r < 0.78) return sPick(BLOSSOM_PINKS.slice(3));
-    return sPick(BLOSSOM_DEEP);
+    if (r < 0.06) return sPick(BLOSSOM_WHITE);
+    if (r < 0.22) return sPick(BLOSSOM_PALE);
+    if (r < 0.55) return sPick(BLOSSOM_PINK);
+    if (r < 0.82) return sPick(BLOSSOM_MID);
+    return sPick(BLOSSOM_HOT);
   }
 
   // Gentle sway — subtle, not overdone
@@ -267,29 +270,44 @@
 
     out.push({ x1, y1, cx, cy, x2, y2, w, d, jx, jy });
 
-    // Blossom clusters on thinner branches — detailed 5-petal flowers
-    const maxB = isMobile ? 250 : 480;
-    if (w < 5.5 && d > 2 && blossoms.length < maxB) {
-      const n = Math.floor(sRngR(2, 5));
+    // Dense watercolor blossom mass — fluffy cloud canopy
+    const maxB = isMobile ? 600 : 1100;
+    // Mid-branch puffs
+    if (w < 8 && d > 1 && blossoms.length < maxB) {
+      const n = Math.floor(sRngR(4, 9));
       for (let i = 0; i < n; i++) {
-        const bt = sRngR(0.3, 1.0), sp = 9 + w * 1.8;
+        const bt = sRngR(0.2, 1.0), sp = 12 + w * 2.4;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + sRngR(-sp, sp),
           y: qB(y1, cy, y2, bt) + sRngR(-sp, sp),
-          r: sRngR(4, 8.5), color: pickBlossomColor(),
-          rot: sRng() * PI2, ph: sRng() * PI2, swPh: sRng() * PI2
+          r: sRngR(7, 22), color: pickBlossomColor(),
+          alpha: sRngR(0.35, 0.65),
+          ph: sRng() * PI2, swPh: sRng() * PI2
         });
       }
     }
-    // Dense tip clusters
-    if (w < 2.5 && d > 4 && blossoms.length < maxB) {
-      const n = Math.floor(sRngR(4, 9));
-      const spread = 16 + (8 - d) * 3;
+    // Dense tip clusters — the canopy mass
+    if (w < 4 && d > 3 && blossoms.length < maxB) {
+      const n = Math.floor(sRngR(10, 22));
+      const spread = 22 + (8 - d) * 5;
       for (let i = 0; i < n; i++) {
         blossoms.push({
           x: x2 + sRngR(-spread, spread), y: y2 + sRngR(-spread, spread),
-          r: sRngR(3, 7), color: pickBlossomColor(),
-          rot: sRng() * PI2, ph: sRng() * PI2, swPh: sRng() * PI2
+          r: sRngR(5, 18), color: pickBlossomColor(),
+          alpha: sRngR(0.4, 0.7),
+          ph: sRng() * PI2, swPh: sRng() * PI2
+        });
+      }
+    }
+    // Tiny saturated highlight dots — adds depth
+    if (w < 2 && d > 5 && blossoms.length < maxB) {
+      const n = Math.floor(sRngR(3, 8));
+      for (let i = 0; i < n; i++) {
+        blossoms.push({
+          x: x2 + sRngR(-12, 12), y: y2 + sRngR(-12, 12),
+          r: sRngR(2.5, 6), color: sRng() < 0.5 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
+          alpha: sRngR(0.7, 0.95),
+          ph: sRng() * PI2, swPh: sRng() * PI2
         });
       }
     }
@@ -337,17 +355,51 @@
     glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
     c.fillStyle = glow; c.fillRect(0, 0, W, H);
 
-    // Ground — simple warm strip with a faint horizon line
+    // Ground — simple warm strip
     const gY = H * 0.90;
     c.fillStyle = 'rgba(180, 140, 110, 0.045)';
     c.fillRect(0, gY, W, H - gY);
-    // Faint ground rule — like a watercolour wash line
-    c.save();
-    c.setLineDash([3, 9]);
-    c.strokeStyle = 'rgba(160, 120, 80, 0.10)';
-    c.lineWidth = 0.8;
-    c.beginPath(); c.moveTo(0, gY); c.lineTo(W, gY); c.stroke();
-    c.restore();
+
+    // Pink puddle at the base of the trunk — watercolour wash where petals have pooled
+    const trunkBaseY = H * 0.91;
+    const puddleR = isMobile ? W * 0.45 : W * 0.30;
+    // Outer light pink wash
+    const wash = c.createRadialGradient(treeX, trunkBaseY, 0, treeX, trunkBaseY + 5, puddleR);
+    wash.addColorStop(0,    'rgba(232, 100, 130, 0.42)');
+    wash.addColorStop(0.25, 'rgba(238, 140, 165, 0.30)');
+    wash.addColorStop(0.55, 'rgba(245, 180, 200, 0.16)');
+    wash.addColorStop(0.85, 'rgba(250, 210, 220, 0.06)');
+    wash.addColorStop(1,    'rgba(255, 230, 235, 0)');
+    c.fillStyle = wash;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 4, puddleR, puddleR * 0.32, 0, 0, PI2);
+    c.fill();
+
+    // Inner deeper pink pool — denser core
+    const core = c.createRadialGradient(treeX, trunkBaseY + 3, 0, treeX, trunkBaseY + 3, puddleR * 0.55);
+    core.addColorStop(0,   'rgba(216, 80, 115, 0.45)');
+    core.addColorStop(0.4, 'rgba(224, 100, 130, 0.20)');
+    core.addColorStop(1,   'rgba(232, 130, 155, 0)');
+    c.fillStyle = core;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 3, puddleR * 0.55, puddleR * 0.20, 0, 0, PI2);
+    c.fill();
+
+    // Splash droplets — irregular blobs around the puddle
+    srand(99);
+    for (let i = 0; i < 25; i++) {
+      const a = sRng() * PI2;
+      const dist = puddleR * sRngR(0.55, 1.05);
+      const px = treeX + Math.cos(a) * dist;
+      const py = trunkBaseY + 3 + Math.sin(a) * dist * 0.30;
+      const dr = sRngR(2, 8);
+      c.globalAlpha = sRngR(0.18, 0.40);
+      c.fillStyle = sRng() < 0.4 ? '#D8506E' : '#EE8AA8';
+      c.beginPath();
+      c.arc(px, py, dr, 0, PI2);
+      c.fill();
+    }
+    c.globalAlpha = 1;
   }
 
   /* ================================================================
@@ -365,11 +417,11 @@
     }
     airPetals.push({
       x: px, y: py, vx, vy,
-      r: rng(2.5, 5.5), rot: Math.random() * PI2, rotV: rng(-0.006, 0.006),
-      tumble: Math.random() * PI2, tumSpd: rng(0.003, 0.009),
+      r: rng(5, 11), rot: rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
+      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
       swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
-      color: Math.random() < 0.18 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
-      alpha: rng(0.38, 0.70)
+      color: Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
+      alpha: rng(0.55, 0.90)
     });
   }
 
@@ -444,94 +496,42 @@
       c.globalAlpha = 1;
     }
 
-    // Blossoms — illustrated 5-petal flowers
+    // Blossoms — soft overlapping watercolor blobs (cloud canopy)
     for (const b of blossoms) {
       const s = sw(b.y, b.x, b.swPh);
-      drawFlower(c, b.x + s, b.y, b.r, b.color, b.rot, b.ph);
+      drawBlossomBlob(c, b.x + s, b.y, b.r, b.color, b.alpha, b.ph);
     }
 
-    // Resting ground petals
+    // Resting hearts on the ground
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
-      if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
+      if (a > 0.015) drawHeart(c, p.x, p.y, p.r, p.rot, p.color, a);
     }
   }
 
   /* ================================================================
-     DRAW OVERLAY — floating petals only
+     DRAW OVERLAY — falling hearts
   ================================================================ */
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
-    for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
+    for (const p of airPetals) drawHeart(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
   }
 
   /* ================================================================
-     HELPERS — 5-petal flower + petal teardrop
+     HELPERS — soft blossom blob + heart petal
   ================================================================ */
-  function drawFlower(c, x, y, r, color, rot, ph) {
-    const pulse = 1 + Math.sin(t * 0.45 + ph) * 0.022;
+  function drawBlossomBlob(c, x, y, r, color, alpha, ph) {
+    const pulse = 1 + Math.sin(t * 0.4 + ph) * 0.025;
     const pr = r * pulse;
-
-    c.save();
-    c.translate(x, y);
-    c.rotate(rot);
-
-    // 5 petals — ellipses radiating outward
-    for (let i = 0; i < 5; i++) {
-      c.save();
-      c.rotate((i / 5) * PI2);
-      c.translate(0, -pr * 0.52);
-      c.globalAlpha = 0.68;
-      c.fillStyle = color;
-      c.beginPath();
-      c.ellipse(0, 0, pr * 0.30, pr * 0.43, 0, 0, PI2);
-      c.fill();
-      // Petal vein — very subtle
-      c.globalAlpha = 0.09;
-      c.strokeStyle = '#A05070';
-      c.lineWidth = 0.55;
-      c.beginPath();
-      c.moveTo(0, -pr * 0.36); c.lineTo(0, pr * 0.36);
-      c.stroke();
-      c.restore();
-    }
-
-    // Petal edge definition — gives crisp illustrated outline
-    for (let i = 0; i < 5; i++) {
-      c.save();
-      c.rotate((i / 5) * PI2);
-      c.translate(0, -pr * 0.52);
-      c.globalAlpha = 0.16;
-      c.strokeStyle = '#B86080';
-      c.lineWidth = 0.65;
-      c.beginPath();
-      c.ellipse(0, 0, pr * 0.30, pr * 0.43, 0, 0, PI2);
-      c.stroke();
-      c.restore();
-    }
-
-    // Stamen centre — warm golden
-    c.globalAlpha = 0.90;
-    c.fillStyle = '#FFD055';
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
     c.beginPath();
-    c.arc(0, 0, pr * 0.19, 0, PI2);
+    c.arc(x, y, pr, 0, PI2);
     c.fill();
-
-    // Tiny anther dots
-    c.globalAlpha = 0.60;
-    c.fillStyle = '#E08830';
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * PI2;
-      c.beginPath();
-      c.arc(Math.cos(a) * pr * 0.15, Math.sin(a) * pr * 0.15, pr * 0.052, 0, PI2);
-      c.fill();
-    }
-
-    c.restore();
     c.globalAlpha = 1;
   }
 
-  function drawPetalShape(c, x, y, sz, rot, color, alpha, tumble) {
+  function drawHeart(c, x, y, sz, rot, color, alpha, tumble) {
     if (alpha < 0.015) return;
     c.save();
     c.translate(x, y);
@@ -539,12 +539,14 @@
     if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
     c.globalAlpha = alpha;
     c.fillStyle = color;
+    // Heart path: bottom point at +sz, top dip at -sz*0.25, lobes at top
     c.beginPath();
-    c.moveTo(0, -sz);
-    c.bezierCurveTo(sz * 0.55, -sz * 0.65, sz * 0.50, sz * 0.33, 0, sz * 0.75);
-    c.bezierCurveTo(-sz * 0.50, sz * 0.33, -sz * 0.55, -sz * 0.65, 0, -sz);
+    c.moveTo(0, sz * 0.85);
+    c.bezierCurveTo(-sz * 1.15, sz * 0.05, -sz * 0.78, -sz * 0.85, 0, -sz * 0.20);
+    c.bezierCurveTo(sz * 0.78, -sz * 0.85, sz * 1.15, sz * 0.05, 0, sz * 0.85);
     c.fill();
     c.restore();
+    c.globalAlpha = 1;
   }
 
   /* ================================================================
@@ -597,17 +599,22 @@
      INIT
   ================================================================ */
   resize();
-  // Pre-scatter petals so it feels alive on load
-  for (let i = 0; i < 22; i++) {
+  // Pre-scatter hearts so it feels alive on load
+  for (let i = 0; i < 26; i++) {
     spawnPetal(true);
     const p = airPetals[airPetals.length - 1];
     p.y = rng(0, H * 0.85); p.x = rng(0, W);
   }
-  for (let i = 0; i < 18; i++) {
+  // Hearts resting on ground — concentrated around the puddle, scattered elsewhere
+  const trX = isMobile ? W * 0.5 : W * 0.7;
+  for (let i = 0; i < 35; i++) {
+    const nearPuddle = Math.random() < 0.7;
+    const px = nearPuddle ? trX + rng(-W * 0.25, W * 0.25) : rng(0, W);
     groundPetals.push({
-      x: rng(0, W), y: H * 0.90 + rng(0, H * 0.05),
-      r: rng(2, 4.5), rot: Math.random() * PI2,
-      color: pick(PETAL_SOFT), alpha: rng(0.06, 0.16), age: rng(0, 0.28)
+      x: px, y: H * 0.90 + rng(-2, H * 0.06),
+      r: rng(4, 9), rot: rng(-0.6, 0.6),
+      color: Math.random() < 0.45 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
+      alpha: rng(0.35, 0.65), age: rng(0, 0.25)
     });
   }
   frame();
