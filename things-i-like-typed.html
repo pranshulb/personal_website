@@ -222,7 +222,7 @@
     // ── type text with occasional typos + backspaces ─────────
     function typeWithMistakes(el, text, done, speed, mistakeRate) {
       const s = speed || 13;
-      const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
+      const rate = mistakeRate !== undefined ? mistakeRate : 0.015;
       el.innerHTML = '';
       el.style.visibility = 'visible';
 
