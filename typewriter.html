@@ -245,38 +245,87 @@
       });
     }
 
-    // ── type text into element char by char ──────────────────
-    // reads real content from el before clearing, so layout space stays reserved
-    function typeEl(el, done, speed) {
-      const text = el.textContent.trim();
+    // ── adjacent keyboard keys for realistic typos ──────────
+    function adjacentKey(ch) {
+      const map = {
+        a:'sqwz', b:'vghn', c:'xdfv', d:'serfcx', e:'wsdr', f:'drtgvc', g:'ftyhbv',
+        h:'gyujbn', i:'ujko', j:'huikmn', k:'jiolm', l:'kop', m:'njk', n:'bhjm',
+        o:'iklp', p:'ol', q:'wa',  r:'edft', s:'aqwedxz', t:'rfgy', u:'yhji',
+        v:'cfgb', w:'qase', x:'zsdc', y:'tghu', z:'xs'
+      };
+      const c = ch.toLowerCase();
+      const opts = map[c] || 'etaoin';
+      return opts[Math.floor(Math.random() * opts.length)];
+    }
+
+    // ── type text with occasional typos + backspaces ─────────
+    function typeWithMistakes(el, text, done, speed, mistakeRate) {
       const s = speed || 52;
-      el.innerHTML = '';                 // clear (el is still visibility:hidden → no flash)
-      el.style.visibility = 'visible';   // show
-      let i = 0;
-      function step() {
-        const fin = i >= text.length;
-        el.innerHTML = text.slice(0, i) + (fin ? '' : '<span class="cursor">&nbsp;</span>');
-        i++;
-        if (!fin) setTimeout(step, s + Math.random() * s * 0.9);
-        else if (done) setTimeout(done, 230);
+      const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
+      el.innerHTML = '';
+      el.style.visibility = 'visible';
+
+      let output = '';
+      let pos = 0;
+
+      function render(withCursor) {
+        el.innerHTML = output + (withCursor ? '<span class="cursor">&nbsp;</span>' : '');
       }
+
+      function step() {
+        if (pos >= text.length) {
+          render(false);
+          if (done) setTimeout(done, 230);
+          return;
+        }
+
+        const ch = text[pos];
+        const doMistake = pos > 3 && /[a-zA-Z]/.test(ch) && Math.random() < rate;
+
+        if (doMistake) {
+          // type wrong char
+          output += adjacentKey(ch);
+          render(true);
+          setTimeout(() => {
+            // realise mistake — pause, then backspace
+            output = output.slice(0, -1);
+            render(true);
+            setTimeout(() => {
+              // type correct char and carry on
+              output += ch;
+              pos++;
+              render(pos < text.length);
+              if (pos >= text.length) { render(false); if (done) setTimeout(done, 230); }
+              else setTimeout(step, s + Math.random() * s * 0.9);
+            }, 95 + Math.random() * 85);
+          }, 210 + Math.random() * 170);
+        } else {
+          output += ch;
+          pos++;
+          if (pos >= text.length) {
+            render(false);
+            if (done) setTimeout(done, 230);
+          } else {
+            render(true);
+            setTimeout(step, s + Math.random() * s * 0.9);
+          }
+        }
+      }
+
       step();
     }
 
-    // ── type explicit text into element ──────────────────────
-    function typeText(el, text, done, speed) {
-      const s = speed || 52;
+    // convenience: read existing DOM text, then type it with mistakes
+    function typeEl(el, done, speed) {
+      const text = el.textContent.trim();
       el.innerHTML = '';
-      el.style.visibility = 'visible';
-      let i = 0;
-      function step() {
-        const fin = i >= text.length;
-        el.innerHTML = text.slice(0, i) + (fin ? '' : '<span class="cursor">&nbsp;</span>');
-        i++;
-        if (!fin) setTimeout(step, s + Math.random() * s * 0.9);
-        else if (done) setTimeout(done, 230);
-      }
-      step();
+      typeWithMistakes(el, text, done, speed);
+    }
+
+    // type explicit string with mistakes
+    function typeText(el, text, done, speed, rate) {
+      el.innerHTML = '';
+      typeWithMistakes(el, text, done, speed, rate);
     }
 
     // ── fade reveal (visibility:hidden → visible) ─────────────
