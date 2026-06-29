@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>things i've watched — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a2a1c;
+      --ink-soft: #4e6452;
+      --paper: #f2eed8;
+      --paper-edge: #e4e0c4;
+      --accent: #3e7a4a;
+      --accent-soft: #79ab82;
+    }
+
+    body {
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      min-height: 100vh;
+      color: var(--ink);
+      line-height: 1.9;
+      background: #28382a;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(0,0,0,0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 40%);
+      padding: 3rem 1rem;
+      display: flex;
+      justify-content: center;
+      -webkit-font-smoothing: none;
+    }
+
+    .sheet {
+      position: relative;
+      max-width: 880px;
+      width: 100%;
+      background: var(--paper);
+      padding: 4rem 3.5rem 3.5rem;
+      box-shadow:
+        0 1px 1px rgba(0,0,0,0.10),
+        0 10px 30px rgba(0,0,0,0.18),
+        inset 0 0 80px rgba(180,160,130,0.12);
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(120,100,80,0.05) 31px, rgba(120,100,80,0.05) 32px);
+      border-radius: 2px;
+    }
+
+    .sheet::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--paper-edge), var(--paper), var(--paper-edge));
+      opacity: 0.6;
+    }
+
+    .stamp {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      border: 1.5px solid var(--accent-soft);
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      transform: rotate(-3deg);
+      opacity: 0.8;
+      margin-bottom: 2.5rem;
+      min-width: 7.5rem;
+      min-height: 1.5rem;
+    }
+
+    h1 {
+      font-family: 'Special Elite', monospace;
+      font-size: 2.1rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+      line-height: 1.25;
+      min-height: 2.65rem;
+    }
+
+    .typed-line {
+      font-family: 'Special Elite', monospace;
+      color: var(--ink-soft);
+      font-size: 1rem;
+      min-height: 1.9rem;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.6ch;
+      background: var(--accent);
+      color: var(--accent);
+      animation: blink 1s steps(1) infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .divider {
+      border: none;
+      border-top: 1px dashed rgba(120,100,80,0.4);
+      margin: 2rem 0;
+    }
+
+    /* ── filter controls ── */
+    .filter-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid rgba(120,100,80,0.4);
+      color: var(--ink-soft);
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      font-size: 0.82rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--accent-soft);
+      color: var(--accent);
+      background: rgba(62,122,74,0.06);
+    }
+
+    .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(62,122,74,0.10);
+      font-weight: 700;
+    }
+
+    /* ── count line ── */
+    .count {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── movie grid ── */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 1.4rem;
+      margin-bottom: 3rem;
+    }
+
+    .movie-card {
+      text-decoration: none;
+      color: var(--ink);
+      cursor: pointer;
+      display: block;
+      transition: transform 0.2s ease;
+    }
+
+    .movie-card:hover {
+      transform: translateY(-3px);
+      color: var(--ink);
+    }
+
+    .movie-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: #e4dfc8;
+      border: 1px solid rgba(120,100,80,0.25);
+      overflow: hidden;
+      margin-bottom: 0.45rem;
+      position: relative;
+    }
+
+    .movie-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      /* slight desaturation to match the aged-paper aesthetic */
+      filter: sepia(10%) saturate(90%);
+      transition: filter 0.2s ease;
+    }
+
+    .movie-card:hover .movie-poster img {
+      filter: sepia(0%) saturate(100%);
+    }
+
+    .no-poster {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: rgba(120,100,80,0.4);
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 4px,
+        rgba(120,100,80,0.04) 4px,
+        rgba(120,100,80,0.04) 8px
+      );
+    }
+
+    .movie-title {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.82rem;
+      color: var(--ink);
+      line-height: 1.35;
+      margin-bottom: 0.1rem;
+    }
+
+    .movie-year {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+    }
+
+    .movie-rating {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-top: 0.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .movie-note {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+      font-style: italic;
+      margin-top: 0.15rem;
+      line-height: 1.3;
+    }
+
+    /* ── empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--ink-soft);
+      font-style: italic;
+      grid-column: 1 / -1;
+    }
+
+    /* ── footer ── */
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid rgba(120,100,80,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer .meta {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: #a89a86;
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent-soft);
+      transition: all 0.2s ease;
+    }
+    a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(62,122,74,0.06);
+    }
+
+    /* footer back-link is a plain <a> so needs to look natural */
+    .back-link {
+      border-bottom: 1px solid var(--accent-soft);
+    }
+
+    /* ── mobile ── */
+    @media (max-width: 640px) {
+      body { padding: 1.2rem 0.6rem; }
+      .sheet { padding: 2.5rem 1.4rem 2rem; }
+      h1 { font-size: 1.55rem; }
+      .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1rem;
+      }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+  <div class="sheet">
+    <!-- stamp + h1 + tagline type in; everything else fades in after -->
+    <span class="stamp" id="el-stamp" style="visibility:hidden">SCREENING LOG</span>
+
+    <h1 id="el-h1" style="visibility:hidden">things i've watched</h1>
+    <div class="typed-line" id="el-typed" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
+
+    <!-- controls + grid revealed immediately after typing sequence -->
+    <div id="el-body" style="visibility:hidden; opacity:0">
+
+      <hr class="divider">
+
+      <div class="filter-wrap">
+        <button class="filter-btn active" data-filter="all">all</button>
+        <button class="filter-btn" data-filter="favourites">favourites ♥</button>
+        <button class="filter-btn" data-filter="movies">movies</button>
+        <button class="filter-btn" data-filter="tv">tv shows</button>
+        <button class="filter-btn" data-filter="english">english</button>
+        <button class="filter-btn" data-filter="hindi">hindi</button>
+        <button class="filter-btn" data-filter="animated">animated</button>
+      </div>
+
+      <p class="count"><span id="movie-count">0</span> things logged</p>
+
+      <div class="movie-grid" id="movieGrid"></div>
+
+      <div class="footer">
+        <a href="/typewriter" class="back-link">← back</a>
+        <span class="meta">EST. EDINBURGH · SCREENING LOG</span>
+      </div>
+
+    </div><!-- /#el-body -->
+  </div><!-- /.sheet -->
+
+<script>
+  // ============================================================
+  // MOVIE DATA
+  // tags: favourites, english, hindi, animated
+  // rating: optional, out of 5 (use half like 4.5)
+  // note: optional one-liner thought
+  // poster: TMDB poster path (or full URL)
+  // ============================================================
+
+  const TMDB_IMG = 'https://image.tmdb.org/t/p/w300';
+
+  const movies = [
+    // === HINDI ===
+    { title: "3 Idiots", year: 2009, tags: ["movies", "hindi"], poster: "/66A9MqXOyVFCssoloscw79z8Tew.jpg" },
+    { title: "Zindagi Na Milegi Dobara", year: 2011, tags: ["movies", "hindi", "favourites"], poster: "/hKO9O715wYxjkQSEv47giCYcyO8.jpg" },
+    { title: "Dil Chahta Hai", year: 2001, tags: ["movies", "hindi"], poster: "/c6Cicaf2FFmfcInfsbPTxMLk5CS.jpg" },
+    { title: "Rang De Basanti", year: 2006, tags: ["movies", "hindi"], poster: "/f1bF8CHzEu621bPSIg6XiUNAabh.jpg" },
+    { title: "Taare Zameen Par", year: 2007, tags: ["movies", "hindi", "favourites"], poster: "/puHRt6Raovm5ujGCdwLWvRv4NHU.jpg" },
+    { title: "PK", year: 2014, tags: ["movies", "hindi"], poster: "/pzSN4XWmmU9uDeLu3aUw6OclGeD.jpg" },
+    { title: "Barfi!", year: 2012, tags: ["movies", "hindi"], poster: "/5cJIx2zKjDoUtPSliou23xsReb1.jpg" },
+    { title: "Wake Up Sid", year: 2009, tags: ["movies", "hindi"], poster: "/1UpgW67W6Do0xizTuE26bMQFLdL.jpg" },
+    { title: "Yeh Jawaani Hai Deewani", year: 2013, tags: ["movies", "hindi"], poster: "/em39H81XLCDgXsI7V4IcBZseEO6.jpg" },
+    { title: "Munna Bhai M.B.B.S.", year: 2003, tags: ["movies", "hindi"], poster: "/nZNUTxGsSB4nLEC9Bpa2xfu81qV.jpg" },
+    { title: "Jab Tak Hai Jaan", year: 2012, tags: ["movies", "hindi"], poster: "/1TlzJZrzUlaC95Noqt3oMoxQxCu.jpg" },
+    { title: "Kal Ho Naa Ho", year: 2003, tags: ["movies", "hindi"], poster: "/zhMI6I0kSLnewTMwE0A8Tz3Cj2f.jpg" },
+    { title: "Animal", year: 2023, tags: ["movies", "hindi"], poster: "/hr9rjR3J0xBBKmlJ4n3gHId9ccx.jpg" },
+    { title: "Dear Zindagi", year: 2016, tags: ["movies", "hindi"], poster: "/oUg0N2isgZ5rrxdXnsemcKolfKZ.jpg" },
+    { title: "Hera Pheri", year: 2000, tags: ["movies", "hindi"], poster: "/23MKGUPT5laTStim4TaGhfgSltu.jpg" },
+    { title: "Phir Hera Pheri", year: 2006, tags: ["movies", "hindi"], poster: "/c1Mvyd983ZyrU5Vf2aKEe6WncSq.jpg" },
+    { title: "Raees", year: 2017, tags: ["movies", "hindi"], poster: "/zFYFUfnoXWxeA3n7v4acEqgk2iE.jpg" },
+    { title: "Super 30", year: 2019, tags: ["movies", "hindi"], poster: "/n0LdZvEqZjnSQSHzzwryFBYjXk1.jpg" },
+    { title: "Chhichhore", year: 2019, tags: ["movies", "hindi"], poster: "/cGDPQtQ5igtPMt3oJ6BCAor6dFp.jpg" },
+    { title: "Badhaai Ho", year: 2018, tags: ["movies", "hindi"], poster: "https://m.media-amazon.com/images/M/MV5BNjk5NjcyZTItMzE4OC00OWY5LWJmMTUtNzZjNmMwODFkNjkxXkEyXkFqcGc@._V1_SX300.jpg" },
+    { title: "Shakuntala Devi", year: 2020, tags: ["movies", "hindi"], poster: "https://m.media-amazon.com/images/M/MV5BYTYyYTg2NDctYjU1Yi00ZjcwLTlkZjEtMTZkMGM0MTQxZDQ3XkEyXkFqcGc@._V1_SX300.jpg" },
+    { title: "Uri: The Surgical Strike", year: 2019, tags: ["movies", "hindi"], poster: "/yNySAgpAnWmPpYinim9E0tUzJWG.jpg" },
+    { title: "RRR", year: 2022, tags: ["movies", "hindi"], poster: "/u0XUBNQWlOvrh0Gd97ARGpIkL0.jpg" },
+    { title: "Dhoom", year: 2004, tags: ["movies", "hindi"], poster: "/A7fxXAsuYEohxYNl8YeH3FYkuDv.jpg" },
+    { title: "Dhoom 2", year: 2006, tags: ["movies", "hindi"], poster: "/gTqef9ZqiAl4Bb2ESdAVUdMwDwa.jpg" },
+    { title: "Dhoom 3", year: 2013, tags: ["movies", "hindi"], poster: "/rUVTM5EQUQ2I0fcfE46AkvBYWae.jpg" },
+    { title: "Krrish", year: 2006, tags: ["movies", "hindi"], poster: "/Apd4UKesyTmpDutEjNVHP45kvBi.jpg" },
+    { title: "Krrish 3", year: 2013, tags: ["movies", "hindi"], poster: "/lJOPh0j0L1IA5mJvHf2RNRdzFlO.jpg" },
+    { title: "Dabangg", year: 2010, tags: ["movies", "hindi"], poster: "/bi2J6IrRK7oFK63EMbzORIos8KP.jpg" },
+    { title: "Dabangg 2", year: 2012, tags: ["movies", "hindi"], poster: "/11lo9arlgCOcgVPVQ025v071YpM.jpg" },
+    { title: "Chennai Express", year: 2013, tags: ["movies", "hindi"], poster: "/9j7XfhBJKNfidMCa8JsNbqU1waV.jpg" },
+    { title: "Golmaal", year: 2006, tags: ["movies", "hindi"], poster: "/3ubefqLk26Gy0lXCfGIu8hQrBak.jpg" },
+    { title: "Golmaal Returns", year: 2008, tags: ["movies", "hindi"], poster: "/2X6ZSlnBpgsOpH0ELDraWTD4QO7.jpg" },
+    { title: "Golmaal 3", year: 2010, tags: ["movies", "hindi"], poster: "/S2BE87q5g8HWDVfoEU8QN9UXfn.jpg" },
+    { title: "Golmaal Again", year: 2017, tags: ["movies", "hindi"], poster: "/kGx26PL1v658T8XbOk5MfmNpHU3.jpg" },
+    { title: "Housefull", year: 2010, tags: ["movies", "hindi"], poster: "/koPiIQ7evC5rer6modUDxoZjYV.jpg" },
+    { title: "Housefull 2", year: 2012, tags: ["movies", "hindi"], poster: "/y6L3GpfXWqfO7COtUyiEeACH35G.jpg" },
+    { title: "Housefull 3", year: 2016, tags: ["movies", "hindi"], poster: "/6Udose5F7a9SdNf8HlNMovtDMM9.jpg" },
+    { title: "Housefull 4", year: 2019, tags: ["movies", "hindi"], poster: "/aCJOZzWV6cpZ9p9tmfEzXq4EqN8.jpg" },
+    { title: "Welcome", year: 2007, tags: ["movies", "hindi"], poster: "/fudxnXlTTBIDCkpR7XhlIgkNaUY.jpg" },
+    { title: "Dhamaal", year: 2007, tags: ["movies", "hindi"], poster: "/pQgU9W1OyHDxBOZcJpVLc2E8gQa.jpg" },
+    { title: "Double Dhamaal", year: 2011, tags: ["movies", "hindi"], poster: "/ysGYrjeAdIXZULLVdGzwliqGHyU.jpg" },
+    { title: "OMG: Oh My God!", year: 2012, tags: ["movies", "hindi"], poster: "/oK0a8JhcGZnuKMc5FNkmtpfeMn9.jpg" },
+    { title: "Jab We Met", year: 2007, tags: ["movies", "hindi"], poster: "/iqiH6vnoEgjAypKsuIScN7JlE2j.jpg" },
+    { title: "Bhootnath", year: 2008, tags: ["movies", "hindi"], poster: "/2Tvwmsu4ihzDiltXxPWI4RwTF3W.jpg" },
+    { title: "Luka Chuppi", year: 2019, tags: ["movies", "hindi"], poster: "/pa7zam9rAUBZEbfEuFQszaId4tQ.jpg" },
+    { title: "Sholay", year: 1975, tags: ["movies", "hindi"], poster: "/ya9bwgqA4eNl5bQ9QqS0jcmRoBS.jpg" },
+    { title: "Dilwale Dulhania Le Jayenge", year: 1995, tags: ["movies", "hindi"], poster: "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg" },
+    { title: "Kabhi Khushi Kabhie Gham", year: 2001, tags: ["movies", "hindi"], poster: "/12BvYKueY0eruZuTYIextEZaCC.jpg" },
+    { title: "Rockstar", year: 2011, tags: ["movies", "hindi"], poster: "/cJZC9riwrdATBUonkZJZD6y9g40.jpg" },
+    { title: "Tamasha", year: 2015, tags: ["movies", "hindi", "favourites"], poster: "/8Ktf15qGVFYQ6CdBtBgCDM96UMC.jpg" },
+    { title: "12th Fail", year: 2023, tags: ["movies", "hindi"], poster: "/eebUPRI4Z5e1Z7Hev4JZAwMIFkX.jpg" },
+    { title: "Dilwale", year: 2015, tags: ["movies", "hindi"], poster: "/pYgPu6hhOr61knwbestTx4vSdMb.jpg" },
+    { title: "Happy New Year", year: 2014, tags: ["movies", "hindi"], poster: "/5kv0trpR00030JmZbLnLMBKIrtD.jpg" },
+    { title: "Sultan", year: 2016, tags: ["movies", "hindi"], poster: "/4APzDEoIErzmJZgfNnXGuJ9jkuL.jpg" },
+    { title: "Toilet: Ek Prem Katha", year: 2017, tags: ["movies", "hindi"], poster: "/8YUBka56t4HcHLVMGnGA1WizpMV.jpg" },
+    { title: "Kesari", year: 2019, tags: ["movies", "hindi"], poster: "/ctjT1pMNAGD9ou0kuhz806tf7kX.jpg" },
+    { title: "Kesari Chapter 2: The Untold Story of Jallianwala Bagh", year: 2025, tags: ["movies", "hindi"], poster: "/jgGSqe1YgSot6Y1zDVTVkbsZ46z.jpg" },
+    { title: "Fukrey", year: 2013, tags: ["movies", "hindi"], poster: "/wAXcxLLFKeqFdlhORajj4pZrPTz.jpg" },
+    { title: "Fukrey Returns", year: 2017, tags: ["movies", "hindi"], poster: "/AclYkwVFwS8yxMWj4riYqRaE0w0.jpg" },
+    { title: "Total Dhamaal", year: 2019, tags: ["movies", "hindi"], poster: "/tegQNllG9HfRWexDIkK8wMwC6ce.jpg" },
+    { title: "Ae Dil Hai Mushkil", year: 2016, tags: ["movies", "hindi"], poster: "/hlDOF4UhUqrYY7gqLk3Rl0Fx4ns.jpg" },
+    { title: "Bajirao Mastani", year: 2015, tags: ["movies", "hindi"], poster: "/qMOYKLt9XtGp4d4vTTHGJ8viR0H.jpg" },
+    { title: "Bang Bang!", year: 2014, tags: ["movies", "hindi"], poster: "/6ukTOJ3VNqrR0un8nolKoIlgn1V.jpg" },
+    { title: "Koi... Mil Gaya", year: 2003, tags: ["movies", "hindi"], poster: "/j3ANnag8WzQPZfMRWHwL7wH96uC.jpg" },
+    { title: "Piku", year: 2015, tags: ["movies", "hindi"], poster: "/yo7EZWiLpLGhqs3YnlDGDBPjfTb.jpg" },
+
+    // === ENGLISH (ANIMATED) ===
+    { title: "Kung Fu Panda", year: 2008, tags: ["movies", "english"], poster: "/wWt4JYXTg5Wr3xBW2phBrMKgp3x.jpg" },
+    { title: "Kung Fu Panda 2", year: 2011, tags: ["movies", "english"], poster: "/mtqqD00vB4PGRt20gWtGqFhrkd0.jpg" },
+    { title: "Kung Fu Panda 3", year: 2016, tags: ["movies", "english"], poster: "/oajNi4Su39WAByHI6EONu8G8HYn.jpg" },
+    { title: "Kung Fu Panda 4", year: 2024, tags: ["movies", "english"], poster: "/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg" },
+
+    // === ENGLISH ===
+    { title: "Interstellar", year: 2014, tags: ["movies", "english"], poster: "/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg" },
+    { title: "Inception", year: 2010, tags: ["movies", "english"], poster: "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg" },
+    { title: "The Dark Knight", year: 2008, tags: ["movies", "english"], poster: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
+    { title: "Fight Club", year: 1999, tags: ["movies", "english"], poster: "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg" },
+    { title: "The Shawshank Redemption", year: 1994, tags: ["movies", "english"], poster: "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg" },
+    { title: "Forrest Gump", year: 1994, tags: ["movies", "english"], poster: "/saHP97rTPS5eLmrLQEcANmKrsFl.jpg" },
+    { title: "The Social Network", year: 2010, tags: ["movies", "english"], poster: "/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg" },
+    { title: "Good Will Hunting", year: 1997, tags: ["movies", "english"], poster: "/z2FnLKpFi1HPO7BEJxdkv6hpJSU.jpg" },
+    { title: "Dead Poets Society", year: 1989, tags: ["movies", "english"], poster: "/l5NbiHKUmahlAT3Q1ig8Tyl9xrc.jpg" },
+    { title: "The Matrix", year: 1999, tags: ["movies", "english"], poster: "/p96dm7sCMn4VYAStA6siNz30G1r.jpg" },
+    { title: "Whiplash", year: 2014, tags: ["movies", "english", "favourites"], poster: "/7fn624j5lj3xTme2SgiLCeuedmO.jpg" },
+    { title: "La La Land", year: 2016, tags: ["movies", "english"], poster: "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg" },
+    { title: "Crazy, Stupid, Love.", year: 2011, tags: ["movies", "english"], poster: "/p4RafgAPk558muOjnBMHhMArjS2.jpg" },
+    { title: "Joker", year: 2019, tags: ["movies", "english"], poster: "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg" },
+    { title: "The Truman Show", year: 1998, tags: ["movies", "english"], poster: "/vuza0WqY239yBXOadKlGwJsZJFE.jpg" },
+    { title: "Marriage Story", year: 2019, tags: ["movies", "english"], poster: "/2JRyCKaRKyJAVpsIHeLvPw5nHmw.jpg" },
+    { title: "Manchester by the Sea", year: 2016, tags: ["movies", "favourites", "english"], poster: "/o9VXYOuaJxCEKOxbA86xqtwmqYn.jpg" },
+    { title: "The Amazing Spider-Man", year: 2012, tags: ["movies", "english"], poster: "/jexoNYnPd6vVrmygwF6QZmWPFdu.jpg" },
+    { title: "The Amazing Spider-Man 2", year: 2014, tags: ["movies", "english"], poster: "/bU7nTmvmy0h3VUP01v1T2imgH6N.jpg" },
+    { title: "BlacKkKlansman", year: 2018, tags: ["movies", "english"], poster: "/8jxqAvSDoneSKRczaK8v9X5gqBp.jpg" },
+    { title: "Grown Ups", year: 2010, tags: ["movies", "english"], poster: "/cQGM5k1NtU85n4TUlrOrwijSCcm.jpg" },
+    { title: "Grown Ups 2", year: 2013, tags: ["movies", "english"], poster: "/hT6ijOtjtYrnyDhN7VA2QWyGFAm.jpg" },
+    { title: "Bo Burnham: Inside", year: 2021, tags: ["movies", "english"], poster: "/ku1UvTWYvhFQbSesOD6zteY7bXT.jpg" },
+    { title: "Bo Burnham: Make Happy", year: 2016, tags: ["movies", "english"], poster: "/qVThhskXZZHDfj4m8jOx2CxIVIW.jpg" },
+    { title: "Pixels", year: 2015, tags: ["movies", "english"], poster: "/d26S5EfVXLNxRXqyFy1yyl3qRq3.jpg" },
+    { title: "Justice League", year: 2017, tags: ["movies", "english"], poster: "/eifGNCSDuxJeS1loAXil5bIGgvC.jpg" },
+    { title: "Puss in Boots: The Last Wish", year: 2022, tags: ["movies", "english"], poster: "/kuf6dutpsT0vSVehic3EZIqkOBt.jpg" },
+    { title: "Hulk", year: 2003, tags: ["movies", "english"], poster: "/UllIft2jLSBaay3zQyMV4GNdfy.jpg" },
+    { title: "Venom: Let There Be Carnage", year: 2021, tags: ["movies", "english"], poster: "/pzKsRuKLFmYrW5Q0q8E8G78Tcgo.jpg" },
+    { title: "Aquaman", year: 2018, tags: ["movies", "english"], poster: "/ufl63EFcc5XpByEV2Ecdw6WJZAI.jpg" },
+    { title: "Bohemian Rhapsody", year: 2018, tags: ["movies", "english"], poster: "/lHu1wtNaczFPGFDTrjCSzeLPTKN.jpg" },
+    { title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, tags: ["movies", "english"], poster: "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg" },
+    { title: "The Lord of the Rings: The Two Towers", year: 2002, tags: ["movies", "english"], poster: "/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg" },
+    { title: "The Lord of the Rings: The Return of the King", year: 2003, tags: ["movies", "english"], poster: "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg" },
+    { title: "Fantastic Fungi", year: 2019, tags: ["movies", "english"], poster: "/giIGfFqirPk3I2azp8Ow98oOnzG.jpg" },
+    { title: "Have a Good Trip", year: 2020, tags: ["movies", "english"], poster: "/x3NX8v5t8a0yabCnlskpjXPkRKP.jpg" },
+    { title: "Big Daddy", year: 1999, tags: ["movies", "english"], poster: "/cqFnFg6YS8urJT6YC95IDkn0VHz.jpg" },
+    { title: "Fantastic Beasts: The Secrets of Dumbledore", year: 2022, tags: ["movies", "english"], poster: "/3c5GNLB4yRSLBby0trHoA1DSQxQ.jpg" },
+    { title: "The Matrix Reloaded", year: 2003, tags: ["movies", "english"], poster: "/aA5qHS0FbSXO8PxcxUIHbDrJyuh.jpg" },
+    { title: "The Matrix Revolutions", year: 2003, tags: ["movies", "english"], poster: "/bkkS61w94ZVMNVd8KEyyJl2tnY5.jpg" },
+    { title: "Operation Varsity Blues: The College Admissions Scandal", year: 2021, tags: ["movies", "english"], poster: "/qZJuctnatinO0OpnruGOWaT4Bga.jpg" },
+    { title: "Fifty Shades of Grey", year: 2015, tags: ["movies", "english"], poster: "/63kGofUkt1Mx0SIL4XI4Z5AoSgt.jpg" },
+    { title: "The Tourist", year: 2010, tags: ["movies", "english"], poster: "/oXe1nw4HcS32YVpvxwsWEVdvEXA.jpg" },
+    { title: "Man of Steel", year: 2013, tags: ["movies", "english"], poster: "/8GFtkImmK0K1VaUChR0n9O61CFU.jpg" },
+    { title: "The Batman", year: 2022, tags: ["movies", "english"], poster: "/74xTEgt7R36Fpooo50r9T25onhq.jpg" },
+    { title: "Ex Machina", year: 2015, tags: ["movies", "english"], poster: "/dmJW8IAKHKxFNiUnoDR7JfsK7Rp.jpg" },
+    { title: "Mr. & Mrs. Smith", year: 2005, tags: ["movies", "english"], poster: "/kjD700RtyhveN3ZbOnSvUSne0Qj.jpg" },
+    { title: "The Girl Next Door", year: 2004, tags: ["movies", "english"], poster: "/5mVyFHSY2rSsNgD4NfEwV82HigU.jpg" },
+    { title: "Love & Other Drugs", year: 2010, tags: ["movies", "english"], poster: "/wZLM2uKJRYNchLmiCIjosX0rXy8.jpg" },
+    { title: "A Trip to Infinity", year: 2022, tags: ["movies", "english"], poster: "/24EXccaDuDEMYp7eVvsCicj5K41.jpg" },
+    { title: "Titanic", year: 1997, tags: ["movies", "english"], poster: "/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg" },
+    { title: "Pirates of the Caribbean: The Curse of the Black Pearl", year: 2003, tags: ["movies", "english"], poster: "/poHwCZeWzJCShH7tOjg8RIoyjcw.jpg" },
+    { title: "Pirates of the Caribbean: Dead Man's Chest", year: 2006, tags: ["movies", "english"], poster: "/uXEqmloGyP7UXAiphJUu2v2pcuE.jpg" },
+    { title: "Pirates of the Caribbean: At World's End", year: 2007, tags: ["movies", "english"], poster: "/jGWpG4YhpQwVmjyHEGkxEkeRf0S.jpg" },
+    { title: "Pirates of the Caribbean: On Stranger Tides", year: 2011, tags: ["movies", "english"], poster: "/keGfSvCmYj7CvdRx36OdVrAEibE.jpg" },
+    { title: "Pirates of the Caribbean: Dead Men Tell No Tales", year: 2017, tags: ["movies", "english"], poster: "/6lAPOAFYFWIO3SQRemEY2wInQMC.jpg" },
+    { title: "Dunkirk", year: 2017, tags: ["movies", "english"], poster: "/b4Oe15CGLL61Ped0RAS9JpqdmCt.jpg" },
+    { title: "Tenet", year: 2020, tags: ["movies", "english"], poster: "/aCIFMriQh8rvhxpN1IWGgvH0Tlg.jpg" },
+    { title: "Gravity", year: 2013, tags: ["movies", "english"], poster: "/kZ2nZw8D681aphje8NJi8EfbL1U.jpg" },
+    { title: "The Lion King", year: 1994, tags: ["movies", "english"], poster: "/sKCr78MXSLixwmZ8DyJLrpMsd15.jpg" },
+    { title: "A Beautiful Mind", year: 2001, tags: ["movies", "english"], poster: "/zwzWCmH72OSC9NA0ipoqw5Zjya8.jpg" },
+    { title: "Batman v Superman: Dawn of Justice", year: 2016, tags: ["movies", "english"], poster: "/5UsK3grJvtQrtzEgqNlDljJW96w.jpg" },
+    { title: "Suicide Squad", year: 2016, tags: ["movies", "english"], poster: "/sk3FZgh3sRrmr8vyhaitNobMcfh.jpg" },
+    { title: "Wonder Woman", year: 2017, tags: ["movies", "english"], poster: "/v4ncgZjG2Zu8ZW5al1vIZTsSjqX.jpg" },
+    { title: "Shazam!", year: 2019, tags: ["movies", "english"], poster: "/xnopI5Xtky18MPhK40cZAGAOVeV.jpg" },
+    { title: "Batman Begins", year: 2005, tags: ["movies", "english"], poster: "/sPX89Td70IDDjVr85jdSBb4rWGr.jpg" },
+    { title: "The Dark Knight Rises", year: 2012, tags: ["movies", "english"], poster: "/hr0L2aueqlP2BYUblTTjmtn0hw4.jpg" },
+    { title: "Superman", year: 2025, tags: ["movies", "english"], poster: "/ldyfo0BKmz5rWtJJKCvwaNS4cJT.jpg" },
+    { title: "A Minecraft Movie", year: 2025, tags: ["movies", "english"], poster: "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg" },
+    { title: "Wuthering Heights", year: 2026, tags: ["movies", "english"], poster: "/3YBce6dTh1D5oCMITXk2S5QhPt.jpg" },
+    { title: "Toy Story", year: 1995, tags: ["movies", "english"], poster: "/uXDfjJbdP4ijW5hWSBrPrlKpxab.jpg" },
+    { title: "Catch Me If You Can", year: 2002, tags: ["movies", "english"], poster: "/ctjEj2xM32OvBXCq8zAdK3ZrsAj.jpg" },
+    { title: "Inside Out", year: 2015, tags: ["movies", "english"], poster: "/2H1TmgdfNtsKlU9jKdeNyYL5y8T.jpg" },
+    { title: "Hacksaw Ridge", year: 2016, tags: ["movies", "english"], poster: "/fnOMP6mjmOmZwmlC1n0K7ivrzt1.jpg" },
+    { title: "Before Sunrise", year: 1995, tags: ["movies", "english"], poster: "/kf1Jb1c2JAOqjuzA3H4oDM263uB.jpg" },
+    { title: "Before Sunset", year: 2004, tags: ["movies", "english"], poster: "/4sW5XH9ZfYXpvFzev00S1IGAEbg.jpg" },
+    { title: "Before Midnight", year: 2013, tags: ["movies", "english"], poster: "/qbGKJmNUroDz75kh5Oafoall89e.jpg" },
+    { title: "How to Train Your Dragon", year: 2010, tags: ["movies", "english"], poster: "/ygGmAO60t8GyqUo9xYeYxSZAR3b.jpg" },
+    { title: "Sherlock Holmes", year: 2009, tags: ["movies", "english"], poster: "/momkKuWburNTqKBF6ez7rvhYVhE.jpg" },
+    { title: "Sherlock Holmes: A Game of Shadows", year: 2011, tags: ["movies", "english"], poster: "/y1MYZkwhZK6L0Jy4YMuPktzDOfn.jpg" },
+    { title: "The Incredibles", year: 2004, tags: ["movies", "english"], poster: "/2LqaLgk4Z226KkgPJuiOQ58wvrm.jpg" },
+    { title: "The Perks of Being a Wallflower", year: 2012, tags: ["movies", "favourites", "english"], poster: "/aKCvdFFF5n80P2VdS7d8YBwbCjh.jpg" },
+    { title: "Eternal Sunshine of the Spotless Mind", year: 2004, tags: ["movies", "english"], poster: "/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg" },
+    { title: "(500) Days of Summer", year: 2009, tags: ["movies", "english"], poster: "/qXAuQ9hF30sQRsXf40OfRVl0MJZ.jpg" },
+    { title: "Silver Linings Playbook", year: 2012, tags: ["movies", "english"], poster: "/fhHB1uvfFKKFbj6bTKE8xdtsjKi.jpg" },
+    { title: "The Namesake", year: 2006, tags: ["movies", "english"], poster: "/hxrf7HDwh0nIX4xXE06BdpEKW1V.jpg" },
+    { title: "Taarzan: The Wonder Car", year: 2004, tags: ["movies", "hindi"], poster: "/q3c61F5c987j5dbV3i6acsDPvqW.jpg" },
+    { title: "Madagascar", year: 2005, tags: ["movies", "english", "animated"], poster: "/zMpJY5CJKUufG9OTw0In4eAFqPX.jpg" },
+    { title: "Madagascar: Escape 2 Africa", year: 2008, tags: ["movies", "english", "animated"], poster: "/agRbLOHgN46TQO4YdKR462iR7To.jpg" },
+    { title: "Madagascar 3: Europe's Most Wanted", year: 2012, tags: ["movies", "english", "animated"], poster: "/1uTqIK8JSy3DE9QJFNVvYg45zhJ.jpg" },
+    { title: "Penguins of Madagascar", year: 2014, tags: ["movies", "english", "animated"], poster: "/rQj3xmMJ9SaBzIrpzslPCBcaG4F.jpg" },
+
+    // === MCU ===
+    { title: "Iron Man", year: 2008, tags: ["movies", "english"], poster: "/78lPtwv72eTNqFW9COBYI0dWDJa.jpg" },
+    { title: "The Incredible Hulk", year: 2008, tags: ["movies", "english"], poster: "/gKzYx79y0AQTL4UAk1cBQJ3nvrm.jpg" },
+    { title: "Iron Man 2", year: 2010, tags: ["movies", "english"], poster: "/6WBeq4fCfn7AN0o21W9qNcRF2l9.jpg" },
+    { title: "Thor", year: 2011, tags: ["movies", "english"], poster: "/prSfAi1xGrhLQNxVSUFh61xQ4Qy.jpg" },
+    { title: "Captain America: The First Avenger", year: 2011, tags: ["movies", "english"], poster: "/vSNxAJTlD0r02V9sPYpOjqDZXUK.jpg" },
+    { title: "The Avengers", year: 2012, tags: ["movies", "english"], poster: "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg" },
+    { title: "Iron Man 3", year: 2013, tags: ["movies", "english"], poster: "/qhPtAc1TKbMPqNvcdXSOn9Bn7hZ.jpg" },
+    { title: "Thor: The Dark World", year: 2013, tags: ["movies", "english"], poster: "/wp6OxE4poJ4G7c0U2ZIXasTSMR7.jpg" },
+    { title: "Captain America: The Winter Soldier", year: 2014, tags: ["movies", "english"], poster: "/tVFRpFw3xTedgPGqxW0AOI8Qhh0.jpg" },
+    { title: "Guardians of the Galaxy", year: 2014, tags: ["movies", "english"], poster: "/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg" },
+    { title: "Avengers: Age of Ultron", year: 2015, tags: ["movies", "english"], poster: "/4ssDuvEDkSArWEdyBl2X5EHvYKU.jpg" },
+    { title: "Ant-Man", year: 2015, tags: ["movies", "english"], poster: "/rQRnQfUl3kfp78nCWq8Ks04vnq1.jpg" },
+    { title: "Captain America: Civil War", year: 2016, tags: ["movies", "english"], poster: "/rAGiXaUfPzY7CDEyNKUofk3Kw2e.jpg" },
+    { title: "Doctor Strange", year: 2016, tags: ["movies", "english"], poster: "/xf8PbyQcR5ucXErmZNzdKR0s8ya.jpg" },
+    { title: "Guardians of the Galaxy Vol. 2", year: 2017, tags: ["movies", "english"], poster: "/y4MBh0EjBlMuOzv9axM4qJlmhzz.jpg" },
+    { title: "Spider-Man: Homecoming", year: 2017, tags: ["movies", "english"], poster: "/c24sv2weTHPsmDa7jEMN0m2P3RT.jpg" },
+    { title: "Thor: Ragnarok", year: 2017, tags: ["movies", "english"], poster: "/rzRwTcFvttcN1ZpX2xv4j3tSdJu.jpg" },
+    { title: "Black Panther", year: 2018, tags: ["movies", "english"], poster: "/uxzzxijgPIY7slzFvMotPv8wjKA.jpg" },
+    { title: "Avengers: Infinity War", year: 2018, tags: ["movies", "english"], poster: "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg" },
+    { title: "Ant-Man and the Wasp", year: 2018, tags: ["movies", "english"], poster: "/cFQEO687n1K6umXbInzocxcnAQz.jpg" },
+    { title: "Captain Marvel", year: 2019, tags: ["movies", "english"], poster: "/AtsgWhDnHTq68L0lLsUrCnM7TjG.jpg" },
+    { title: "Avengers: Endgame", year: 2019, tags: ["movies", "english"], poster: "/ulzhLuWrPK07P1YkdWQLZnQh1JL.jpg" },
+    { title: "Spider-Man: No Way Home", year: 2021, tags: ["movies", "english"], poster: "/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" },
+    { title: "Doctor Strange in the Multiverse of Madness", year: 2022, tags: ["movies", "english"], poster: "/ddJcSKbcp4rKZTmuyWaMhuwcfMz.jpg" },
+    { title: "Thor: Love and Thunder", year: 2022, tags: ["movies", "english"], poster: "/pIkRyD18kl4FhoCNQuWxWu5cBLM.jpg" },
+    { title: "Black Panther: Wakanda Forever", year: 2022, tags: ["movies", "english"], poster: "/sv1xJUazXeYqALzczSZ3O6nkH75.jpg" },
+    { title: "Harry Potter and the Philosopher's Stone", year: 2001, tags: ["movies", "english"], poster: "/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg" },
+    { title: "Harry Potter and the Chamber of Secrets", year: 2002, tags: ["movies", "english"], poster: "/sdEOH0992YZ0QSxgXNIGLq1ToUi.jpg" },
+    { title: "Harry Potter and the Prisoner of Azkaban", year: 2004, tags: ["movies", "english"], poster: "/aWxwnYoe8p2d2fcxOqtvAtJ72Rw.jpg" },
+    { title: "Harry Potter and the Goblet of Fire", year: 2005, tags: ["movies", "english"], poster: "/fECBtHlr0RB3foNHDiCBXeg9Bv9.jpg" },
+    { title: "Harry Potter and the Order of the Phoenix", year: 2007, tags: ["movies", "english"], poster: "/5aOyriWkPec0zUDxmHFP9qMmBaj.jpg" },
+    { title: "Harry Potter and the Half-Blood Prince", year: 2009, tags: ["movies", "english"], poster: "/z7uo9zmQdQwU5ZJHFpv2Upl30i1.jpg" },
+    { title: "Harry Potter and the Deathly Hallows: Part 1", year: 2010, tags: ["movies", "english"], poster: "/iGoXIpQb7Pot00EEdwpwPajheZ5.jpg" },
+    { title: "Harry Potter and the Deathly Hallows: Part 2", year: 2011, tags: ["movies", "english"], poster: "/c54HpQmuwXjHq2C9wmoACjxoom3.jpg" },
+
+    { title: "Perfect Days", year: 2023, tags: ["movies", "english"], poster: "/mjEk5Wwx6TYVqw29zSaUHclMIgp.jpg" },
+    { title: "Groundhog Day", year: 1993, tags: ["movies", "english"], poster: "/gCgt1WARPZaXnq523ySQEUKinCs.jpg" },
+    { title: "Beautiful Boy", year: 2018, tags: ["movies", "english"], poster: "/u2Gfv0mz3xePsgyCPHovrnFL1sB.jpg" },
+    { title: "The Wolf of Wall Street", year: 2013, tags: ["movies", "english"], poster: "/kW9LmvYHAaS9iA0tHmZVq8hQYoq.jpg" },
+    { title: "Meet Joe Black", year: 1998, tags: ["movies", "english"], poster: "/fDPAjvfPMomkKF7cMRmL5Anak61.jpg" },
+    { title: "The Intouchables", year: 2011, tags: ["movies", "english"], poster: "/1QU7HKgsQbGpzsJbJK4pAVQV9F5.jpg" },
+    { title: "Atonement", year: 2007, tags: ["movies", "english"], poster: "/hMRIyBjPzxaSXWM06se3OcNjIQa.jpg" },
+    { title: "The Boys", year: 2019, tags: ["tv", "english"], poster: "/in1R2dDc421JxsoRWaIIAqVI2KE.jpg" },
+    { title: "The Good Place", year: 2016, tags: ["tv", "english"], poster: "/qIhsuhoIYR5yTnDta0IL4senbeN.jpg" },
+    { title: "Due Date", year: 2010, tags: ["movies", "english"], poster: "/sBxWS09pOOyXZ0dcnqfqqCAQGan.jpg" },
+    { title: "Jobs", year: 2013, tags: ["movies", "english"], poster: "/mOyZ0UAWaOJartFq2G3Cv0soFtQ.jpg" },
+    { title: "The Imitation Game", year: 2014, tags: ["movies", "favourites", "english"], poster: "/tgrCAy07tXRXdUawoTmkwEd8ueR.jpg" },
+    { title: "The Man Who Knew Infinity", year: 2015, tags: ["movies", "english"], poster: "/v2X1BtkxaV8pzLbmM8a5gTdpg7B.jpg" },
+    { title: "The Theory of Everything", year: 2014, tags: ["movies", "english"], poster: "/kJuL37NTE51zVP3eG5aGMyKAIlh.jpg" },
+    { title: "The Bucket List", year: 2007, tags: ["movies", "english"], poster: "/idbNSe8zsYKQL97dJApfOrDSdya.jpg" },
+    { title: "He's Just Not That Into You", year: 2009, tags: ["movies", "english"], poster: "https://m.media-amazon.com/images/M/MV5BMTY5MTUyNDgwMF5BMl5BanBnXkFtZTcwNzYzMDQyMg@@._V1_SX300.jpg" },
+    { title: "Gifted", year: 2017, tags: ["movies", "english"], poster: "/9Ts7Vc4wLlpI9oox9mkVUE1tBHy.jpg" },
+    { title: "Oppenheimer", year: 2023, tags: ["movies", "english"], poster: "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
+    { title: "Steve Jobs", year: 2015, tags: ["movies", "english"], poster: "/ljiRO29Y9khEERRqMluptUYunJ9.jpg" },
+    { title: "Gladiator", year: 2000, tags: ["movies", "english"], poster: "/wN2xWp1eIwCKOD0BHTcErTBv1Uq.jpg" },
+    { title: "Marty Supreme", year: 2025, tags: ["movies", "english"], poster: "/lYWEXbQgRTR4ZQleSXAgRbxAjvq.jpg" },
+    { title: "Obsession", year: 2025, tags: ["movies", "english"], poster: "/bRwnj8WEKBCvmfeUNOukJPwB43K.jpg" },
+    { title: "How to Lose a Guy in 10 Days", year: 2003, tags: ["movies", "english"], poster: "/2dlftyPz7mTYbrsPvTogyFmYd7d.jpg" },
+    { title: "Slumdog Millionaire", year: 2008, tags: ["movies", "english"], poster: "/5leCCi7ZF0CawAfM5Qo2ECKPprc.jpg" },
+    { title: "Life of Pi", year: 2012, tags: ["movies", "english"], poster: "/iLgRu4hhSr6V1uManX6ukDriiSc.jpg" },
+    { title: "The Fault in Our Stars", year: 2014, tags: ["movies", "english"], poster: "/kcVuktIlrn9SAN1uBmPDnocTQmF.jpg" },
+    { title: "Casino Royale", year: 2006, tags: ["movies", "english"], poster: "/lMrxYKKhd4lqRzwUHAy5gcx9PSO.jpg" },
+    { title: "Kabir Singh", year: 2019, tags: ["movies", "hindi"], poster: "/yUtaHkL2SDIAZhRApZAyQrAXygn.jpg" },
+    { title: "War", year: 2019, tags: ["movies", "hindi"], poster: "/aOSDKvqglKVa3SYy4CPXYUAfDlf.jpg" },
+
+    // === ANIME ===
+    { title: "5 Centimeters per Second", year: 2007, tags: ["movies", "animated"], poster: "/dFipUR6W0y3PPkuVS8gjFd929m2.jpg" },
+    { title: "Your Name", year: 2016, tags: ["movies", "animated"], poster: "/q719jXXEzOoYaps6babgKnONONX.jpg" },
+    { title: "The End of Evangelion", year: 1997, tags: ["movies", "animated"], poster: "/j6G24dqI4WgUtChhWjfnI4lnmiK.jpg" },
+    { title: "Spider-Man: Across the Spider-Verse", year: 2023, tags: ["movies", "english"], poster: "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
+    { title: "Spider-Man: Into the Spider-Verse", year: 2018, tags: ["movies", "english"], poster: "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg" },
+    { title: "Andaz Apna Apna", year: 1994, tags: ["movies", "hindi"], poster: "https://m.media-amazon.com/images/M/MV5BOTc3OTgwNmUtYmY2Ny00YjQ2LWE3Y2UtMDlmODg0OTY3ZmI3XkEyXkFqcGc@._V1_SX300.jpg" },
+
+    // === TV SERIES ===
+    { title: "House of Cards (US)", year: 2013, tags: ["tv", "english"], poster: "https://m.media-amazon.com/images/M/MV5BMTQ4MDczNDYwNV5BMl5BanBnXkFtZTcwNjMwMDk5OA@@._V1_SX300.jpg" },
+    { title: "Sketchy Behaviour", year: 2019, tags: ["tv", "english"], poster: "https://m.media-amazon.com/images/M/MV5BMThhODg5YjgtMDMyNC00YTZiLTk0Y2UtMDM5ZTBjOGFjZjVkXkEyXkFqcGc@._V1_SX300.jpg" },
+    { title: "Peaky Blinders", year: 2013, tags: ["tv", "english", "favourites"], poster: "/vUUqzWa2LnHIVqkaKVlVGkVcZIW.jpg" },
+    { title: "Rick and Morty", year: 2013, tags: ["tv", "english"], poster: "/WGRQ8FpjkDTzivQJ43t94bOuY0.jpg" },
+    { title: "Friends", year: 1994, tags: ["tv", "english"], poster: "/2koX1xLkpTQM4IZebYvKysFW1Nh.jpg" },
+    { title: "How I Met Your Mother", year: 2005, tags: ["tv", "favourites", "english"], poster: "/b34jPzmB0wZy7EjUZoleXOl2RRI.jpg" },
+    { title: "The Office (US)", year: 2005, tags: ["tv", "english"], poster: "/7DJKHzAi83BmQrWLrYYOqcoKfhR.jpg" },
+    { title: "Seinfeld", year: 1989, tags: ["tv", "english"], poster: "/aCw8ONfyz3AhngVQa1E2Ss4KSUQ.jpg" },
+    { title: "Brooklyn Nine-Nine", year: 2013, tags: ["tv", "english"], poster: "/A3SymGlOHefSKbz1bCOz56moupS.jpg" },
+    { title: "The Big Bang Theory", year: 2007, tags: ["tv", "english"], poster: "/an3uTx1P0XgHPylgfPV6W7yxKAo.jpg" },
+    { title: "Stranger Things", year: 2016, tags: ["tv", "english"], poster: "/uOOtwVbSr4QDjAGIifLDwpb2Pdl.jpg" },
+    { title: "13 Reasons Why", year: 2017, tags: ["tv", "english"], poster: "/nel144y4dIOdFFid6twN5mAX9Yd.jpg" },
+    { title: "Love, Death & Robots", year: 2019, tags: ["tv", "english"], poster: "/vL5BQvXH96cJzmNK5n7QliQxy90.jpg" },
+    { title: "Young Sheldon", year: 2017, tags: ["tv", "english"], poster: "/kidkbZRBGbsEIrX7pODRSKi9ipl.jpg" },
+    { title: "The Mentalist", year: 2008, tags: ["tv", "english"], poster: "/acYXu4KaDj1NIkMgObnhe4C4a0T.jpg" },
+    { title: "How to Change Your Mind", year: 2022, tags: ["tv", "english"], poster: "/5rxVzVimaxhzyHGSd96ijKX7Twu.jpg" },
+    { title: "Jeffrey Epstein: Filthy Rich", year: 2020, tags: ["tv", "english"], poster: "/vV72HIa2a1nnqb5nCHUf5Dn2Y5d.jpg" },
+    { title: "Kota Factory", year: 2019, tags: ["tv", "hindi"], poster: "/fMBookmwL6HjIgIVTjQ6EMr3pCH.jpg" },
+    { title: "Vinland Saga", year: 2019, tags: ["tv", "animated", "favourites"], poster: "/vUHlpA5c1NXkds59reY3HMb4Abs.jpg" },
+    { title: "Neon Genesis Evangelion", year: 1995, tags: ["tv", "animated"], poster: "/y2ah9t0navXyIvoHg1uIbIHO3tt.jpg" },
+    { title: "WandaVision", year: 2021, tags: ["tv", "english"], poster: "/glKDfE6btIRcVB5zrjspRIs4r52.jpg" },
+    { title: "What If...?", year: 2021, tags: ["tv", "english"], poster: "/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg" },
+    { title: "The Flash", year: 2014, tags: ["tv", "english"], poster: "/yZevl2vHQgmosfwUdVNzviIfaWS.jpg" },
+    { title: "Arrow", year: 2012, tags: ["tv", "english"], poster: "/u8ZHFj1jC384JEkTt3vNg1DfWEb.jpg" },
+    { title: "Sherlock", year: 2010, tags: ["tv", "english"], poster: "/7WTsnHkbA0FaG6R9twfFde0I9hl.jpg" },
+    { title: "Young Sherlock", year: 2026, tags: ["tv", "english"], poster: "/BMBWTgvL41sOYtfkmXen6nm9mG.jpg" },
+    { title: "Attack on Titan", year: 2013, tags: ["tv", "animated"], poster: "/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg" },
+    { title: "One-Punch Man", year: 2015, tags: ["tv", "animated"], poster: "/dT10AxJIXVvRwFAew4tt2RhzJrD.jpg" },
+    { title: "Mashle: Magic and Muscles", year: 2023, tags: ["tv", "animated"], poster: "/yORTvQOQTZzZ9JRIpRH4QaIaQBm.jpg" },
+    { title: "Zootopia", year: 2016, tags: ["movies", "english"], poster: "/hlK0e0wAQ3VLuJcsfIYPvb4JVud.jpg" },
+    { title: "Zootopia 2", year: 2025, tags: ["movies", "english"], poster: "/oJ7g2CifqpStmoYQyaLQgEU32qO.jpg" },
+    { title: "Pitch Perfect", year: 2012, tags: ["movies", "english"], poster: "/gsFoJk9g8W3zgaipRrrURk7LbiF.jpg" },
+    { title: "Spy x Family", year: 2022, tags: ["tv", "animated"], poster: "/7NAvPYPAu7MeHwP8E9sn81PqsRh.jpg" },
+    { title: "Jujutsu Kaisen", year: 2020, tags: ["tv", "animated"], poster: "/6qQzMJG27XOJsyAEEIisoJB45j2.jpg" },
+    { title: "Blue Lock", year: 2022, tags: ["tv", "animated"], poster: "https://m.media-amazon.com/images/M/MV5BNWFlNmJkN2YtNGRiZS00NjExLTlmNmEtYzdiMTdiZmMzYzAwXkEyXkFqcGc@._V1_SX300.jpg" },
+    { title: "Orb: On the Movements of the Earth", year: 2024, tags: ["tv", "animated"], poster: "https://m.media-amazon.com/images/M/MV5BNjRmMThlN2EtYTM0Ni00MjBjLWFmZmMtOGYxZWI1MzUzNzJhXkEyXkFqcGc@._V1_SX300.jpg" },
+    { title: "Chainsaw Man", year: 2022, tags: ["tv", "animated"], poster: "/yVtx7Xn9UxNJqvG2BkvhCcmed9S.jpg" },
+    { title: "Chainsaw Man – The Movie: Reze Arc", year: 2025, tags: ["movies", "animated"], poster: "/pHyxb2RV5wLlboAwm9ZJ9qTVEDw.jpg" },
+    { title: "Iron Man: Armored Adventures", year: 2009, tags: ["tv", "animated"], poster: "/kIJGgBwh37V2nfgnJFaN7zDIjdv.jpg" },
+    { title: "Spider-Man", year: 2002, tags: ["movies", "english"], poster: "/kjdJntyBeEvqm9w97QGBdxPptzj.jpg" },
+    { title: "Soul", year: 2020, tags: ["movies", "english"], poster: "/6jmppcaubzLF8wkXM36ganVISCo.jpg" },
+    { title: "Inside Out 2", year: 2024, tags: ["movies", "english"], poster: "/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg" },
+    { title: "Beauty and the Beast", year: 2017, tags: ["movies", "english"], poster: "/hKegSKIDep2ewJWPUQD7u0KqFIp.jpg" },
+    { title: "Finding Nemo", year: 2003, tags: ["movies", "english"], poster: "/eHuGQ10FUzK1mdOY69wF5pGgEf5.jpg" },
+    { title: "Finding Dory", year: 2016, tags: ["movies", "english"], poster: "/3UVe8NL1E2ZdUZ9EDlKGJY5UzE.jpg" },
+    { title: "Cars", year: 2006, tags: ["movies", "english"], poster: "/2Touk3m5gzsqr1VsvxypdyHY5ci.jpg" },
+    { title: "Cars 2", year: 2011, tags: ["movies", "english"], poster: "/okIz1HyxeVOMzYwwHUjH2pHi74I.jpg" },
+    { title: "Cars 3", year: 2017, tags: ["movies", "english"], poster: "/zg5RDxvIIAKsucjuU2EZJIHEIvz.jpg" },
+    { title: "Ratatouille", year: 2007, tags: ["movies", "english"], poster: "/t3vaWRPSf6WjDSamIkKDs1iQWna.jpg" },
+    { title: "Invincible", year: 2021, tags: ["tv", "animated"], poster: "/4tblBrslcKSifMVZ3TmtT2ukMor.jpg" },
+    { title: "Two and a Half Men", year: 2003, tags: ["tv", "english"], poster: "/xgfjxyV3g1S68opzuvG6G87muDp.jpg" },
+    { title: "Doraemon", year: 2005, tags: ["tv", "animated"], poster: "/1RAMQhfA2zjvSqy2cNggYsvAPc8.jpg" },
+    { title: "Young Justice", year: 2010, tags: ["tv", "animated"], poster: "/zMJw34G4OJhcd9NjKSRjJdDqjbR.jpg" },
+    { title: "Ultimate Spider-Man", year: 2012, tags: ["tv", "animated"], poster: "/jK3pc8XOQT8UgdvSjMFk8xLQOxE.jpg" },
+    { title: "Teen Titans", year: 2003, tags: ["tv", "animated"], poster: "/7DCq6XbJx5WGKPvSMBxYK9uJQWQ.jpg" },
+    { title: "The Avengers: Earth's Mightiest Heroes", year: 2010, tags: ["tv", "animated"], poster: "/r1JDhMrqCOZKh7lc0vQlRYQ46cE.jpg" },
+    { title: "Taarak Mehta Ka Ooltah Chashmah", year: 2008, tags: ["tv", "hindi"], poster: "/3p9EtiZJKV5L8CBYjjL2b4T8cWP.jpg" },
+    { title: "Baalveer", year: 2012, tags: ["tv", "hindi"], poster: "/vL6GVWgG5VGc3xfW4l4eFLLbuA8.jpg" },
+    { title: "Super Robot Monkey Team Hyperforce Go!", year: 2004, tags: ["tv", "animated"], poster: "/gcTY3iHLC1wm9wB4pKn2vvCxCfK.jpg" },
+    { title: "Mr. Bean", year: 1990, tags: ["tv", "english"], poster: "/pUNQV35kDaKuejnXGNiUeEBurNE.jpg" },
+    { title: "Suits", year: 2011, tags: ["tv", "english"], poster: "/fO0nFvGcbTHpwZGLkr98xuZ5hFs.jpg" },
+    { title: "Mahabharat", year: 2013, tags: ["tv", "hindi"], poster: "/k1i8wqUzKHHn73Lkv2gSmbmzF53.jpg" },
+    { title: "Devon Ke Dev...Mahadev", year: 2011, tags: ["tv", "hindi"], poster: "/oMzXcYsUVIt6pQEODc6FRe8IBug.jpg" },
+    { title: "Chakravartin Ashoka Samrat", year: 2015, tags: ["tv", "hindi"], poster: "/znkKMWvlIzeJwHSe36BHTwtownc.jpg" },
+  ];
+
+  // ============================================================
+  // RENDERING
+  // ============================================================
+
+  // manual overrides for slugs that don't auto-generate correctly
+  const SLUG_OVERRIDES = {
+    "Bhootnath": "bhoothnath",
+    "Kesari Chapter 2: The Untold Story of Jallianwala Bagh": "kesari-chapter-2-the-untold-story-of-jallianwala",
+    "Have a Good Trip": "have-a-good-trip-adventures-in-psychedelics",
+    "Mr. & Mrs. Smith": "mr-mrs-smith-2005",
+  };
+
+  // letterboxd for movies, imdb for tv shows
+  function watchUrl(title, year, tags) {
+    if (tags && tags.includes('tv')) {
+      return `https://www.imdb.com/find/?q=${encodeURIComponent(title + ' ' + year)}&s=tt&ttype=tv`;
+    }
+    if (SLUG_OVERRIDES[title]) {
+      return `https://letterboxd.com/film/${SLUG_OVERRIDES[title]}/`;
+    }
+    let slug = title.toLowerCase()
+      .replace(/['']/g, '')
+      .replace(/[&]/g, 'and')
+      .replace(/[()]/g, '')
+      .replace(/[:!?,\.]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `https://letterboxd.com/film/${slug}/`;
+  }
+
+  let activeFilter = 'all';
+
+  function renderMovies() {
+    const grid = document.getElementById('movieGrid');
+    const filtered = (activeFilter === 'all'
+      ? movies
+      : movies.filter(m => m.tags && m.tags.includes(activeFilter))
+    ).sort((a, b) => a.title.replace(/^The /, '').localeCompare(b.title.replace(/^The /, '')));
+
+    document.getElementById('movie-count').textContent = filtered.length;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">nothing logged here yet...</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(m => {
+      const url = watchUrl(m.title, m.year, m.tags);
+      const inner = `
+        <div class="movie-poster">
+          ${m.poster
+            ? `<img src="${m.poster.startsWith('http') ? m.poster : TMDB_IMG + m.poster}" alt="${m.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-poster>&#127916;</div>'">`
+            : '<div class="no-poster">&#127916;</div>'
+          }
+        </div>
+        <div class="movie-title">${m.title}</div>
+        <div class="movie-year">${m.year || ''}</div>
+        ${m.rating ? `<div class="movie-rating">${'★'.repeat(Math.floor(m.rating))}${m.rating % 1 ? '½' : ''}${'☆'.repeat(5 - Math.ceil(m.rating))}</div>` : ''}
+        ${m.note ? `<div class="movie-note">"${m.note}"</div>` : ''}
+      `;
+      return `<a href="${url}" target="_blank" rel="noopener" class="movie-card" data-tags="${(m.tags || []).join(',')}" style="border-bottom:none">${inner}</a>`;
+    }).join('');
+  }
+
+  // filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderMovies();
+    });
+  });
+
+  // ============================================================
+  // TYPING ENGINE (from typewriter.html)
+  // ============================================================
+
+  function adjacentKey(ch) {
+    const map = {
+      a:'sqwz', b:'vghn', c:'xdfv', d:'serfcx', e:'wsdr', f:'drtgvc', g:'ftyhbv',
+      h:'gyujbn', i:'ujko', j:'huikmn', k:'jiolm', l:'kop', m:'njk', n:'bhjm',
+      o:'iklp', p:'ol', q:'wa', r:'edft', s:'aqwedxz', t:'rfgy', u:'yhji',
+      v:'cfgb', w:'qase', x:'zsdc', y:'tghu', z:'xs'
+    };
+    const c = ch.toLowerCase();
+    const opts = map[c] || 'etaoin';
+    return opts[Math.floor(Math.random() * opts.length)];
+  }
+
+  function typeWithMistakes(el, text, done, speed, mistakeRate) {
+    const s = speed || 26;
+    const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
+    el.innerHTML = '';
+    el.style.visibility = 'visible';
+
+    let output = '';
+    let pos = 0;
+
+    function render(withCursor) {
+      el.innerHTML = output + (withCursor ? '<span class="cursor">&nbsp;</span>' : '');
+    }
+
+    function step() {
+      if (pos >= text.length) {
+        render(false);
+        if (done) setTimeout(done, 230);
+        return;
+      }
+
+      const ch = text[pos];
+      const doMistake = pos > 3 && /[a-zA-Z]/.test(ch) && Math.random() < rate;
+
+      if (doMistake) {
+        output += adjacentKey(ch);
+        render(true);
+        setTimeout(() => {
+          output = output.slice(0, -1);
+          render(true);
+          setTimeout(() => {
+            output += ch;
+            pos++;
+            render(pos < text.length);
+            if (pos >= text.length) { render(false); if (done) setTimeout(done, 230); }
+            else setTimeout(step, s + Math.random() * s * 0.9);
+          }, 95 + Math.random() * 85);
+        }, 210 + Math.random() * 170);
+      } else {
+        output += ch;
+        pos++;
+        if (pos >= text.length) {
+          render(false);
+          if (done) setTimeout(done, 230);
+        } else {
+          render(true);
+          setTimeout(step, s + Math.random() * s * 0.9);
+        }
+      }
+    }
+
+    step();
+  }
+
+  function typeText(el, text, done, speed, rate) {
+    el.innerHTML = '';
+    typeWithMistakes(el, text, done, speed, rate);
+  }
+
+  function reveal(el, done) {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.5s ease';
+    el.style.visibility = 'visible';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.style.opacity = '1';
+    }));
+    if (done) setTimeout(done, 550);
+  }
+
+  // ============================================================
+  // SEQUENCE
+  // ============================================================
+  function run() {
+    const stamp  = document.getElementById('el-stamp');
+    const h1     = document.getElementById('el-h1');
+    const typed  = document.getElementById('el-typed');
+    const body   = document.getElementById('el-body');
+
+    // 1. type stamp
+    typeText(stamp, 'SCREENING LOG', () => {
+
+      // 2. type h1
+      typeText(h1, "things i've watched", () => {
+
+        // 3. type short intro line
+        typeText(typed, 'a running log of films and shows.', () => {
+
+          // 4. reveal everything else immediately
+          renderMovies();
+          reveal(body, null);
+
+        }, 28, 0.035);
+      }, 26);
+    }, 32);
+  }
+
+  setTimeout(run, 350);
+</script>
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <title>pranshul — typed.</title>
+  <title>writings — pranshul's cafe</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -164,88 +164,27 @@
 
   <div class="sheet">
     <!-- All content pre-populated so layout is reserved; JS types it in progressively -->
-    <span class="stamp" id="el-stamp" style="visibility:hidden">DRAFT · NO.&nbsp;7</span>
+    <span class="stamp" id="el-stamp" style="visibility:hidden">MANUSCRIPT · DRAFTS</span>
 
-    <h1 id="el-h1" style="visibility:hidden">pranshul bohra</h1>
+    <h1 id="el-h1" style="visibility:hidden">writings</h1>
     <div class="typed-line" id="typed" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
-
-    <p class="lead" id="el-lead" style="visibility:hidden">this is a page typed, not designed. one key at a time, mistakes and all.</p>
-    <p id="el-bio" style="visibility:hidden">i'm a philosophy student in edinburgh who mostly cares about the questions, not the answers. i host things, build small communities, and write more than i publish.</p>
 
     <hr class="divider" id="el-div1" style="visibility:hidden">
 
-    <h2 id="el-h2a" style="visibility:hidden">filed under</h2>
+    <h2 id="el-h2a" style="visibility:hidden">filed</h2>
     <ul id="el-ul1" style="visibility:hidden">
-      <li><a href="/typewriter/who-am-i">who am i?</a></li>
-      <li><a href="/typewriter/questions">questions i am thinking about</a></li>
-      <li><a href="/typewriter/writings">writings</a></li>
-      <li><a href="/typewriter/things-i-like">things i like</a></li>
-      <li><a href="/typewriter/things-ive-watched">things i've watched</a></li>
-      <li><a href="/typewriter/books">books i've read</a></li>
-    </ul>
-
-    <hr class="divider" id="el-div2" style="visibility:hidden">
-
-    <h2 id="el-h2b" style="visibility:hidden">correspondence</h2>
-    <ul id="el-ul2" style="visibility:hidden">
-      <li><a href="mailto:pranshulbohra@gmail.com">email</a></li>
-      <li><a href="https://pranshulbohra.substack.com/">substack</a></li>
-      <li><a href="https://www.instagram.com/pranshul.bohra/">instagram</a></li>
+      <li><a href="/writings/passion">passion</a></li>
+      <li><a href="/writings/feeling-empty">feeling empty</a></li>
+      <li><a href="/writings/important-and-sadness">what's really important and about sadness</a></li>
     </ul>
 
     <div class="footer" id="el-footer" style="visibility:hidden; opacity:0">
-      <a href="/">← back to the cafe</a>
-      <span class="meta">EST. EDINBURGH · 1 PM</span>
+      <a href="/typewriter">← back</a>
+      <span class="meta">EST. EDINBURGH · CORRESPONDENCE</span>
     </div>
   </div>
 
   <script>
-    // ── tagline cycling ──────────────────────────────────────
-    const lines = [
-      "trying to figure out the right questions to ask.",
-      "these are things i do. i have no idea who i am.",
-      "cherry blossoms fall at 5 centimeters per second."
-    ];
-    const taglineEl = document.getElementById('typed');
-    const cursor = '<span class="cursor">&nbsp;</span>';
-    let lineIdx = 0;
-    let onFirstTaglineDone = null;
-    let firstTaglineDone = false;
-
-    function typeLine(text, done) {
-      let i = 0;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i++;
-        if (i <= text.length) setTimeout(step, 28 + Math.random() * 35);
-        else setTimeout(done, 1000);
-      }
-      step();
-    }
-    function eraseLine(text, done) {
-      let i = text.length;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i--;
-        if (i >= 0) setTimeout(step, 12);
-        else done();
-      }
-      step();
-    }
-    function loopTagline() {
-      const text = lines[lineIdx];
-      typeLine(text, () => {
-        if (!firstTaglineDone) {
-          firstTaglineDone = true;
-          if (onFirstTaglineDone) setTimeout(onFirstTaglineDone, 400);
-        }
-        eraseLine(text, () => {
-          lineIdx = (lineIdx + 1) % lines.length;
-          loopTagline();
-        });
-      });
-    }
-
     // ── adjacent keyboard keys for realistic typos ──────────
     function adjacentKey(ch) {
       const map = {
@@ -340,72 +279,61 @@
       if (done) setTimeout(done, 500);
     }
 
+    // ── tagline — types once, then leaves cursor blinking ────
+    const taglineEl = document.getElementById('typed');
+    const taglineText = 'thinking out loud and taking you through this journey with me.';
+    const cursor = '<span class="cursor">&nbsp;</span>';
+
+    function typeTagline(done) {
+      let i = 0;
+      function step() {
+        taglineEl.innerHTML = taglineText.slice(0, i) + cursor;
+        i++;
+        if (i <= taglineText.length) setTimeout(step, 28 + Math.random() * 35);
+        else if (done) setTimeout(done, 400);
+      }
+      step();
+    }
+
     // ── sequence ──────────────────────────────────────────────
     function run() {
       const stamp  = document.getElementById('el-stamp');
       const h1     = document.getElementById('el-h1');
       const typed  = document.getElementById('typed');
-      const lead   = document.getElementById('el-lead');
-      const bio    = document.getElementById('el-bio');
       const div1   = document.getElementById('el-div1');
       const h2a    = document.getElementById('el-h2a');
       const ul1    = document.getElementById('el-ul1');
-      const div2   = document.getElementById('el-div2');
-      const h2b    = document.getElementById('el-h2b');
-      const ul2    = document.getElementById('el-ul2');
       const footer = document.getElementById('el-footer');
 
-      // stamp (clear before show so no flash of hidden content)
+      // stamp
       stamp.innerHTML = '';
-      typeText(stamp, 'DRAFT · NO. 7', () => {
+      typeText(stamp, 'MANUSCRIPT · DRAFTS', () => {
 
         // h1
         typeEl(h1, () => {
 
-          // tagline — starts cycling, triggers rest of page after first phrase
+          // tagline — types once and leaves cursor
           typed.style.visibility = 'visible';
-          onFirstTaglineDone = () => {
+          typeTagline(() => {
 
-            // lead paragraph
-            typeEl(lead, () => {
+            // divider
+            reveal(div1, () => {
 
-              // bio paragraph
-              typeEl(bio, () => {
+              // "filed"
+              typeText(h2a, 'filed', () => {
 
-                // divider
-                reveal(div1, () => {
+                // writing links
+                reveal(ul1, () => {
 
-                  // "filed under"
-                  typeText(h2a, 'filed under', () => {
+                  // footer
+                  reveal(footer, null);
 
-                    // links
-                    reveal(ul1, () => {
-
-                      // divider
-                      reveal(div2, () => {
-
-                        // "correspondence"
-                        typeText(h2b, 'correspondence', () => {
-
-                          // links
-                          reveal(ul2, () => {
-
-                            // footer
-                            reveal(footer, null);
-
-                          });
-                        });
-                      });
-                    });
-                  });
                 });
               });
             });
-          };
-          loopTagline();
-
+          });
         });
-      }, 35); // stamp types slightly faster
+      }, 35);
     }
 
     setTimeout(run, 350);

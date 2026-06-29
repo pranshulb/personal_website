@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>questions i am thinking about — pranshul's cafe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a2a1c;
+      --ink-soft: #4e6452;
+      --paper: #f2eed8;
+      --paper-edge: #e4e0c4;
+      --accent: #3e7a4a;
+      --accent-soft: #79ab82;
+    }
+
+    body {
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      min-height: 100vh;
+      color: var(--ink);
+      line-height: 1.9;
+      background: #28382a;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(0,0,0,0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 40%);
+      padding: 3rem 1rem;
+      display: flex;
+      justify-content: center;
+      -webkit-font-smoothing: none;
+    }
+
+    .sheet {
+      position: relative;
+      max-width: 640px;
+      width: 100%;
+      background: var(--paper);
+      padding: 4rem 3.5rem 3.5rem;
+      box-shadow:
+        0 1px 1px rgba(0,0,0,0.10),
+        0 10px 30px rgba(0,0,0,0.18),
+        inset 0 0 80px rgba(180,160,130,0.12);
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(120,100,80,0.05) 31px, rgba(120,100,80,0.05) 32px);
+      border-radius: 2px;
+    }
+
+    .sheet::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--paper-edge), var(--paper), var(--paper-edge));
+      opacity: 0.6;
+    }
+
+    .stamp {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      border: 1.5px solid var(--accent-soft);
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      transform: rotate(-3deg);
+      opacity: 0.8;
+      margin-bottom: 2.5rem;
+      min-width: 7.5rem;
+      min-height: 1.5rem;
+    }
+
+    h1 {
+      font-family: 'Special Elite', monospace;
+      font-size: 2.1rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+      line-height: 1.25;
+      min-height: 2.65rem;
+    }
+
+    .typed-line {
+      font-family: 'Special Elite', monospace;
+      color: var(--ink-soft);
+      font-size: 1rem;
+      min-height: 1.9rem;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.6ch;
+      background: var(--accent);
+      color: var(--accent);
+      animation: blink 1s steps(1) infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    p { color: var(--ink-soft); margin-bottom: 1.2rem; font-size: 0.98rem; min-height: 1.86rem; }
+    p.lead { color: var(--ink); }
+
+    .divider {
+      border: none;
+      border-top: 1px dashed rgba(120,100,80,0.4);
+      margin: 2.2rem 0;
+      transition: opacity 0.4s ease;
+    }
+
+    h2 {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      min-height: 1.3rem;
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent-soft);
+      transition: all 0.2s ease;
+    }
+    a:hover { color: var(--accent); border-bottom-color: var(--accent); background: rgba(62,122,74,0.06); }
+
+    /* question list */
+    ol.questions {
+      list-style: none;
+      counter-reset: q;
+      padding-left: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    ol.questions li {
+      counter-increment: q;
+      position: relative;
+      padding-left: 2.2rem;
+      margin: 0.85rem 0;
+      font-size: 0.97rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+    }
+
+    ol.questions li::before {
+      content: counter(q) '.';
+      position: absolute;
+      left: 0;
+      color: var(--accent-soft);
+      font-size: 0.82rem;
+      font-family: 'Special Elite', monospace;
+      top: 0.05em;
+    }
+
+    ol.questions li.biggest {
+      font-size: 1.05rem;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    ol.questions li em {
+      color: var(--accent-soft);
+      font-style: italic;
+    }
+
+    /* expandable thoughts */
+    ol.questions li details {
+      margin-top: 0.5rem;
+    }
+
+    ol.questions li details summary {
+      font-size: 0.83rem;
+      color: var(--accent);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      list-style: none;
+      transition: color 0.2s ease;
+    }
+
+    ol.questions li details summary::-webkit-details-marker { display: none; }
+    ol.questions li details summary::before {
+      content: '+ ';
+      font-size: 0.8rem;
+    }
+    ol.questions li details[open] summary::before {
+      content: '- ';
+    }
+
+    ol.questions li details summary:hover { color: var(--ink); }
+
+    ol.questions li details .thoughts {
+      margin-top: 0.6rem;
+      padding: 0.8rem 1rem;
+      font-size: 0.91rem;
+      line-height: 1.75;
+      color: var(--ink-soft);
+      border-left: 2px solid var(--accent-soft);
+      background: rgba(242,238,216,0.6);
+    }
+
+    ol.questions li details .thoughts p {
+      margin-bottom: 0.7rem;
+      min-height: auto;
+    }
+
+    ol.questions li details .thoughts p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* first two questions typed individually */
+    .q-typed {
+      min-height: 1.7rem;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid rgba(120,100,80,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      transition: opacity 0.5s ease;
+    }
+    .footer .meta {
+      font-family: 'Special Elite', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: #a89a86;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1.2rem 0.6rem; }
+      .sheet { padding: 2.5rem 1.6rem 2rem; }
+      h1 { font-size: 1.6rem; }
+      ol.questions li { padding-left: 1.8rem; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+  <div class="sheet">
+    <span class="stamp" id="el-stamp" style="visibility:hidden">FILE · OPEN QUESTIONS</span>
+
+    <h1 id="el-h1" style="visibility:hidden">questions i am thinking about</h1>
+    <div class="typed-line" id="el-intro" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
+
+    <hr class="divider" id="el-div1" style="visibility:hidden">
+
+    <!-- First two questions typed char-by-char -->
+    <ol class="questions" id="el-q-first" style="visibility:hidden; opacity:0">
+      <li class="biggest q-typed" id="q1"></li>
+      <li class="q-typed" id="q2"></li>
+    </ol>
+
+    <!-- Rest of the questions fade in -->
+    <ol class="questions" id="el-q-rest" style="visibility:hidden; opacity:0" start="3">
+      <li>how are certain (societally evil) acts justified by people?</li>
+      <li>is there good and evil? (i'm inclined to believe not)</li>
+      <li>is love just chemicals?</li>
+      <li>why is alcohol so popular? why do i drink it? why do i continue drinking it?</li>
+      <li>can i just troll? like can i just troll life? why do i need to tick boxes or get a girlfriend or whatever? who's keeping track.</li>
+      <li>how can we <em>really</em> treat mental health problems?</li>
+      <li>what will be the most important values/skills in the future?</li>
+      <li>why do i really dislike labels?</li>
+      <li>how much pain can i tolerate? (id like to take a version of the pain fabrial test from <a href="https://en.wikipedia.org/wiki/Dune_(novel)">dune</a>)</li>
+      <li>how do i find the people who i really want to talk to? also the people who will help me to answer the meaning of life question.</li>
+      <li>why have i not ever idolized anyone? why hasn't there been anyone i aspire to be like?</li>
+      <li>why am i so enamoured by love, intimacy?</li>
+      <li>what can i do now that might be the best decision in hindsight? (intrinsically unanswerable!)</li>
+      <li>were humans meant to work this hard?</li>
+      <li>if we didn't have language, would calculus exist?</li>
+      <li>is gossip ethical? if so, to what extent?</li>
+      <li>why is friendship deteriorating? why are we all so romantic?</li>
+      <li>do i want to be immortal?</li>
+      <li>can i bear to be responsible for another human being?</li>
+      <li>is the point of philosophy to just hone instincts? in the end, do we all just do things because we feel like it, disregarding all ideologies/philosophies/moralities?</li>
+      <li>what is inside a black hole?</li>
+      <li>is there afterlife?</li>
+      <li>how important is beauty?</li>
+      <li>if attention/memory are indicators of consciousness and we are losing both rn then are we on the path to becoming less conscious?</li>
+      <li>how important is memory? what if we put a chip in the brain and almost anything is instantly recallable?
+        <details>
+          <summary>my thoughts</summary>
+          <div class="thoughts">
+            <p>I really want to understand memory, and whether it's possible to make it infinitely better: either by prosthesis of some kind for our brains or something else.</p>
+            <p>My interest stems from something called Tools for Thought (I recommend reading: <a href="https://numinous.productions/ttft/">How can we develop transformative tools for thought?</a>). Being good at a lot of the sciences sometimes just means memorising stuff in a certain pattern. I.e., being good at special relativity requires having done classical mechanics, calculus, electromagnetism basics, etc; being good at each of those things in turn requires having done other things. Hence, being good at special relativity is just having done and having memorised all these subsets of concepts.</p>
+            <p>Also, I would like to remember beauty better and more vividly; remember my friends and their mannerisms and the moments we shared better. Like I think of my favourite book from 5 years ago, I barely remember anything about it. This saddens me.</p>
+            <p>Neuralink is very interesting to me, I intuit that a chip in the brain and the ability to access the internet in real-time might be the key to memory. I have moments when I know what I want to say but I can't think of the right word. What if I could! This gives me goosebumps :)</p>
+          </div>
+        </details>
+      </li>
+    </ol>
+
+    <div class="footer" id="el-footer" style="visibility:hidden; opacity:0">
+      <a href="/typewriter">← back</a>
+      <span class="meta">EST. EDINBURGH · OPEN FILE</span>
+    </div>
+  </div>
+
+  <script>
+    // ── adjacent keyboard keys for realistic typos ───────────
+    function adjacentKey(ch) {
+      const map = {
+        a:'sqwz', b:'vghn', c:'xdfv', d:'serfcx', e:'wsdr', f:'drtgvc', g:'ftyhbv',
+        h:'gyujbn', i:'ujko', j:'huikmn', k:'jiolm', l:'kop', m:'njk', n:'bhjm',
+        o:'iklp', p:'ol', q:'wa',  r:'edft', s:'aqwedxz', t:'rfgy', u:'yhji',
+        v:'cfgb', w:'qase', x:'zsdc', y:'tghu', z:'xs'
+      };
+      const c = ch.toLowerCase();
+      const opts = map[c] || 'etaoin';
+      return opts[Math.floor(Math.random() * opts.length)];
+    }
+
+    // ── type text with occasional typos + backspaces ──────────
+    function typeWithMistakes(el, text, done, speed, mistakeRate) {
+      const s = speed || 26;
+      const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
+      el.innerHTML = '';
+      el.style.visibility = 'visible';
+
+      let output = '';
+      let pos = 0;
+
+      function render(withCursor) {
+        el.innerHTML = output + (withCursor ? '<span class="cursor">&nbsp;</span>' : '');
+      }
+
+      function step() {
+        if (pos >= text.length) {
+          render(false);
+          if (done) setTimeout(done, 230);
+          return;
+        }
+
+        const ch = text[pos];
+        const doMistake = pos > 3 && /[a-zA-Z]/.test(ch) && Math.random() < rate;
+
+        if (doMistake) {
+          output += adjacentKey(ch);
+          render(true);
+          setTimeout(() => {
+            output = output.slice(0, -1);
+            render(true);
+            setTimeout(() => {
+              output += ch;
+              pos++;
+              render(pos < text.length);
+              if (pos >= text.length) { render(false); if (done) setTimeout(done, 230); }
+              else setTimeout(step, s + Math.random() * s * 0.9);
+            }, 95 + Math.random() * 85);
+          }, 210 + Math.random() * 170);
+        } else {
+          output += ch;
+          pos++;
+          if (pos >= text.length) {
+            render(false);
+            if (done) setTimeout(done, 230);
+          } else {
+            render(true);
+            setTimeout(step, s + Math.random() * s * 0.9);
+          }
+        }
+      }
+
+      step();
+    }
+
+    // convenience: read existing DOM text, then type it with mistakes
+    function typeEl(el, done, speed) {
+      const text = el.textContent.trim();
+      el.innerHTML = '';
+      typeWithMistakes(el, text, done, speed);
+    }
+
+    // type explicit string with mistakes
+    function typeText(el, text, done, speed, rate) {
+      el.innerHTML = '';
+      typeWithMistakes(el, text, done, speed, rate);
+    }
+
+    // ── fade reveal (visibility:hidden → visible) ──────────────
+    function reveal(el, done) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.4s ease';
+      el.style.visibility = 'visible';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.opacity = '1';
+      }));
+      if (done) setTimeout(done, 500);
+    }
+
+    // ── sequence ───────────────────────────────────────────────
+    function run() {
+      const stamp   = document.getElementById('el-stamp');
+      const h1      = document.getElementById('el-h1');
+      const intro   = document.getElementById('el-intro');
+      const div1    = document.getElementById('el-div1');
+      const qFirst  = document.getElementById('el-q-first');
+      const q1      = document.getElementById('q1');
+      const q2      = document.getElementById('q2');
+      const qRest   = document.getElementById('el-q-rest');
+      const footer  = document.getElementById('el-footer');
+
+      // stamp
+      stamp.innerHTML = '';
+      typeText(stamp, 'FILE · OPEN QUESTIONS', () => {
+
+        // h1
+        typeEl(h1, () => {
+
+          // intro line
+          typeText(intro, 'things i have yet to resolve.', () => {
+
+            // divider
+            reveal(div1, () => {
+
+              // show first-two-question container, then type q1
+              qFirst.style.visibility = 'visible';
+              reveal(qFirst, () => {
+
+                typeText(q1, 'what is the meaning in/of life?', () => {
+
+                  typeText(q2, 'why do people do the things they do?', () => {
+
+                    // fade in the rest of the questions
+                    reveal(qRest, () => {
+
+                      // footer
+                      reveal(footer, null);
+
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      }, 35);
+    }
+
+    setTimeout(run, 350);
+  </script>
+
+</body>
+</html>

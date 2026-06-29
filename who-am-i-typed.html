@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <title>pranshul — typed.</title>
+  <title>who am i? — pranshul.cafe</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -152,6 +152,37 @@
       color: #a89a86;
     }
 
+    .portrait-wrap {
+      margin: 0 0 2.2rem 0;
+      transition: opacity 0.4s ease;
+    }
+    .portrait-wrap img {
+      width: 100%;
+      max-width: 340px;
+      display: block;
+      border-radius: 2px;
+      transform: rotate(0.8deg);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.10),
+        0 6px 20px rgba(0,0,0,0.16);
+      filter: sepia(18%) contrast(0.97) brightness(0.98);
+    }
+
+    .social-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      list-style: none;
+    }
+    .social-links li { margin: 0.35rem 0; }
+    .social-links li::before { content: '— '; color: var(--accent-soft); }
+
+    .invite-note {
+      font-style: italic;
+      color: var(--accent-soft) !important;
+      margin-top: 1rem;
+    }
+
     @media (max-width: 600px) {
       body { padding: 1.2rem 0.6rem; }
       .sheet { padding: 2.5rem 1.6rem 2rem; }
@@ -164,88 +195,43 @@
 
   <div class="sheet">
     <!-- All content pre-populated so layout is reserved; JS types it in progressively -->
-    <span class="stamp" id="el-stamp" style="visibility:hidden">DRAFT · NO.&nbsp;7</span>
+    <span class="stamp" id="el-stamp" style="visibility:hidden">FILE · WHO AM I</span>
 
-    <h1 id="el-h1" style="visibility:hidden">pranshul bohra</h1>
+    <h1 id="el-h1" style="visibility:hidden">who am i?</h1>
     <div class="typed-line" id="typed" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
 
-    <p class="lead" id="el-lead" style="visibility:hidden">this is a page typed, not designed. one key at a time, mistakes and all.</p>
-    <p id="el-bio" style="visibility:hidden">i'm a philosophy student in edinburgh who mostly cares about the questions, not the answers. i host things, build small communities, and write more than i publish.</p>
+    <div class="portrait-wrap" id="el-portrait" style="visibility:hidden; opacity:0">
+      <img src="/images/pranshul.jpg" alt="Pranshul" loading="lazy">
+    </div>
+
+    <p class="lead" id="el-p1" style="visibility:hidden">I am Pranshul. but that's what my parents gave me.</p>
+
+    <p id="el-p2" style="visibility:hidden">I study philosophy at the university of edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
+
+    <p id="el-p3" style="visibility:hidden">I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I <a href="/writings">write</a>, I read <a href="https://www.goodreads.com/user/show/52233098-pranshul">A LOT</a> (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
+
+    <p id="el-p4" style="visibility:hidden">these are things I do. I have no idea who I am.</p>
 
     <hr class="divider" id="el-div1" style="visibility:hidden">
 
-    <h2 id="el-h2a" style="visibility:hidden">filed under</h2>
-    <ul id="el-ul1" style="visibility:hidden">
-      <li><a href="/typewriter/who-am-i">who am i?</a></li>
-      <li><a href="/typewriter/questions">questions i am thinking about</a></li>
-      <li><a href="/typewriter/writings">writings</a></li>
-      <li><a href="/typewriter/things-i-like">things i like</a></li>
-      <li><a href="/typewriter/things-ive-watched">things i've watched</a></li>
-      <li><a href="/typewriter/books">books i've read</a></li>
-    </ul>
-
-    <hr class="divider" id="el-div2" style="visibility:hidden">
-
-    <h2 id="el-h2b" style="visibility:hidden">correspondence</h2>
-    <ul id="el-ul2" style="visibility:hidden">
+    <h2 id="el-h2a" style="visibility:hidden">find me</h2>
+    <ul class="social-links" id="el-ul1" style="visibility:hidden">
       <li><a href="mailto:pranshulbohra@gmail.com">email</a></li>
       <li><a href="https://pranshulbohra.substack.com/">substack</a></li>
+      <li><a href="http://goodreads.com/pranshulb">goodreads</a></li>
+      <li><a href="https://curius.app/pranshul-bohra">curius</a></li>
       <li><a href="https://www.instagram.com/pranshul.bohra/">instagram</a></li>
     </ul>
 
+    <p class="invite-note" id="el-invite" style="visibility:hidden; opacity:0">please reach out if you think it'd be fun to chat:)</p>
+
     <div class="footer" id="el-footer" style="visibility:hidden; opacity:0">
-      <a href="/">← back to the cafe</a>
-      <span class="meta">EST. EDINBURGH · 1 PM</span>
+      <a href="/typewriter">← back</a>
+      <span class="meta">EST. EDINBURGH · WHO KNOWS</span>
     </div>
   </div>
 
   <script>
-    // ── tagline cycling ──────────────────────────────────────
-    const lines = [
-      "trying to figure out the right questions to ask.",
-      "these are things i do. i have no idea who i am.",
-      "cherry blossoms fall at 5 centimeters per second."
-    ];
-    const taglineEl = document.getElementById('typed');
-    const cursor = '<span class="cursor">&nbsp;</span>';
-    let lineIdx = 0;
-    let onFirstTaglineDone = null;
-    let firstTaglineDone = false;
-
-    function typeLine(text, done) {
-      let i = 0;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i++;
-        if (i <= text.length) setTimeout(step, 28 + Math.random() * 35);
-        else setTimeout(done, 1000);
-      }
-      step();
-    }
-    function eraseLine(text, done) {
-      let i = text.length;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i--;
-        if (i >= 0) setTimeout(step, 12);
-        else done();
-      }
-      step();
-    }
-    function loopTagline() {
-      const text = lines[lineIdx];
-      typeLine(text, () => {
-        if (!firstTaglineDone) {
-          firstTaglineDone = true;
-          if (onFirstTaglineDone) setTimeout(onFirstTaglineDone, 400);
-        }
-        eraseLine(text, () => {
-          lineIdx = (lineIdx + 1) % lines.length;
-          loopTagline();
-        });
-      });
-    }
-
     // ── adjacent keyboard keys for realistic typos ──────────
     function adjacentKey(ch) {
       const map = {
@@ -340,24 +326,71 @@
       if (done) setTimeout(done, 500);
     }
 
+    // ── tagline cycling ──────────────────────────────────────
+    const lines = [
+      "these are things i do. i have no idea who i am.",
+      "cherry blossoms fall at 5 centimeters per second.",
+      "trying to figure out the right questions to ask."
+    ];
+    const taglineEl = document.getElementById('typed');
+    const cursor = '<span class="cursor">&nbsp;</span>';
+    let lineIdx = 0;
+    let onFirstTaglineDone = null;
+    let firstTaglineDone = false;
+
+    function typeLine(text, done) {
+      let i = 0;
+      function step() {
+        taglineEl.innerHTML = text.slice(0, i) + cursor;
+        i++;
+        if (i <= text.length) setTimeout(step, 28 + Math.random() * 35);
+        else setTimeout(done, 1000);
+      }
+      step();
+    }
+    function eraseLine(text, done) {
+      let i = text.length;
+      function step() {
+        taglineEl.innerHTML = text.slice(0, i) + cursor;
+        i--;
+        if (i >= 0) setTimeout(step, 12);
+        else done();
+      }
+      step();
+    }
+    function loopTagline() {
+      const text = lines[lineIdx];
+      typeLine(text, () => {
+        if (!firstTaglineDone) {
+          firstTaglineDone = true;
+          if (onFirstTaglineDone) setTimeout(onFirstTaglineDone, 400);
+        }
+        eraseLine(text, () => {
+          lineIdx = (lineIdx + 1) % lines.length;
+          loopTagline();
+        });
+      });
+    }
+
     // ── sequence ──────────────────────────────────────────────
     function run() {
-      const stamp  = document.getElementById('el-stamp');
-      const h1     = document.getElementById('el-h1');
-      const typed  = document.getElementById('typed');
-      const lead   = document.getElementById('el-lead');
-      const bio    = document.getElementById('el-bio');
-      const div1   = document.getElementById('el-div1');
-      const h2a    = document.getElementById('el-h2a');
-      const ul1    = document.getElementById('el-ul1');
-      const div2   = document.getElementById('el-div2');
-      const h2b    = document.getElementById('el-h2b');
-      const ul2    = document.getElementById('el-ul2');
-      const footer = document.getElementById('el-footer');
+      const stamp    = document.getElementById('el-stamp');
+      const h1       = document.getElementById('el-h1');
+      const typed    = document.getElementById('typed');
+      const portrait = document.getElementById('el-portrait');
+      const p1       = document.getElementById('el-p1');
+      const p2       = document.getElementById('el-p2');
+      const p3       = document.getElementById('el-p3');
+      const p4       = document.getElementById('el-p4');
+      const div1     = document.getElementById('el-div1');
+      const h2a      = document.getElementById('el-h2a');
+      const ul1      = document.getElementById('el-ul1');
+      const invite   = document.getElementById('el-invite');
+      const footer   = document.getElementById('el-footer');
 
-      // stamp (clear before show so no flash of hidden content)
+      // stamp
       stamp.innerHTML = '';
-      typeText(stamp, 'DRAFT · NO. 7', () => {
+      typeText(stamp, 'FILE · WHO AM I', () => {
 
         // h1
         typeEl(h1, () => {
@@ -366,33 +399,37 @@
           typed.style.visibility = 'visible';
           onFirstTaglineDone = () => {
 
-            // lead paragraph
-            typeEl(lead, () => {
+            // portrait fades in
+            reveal(portrait, () => {
 
-              // bio paragraph
-              typeEl(bio, () => {
+              // first paragraph
+              reveal(p1, () => {
 
-                // divider
-                reveal(div1, () => {
+                // second paragraph
+                reveal(p2, () => {
 
-                  // "filed under"
-                  typeText(h2a, 'filed under', () => {
+                  // third paragraph (the long one with links)
+                  reveal(p3, () => {
 
-                    // links
-                    reveal(ul1, () => {
+                    // fourth paragraph
+                    reveal(p4, () => {
 
                       // divider
-                      reveal(div2, () => {
+                      reveal(div1, () => {
 
-                        // "correspondence"
-                        typeText(h2b, 'correspondence', () => {
+                        // "find me"
+                        typeText(h2a, 'find me', () => {
 
-                          // links
-                          reveal(ul2, () => {
+                          // social links
+                          reveal(ul1, () => {
 
-                            // footer
-                            reveal(footer, null);
+                            // invite note
+                            reveal(invite, () => {
 
+                              // footer
+                              reveal(footer, null);
+
+                            });
                           });
                         });
                       });

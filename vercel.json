@@ -9,6 +9,12 @@
     }
   ],
   "rewrites": [
+    { "source": "/typewriter/who-am-i", "destination": "/who-am-i-typed.html" },
+    { "source": "/typewriter/questions", "destination": "/questions-typed.html" },
+    { "source": "/typewriter/writings", "destination": "/writings-typed.html" },
+    { "source": "/typewriter/things-i-like", "destination": "/things-i-like-typed.html" },
+    { "source": "/typewriter/things-ive-watched", "destination": "/things-ive-watched-typed.html" },
+    { "source": "/typewriter/books", "destination": "/books-typed.html" },
     {
       "source": "/things-ive-watched",
       "destination": "/things-ive-watched.html"

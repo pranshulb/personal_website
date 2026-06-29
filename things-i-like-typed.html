@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <title>pranshul — typed.</title>
+  <title>things i like — typed.</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -126,6 +126,15 @@
     li { margin: 0.5rem 0; font-size: 0.98rem; }
     li::before { content: '— '; color: var(--accent-soft); }
 
+    /* two-column list on desktop */
+    .two-col {
+      columns: 2;
+      column-gap: 2.5rem;
+    }
+    .two-col li {
+      break-inside: avoid;
+    }
+
     a {
       color: var(--ink);
       text-decoration: none;
@@ -133,6 +142,11 @@
       transition: all 0.2s ease;
     }
     a:hover { color: var(--accent); border-bottom-color: var(--accent); background: rgba(62,122,74,0.06); }
+
+    /* items without links — plain ink, no underline */
+    .plain {
+      color: var(--ink-soft);
+    }
 
     .footer {
       margin-top: 3rem;
@@ -156,6 +170,7 @@
       body { padding: 1.2rem 0.6rem; }
       .sheet { padding: 2.5rem 1.6rem 2rem; }
       h1 { font-size: 1.6rem; }
+      .two-col { columns: 1; }
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
@@ -163,89 +178,34 @@
 <body>
 
   <div class="sheet">
-    <!-- All content pre-populated so layout is reserved; JS types it in progressively -->
-    <span class="stamp" id="el-stamp" style="visibility:hidden">DRAFT · NO.&nbsp;7</span>
+    <span class="stamp" id="el-stamp" style="visibility:hidden">FILE · THINGS I LIKE</span>
 
-    <h1 id="el-h1" style="visibility:hidden">pranshul bohra</h1>
-    <div class="typed-line" id="typed" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
-
-    <p class="lead" id="el-lead" style="visibility:hidden">this is a page typed, not designed. one key at a time, mistakes and all.</p>
-    <p id="el-bio" style="visibility:hidden">i'm a philosophy student in edinburgh who mostly cares about the questions, not the answers. i host things, build small communities, and write more than i publish.</p>
+    <h1 id="el-h1" style="visibility:hidden">things i like</h1>
+    <div class="typed-line" id="el-intro" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
 
     <hr class="divider" id="el-div1" style="visibility:hidden">
 
-    <h2 id="el-h2a" style="visibility:hidden">filed under</h2>
-    <ul id="el-ul1" style="visibility:hidden">
-      <li><a href="/typewriter/who-am-i">who am i?</a></li>
-      <li><a href="/typewriter/questions">questions i am thinking about</a></li>
-      <li><a href="/typewriter/writings">writings</a></li>
-      <li><a href="/typewriter/things-i-like">things i like</a></li>
-      <li><a href="/typewriter/things-ive-watched">things i've watched</a></li>
-      <li><a href="/typewriter/books">books i've read</a></li>
-    </ul>
+    <h2 id="el-h2a" style="visibility:hidden">the list</h2>
 
-    <hr class="divider" id="el-div2" style="visibility:hidden">
-
-    <h2 id="el-h2b" style="visibility:hidden">correspondence</h2>
-    <ul id="el-ul2" style="visibility:hidden">
-      <li><a href="mailto:pranshulbohra@gmail.com">email</a></li>
-      <li><a href="https://pranshulbohra.substack.com/">substack</a></li>
-      <li><a href="https://www.instagram.com/pranshul.bohra/">instagram</a></li>
+    <ul class="two-col" id="el-list" style="visibility:hidden; opacity:0">
+      <li><a href="https://www.merriam-webster.com/wordplay/winter-words" target="_blank" rel="noopener">apricity</a></li>
+      <li><a href="https://www.goodreads.com/book/show/16130537-the-humans" target="_blank" rel="noopener">the humans</a></li>
+      <li><a href="https://www.goodreads.com/book/show/186074.The_Name_of_the_Wind" target="_blank" rel="noopener">the name of the wind</a></li>
+      <li><a href="https://www.goodreads.com/book/show/113436.Eragon" target="_blank" rel="noopener">eragon</a></li>
+      <li><a href="https://letterboxd.com/film/manchester-by-the-sea/" target="_blank" rel="noopener">manchester by the sea</a></li>
+      <li><a href="https://www.youtube.com/@Exurb1a" target="_blank" rel="noopener">exurb1a</a></li>
+      <li><span class="plain">green</span></li>
+      <li><a href="/things-i-like/two-men-contemplating-the-moon">two men contemplating the moon</a></li>
+      <li><a href="https://www.poetryfoundation.org/poets/charles-bukowski" target="_blank" rel="noopener">charles bukowski</a></li>
     </ul>
 
     <div class="footer" id="el-footer" style="visibility:hidden; opacity:0">
-      <a href="/">← back to the cafe</a>
-      <span class="meta">EST. EDINBURGH · 1 PM</span>
+      <a href="/typewriter">← back</a>
+      <span class="meta">EST. EDINBURGH · THINGS FILED</span>
     </div>
   </div>
 
   <script>
-    // ── tagline cycling ──────────────────────────────────────
-    const lines = [
-      "trying to figure out the right questions to ask.",
-      "these are things i do. i have no idea who i am.",
-      "cherry blossoms fall at 5 centimeters per second."
-    ];
-    const taglineEl = document.getElementById('typed');
-    const cursor = '<span class="cursor">&nbsp;</span>';
-    let lineIdx = 0;
-    let onFirstTaglineDone = null;
-    let firstTaglineDone = false;
-
-    function typeLine(text, done) {
-      let i = 0;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i++;
-        if (i <= text.length) setTimeout(step, 28 + Math.random() * 35);
-        else setTimeout(done, 1000);
-      }
-      step();
-    }
-    function eraseLine(text, done) {
-      let i = text.length;
-      function step() {
-        taglineEl.innerHTML = text.slice(0, i) + cursor;
-        i--;
-        if (i >= 0) setTimeout(step, 12);
-        else done();
-      }
-      step();
-    }
-    function loopTagline() {
-      const text = lines[lineIdx];
-      typeLine(text, () => {
-        if (!firstTaglineDone) {
-          firstTaglineDone = true;
-          if (onFirstTaglineDone) setTimeout(onFirstTaglineDone, 400);
-        }
-        eraseLine(text, () => {
-          lineIdx = (lineIdx + 1) % lines.length;
-          loopTagline();
-        });
-      });
-    }
-
     // ── adjacent keyboard keys for realistic typos ──────────
     function adjacentKey(ch) {
       const map = {
@@ -284,15 +244,12 @@
         const doMistake = pos > 3 && /[a-zA-Z]/.test(ch) && Math.random() < rate;
 
         if (doMistake) {
-          // type wrong char
           output += adjacentKey(ch);
           render(true);
           setTimeout(() => {
-            // realise mistake — pause, then backspace
             output = output.slice(0, -1);
             render(true);
             setTimeout(() => {
-              // type correct char and carry on
               output += ch;
               pos++;
               render(pos < text.length);
@@ -342,70 +299,42 @@
 
     // ── sequence ──────────────────────────────────────────────
     function run() {
-      const stamp  = document.getElementById('el-stamp');
-      const h1     = document.getElementById('el-h1');
-      const typed  = document.getElementById('typed');
-      const lead   = document.getElementById('el-lead');
-      const bio    = document.getElementById('el-bio');
-      const div1   = document.getElementById('el-div1');
-      const h2a    = document.getElementById('el-h2a');
-      const ul1    = document.getElementById('el-ul1');
-      const div2   = document.getElementById('el-div2');
-      const h2b    = document.getElementById('el-h2b');
-      const ul2    = document.getElementById('el-ul2');
-      const footer = document.getElementById('el-footer');
+      const stamp   = document.getElementById('el-stamp');
+      const h1      = document.getElementById('el-h1');
+      const intro   = document.getElementById('el-intro');
+      const div1    = document.getElementById('el-div1');
+      const h2a     = document.getElementById('el-h2a');
+      const list    = document.getElementById('el-list');
+      const footer  = document.getElementById('el-footer');
 
-      // stamp (clear before show so no flash of hidden content)
+      // stamp
       stamp.innerHTML = '';
-      typeText(stamp, 'DRAFT · NO. 7', () => {
+      typeText(stamp, 'FILE · THINGS I LIKE', () => {
 
         // h1
         typeEl(h1, () => {
 
-          // tagline — starts cycling, triggers rest of page after first phrase
-          typed.style.visibility = 'visible';
-          onFirstTaglineDone = () => {
+          // short intro line
+          typeText(intro, 'a few things that matter. more to be filed.', () => {
 
-            // lead paragraph
-            typeEl(lead, () => {
+            // divider
+            reveal(div1, () => {
 
-              // bio paragraph
-              typeEl(bio, () => {
+              // section heading
+              typeText(h2a, 'the list', () => {
 
-                // divider
-                reveal(div1, () => {
+                // reveal the full list at once — too many items to type individually
+                reveal(list, () => {
 
-                  // "filed under"
-                  typeText(h2a, 'filed under', () => {
+                  // footer
+                  reveal(footer, null);
 
-                    // links
-                    reveal(ul1, () => {
-
-                      // divider
-                      reveal(div2, () => {
-
-                        // "correspondence"
-                        typeText(h2b, 'correspondence', () => {
-
-                          // links
-                          reveal(ul2, () => {
-
-                            // footer
-                            reveal(footer, null);
-
-                          });
-                        });
-                      });
-                    });
-                  });
                 });
               });
             });
-          };
-          loopTagline();
-
+          });
         });
-      }, 35); // stamp types slightly faster
+      }, 35);
     }
 
     setTimeout(run, 350);
