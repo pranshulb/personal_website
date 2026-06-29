@@ -200,7 +200,7 @@
 
     // ── type text with occasional typos + backspaces ─────────
     function typeWithMistakes(el, text, done, speed, mistakeRate) {
-      const s = speed || 26;
+      const s = speed || 13;
       const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
       el.innerHTML = '';
       el.style.visibility = 'visible';
@@ -289,7 +289,7 @@
       function step() {
         taglineEl.innerHTML = taglineText.slice(0, i) + cursor;
         i++;
-        if (i <= taglineText.length) setTimeout(step, 28 + Math.random() * 35);
+        if (i <= taglineText.length) setTimeout(step, 14 + Math.random() * 17);
         else if (done) setTimeout(done, 400);
       }
       step();
