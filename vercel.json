@@ -73,7 +73,7 @@
     },
     {
       "source": "/bookmarks/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/:path*"
+      "destination": "http://89.167.65.46:9090/bookmarks/:path*/"
     },
     {
       "source": "/location-tool",
