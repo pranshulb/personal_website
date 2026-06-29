@@ -212,11 +212,9 @@
     return sPick(BLOSSOM_HOT);
   }
 
-  // Gentle sway — subtle, not overdone
+  // Tree is stationary — no sway. (Falling petals still drift.)
   function sw(y, x, ph) {
-    const n = Math.max(0, (H * 0.90 - y) / (H * 0.75));
-    const p = n * n;
-    return windX * p * 4 + Math.sin(t * 0.15 + (ph || x * 0.006)) * p * 0.9 + shakeX * p;
+    return 0;
   }
 
   /* ================================================================
@@ -271,12 +269,13 @@
     out.push({ x1, y1, cx, cy, x2, y2, w, d, jx, jy });
 
     // Dense watercolor blossom mass — fluffy cloud canopy
-    const maxB = isMobile ? 800 : 1600;
-    // Mid-branch puffs
-    if (w < 8 && d > 1 && blossoms.length < maxB) {
+    const maxB = isMobile ? 1400 : 2800;
+    const maxF = isMobile ? 700 : 1400;
+    // Blossom puffs along EVERY branch — trunk included
+    if (blossoms.length < maxB) {
       const n = Math.floor(sRngR(4, 9));
       for (let i = 0; i < n; i++) {
-        const bt = sRngR(0.2, 1.0), sp = 12 + w * 2.4;
+        const bt = sRngR(0.0, 1.0), sp = 10 + w * 2.0;
         blossoms.push({
           x: qB(x1, cx, x2, bt) + sRngR(-sp, sp),
           y: qB(y1, cy, y2, bt) + sRngR(-sp, sp),
@@ -311,13 +310,14 @@
         });
       }
     }
-    // HD 5-petal cherry flowers — detailed on all fine branches
-    if (w < 4 && d > 3 && flowers.length < 400) {
-      const nf = Math.floor(sRngR(3, 7));
-      const fsp = 20 + (9 - Math.min(d, 9)) * 4;
+    // HD 5-petal cherry flowers on EVERY branch, distributed along its length
+    if (flowers.length < maxF) {
+      const nf = Math.floor(sRngR(3, 7) + len * 0.04);
+      const fsp = 12 + (9 - Math.min(d, 9)) * 3;
       for (let i = 0; i < nf; i++) {
+        const ft = sRngR(0, 1);
         flowers.push({
-          x: x2 + sRngR(-fsp, fsp), y: y2 + sRngR(-fsp, fsp),
+          x: qB(x1, cx, x2, ft) + sRngR(-fsp, fsp), y: qB(y1, cy, y2, ft) + sRngR(-fsp, fsp),
           sz: sRngR(4, 9),
           angle: sRng() * PI2,
           color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
@@ -542,8 +542,7 @@
      HELPERS — soft blossom blob + heart petal
   ================================================================ */
   function drawBlossomBlob(c, x, y, r, color, alpha, ph) {
-    const pulse = 1 + Math.sin(t * 0.4 + ph) * 0.025;
-    const pr = r * pulse;
+    const pr = r;
     c.globalAlpha = alpha;
     c.fillStyle = color;
     c.beginPath();
