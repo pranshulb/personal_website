@@ -34,7 +34,6 @@
       -webkit-font-smoothing: none;
     }
 
-    /* the sheet of paper */
     .sheet {
       position: relative;
       max-width: 640px;
@@ -45,13 +44,11 @@
         0 1px 1px rgba(0,0,0,0.10),
         0 10px 30px rgba(0,0,0,0.18),
         inset 0 0 80px rgba(180,160,130,0.12);
-      /* faint paper grain */
       background-image:
         repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(120,100,80,0.05) 31px, rgba(120,100,80,0.05) 32px);
       border-radius: 2px;
     }
 
-    /* torn / soft top edge feel */
     .sheet::before {
       content: '';
       position: absolute;
@@ -72,6 +69,8 @@
       transform: rotate(-3deg);
       opacity: 0.8;
       margin-bottom: 2.5rem;
+      min-width: 7.5rem;
+      min-height: 1.5rem;
     }
 
     h1 {
@@ -81,6 +80,7 @@
       letter-spacing: 0.04em;
       margin-bottom: 0.4rem;
       line-height: 1.25;
+      min-height: 2.65rem;
     }
 
     .typed-line {
@@ -102,13 +102,14 @@
     }
     @keyframes blink { 50% { opacity: 0; } }
 
-    p { color: var(--ink-soft); margin-bottom: 1.2rem; font-size: 0.98rem; }
+    p { color: var(--ink-soft); margin-bottom: 1.2rem; font-size: 0.98rem; min-height: 1.86rem; }
     p.lead { color: var(--ink); }
 
     .divider {
       border: none;
       border-top: 1px dashed rgba(120,100,80,0.4);
       margin: 2.2rem 0;
+      transition: opacity 0.4s ease;
     }
 
     h2 {
@@ -118,9 +119,10 @@
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 1rem;
+      min-height: 1.3rem;
     }
 
-    ul { list-style: none; }
+    ul { list-style: none; transition: opacity 0.4s ease; }
     li { margin: 0.5rem 0; font-size: 0.98rem; }
     li::before { content: '— '; color: var(--accent-soft); }
 
@@ -130,7 +132,7 @@
       border-bottom: 1px solid var(--accent-soft);
       transition: all 0.2s ease;
     }
-    a:hover { color: var(--accent); border-bottom-color: var(--accent); background: rgba(181,82,79,0.06); }
+    a:hover { color: var(--accent); border-bottom-color: var(--accent); background: rgba(62,122,74,0.06); }
 
     .footer {
       margin-top: 3rem;
@@ -141,6 +143,7 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
+      transition: opacity 0.5s ease;
     }
     .footer .meta {
       font-family: 'Special Elite', monospace;
@@ -160,18 +163,19 @@
 <body>
 
   <div class="sheet">
-    <span class="stamp">DRAFT · NO.&nbsp;7</span>
+    <!-- All content pre-populated so layout is reserved; JS types it in progressively -->
+    <span class="stamp" id="el-stamp" style="visibility:hidden">DRAFT · NO.&nbsp;7</span>
 
-    <h1>pranshul bohra</h1>
-    <div class="typed-line" id="typed"><span class="cursor">&nbsp;</span></div>
+    <h1 id="el-h1" style="visibility:hidden">pranshul bohra</h1>
+    <div class="typed-line" id="typed" style="visibility:hidden"><span class="cursor">&nbsp;</span></div>
 
-    <p class="lead">this is a page typed, not designed. one key at a time, mistakes and all.</p>
-    <p>i'm a philosophy student in edinburgh who mostly cares about the questions, not the answers. i host things, build small communities, and write more than i publish.</p>
+    <p class="lead" id="el-lead" style="visibility:hidden">this is a page typed, not designed. one key at a time, mistakes and all.</p>
+    <p id="el-bio" style="visibility:hidden">i'm a philosophy student in edinburgh who mostly cares about the questions, not the answers. i host things, build small communities, and write more than i publish.</p>
 
-    <hr class="divider">
+    <hr class="divider" id="el-div1" style="visibility:hidden">
 
-    <h2>filed under</h2>
-    <ul>
+    <h2 id="el-h2a" style="visibility:hidden">filed under</h2>
+    <ul id="el-ul1" style="visibility:hidden">
       <li><a href="/who-am-i">who am i?</a></li>
       <li><a href="/questions">questions i am thinking about</a></li>
       <li><a href="/writings">writings</a></li>
@@ -179,62 +183,182 @@
       <li><a href="/books">books i've read</a></li>
     </ul>
 
-    <hr class="divider">
+    <hr class="divider" id="el-div2" style="visibility:hidden">
 
-    <h2>correspondence</h2>
-    <ul>
+    <h2 id="el-h2b" style="visibility:hidden">correspondence</h2>
+    <ul id="el-ul2" style="visibility:hidden">
       <li><a href="mailto:pranshulbohra@gmail.com">email</a></li>
       <li><a href="https://pranshulbohra.substack.com/">substack</a></li>
       <li><a href="https://www.instagram.com/pranshul.bohra/">instagram</a></li>
     </ul>
 
-    <div class="footer">
+    <div class="footer" id="el-footer" style="visibility:hidden; opacity:0">
       <a href="/">← back to the cafe</a>
       <span class="meta">EST. EDINBURGH · 1 PM</span>
     </div>
   </div>
 
   <script>
+    // ── tagline cycling ──────────────────────────────────────
     const lines = [
       "trying to figure out the right questions to ask.",
       "these are things i do. i have no idea who i am.",
       "cherry blossoms fall at 5 centimeters per second."
     ];
-    const el = document.getElementById('typed');
+    const taglineEl = document.getElementById('typed');
     const cursor = '<span class="cursor">&nbsp;</span>';
-    let li = 0;
+    let lineIdx = 0;
+    let onFirstTaglineDone = null;
+    let firstTaglineDone = false;
 
     function typeLine(text, done) {
       let i = 0;
       function step() {
-        el.innerHTML = text.slice(0, i) + cursor;
+        taglineEl.innerHTML = text.slice(0, i) + cursor;
         i++;
-        if (i <= text.length) {
-          setTimeout(step, 55 + Math.random() * 70); // uneven keystrokes
-        } else {
-          setTimeout(done, 2200);
-        }
+        if (i <= text.length) setTimeout(step, 55 + Math.random() * 70);
+        else setTimeout(done, 2000);
       }
       step();
     }
     function eraseLine(text, done) {
       let i = text.length;
       function step() {
-        el.innerHTML = text.slice(0, i) + cursor;
+        taglineEl.innerHTML = text.slice(0, i) + cursor;
         i--;
         if (i >= 0) setTimeout(step, 25);
         else done();
       }
       step();
     }
-    function loop() {
-      const text = lines[li];
-      typeLine(text, () => eraseLine(text, () => {
-        li = (li + 1) % lines.length;
-        loop();
-      }));
+    function loopTagline() {
+      const text = lines[lineIdx];
+      typeLine(text, () => {
+        if (!firstTaglineDone) {
+          firstTaglineDone = true;
+          if (onFirstTaglineDone) setTimeout(onFirstTaglineDone, 400);
+        }
+        eraseLine(text, () => {
+          lineIdx = (lineIdx + 1) % lines.length;
+          loopTagline();
+        });
+      });
     }
-    loop();
+
+    // ── type text into element char by char ──────────────────
+    // reads real content from el before clearing, so layout space stays reserved
+    function typeEl(el, done, speed) {
+      const text = el.textContent.trim();
+      const s = speed || 52;
+      el.innerHTML = '';                 // clear (el is still visibility:hidden → no flash)
+      el.style.visibility = 'visible';   // show
+      let i = 0;
+      function step() {
+        const fin = i >= text.length;
+        el.innerHTML = text.slice(0, i) + (fin ? '' : '<span class="cursor">&nbsp;</span>');
+        i++;
+        if (!fin) setTimeout(step, s + Math.random() * s * 0.9);
+        else if (done) setTimeout(done, 230);
+      }
+      step();
+    }
+
+    // ── type explicit text into element ──────────────────────
+    function typeText(el, text, done, speed) {
+      const s = speed || 52;
+      el.innerHTML = '';
+      el.style.visibility = 'visible';
+      let i = 0;
+      function step() {
+        const fin = i >= text.length;
+        el.innerHTML = text.slice(0, i) + (fin ? '' : '<span class="cursor">&nbsp;</span>');
+        i++;
+        if (!fin) setTimeout(step, s + Math.random() * s * 0.9);
+        else if (done) setTimeout(done, 230);
+      }
+      step();
+    }
+
+    // ── fade reveal (visibility:hidden → visible) ─────────────
+    function reveal(el, done) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.4s ease';
+      el.style.visibility = 'visible';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.opacity = '1';
+      }));
+      if (done) setTimeout(done, 500);
+    }
+
+    // ── sequence ──────────────────────────────────────────────
+    function run() {
+      const stamp  = document.getElementById('el-stamp');
+      const h1     = document.getElementById('el-h1');
+      const typed  = document.getElementById('typed');
+      const lead   = document.getElementById('el-lead');
+      const bio    = document.getElementById('el-bio');
+      const div1   = document.getElementById('el-div1');
+      const h2a    = document.getElementById('el-h2a');
+      const ul1    = document.getElementById('el-ul1');
+      const div2   = document.getElementById('el-div2');
+      const h2b    = document.getElementById('el-h2b');
+      const ul2    = document.getElementById('el-ul2');
+      const footer = document.getElementById('el-footer');
+
+      // stamp (clear before show so no flash of hidden content)
+      stamp.innerHTML = '';
+      typeText(stamp, 'DRAFT · NO. 7', () => {
+
+        // h1
+        typeEl(h1, () => {
+
+          // tagline — starts cycling, triggers rest of page after first phrase
+          typed.style.visibility = 'visible';
+          onFirstTaglineDone = () => {
+
+            // lead paragraph
+            typeEl(lead, () => {
+
+              // bio paragraph
+              typeEl(bio, () => {
+
+                // divider
+                reveal(div1, () => {
+
+                  // "filed under"
+                  typeText(h2a, 'filed under', () => {
+
+                    // links
+                    reveal(ul1, () => {
+
+                      // divider
+                      reveal(div2, () => {
+
+                        // "correspondence"
+                        typeText(h2b, 'correspondence', () => {
+
+                          // links
+                          reveal(ul2, () => {
+
+                            // footer
+                            reveal(footer, null);
+
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          };
+          loopTagline();
+
+        });
+      }, 68); // stamp types slightly faster
+    }
+
+    setTimeout(run, 350);
   </script>
 
 </body>
