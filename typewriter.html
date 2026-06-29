@@ -216,8 +216,8 @@
       function step() {
         taglineEl.innerHTML = text.slice(0, i) + cursor;
         i++;
-        if (i <= text.length) setTimeout(step, 55 + Math.random() * 70);
-        else setTimeout(done, 2000);
+        if (i <= text.length) setTimeout(step, 28 + Math.random() * 35);
+        else setTimeout(done, 1000);
       }
       step();
     }
@@ -226,7 +226,7 @@
       function step() {
         taglineEl.innerHTML = text.slice(0, i) + cursor;
         i--;
-        if (i >= 0) setTimeout(step, 25);
+        if (i >= 0) setTimeout(step, 12);
         else done();
       }
       step();
@@ -260,7 +260,7 @@
 
     // ── type text with occasional typos + backspaces ─────────
     function typeWithMistakes(el, text, done, speed, mistakeRate) {
-      const s = speed || 52;
+      const s = speed || 26;
       const rate = mistakeRate !== undefined ? mistakeRate : 0.042;
       el.innerHTML = '';
       el.style.visibility = 'visible';
@@ -404,7 +404,7 @@
           loopTagline();
 
         });
-      }, 68); // stamp types slightly faster
+      }, 35); // stamp types slightly faster
     }
 
     setTimeout(run, 350);
