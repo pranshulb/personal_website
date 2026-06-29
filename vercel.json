@@ -72,8 +72,12 @@
       "destination": "http://89.167.65.46:9090/bookmarks/api/:path*/"
     },
     {
+      "source": "/bookmarks/login",
+      "destination": "http://89.167.65.46:9090/bookmarks/login/"
+    },
+    {
       "source": "/bookmarks/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/:path*/"
+      "destination": "http://89.167.65.46:9090/bookmarks/:path*"
     },
     {
       "source": "/location-tool",
