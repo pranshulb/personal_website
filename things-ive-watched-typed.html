@@ -292,13 +292,17 @@
 
     /* ── mobile ── */
     @media (max-width: 640px) {
-      body { padding: 1.2rem 0.6rem; }
-      .sheet { padding: 2.5rem 1.4rem 2rem; }
-      h1 { font-size: 1.55rem; }
+      body { padding: 1rem 0.4rem; }
+      .sheet { padding: 2rem 1rem 1.8rem; overflow-wrap: break-word; word-break: break-word; }
+      h1 { font-size: 1.45rem; min-height: 2rem; }
+      p { min-height: auto; font-size: 0.93rem; }
+      .typed-line { font-size: 0.9rem; }
+      .stamp { font-size: 0.62rem; transform: rotate(-2deg); }
       .movie-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+        gap: 0.85rem;
       }
+      .filter-btn { padding: 0.35rem 0.5rem; font-size: 0.76rem; }
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
