@@ -15,8 +15,7 @@
       color: #3a2f2f; line-height: 1.8;
       background: #FFF5EB;
     }
-    ::selection { background: rgba(244, 168, 189, 0.5); color: #a8355c; text-shadow: 0 0 1px rgba(255,255,255,0.4); }
-    ::-moz-selection { background: rgba(244, 168, 189, 0.5); color: #a8355c; }
+    ::selection { background: rgba(240, 166, 35, 0.3); color: #4a2f1a; }
 
     canvas { position: fixed; top: 0; left: 0; display: block; }
     #bg { z-index: 1; }
@@ -51,11 +50,40 @@
     li::before { content: '\2192 '; color: #d4a080; opacity: 0.7; }
     a { color: #4a3020; text-decoration: none; border-bottom: 1px solid #d4a080; transition: all 0.3s ease; }
     a:hover { color: #c47a7a; border-bottom-color: #c47a7a; }
-    .socials { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.06); }
-    .social-links { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-    .social-links a { color: #9a7a60; border-bottom: none; font-size: 0.9rem; }
-    .social-links a:hover { color: #c47a7a; }
-    .copy-hint { font-size: 0.85rem; color: #b09080; margin-top: 1.2rem; }
+    .socials {
+      margin-top: 3rem; padding-top: 1.9rem;
+      border-top: none; position: relative;
+    }
+    /* soft blossom divider instead of a hard grey line */
+    .socials::before {
+      content: '❀';
+      position: absolute; top: -0.15rem; left: 0;
+      font-size: 0.95rem; color: rgba(224,122,151,0.55);
+    }
+    .socials::after {
+      content: ''; position: absolute; top: 0.55rem; left: 1.6rem; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, rgba(224,122,151,0.35), rgba(224,122,151,0.04) 70%, transparent);
+    }
+    .social-links { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+    .social-links a {
+      color: #b85c74; border-bottom: none; font-size: 0.92rem;
+      padding: 0.3rem 0.95rem;
+      background: rgba(244,168,189,0.15);
+      border: 1px solid rgba(232,120,150,0.22);
+      border-radius: 999px;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .social-links a:hover {
+      color: #fff; background: #e07a97; border-color: #e07a97;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(224,122,151,0.28);
+    }
+    .reach-out {
+      margin-top: 1.7rem; font-size: 1.08rem;
+      color: #c47a7a; font-style: italic;
+    }
+    .copy-hint { font-size: 0.85rem; color: #b09080; margin-top: 1rem; }
     .copy-hint kbd {
       display: inline-block; padding: 0.1em 0.4em;
       border: 1px solid #d4b4a0; border-radius: 3px;
@@ -159,7 +187,7 @@
         <a href="https://curius.app/pranshul-bohra">curius</a>
         <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
       </div>
-      <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
+      <p class="reach-out">please reach out if you think it'd be fun to chat :)</p>
       <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
       <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
     </div>
