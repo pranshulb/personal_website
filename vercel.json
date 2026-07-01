@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     {
       "source": "/track",
@@ -68,7 +69,7 @@
     },
     {
       "source": "/bookmarks/api/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/api/:path*"
+      "destination": "http://89.167.65.46:9090/bookmarks/api/:path*/"
     },
     {
       "source": "/bookmarks/login",
