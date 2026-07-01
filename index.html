@@ -82,7 +82,7 @@
     }
     .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    @media (max-width: 600px) {
+    @media (max-width: 900px) {
       /* Was flex + align-items:center. When the page content is taller than the
          visible viewport (very common on phones once the address bar + bottom
          nav are both showing), centering pushes the overflow above the fold —
@@ -252,7 +252,7 @@
     lastW = nw; lastH = nh;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = nw; H = nh;
-    isMobile = W < 600;
+    isMobile = W < 900;
     TREE_X = (isMobile ? 0.5 : 0.7) * W;
     [bgEl, scEl, ovEl].forEach(el => {
       el.width = W * dpr; el.height = H * dpr;
