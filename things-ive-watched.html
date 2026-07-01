@@ -92,6 +92,34 @@
       color: #c47a7a;
     }
 
+    /* search bar */
+    .search-wrap {
+      margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+      width: 100%;
+      max-width: 340px;
+      background: none;
+      border: 1px solid #d4c4b4;
+      color: #3a2f2f;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 0.95rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 20px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-input::placeholder {
+      color: #b09a8a;
+    }
+
+    .search-input:focus {
+      border-color: #c47a7a;
+      box-shadow: 0 0 0 2px rgba(196,122,122,0.12);
+    }
+
     /* movie grid */
     .movie-grid {
       display: grid;
@@ -243,6 +271,10 @@
     <button class="filter-btn" data-filter="english">english</button>
     <button class="filter-btn" data-filter="hindi">hindi</button>
     <button class="filter-btn" data-filter="animated">animated</button>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" class="search-input" placeholder="search titles..." autocomplete="off">
   </div>
 
   <p class="count"><span id="movie-count">0</span> things</p>
@@ -608,13 +640,16 @@
   }
 
   let activeFilter = 'all';
+  let searchQuery = '';
 
   function renderMovies() {
     const grid = document.getElementById('movieGrid');
+    const q = searchQuery.trim().toLowerCase();
     const filtered = (activeFilter === 'all'
       ? movies
       : movies.filter(m => m.tags && m.tags.includes(activeFilter))
-    ).sort((a, b) => a.title.replace(/^The /, '').localeCompare(b.title.replace(/^The /, '')));
+    ).filter(m => !q || m.title.toLowerCase().includes(q))
+     .sort((a, b) => a.title.replace(/^The /, '').localeCompare(b.title.replace(/^The /, '')));
 
     document.getElementById('movie-count').textContent = filtered.length;
 
@@ -649,6 +684,12 @@
       activeFilter = btn.dataset.filter;
       renderMovies();
     });
+  });
+
+  // search bar
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderMovies();
   });
 
   renderMovies();
