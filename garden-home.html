@@ -92,14 +92,17 @@
       .container {
         margin: 0 auto; padding: 3.2rem 1.8rem 2rem;
         max-width: 100%;
-        background: rgba(255,248,240,0.82);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(255,248,240,0.55);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
         border-radius: 0;
       }
-      /* On a phone the whole tree sits behind the text column, so keep it as a
-         faint watercolor backdrop (intentional) rather than a muddy overlap. */
-      #scene { opacity: 0.5; }
+      /* This card spans the full screen width on mobile (max-width:100%), so a
+         strong wash + dimmed tree combo was blanketing the tree everywhere,
+         not just behind the text — that's what made it "invisible". Lighter
+         card + tree back at near-full strength keeps text readable without
+         hiding the tree. */
+      #scene { opacity: 0.88; }
       h1 { font-size: 1.6rem; margin-bottom: 2rem; }
       li { font-size: 1.05rem; margin: 0.8rem 0; }
       li a { padding: 0.15rem 0; }
