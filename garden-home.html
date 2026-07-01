@@ -169,7 +169,7 @@
   const scC = scEl.getContext('2d');
   const ovC = ovEl.getContext('2d');
 
-  let W, H, dpr, isMobile;
+  let W, H, dpr, isMobile, TREE_X, lastW = -1, lastH = -1;
   let mx = 0, windX = 0;
   let shakeX = 0, shakeV = 0;
   let t = 0;
@@ -221,9 +221,16 @@
      RESIZE
   ================================================================ */
   function resize() {
+    const nw = window.innerWidth, nh = window.innerHeight;
+    // Mobile browsers fire `resize` when the address bar shows/hides on scroll
+    // (a height-only change). Regenerating the tree then makes it jump around.
+    // Ignore those: only rebuild on a real width change or a big height change.
+    if (sortedBranches.length && nw === lastW && Math.abs(nh - lastH) < 140) return;
+    lastW = nw; lastH = nh;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
+    W = nw; H = nh;
     isMobile = W < 600;
+    TREE_X = (isMobile ? 0.5 : 0.8) * W;
     [bgEl, scEl, ovEl].forEach(el => {
       el.width = W * dpr; el.height = H * dpr;
       el.style.width = W + 'px'; el.style.height = H + 'px';
@@ -295,12 +302,12 @@
       if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
     const bboxW = Math.max(1, maxX - minX), bboxH = Math.max(1, maxY - minY);
-    const treeX = isMobile ? W * 0.5 : W * 0.7;
-    const baseY = H * 0.91;
-    const targetH = (isMobile ? 0.60 : 0.74) * H;
+    const treeX = TREE_X;
+    const baseY = H * 0.90;
+    const targetH = (isMobile ? 0.58 : 0.72) * H;
     let scale = targetH / bboxH;
     // don't let the canopy overflow horizontally
-    const maxW = (isMobile ? 0.92 : 0.82) * W;
+    const maxW = (isMobile ? 0.92 : 0.60) * W;
     if (bboxW * scale > maxW) scale = maxW / bboxW;
     const tx = x => treeX + x * scale, ty = y => baseY + y * scale;
 
@@ -371,20 +378,47 @@
     c.fillStyle = sky; c.fillRect(0, 0, W, H);
 
     // Very subtle warm blush tint near the tree crown area
-    const treeX = isMobile ? W * 0.5 : W * 0.7;
+    const treeX = TREE_X;
     const glow = c.createRadialGradient(treeX, H * 0.45, 0, treeX, H * 0.5, H * 0.55);
     glow.addColorStop(0,   'rgba(250, 210, 210, 0.07)');
     glow.addColorStop(0.5, 'rgba(250, 205, 195, 0.035)');
     glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
     c.fillStyle = glow; c.fillRect(0, 0, W, H);
 
-    // Ground — simple warm strip
-    const gY = H * 0.90;
-    c.fillStyle = 'rgba(180, 140, 110, 0.045)';
+    // Ground — soft green grass band
+    const gY = H * 0.88;
+    const grass = c.createLinearGradient(0, gY, 0, H);
+    grass.addColorStop(0,    '#A7C97E');
+    grass.addColorStop(0.35, '#8FBA63');
+    grass.addColorStop(1,    '#6E9F49');
+    c.fillStyle = grass;
     c.fillRect(0, gY, W, H - gY);
 
+    // Soft lighter highlight along the top edge of the grass
+    const gTop = c.createLinearGradient(0, gY - 6, 0, gY + 22);
+    gTop.addColorStop(0, 'rgba(196, 222, 150, 0)');
+    gTop.addColorStop(1, 'rgba(196, 222, 150, 0.55)');
+    c.fillStyle = gTop;
+    c.fillRect(0, gY - 6, W, 28);
+
+    // Grass blades — thin hand-drawn strokes for texture
+    srand(31);
+    c.lineCap = 'round';
+    for (let i = 0; i < W / 3.5; i++) {
+      const bx = sRng() * W;
+      const by = gY + sRngR(0, (H - gY) * 0.9);
+      const bh = sRngR(5, 16) * (0.6 + (by - gY) / (H - gY));
+      const lean = sRngR(-3, 3);
+      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 138, 58, 0.55)' : 'rgba(150, 192, 104, 0.5)';
+      c.lineWidth = sRngR(0.6, 1.4);
+      c.beginPath();
+      c.moveTo(bx, by);
+      c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
+      c.stroke();
+    }
+
     // Pink puddle at the base of the trunk — watercolour wash where petals have pooled
-    const trunkBaseY = H * 0.91;
+    const trunkBaseY = H * 0.90;
     const puddleR = isMobile ? W * 0.45 : W * 0.30;
     // Outer light pink wash
     const wash = c.createRadialGradient(treeX, trunkBaseY, 0, treeX, trunkBaseY + 5, puddleR);
