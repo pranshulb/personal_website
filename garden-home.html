@@ -511,10 +511,12 @@
       p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
       const gy = H * 0.90;
       if (p.y > gy) {
-        if (groundPetals.length < 90) {
-          groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.6, 0.85),
-            rot: p.rot, color: p.color, alpha: p.alpha * 0.22, age: 0 });
-        }
+        // Every petal that lands should actually be seen — if we're at the cap,
+        // retire the oldest resting petal instead of silently dropping the new one
+        // (previously: new petals vanished at the ground line once 90 were resting).
+        if (groundPetals.length >= 220) groundPetals.shift();
+        groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.6, 0.85),
+          rot: p.rot, color: p.color, alpha: p.alpha * 0.22, age: 0 });
         airPetals.splice(i, 1); continue;
       }
       if (p.x < -100 || p.x > W + 100 || p.y < -150) airPetals.splice(i, 1);
@@ -686,18 +688,28 @@
   document.addEventListener('mousemove', e => {
     mx = (e.clientX / W - 0.5) * 2;
   });
+  // A single tap fires touchstart AND a synthetic click right after — without this
+  // guard, every mobile tap was spawning petals + shaking the tree TWICE.
+  let lastShakeAt = 0;
+  function shakeAndBurst() {
+    const now = performance.now();
+    if (now - lastShakeAt < 400) return;
+    lastShakeAt = now;
+    shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
+    // cap total petals so rapid repeated taps can't grow this unbounded
+    const room = Math.max(0, 260 - airPetals.length);
+    for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true);
+  }
   document.addEventListener('click', e => {
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
-    shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
-    for (let i = 0; i < 35; i++) spawnPetal(true);
+    shakeAndBurst();
   });
   document.addEventListener('touchmove', e => {
     const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
   }, { passive: true });
   document.addEventListener('touchstart', e => {
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
-    shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
-    for (let i = 0; i < 35; i++) spawnPetal(true);
+    shakeAndBurst();
   }, { passive: true });
 
   function copyEmail() {
