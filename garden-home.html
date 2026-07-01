@@ -83,9 +83,14 @@
     .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 600px) {
-      .content-wrap { display: flex; align-items: center; justify-content: center; }
+      /* Was flex + align-items:center. When the page content is taller than the
+         visible viewport (very common on phones once the address bar + bottom
+         nav are both showing), centering pushes the overflow above the fold —
+         with no way to scroll up to it, so the title rendered off-screen.
+         Top-align instead so the title is always the first thing on screen. */
+      .content-wrap { display: block; }
       .container {
-        margin: 0 auto; padding: 2rem 1.8rem;
+        margin: 0 auto; padding: 3.2rem 1.8rem 2rem;
         max-width: 100%;
         background: rgba(255,248,240,0.82);
         backdrop-filter: blur(8px);
