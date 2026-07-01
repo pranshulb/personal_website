@@ -2,232 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>pranshul's cafe!</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
+    html, body { width: 100%; height: 100%; overflow: hidden; }
     body {
       font-family: 'EB Garamond', Georgia, serif;
-      min-height: 100vh;
-      color: #3a2f2f;
-      line-height: 1.8;
-      overflow-x: hidden;
-      background: #faf5ef;
+      color: #3a2f2f; line-height: 1.8;
+      background: #FFF5EB;
+    }
+    ::selection { background: rgba(240, 166, 35, 0.3); color: #4a2f1a; }
+
+    canvas { position: fixed; top: 0; left: 0; display: block; }
+    #bg { z-index: 1; }
+    #scene { z-index: 2; }
+    #overlay { z-index: 7; pointer-events: none; }
+
+    .grain {
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      pointer-events: none; z-index: 8; opacity: 0.12;
     }
 
+    .content-wrap {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 5; overflow-y: auto;
+      pointer-events: none;
+    }
     .container {
       max-width: 520px;
-      margin: 0 0 0 2rem;
-      padding: 5rem 1.5rem 3rem;
-      position: relative;
-      z-index: 2;
+      margin: 0 0 0 max(2rem, 5vw);
+      padding: 4.5rem 2rem 3rem;
+      pointer-events: auto;
     }
 
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 400;
-      letter-spacing: 0.02em;
-      margin-bottom: 2.5rem;
-    }
-
-    h1 a {
-      color: #3a2f2f;
-      text-decoration: none;
-    }
-
-    h1 a:hover {
-      color: #c47a7a;
-    }
-
-    p {
-      color: #7a6a5f;
-      margin-bottom: 0.5rem;
-      font-size: 1.05rem;
-    }
-
+    h1 { font-size: 1.8rem; font-weight: 400; letter-spacing: 0.02em; margin-bottom: 2.5rem; }
+    h1 a { color: #4a3020; text-decoration: none; }
+    h1 a:hover { color: #c47a7a; }
+    p { color: #6a5545; margin-bottom: 0.5rem; font-size: 1.05rem; }
     ul { list-style: none; padding: 0; margin-bottom: 2rem; }
-
-    li {
-      margin: 0.6rem 0;
-      font-size: 1.05rem;
-    }
-
-    li::before {
-      content: '→ ';
-      color: #d4a0a0;
-      opacity: 0.7;
-    }
-
-    a {
-      color: #3a2f2f;
-      text-decoration: none;
-      border-bottom: 1px solid #d4a0a0;
-      transition: all 0.3s ease;
-    }
-
-    a:hover {
-      color: #c47a7a;
-      border-bottom-color: #c47a7a;
-    }
-
-    .socials {
-      margin-top: 3rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .social-links {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.5rem;
-    }
-
-    .social-links a {
-      color: #b09a8a;
-      border-bottom: none;
-      font-size: 0.9rem;
-    }
-
-    .social-links a:hover {
-      color: #c47a7a;
-    }
-
-    .copy-hint {
-      font-size: 0.85rem;
-      color: #c4b0a0;
-      margin-top: 1.2rem;
-    }
-
+    li { margin: 0.6rem 0; font-size: 1.05rem; }
+    li::before { content: '\2192 '; color: #d4a080; opacity: 0.7; }
+    a { color: #4a3020; text-decoration: none; border-bottom: 1px solid #d4a080; transition: all 0.3s ease; }
+    a:hover { color: #c47a7a; border-bottom-color: #c47a7a; }
+    .socials { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.06); }
+    .social-links { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .social-links a { color: #9a7a60; border-bottom: none; font-size: 0.9rem; }
+    .social-links a:hover { color: #c47a7a; }
+    .copy-hint { font-size: 0.85rem; color: #b09080; margin-top: 1.2rem; }
     .copy-hint kbd {
-      display: inline-block;
-      padding: 0.1em 0.4em;
-      border: 1px solid #d4c4b4;
-      border-radius: 3px;
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 0.9em;
+      display: inline-block; padding: 0.1em 0.4em;
+      border: 1px solid #d4b4a0; border-radius: 3px;
+      font-family: 'EB Garamond', Georgia, serif; font-size: 0.9em;
     }
+    .copy-hint-mobile { display: none; font-size: 0.85rem; color: #b09080; margin-top: 1.2rem; cursor: pointer; }
+    .copy-hint-mobile:active { color: #c47a7a; }
 
     .epigraph {
-      position: fixed;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 0.85rem;
-      color: #c4a0a0;
-      letter-spacing: 0.03em;
-      margin: 0;
-      z-index: 10;
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      font-size: 0.85rem; color: rgba(160,120,80,0.5);
+      letter-spacing: 0.03em; margin: 0; z-index: 10;
+      pointer-events: auto;
     }
 
     .copy-toast {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
+      position: fixed; bottom: 2rem; left: 50%;
       transform: translateX(-50%) translateY(100%);
-      background: rgba(196,122,122,0.12);
-      color: #c47a7a;
-      padding: 0.6rem 1.4rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-family: 'EB Garamond', Georgia, serif;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(196,122,122,0.2);
-      opacity: 0;
-      transition: all 0.4s ease;
-      pointer-events: none;
-      z-index: 999;
+      background: rgba(196,122,122,0.12); color: #c47a7a;
+      padding: 0.6rem 1.4rem; border-radius: 20px;
+      font-size: 0.85rem; font-family: 'EB Garamond', serif;
+      backdrop-filter: blur(10px); border: 1px solid rgba(196,122,122,0.2);
+      opacity: 0; transition: all 0.4s ease;
+      pointer-events: none; z-index: 999;
     }
-
-    .copy-toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* falling cherry blossom petals */
-    .petal {
-      position: fixed;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0;
-      animation: fall linear infinite;
-    }
-
-    @keyframes fall {
-      0% { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.8); }
-      10% { opacity: 0.5; }
-      90% { opacity: 0.3; }
-      100% { opacity: 0; transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4); }
-    }
+    .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @media (max-width: 600px) {
-      body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        min-height: 100dvh;
-      }
+      /* Was flex + align-items:center. When the page content is taller than the
+         visible viewport (very common on phones once the address bar + bottom
+         nav are both showing), centering pushes the overflow above the fold —
+         with no way to scroll up to it, so the title rendered off-screen.
+         Top-align instead so the title is always the first thing on screen. */
+      .content-wrap { display: block; }
       .container {
-        margin: 0 auto;
-        padding: 1.5rem 1.6rem 2rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        margin: 0 auto; padding: 3.2rem 1.8rem 2rem;
         max-width: 100%;
+        /* --card-a is updated on scroll (see script below) — starts opaque-ish
+           near the text-dense top, fades toward the bottom where there's less
+           to read and more canopy to see. */
+        background: rgba(255,248,240, var(--card-a, 0.6));
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        border-radius: 0;
+        transition: background 0.15s linear;
       }
+      /* This card spans the full screen width on mobile (max-width:100%), so a
+         strong wash + dimmed tree combo was blanketing the tree everywhere,
+         not just behind the text — that's what made it "invisible". Lighter
+         card + tree back at near-full strength keeps text readable without
+         hiding the tree. */
+      #scene { opacity: 0.88; }
       h1 { font-size: 1.6rem; margin-bottom: 2rem; }
+      li { font-size: 1.05rem; margin: 0.8rem 0; }
+      li a { padding: 0.15rem 0; }
+      p { font-size: 1rem; }
+      .social-links { gap: 1.2rem; }
+      .social-links a { font-size: 0.95rem; padding: 0.2rem 0; }
+      .copy-hint-desktop { display: none; }
+      .copy-hint-mobile { display: none; }
       .epigraph {
-        position: relative;
-        top: auto;
-        right: auto;
-        text-align: center;
-        padding: 1.2rem 1.6rem 0;
-        font-size: 0.8rem;
-      }
-      .social-links {
-        gap: 1.2rem;
-      }
-      .social-links a {
-        font-size: 0.95rem;
-        padding: 0.2rem 0;
-      }
-      .copy-hint-desktop {
-        display: none;
-      }
-      .copy-hint-mobile {
-        display: none;
-      }
-
-      li {
-        font-size: 1.05rem;
-        margin: 0.8rem 0;
-      }
-
-      li a {
-        padding: 0.15rem 0;
-      }
-
-      p {
-        font-size: 1rem;
+        position: fixed; top: auto; bottom: 0.8rem;
+        right: auto; left: 50%; transform: translateX(-50%);
+        font-size: 0.72rem; color: rgba(160,120,80,0.4);
+        z-index: 10; white-space: nowrap;
       }
     }
-
-    .copy-hint-mobile {
-      display: none;
-      font-size: 0.85rem;
-      color: #c4b0a0;
-      margin-top: 1.2rem;
-      cursor: pointer;
-    }
-
-    .copy-hint-mobile:active {
-      color: #c47a7a;
-    }
-
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
@@ -239,81 +133,622 @@
 </head>
 <body>
 
+<canvas id="bg"></canvas>
+<canvas id="scene"></canvas>
+
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 
-<div class="container">
-  <h1><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
-  <ul>
-    <li><a href="/who-am-i">who am i?</a></li>
-    <li><a href="/questions">questions i am thinking about</a></li>
-    <li><a href="/writings">writings</a></li>
-    <li><a href="/things-i-like">things i like</a></li>
-    <li><a href="/things-ive-watched">things i've watched</a></li>
-    <li><a href="/books">books i've read</a></li>
-    <li><a href="/examined">examined.</a> (philosophy personality test)</li>
-  </ul>
-
-  <div class="socials">
-    <div class="social-links">
-      <a href="mailto:pranshulbohra@gmail.com">email</a>
-      <a href="https://pranshulbohra.substack.com/">substack</a>
-      <a href="http://goodreads.com/pranshulb">goodreads</a>
-      <a href="https://curius.app/pranshul-bohra">curius</a>
-      <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
-
+<div class="content-wrap">
+  <div class="container">
+    <h1><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
+    <ul>
+      <li><a href="/who-am-i">who am i?</a></li>
+      <li><a href="/questions">questions i am thinking about</a></li>
+      <li><a href="/writings">writings</a></li>
+      <li><a href="/things-i-like">things i like</a></li>
+      <li><a href="/things-ive-watched">things i've watched</a></li>
+      <li><a href="/books">books i've read</a></li>
+      <li><a href="/examined">examined.</a> (philosophy personality test)</li>
+    </ul>
+    <div class="socials">
+      <div class="social-links">
+        <a href="mailto:pranshulbohra@gmail.com">email</a>
+        <a href="https://pranshulbohra.substack.com/">substack</a>
+        <a href="http://goodreads.com/pranshulb">goodreads</a>
+        <a href="https://curius.app/pranshul-bohra">curius</a>
+        <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
+      </div>
+      <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
+      <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
+      <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
     </div>
-    <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
-    <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
-    <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
-
   </div>
 </div>
+
+<canvas id="overlay"></canvas>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
 
 <div class="copy-toast" id="copyToast">email copied!</div>
 
 <script>
-  function createPetal() {
-    const petal = document.createElement('div');
-    petal.className = 'petal';
-    const startX = Math.random() * window.innerWidth;
-    const size = 8 + Math.random() * 12;
-    const duration = 8 + Math.random() * 12;
-    const drift = -60 + Math.random() * 120;
-    const spin = 180 + Math.random() * 540;
-    const delay = Math.random() * 5;
+(() => {
+  /* ================================================================
+     GARDEN HOME — hand-drawn cherry blossom, illustrated warm aesthetic
+     Angular ink branches, 5-petal blossoms, warm paper background
+  ================================================================ */
+  const bgEl = document.getElementById('bg');
+  const scEl = document.getElementById('scene');
+  const ovEl = document.getElementById('overlay');
+  const bgC = bgEl.getContext('2d');
+  const scC = scEl.getContext('2d');
+  const ovC = ovEl.getContext('2d');
 
-    // soft pinks and warm tones against the cream background
-    const colors = ['#f0b0b0', '#e8a0a0', '#f2c0c0', '#dba0a0', '#eab0b0'];
-    const color = colors[Math.floor(Math.random() * colors.length)];
+  let W, H, dpr, isMobile, TREE_X, lastW = -1, lastH = -1;
+  let mx = 0, windX = 0;
+  let shakeX = 0, shakeV = 0;
+  let t = 0;
 
-    petal.style.cssText = `
-      left: ${startX}px;
-      top: -20px;
-      width: ${size}px;
-      height: ${size * 0.7}px;
-      background: radial-gradient(ellipse at center, ${color} 0%, transparent 70%);
-      border-radius: 50% 0 50% 0;
-      animation-duration: ${duration}s;
-      animation-delay: ${delay}s;
-      --drift: ${drift}px;
-      --spin: ${spin}deg;
-    `;
+  let sortedBranches = [], blossoms = [], flowers = [];
+  let airPetals = [], groundPetals = [];
 
-    petal.animate([
-      { top: '-20px' },
-      { top: `${window.innerHeight + 20}px` }
-    ], {
-      duration: duration * 1000,
-      delay: delay * 1000,
-      fill: 'forwards'
-    });
+  /* ================================================================
+     COLORS — saturated watercolor pinks, dense cloud canopy
+  ================================================================ */
+  const PETAL_SOFT = ['#F4A8BD','#EE92AB','#F0B8CC','#EBA3B8','#F5C0D0','#E8889E','#F2B0C2','#EFA0B6'];
+  const PETAL_DEEP = ['#D85878','#C04866','#CE4F70','#B83C5E','#D9637D'];
+  const BLOSSOM_HOT  = ['#E84878','#D8406A','#E25075','#D03860','#DC4870','#C9355C'];
+  const BLOSSOM_MID  = ['#F0708F','#EC628A','#E8587E','#F37A98','#EE6589'];
+  const BLOSSOM_PINK = ['#F4A0BB','#F08FAB','#F8B5C8','#EE95B0','#F2A8C0','#F5B8CD'];
+  const BLOSSOM_PALE = ['#FBD0DC','#F9C5D5','#FDDAE3','#F8C0CF','#FCE0E8'];
+  const BLOSSOM_WHITE = ['#FDF0F5','#FEF5F8','#FFF0F4'];
 
-    document.body.appendChild(petal);
-    setTimeout(() => petal.remove(), (duration + delay) * 1000);
+  /* ================================================================
+     UTILITIES
+  ================================================================ */
+  let _seed = 0;
+  function srand(s) { _seed = s | 0; }
+  function sRng() { _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0; let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  function sPick(a) { return a[Math.floor(sRng() * a.length)]; }
+  function sRngR(a, b) { return a + sRng() * (b - a); }
+
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const rng = (a, b) => a + Math.random() * (b - a);
+  const qB = (a, b, c, t) => (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const PI2 = Math.PI * 2;
+  // #rrggbb -> rgba() with alpha, for soft watercolor gradient washes
+  function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+
+  function pickBlossomColor() {
+    const r = sRng();
+    if (r < 0.06) return sPick(BLOSSOM_WHITE);
+    if (r < 0.22) return sPick(BLOSSOM_PALE);
+    if (r < 0.55) return sPick(BLOSSOM_PINK);
+    if (r < 0.82) return sPick(BLOSSOM_MID);
+    return sPick(BLOSSOM_HOT);
   }
 
-  setInterval(createPetal, 1500);
-  for (let i = 0; i < 8; i++) setTimeout(createPetal, i * 600);
+  // Tree is stationary — no sway. (Falling petals still drift.)
+  function sw(y, x, ph) {
+    return 0;
+  }
+
+  /* ================================================================
+     RESIZE
+  ================================================================ */
+  function resize() {
+    const nw = window.innerWidth, nh = window.innerHeight;
+    // Mobile browsers fire `resize` when the address bar shows/hides on scroll
+    // (a height-only change). Regenerating the tree then makes it jump around.
+    // Ignore those: only rebuild on a real width change or a big height change.
+    if (sortedBranches.length && nw === lastW && Math.abs(nh - lastH) < 140) return;
+    lastW = nw; lastH = nh;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = nw; H = nh;
+    isMobile = W < 600;
+    TREE_X = (isMobile ? 0.5 : 0.7) * W;
+    [bgEl, scEl, ovEl].forEach(el => {
+      el.width = W * dpr; el.height = H * dpr;
+      el.style.width = W + 'px'; el.style.height = H + 'px';
+    });
+    [bgC, scC, ovC].forEach(c => c.setTransform(dpr, 0, 0, dpr, 0, 0));
+    genTree(); drawBg(); drawScene();
+    groundPetals = [];
+  }
+
+  /* ================================================================
+     TREE — hanamijs L-System sakura (ported from kelvinkoko/hanamijs)
+     Procedural sakura via grammar rules + turtle interpreter.
+     Grows geometry once; canopy blossoms placed on leaf ("L") nodes.
+  ================================================================ */
+  const SAKURA = {
+    axiom: "TTTTTTTTTTTT[b][+a]-b",
+    rules: { F: "GF", a: "F[+xL]+b", b: "F[-yL]-a", x: "+a", y: "-b" },
+    iteration: 14,
+    stemLength: 5, stemWidth: 20, stemDrawChance: 0.7,
+    stemLengthReductionRatio: 0.9, stemLengthReductionChance: 0.6,
+    stemWidthReductionRatio: 0.75, angle: 20, angleDerivation: 6
+  };
+  const TREE_SEED = 101;
+
+  function genTree() {
+    srand(TREE_SEED);
+    const P = SAKURA;
+    const between = (a, b) => sRngR(a, b);
+    const should = (p) => sRng() >= 1 - p;
+
+    // 1) expand the L-system grammar
+    let expr = P.axiom;
+    for (let i = 0; i < P.iteration; i++) {
+      let out = "";
+      for (const ch of expr) out += (P.rules[ch] ?? ch);
+      expr = out;
+    }
+
+    // 2) interpret with a turtle in LOCAL coords (base at 0,0, grows upward)
+    const rawB = [], leaves = [];
+    let st = { x: 0, y: 0, angle: 0, len: P.stemLength, w: P.stemWidth, d: 0 };
+    const stack = [];
+    const step = () => {
+      const ex = st.x - st.len * Math.sin(Math.PI * st.angle / 180);
+      const ey = st.y - st.len * Math.cos(Math.PI * st.angle / 180);
+      rawB.push({ x1: st.x, y1: st.y, x2: ex, y2: ey, w: st.w, d: st.d });
+      st.x = ex; st.y = ey;
+    };
+    for (const cmd of expr) {
+      switch (cmd) {
+        case "G": case "F": if (!should(P.stemDrawChance)) break; // else fall through
+        case "T": step(); break;
+        case "+": st.angle += between(P.angle - P.angleDerivation, P.angle + P.angleDerivation); break;
+        case "-": st.angle -= between(P.angle - P.angleDerivation, P.angle + P.angleDerivation); break;
+        case "[":
+          st.w *= P.stemWidthReductionRatio; if (st.w < 1) st.w = 1;
+          if (should(P.stemLengthReductionChance)) st.len *= P.stemLengthReductionRatio;
+          if (st.len < 1) st.len = 1; st.d++;
+          stack.push({ ...st }); break;
+        case "]": { const p = stack.pop(); if (p) st = p; break; }
+        case "L": leaves.push({ x: st.x, y: st.y, d: st.d }); break;
+      }
+    }
+
+    // 3) fit the local geometry into the viewport
+    let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    for (const b of rawB) for (const [x, y] of [[b.x1, b.y1], [b.x2, b.y2]]) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+    const bboxW = Math.max(1, maxX - minX), bboxH = Math.max(1, maxY - minY);
+    const treeX = TREE_X;
+    const baseY = H * 0.90;
+    const targetH = (isMobile ? 0.58 : 0.72) * H;
+    let scale = targetH / bboxH;
+    // don't let the canopy overflow horizontally
+    const maxW = (isMobile ? 0.92 : 0.60) * W;
+    if (bboxW * scale > maxW) scale = maxW / bboxW;
+    const tx = x => treeX + x * scale, ty = y => baseY + y * scale;
+
+    // 4) build render-ready branches (slight bend + baked jitter for hand-drawn feel)
+    const branches = [];
+    for (const b of rawB) {
+      const x1 = tx(b.x1), y1 = ty(b.y1), x2 = tx(b.x2), y2 = ty(b.y2);
+      const w = Math.max(0.5, b.w * scale);
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+      const ang = Math.atan2(dy, dx), perp = ang + Math.PI / 2;
+      const bend = sRngR(-1, 1) * len * 0.06;
+      const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
+      const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
+      const jAmt = Math.max(0.4, w * 0.055);
+      branches.push({ x1, y1, cx, cy, x2, y2, w, d: b.d,
+        jx: sRngR(-jAmt, jAmt), jy: sRngR(-jAmt, jAmt) });
+    }
+    branches.sort((a, b) => (a.d - b.d) || (b.w - a.w)); // trunk/thick first
+    sortedBranches = branches;
+
+    // 5) canopy blossoms + HD flowers grow from the leaf nodes
+    blossoms = []; flowers = [];
+    const bScale = Math.max(0.8, scale * 0.9);
+    for (const l of leaves) {
+      const lx = tx(l.x), ly = ty(l.y);
+      // main soft blob
+      blossoms.push({
+        x: lx + sRngR(-6, 6), y: ly + sRngR(-6, 6),
+        r: sRngR(6, 15) * bScale * 0.7, color: pickBlossomColor(),
+        alpha: sRngR(0.4, 0.68), ph: sRng() * PI2, swPh: sRng() * PI2
+      });
+      // extra fluff near the canopy
+      if (sRng() < 0.5) blossoms.push({
+        x: lx + sRngR(-14, 14), y: ly + sRngR(-14, 14),
+        r: sRngR(4, 10) * bScale * 0.7, color: pickBlossomColor(),
+        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2
+      });
+      // saturated highlight dot
+      if (sRng() < 0.28) blossoms.push({
+        x: lx + sRngR(-10, 10), y: ly + sRngR(-10, 10),
+        r: sRngR(2.5, 5.5) * bScale * 0.7,
+        color: sRng() < 0.5 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
+        alpha: sRngR(0.7, 0.95), ph: sRng() * PI2, swPh: sRng() * PI2
+      });
+      // HD 5-petal flower on some nodes
+      if (sRng() < 0.24) flowers.push({
+        x: lx + sRngR(-8, 8), y: ly + sRngR(-8, 8),
+        sz: sRngR(4, 8) * Math.max(0.9, bScale * 0.75),
+        angle: sRng() * PI2,
+        color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
+        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
+      });
+    }
+
+    // 6) watercolor splatter — faint droplets sprayed around the canopy (like the reference)
+    if (leaves.length) {
+      const lp = leaves.map(l => [tx(l.x), ty(l.y)]);
+      let ccx = 0, ccy = 0;
+      for (const [px, py] of lp) { ccx += px; ccy += py; }
+      ccx /= lp.length; ccy /= lp.length;
+      let spread = 0;
+      for (const [px, py] of lp) spread = Math.max(spread, Math.hypot(px - ccx, py - ccy));
+      const nSpl = Math.min(200, Math.floor(spread * 0.9));
+      for (let i = 0; i < nSpl; i++) {
+        const a = sRng() * PI2;
+        const dist = spread * (0.55 + sRng() * 0.75);   // reaches beyond the main mass
+        blossoms.push({
+          x: ccx + Math.cos(a) * dist,
+          y: ccy + Math.sin(a) * dist * 0.9,
+          r: sRngR(1.5, 5.5) * bScale * 0.6,
+          color: pickBlossomColor(),
+          alpha: sRngR(0.12, 0.5), ph: sRng() * PI2, swPh: sRng() * PI2
+        });
+      }
+    }
+  }
+
+  /* ================================================================
+     BACKGROUND — warm paper, illustrated look
+  ================================================================ */
+  function drawBg() {
+    const c = bgC; c.clearRect(0, 0, W, H);
+
+    // Warm paper gradient — cream to slightly blush at bottom
+    const sky = c.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0,    '#FFFFFF');
+    sky.addColorStop(0.55, '#FDFCFD');
+    sky.addColorStop(0.85, '#FAFAFC');
+    sky.addColorStop(1,    '#F3F4F8');
+    c.fillStyle = sky; c.fillRect(0, 0, W, H);
+
+    // Very subtle warm blush tint near the tree crown area
+    const treeX = TREE_X;
+    const glow = c.createRadialGradient(treeX, H * 0.45, 0, treeX, H * 0.5, H * 0.55);
+    glow.addColorStop(0,   'rgba(250, 210, 210, 0.07)');
+    glow.addColorStop(0.5, 'rgba(250, 205, 195, 0.035)');
+    glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
+    c.fillStyle = glow; c.fillRect(0, 0, W, H);
+
+    // Ground — soft watercolor mound + cool water reflection (matches the reference)
+    const trunkBaseY = H * 0.90;
+
+    // Cool blue-grey water wash beneath the mound — the reflection pool
+    const waterR = isMobile ? W * 0.44 : W * 0.30;
+    const water = c.createRadialGradient(treeX, trunkBaseY + 26, 0, treeX, trunkBaseY + 26, waterR);
+    water.addColorStop(0,   'rgba(148, 162, 190, 0.34)');
+    water.addColorStop(0.5, 'rgba(166, 178, 202, 0.18)');
+    water.addColorStop(1,   'rgba(184, 194, 214, 0)');
+    c.fillStyle = water;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 26, waterR, waterR * 0.22, 0, 0, PI2);
+    c.fill();
+
+    // Mossy grey-brown mound the tree sits on
+    const moundR = isMobile ? W * 0.36 : W * 0.24;
+    const mound = c.createRadialGradient(treeX, trunkBaseY + 6, 0, treeX, trunkBaseY + 8, moundR);
+    mound.addColorStop(0,    'rgba(86, 78, 84, 0.52)');
+    mound.addColorStop(0.45, 'rgba(108, 102, 106, 0.34)');
+    mound.addColorStop(0.8,  'rgba(140, 138, 142, 0.12)');
+    mound.addColorStop(1,    'rgba(160, 160, 166, 0)');
+    c.fillStyle = mound;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 8, moundR, moundR * 0.30, 0, 0, PI2);
+    c.fill();
+
+    // Faint grass tufts on the mound — thin cool strokes for texture
+    srand(31);
+    c.lineCap = 'round';
+    for (let i = 0; i < moundR / 3; i++) {
+      const off = sRngR(-moundR, moundR);
+      const bx = treeX + off;
+      const edge = 1 - Math.abs(off) / moundR;
+      const by = trunkBaseY + 6 - edge * moundR * 0.10 + sRngR(-3, 6);
+      const bh = sRngR(4, 12) * (0.5 + edge);
+      const lean = sRngR(-3, 3);
+      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.42)' : 'rgba(122, 118, 124, 0.34)';
+      c.lineWidth = sRngR(0.5, 1.2);
+      c.beginPath();
+      c.moveTo(bx, by);
+      c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
+      c.stroke();
+    }
+
+    // Scattered fallen-petal specks pooling at the base — subtle pink
+    srand(99);
+    for (let i = 0; i < 22; i++) {
+      const a = sRng() * PI2;
+      const dist = moundR * sRngR(0.4, 1.1);
+      const px = treeX + Math.cos(a) * dist;
+      const py = trunkBaseY + 8 + Math.sin(a) * dist * 0.24;
+      c.globalAlpha = sRngR(0.10, 0.28);
+      c.fillStyle = sRng() < 0.5 ? '#D8506E' : '#EE9AB2';
+      c.beginPath();
+      c.arc(px, py, sRngR(1.5, 5), 0, PI2);
+      c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+
+  /* ================================================================
+     PETAL PHYSICS — gentle illustrated drift
+  ================================================================ */
+  function spawnPetal(fromTree) {
+    let px, py, vx, vy;
+    if (fromTree && blossoms.length) {
+      const b = blossoms[Math.floor(Math.random() * blossoms.length)];
+      px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
+      vx = rng(-0.5, 0.5); vy = rng(-0.08, 0.18);
+    } else {
+      px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
+      vx = rng(-0.1, 0.1); vy = rng(0.04, 0.09);
+    }
+    airPetals.push({
+      x: px, y: py, vx, vy,
+      r: rng(5, 11), rot: rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
+      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
+      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
+      color: Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
+      alpha: rng(0.55, 0.90)
+    });
+  }
+
+  function updatePetals() {
+    windX += (mx * 0.7 - windX) * 0.006;
+
+    for (let i = airPetals.length - 1; i >= 0; i--) {
+      const p = airPetals[i];
+      p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
+      p.vy += 0.0009;
+      p.swp += p.swSpd;
+      p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
+      p.vx *= 0.998; p.vy *= 0.999;
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
+      const gy = H * 0.90;
+      if (p.y > gy) {
+        // Every petal that lands should actually be seen — if we're at the cap,
+        // retire the oldest resting petal instead of silently dropping the new one
+        // (previously: new petals vanished at the ground line once 90 were resting).
+        if (groundPetals.length >= 220) groundPetals.shift();
+        groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.6, 0.85),
+          rot: p.rot, color: p.color, alpha: p.alpha * 0.22, age: 0 });
+        airPetals.splice(i, 1); continue;
+      }
+      if (p.x < -100 || p.x > W + 100 || p.y < -150) airPetals.splice(i, 1);
+    }
+
+    for (let i = groundPetals.length - 1; i >= 0; i--) {
+      groundPetals[i].age += 0.0001;
+      if (groundPetals[i].age > 1) groundPetals.splice(i, 1);
+    }
+    if (airPetals.length < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
+  }
+
+  function updateShake() {
+    if (shakeX !== 0 || shakeV !== 0) {
+      shakeV -= shakeX * 0.1; shakeV *= 0.86; shakeX += shakeV;
+      if (Math.abs(shakeX) < 0.03 && Math.abs(shakeV) < 0.03) { shakeX = 0; shakeV = 0; }
+    }
+  }
+
+  /* ================================================================
+     DRAW SCENE — ink branches + illustrated 5-petal blossoms
+  ================================================================ */
+  function drawScene() {
+    const c = scC; c.clearRect(0, 0, W, H);
+    c.lineCap = 'round'; c.lineJoin = 'round';
+
+    // Branches — thick → thin (already sorted by d)
+    for (const b of sortedBranches) {
+      const s1 = sw(b.y1, b.x1) * 0.35;
+      const s2 = sw(b.y2, b.x2);
+      const sc = (s1 + s2) * 0.5;
+
+      // Watercolor bark — grey-purple trunk, darker maroon-grey thin branches (like the reference)
+      c.strokeStyle = b.d === 0 ? '#6b5560' : b.d < 3 ? '#584651' : '#463642';
+      c.lineWidth = b.w;
+      c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
+      c.beginPath();
+      c.moveTo(b.x1 + s1, b.y1);
+      c.quadraticCurveTo(b.cx + sc, b.cy, b.x2 + s2, b.y2);
+      c.stroke();
+
+      // Secondary pass on thick branches — slight pressure variation, hand-drawn feel
+      if (b.w > 5) {
+        c.lineWidth = b.w * 0.20;
+        c.globalAlpha = 0.06;
+        c.strokeStyle = '#3a2c36';
+        c.beginPath();
+        c.moveTo(b.x1 + s1 + b.jx, b.y1 + b.jy);
+        c.quadraticCurveTo(b.cx + sc + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2 + s2, b.y2);
+        c.stroke();
+      }
+      c.globalAlpha = 1;
+    }
+
+    // Blossoms — soft overlapping watercolor blobs (cloud canopy)
+    for (const b of blossoms) {
+      const s = sw(b.y, b.x, b.swPh);
+      drawBlossomBlob(c, b.x + s, b.y, b.r, b.color, b.alpha, b.ph);
+    }
+
+    // HD 5-petal flowers layered on top of blobs
+    for (const f of flowers) {
+      const s = sw(f.y, f.x, f.swPh);
+      drawFlower(c, f.x + s, f.y, f.sz, f.angle, f.color, f.alpha);
+    }
+  }
+
+  /* ================================================================
+     DRAW OVERLAY — falling hearts + resting ground petals (animated)
+  ================================================================ */
+  function drawOverlay() {
+    const c = ovC; c.clearRect(0, 0, W, H);
+    // Resting petals on the ground (moved here so the tree scene stays static)
+    for (const p of groundPetals) {
+      const a = p.alpha * Math.max(0, 1 - p.age);
+      if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
+    }
+    for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
+  }
+
+  /* ================================================================
+     HELPERS — soft blossom blob + heart petal
+  ================================================================ */
+  function drawBlossomBlob(c, x, y, r, color, alpha, ph) {
+    // soft feathered watercolor wash — full colour in the core, fading to nothing at the edge
+    const g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0,    hexA(color, 1));
+    g.addColorStop(0.45, hexA(color, 0.85));
+    g.addColorStop(1,    hexA(color, 0));
+    c.globalAlpha = alpha;
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(x, y, r, 0, PI2);
+    c.fill();
+    c.globalAlpha = 1;
+  }
+
+  function drawPetalShape(c, x, y, sz, rot, color, alpha, tumble) {
+    if (alpha < 0.015) return;
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    c.beginPath();
+    c.moveTo(0, -sz);
+    c.bezierCurveTo(sz * 0.55, -sz * 0.65, sz * 0.50, sz * 0.33, 0, sz * 0.75);
+    c.bezierCurveTo(-sz * 0.50, sz * 0.33, -sz * 0.55, -sz * 0.65, 0, -sz);
+    c.fill();
+    c.restore();
+    c.globalAlpha = 1;
+  }
+
+  function drawFlower(c, x, y, sz, angle0, color, alpha) {
+    if (alpha < 0.015) return;
+    c.save();
+    c.translate(x, y);
+    c.globalAlpha = alpha;
+    c.fillStyle = color;
+    for (let i = 0; i < 5; i++) {
+      const ang = angle0 + (i / 5) * PI2;
+      c.save();
+      c.rotate(ang);
+      c.beginPath();
+      c.moveTo(0, -sz);
+      c.bezierCurveTo(sz * 0.48, -sz * 0.60, sz * 0.42, sz * 0.28, 0, sz * 0.62);
+      c.bezierCurveTo(-sz * 0.42, sz * 0.28, -sz * 0.48, -sz * 0.60, 0, -sz);
+      c.fill();
+      c.restore();
+    }
+    // soft notch at each petal tip
+    c.fillStyle = color;
+    c.globalAlpha = alpha * 0.35;
+    for (let i = 0; i < 5; i++) {
+      const ang = angle0 + (i / 5) * PI2;
+      c.save();
+      c.rotate(ang);
+      c.beginPath();
+      c.arc(0, -sz * 0.88, sz * 0.18, 0, PI2);
+      c.fill();
+      c.restore();
+    }
+    // stamen
+    c.fillStyle = '#F6D84A';
+    c.globalAlpha = alpha * 0.90;
+    c.beginPath();
+    c.arc(0, 0, sz * 0.22, 0, PI2);
+    c.fill();
+    c.restore();
+    c.globalAlpha = 1;
+  }
+
+  /* ================================================================
+     ANIMATION LOOP
+  ================================================================ */
+  function frame() {
+    t += 0.016;
+    updatePetals();
+    updateShake();
+    drawOverlay();
+    requestAnimationFrame(frame);
+  }
+
+  /* ================================================================
+     SCROLL — on mobile, fade the text card as you scroll down so the tree
+     shows through more once you're past the text-dense top of the page.
+  ================================================================ */
+  const contentWrapEl = document.querySelector('.content-wrap');
+  const containerEl = document.querySelector('.container');
+  let scrollTicking = false;
+  function applyScrollFade() {
+    scrollTicking = false;
+    if (!isMobile) { containerEl.style.removeProperty('--card-a'); return; }
+    const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
+    const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
+    // 0.62 near the top (crisp text over the title/list) -> 0.22 near the
+    // bottom (mostly canopy + footer, let the tree read through).
+    const a = 0.62 - progress * 0.40;
+    containerEl.style.setProperty('--card-a', a.toFixed(3));
+  }
+  contentWrapEl.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(applyScrollFade);
+  }, { passive: true });
+
+  /* ================================================================
+     EVENTS
+  ================================================================ */
+  window.addEventListener('resize', () => { resize(); applyScrollFade(); });
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX / W - 0.5) * 2;
+  });
+  // A single tap fires touchstart AND a synthetic click right after — without this
+  // guard, every mobile tap was spawning petals + shaking the tree TWICE.
+  let lastShakeAt = 0;
+  function shakeAndBurst() {
+    const now = performance.now();
+    if (now - lastShakeAt < 400) return;
+    lastShakeAt = now;
+    shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
+    // cap total petals so rapid repeated taps can't grow this unbounded
+    const room = Math.max(0, 260 - airPetals.length);
+    for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true);
+  }
+  document.addEventListener('click', e => {
+    if (e.target.closest('.container, .epigraph, .copy-toast')) return;
+    shakeAndBurst();
+  });
+  document.addEventListener('touchmove', e => {
+    const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
+  }, { passive: true });
+  document.addEventListener('touchstart', e => {
+    if (e.target.closest('.container, .epigraph, .copy-toast')) return;
+    shakeAndBurst();
+  }, { passive: true });
 
   function copyEmail() {
     navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
@@ -322,18 +757,37 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     });
   }
-
-  // press C to copy email (desktop)
-  document.addEventListener('keydown', (e) => {
-    if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) {
-      copyEmail();
-    }
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) copyEmail();
   });
+  const mc = document.getElementById('mobileCopy');
+  if (mc) mc.addEventListener('click', copyEmail);
 
-  // tap to copy (mobile)
-  const mobileCopy = document.getElementById('mobileCopy');
-  if (mobileCopy) mobileCopy.addEventListener('click', copyEmail);
+  /* ================================================================
+     INIT
+  ================================================================ */
+  resize();
+  applyScrollFade();
+  // Pre-scatter hearts so it feels alive on load
+  for (let i = 0; i < 26; i++) {
+    spawnPetal(true);
+    const p = airPetals[airPetals.length - 1];
+    p.y = rng(0, H * 0.85); p.x = rng(0, W);
+  }
+  // Hearts resting on ground — concentrated around the puddle, scattered elsewhere
+  const trX = isMobile ? W * 0.5 : W * 0.7;
+  for (let i = 0; i < 35; i++) {
+    const nearPuddle = Math.random() < 0.7;
+    const px = nearPuddle ? trX + rng(-W * 0.25, W * 0.25) : rng(0, W);
+    groundPetals.push({
+      x: px, y: H * 0.90 + rng(-2, H * 0.06),
+      r: rng(4, 9), rot: rng(-0.6, 0.6),
+      color: Math.random() < 0.45 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
+      alpha: rng(0.35, 0.65), age: rng(0, 0.25)
+    });
+  }
+  frame();
+})();
 </script>
-
 </body>
 </html>
