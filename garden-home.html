@@ -208,6 +208,8 @@
   const qB = (a, b, c, t) => (1-t)*(1-t)*a + 2*(1-t)*t*b + t*t*c;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const PI2 = Math.PI * 2;
+  // #rrggbb -> rgba() with alpha, for soft watercolor gradient washes
+  function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
 
   function pickBlossomColor() {
     const r = sRng();
@@ -367,6 +369,28 @@
         alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
       });
     }
+
+    // 6) watercolor splatter — faint droplets sprayed around the canopy (like the reference)
+    if (leaves.length) {
+      const lp = leaves.map(l => [tx(l.x), ty(l.y)]);
+      let ccx = 0, ccy = 0;
+      for (const [px, py] of lp) { ccx += px; ccy += py; }
+      ccx /= lp.length; ccy /= lp.length;
+      let spread = 0;
+      for (const [px, py] of lp) spread = Math.max(spread, Math.hypot(px - ccx, py - ccy));
+      const nSpl = Math.min(200, Math.floor(spread * 0.9));
+      for (let i = 0; i < nSpl; i++) {
+        const a = sRng() * PI2;
+        const dist = spread * (0.55 + sRng() * 0.75);   // reaches beyond the main mass
+        blossoms.push({
+          x: ccx + Math.cos(a) * dist,
+          y: ccy + Math.sin(a) * dist * 0.9,
+          r: sRngR(1.5, 5.5) * bScale * 0.6,
+          color: pickBlossomColor(),
+          alpha: sRngR(0.12, 0.5), ph: sRng() * PI2, swPh: sRng() * PI2
+        });
+      }
+    }
   }
 
   /* ================================================================
@@ -377,10 +401,10 @@
 
     // Warm paper gradient — cream to slightly blush at bottom
     const sky = c.createLinearGradient(0, 0, 0, H);
-    sky.addColorStop(0,    '#FFFAF4');
-    sky.addColorStop(0.45, '#FFF6EE');
-    sky.addColorStop(0.80, '#FFF0E8');
-    sky.addColorStop(1,    '#FDEAE0');
+    sky.addColorStop(0,    '#FFFFFF');
+    sky.addColorStop(0.55, '#FDFCFD');
+    sky.addColorStop(0.85, '#FAFAFC');
+    sky.addColorStop(1,    '#F3F4F8');
     c.fillStyle = sky; c.fillRect(0, 0, W, H);
 
     // Very subtle warm blush tint near the tree crown area
@@ -391,75 +415,61 @@
     glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
     c.fillStyle = glow; c.fillRect(0, 0, W, H);
 
-    // Ground — soft green grass band
-    const gY = H * 0.88;
-    const grass = c.createLinearGradient(0, gY, 0, H);
-    grass.addColorStop(0,    '#A7C97E');
-    grass.addColorStop(0.35, '#8FBA63');
-    grass.addColorStop(1,    '#6E9F49');
-    c.fillStyle = grass;
-    c.fillRect(0, gY, W, H - gY);
+    // Ground — soft watercolor mound + cool water reflection (matches the reference)
+    const trunkBaseY = H * 0.90;
 
-    // Soft lighter highlight along the top edge of the grass
-    const gTop = c.createLinearGradient(0, gY - 6, 0, gY + 22);
-    gTop.addColorStop(0, 'rgba(196, 222, 150, 0)');
-    gTop.addColorStop(1, 'rgba(196, 222, 150, 0.55)');
-    c.fillStyle = gTop;
-    c.fillRect(0, gY - 6, W, 28);
+    // Cool blue-grey water wash beneath the mound — the reflection pool
+    const waterR = isMobile ? W * 0.44 : W * 0.30;
+    const water = c.createRadialGradient(treeX, trunkBaseY + 26, 0, treeX, trunkBaseY + 26, waterR);
+    water.addColorStop(0,   'rgba(148, 162, 190, 0.34)');
+    water.addColorStop(0.5, 'rgba(166, 178, 202, 0.18)');
+    water.addColorStop(1,   'rgba(184, 194, 214, 0)');
+    c.fillStyle = water;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 26, waterR, waterR * 0.22, 0, 0, PI2);
+    c.fill();
 
-    // Grass blades — thin hand-drawn strokes for texture
+    // Mossy grey-brown mound the tree sits on
+    const moundR = isMobile ? W * 0.36 : W * 0.24;
+    const mound = c.createRadialGradient(treeX, trunkBaseY + 6, 0, treeX, trunkBaseY + 8, moundR);
+    mound.addColorStop(0,    'rgba(86, 78, 84, 0.52)');
+    mound.addColorStop(0.45, 'rgba(108, 102, 106, 0.34)');
+    mound.addColorStop(0.8,  'rgba(140, 138, 142, 0.12)');
+    mound.addColorStop(1,    'rgba(160, 160, 166, 0)');
+    c.fillStyle = mound;
+    c.beginPath();
+    c.ellipse(treeX, trunkBaseY + 8, moundR, moundR * 0.30, 0, 0, PI2);
+    c.fill();
+
+    // Faint grass tufts on the mound — thin cool strokes for texture
     srand(31);
     c.lineCap = 'round';
-    for (let i = 0; i < W / 3.5; i++) {
-      const bx = sRng() * W;
-      const by = gY + sRngR(0, (H - gY) * 0.9);
-      const bh = sRngR(5, 16) * (0.6 + (by - gY) / (H - gY));
+    for (let i = 0; i < moundR / 3; i++) {
+      const off = sRngR(-moundR, moundR);
+      const bx = treeX + off;
+      const edge = 1 - Math.abs(off) / moundR;
+      const by = trunkBaseY + 6 - edge * moundR * 0.10 + sRngR(-3, 6);
+      const bh = sRngR(4, 12) * (0.5 + edge);
       const lean = sRngR(-3, 3);
-      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 138, 58, 0.55)' : 'rgba(150, 192, 104, 0.5)';
-      c.lineWidth = sRngR(0.6, 1.4);
+      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.42)' : 'rgba(122, 118, 124, 0.34)';
+      c.lineWidth = sRngR(0.5, 1.2);
       c.beginPath();
       c.moveTo(bx, by);
       c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
       c.stroke();
     }
 
-    // Pink puddle at the base of the trunk — watercolour wash where petals have pooled
-    const trunkBaseY = H * 0.90;
-    const puddleR = isMobile ? W * 0.45 : W * 0.30;
-    // Outer light pink wash
-    const wash = c.createRadialGradient(treeX, trunkBaseY, 0, treeX, trunkBaseY + 5, puddleR);
-    wash.addColorStop(0,    'rgba(232, 100, 130, 0.42)');
-    wash.addColorStop(0.25, 'rgba(238, 140, 165, 0.30)');
-    wash.addColorStop(0.55, 'rgba(245, 180, 200, 0.16)');
-    wash.addColorStop(0.85, 'rgba(250, 210, 220, 0.06)');
-    wash.addColorStop(1,    'rgba(255, 230, 235, 0)');
-    c.fillStyle = wash;
-    c.beginPath();
-    c.ellipse(treeX, trunkBaseY + 4, puddleR, puddleR * 0.32, 0, 0, PI2);
-    c.fill();
-
-    // Inner deeper pink pool — denser core
-    const core = c.createRadialGradient(treeX, trunkBaseY + 3, 0, treeX, trunkBaseY + 3, puddleR * 0.55);
-    core.addColorStop(0,   'rgba(216, 80, 115, 0.45)');
-    core.addColorStop(0.4, 'rgba(224, 100, 130, 0.20)');
-    core.addColorStop(1,   'rgba(232, 130, 155, 0)');
-    c.fillStyle = core;
-    c.beginPath();
-    c.ellipse(treeX, trunkBaseY + 3, puddleR * 0.55, puddleR * 0.20, 0, 0, PI2);
-    c.fill();
-
-    // Splash droplets — irregular blobs around the puddle
+    // Scattered fallen-petal specks pooling at the base — subtle pink
     srand(99);
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 22; i++) {
       const a = sRng() * PI2;
-      const dist = puddleR * sRngR(0.55, 1.05);
+      const dist = moundR * sRngR(0.4, 1.1);
       const px = treeX + Math.cos(a) * dist;
-      const py = trunkBaseY + 3 + Math.sin(a) * dist * 0.30;
-      const dr = sRngR(2, 8);
-      c.globalAlpha = sRngR(0.18, 0.40);
-      c.fillStyle = sRng() < 0.4 ? '#D8506E' : '#EE8AA8';
+      const py = trunkBaseY + 8 + Math.sin(a) * dist * 0.24;
+      c.globalAlpha = sRngR(0.10, 0.28);
+      c.fillStyle = sRng() < 0.5 ? '#D8506E' : '#EE9AB2';
       c.beginPath();
-      c.arc(px, py, dr, 0, PI2);
+      c.arc(px, py, sRngR(1.5, 5), 0, PI2);
       c.fill();
     }
     c.globalAlpha = 1;
@@ -537,8 +547,8 @@
       const s2 = sw(b.y2, b.x2);
       const sc = (s1 + s2) * 0.5;
 
-      // Ink colour — darkest at trunk, slightly warmer at tips
-      c.strokeStyle = b.d === 0 ? '#251506' : b.d < 3 ? '#2D180A' : '#391E0C';
+      // Watercolor bark — grey-purple trunk, darker maroon-grey thin branches (like the reference)
+      c.strokeStyle = b.d === 0 ? '#6b5560' : b.d < 3 ? '#584651' : '#463642';
       c.lineWidth = b.w;
       c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
       c.beginPath();
@@ -549,8 +559,8 @@
       // Secondary pass on thick branches — slight pressure variation, hand-drawn feel
       if (b.w > 5) {
         c.lineWidth = b.w * 0.20;
-        c.globalAlpha = 0.055;
-        c.strokeStyle = '#180802';
+        c.globalAlpha = 0.06;
+        c.strokeStyle = '#3a2c36';
         c.beginPath();
         c.moveTo(b.x1 + s1 + b.jx, b.y1 + b.jy);
         c.quadraticCurveTo(b.cx + sc + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2 + s2, b.y2);
@@ -589,11 +599,15 @@
      HELPERS — soft blossom blob + heart petal
   ================================================================ */
   function drawBlossomBlob(c, x, y, r, color, alpha, ph) {
-    const pr = r;
+    // soft feathered watercolor wash — full colour in the core, fading to nothing at the edge
+    const g = c.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0,    hexA(color, 1));
+    g.addColorStop(0.45, hexA(color, 0.85));
+    g.addColorStop(1,    hexA(color, 0));
     c.globalAlpha = alpha;
-    c.fillStyle = color;
+    c.fillStyle = g;
     c.beginPath();
-    c.arc(x, y, pr, 0, PI2);
+    c.arc(x, y, r, 0, PI2);
     c.fill();
     c.globalAlpha = 1;
   }
