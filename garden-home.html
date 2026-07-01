@@ -92,10 +92,14 @@
       .container {
         margin: 0 auto; padding: 3.2rem 1.8rem 2rem;
         max-width: 100%;
-        background: rgba(255,248,240,0.55);
+        /* --card-a is updated on scroll (see script below) — starts opaque-ish
+           near the text-dense top, fades toward the bottom where there's less
+           to read and more canopy to see. */
+        background: rgba(255,248,240, var(--card-a, 0.6));
         backdrop-filter: blur(3px);
         -webkit-backdrop-filter: blur(3px);
         border-radius: 0;
+        transition: background 0.15s linear;
       }
       /* This card spans the full screen width on mobile (max-width:100%), so a
          strong wash + dimmed tree combo was blanketing the tree everywhere,
@@ -694,9 +698,32 @@
   }
 
   /* ================================================================
+     SCROLL — on mobile, fade the text card as you scroll down so the tree
+     shows through more once you're past the text-dense top of the page.
+  ================================================================ */
+  const contentWrapEl = document.querySelector('.content-wrap');
+  const containerEl = document.querySelector('.container');
+  let scrollTicking = false;
+  function applyScrollFade() {
+    scrollTicking = false;
+    if (!isMobile) { containerEl.style.removeProperty('--card-a'); return; }
+    const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
+    const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
+    // 0.62 near the top (crisp text over the title/list) -> 0.22 near the
+    // bottom (mostly canopy + footer, let the tree read through).
+    const a = 0.62 - progress * 0.40;
+    containerEl.style.setProperty('--card-a', a.toFixed(3));
+  }
+  contentWrapEl.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(applyScrollFade);
+  }, { passive: true });
+
+  /* ================================================================
      EVENTS
   ================================================================ */
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => { resize(); applyScrollFade(); });
   document.addEventListener('mousemove', e => {
     mx = (e.clientX / W - 0.5) * 2;
   });
@@ -741,6 +768,7 @@
      INIT
   ================================================================ */
   resize();
+  applyScrollFade();
   // Pre-scatter hearts so it feels alive on load
   for (let i = 0; i < 26; i++) {
     spawnPetal(true);
