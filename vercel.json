@@ -1,6 +1,5 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false,
   "redirects": [
     {
       "source": "/track",
@@ -64,20 +63,20 @@
       "destination": "http://89.167.65.46:9090/bookmarks/"
     },
     {
-      "source": "/bookmarks/static/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/static/:path*"
+      "source": "/bookmarks/static/(.*)",
+      "destination": "http://89.167.65.46:9090/bookmarks/static/$1"
     },
     {
-      "source": "/bookmarks/api/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/api/:path*/"
+      "source": "/bookmarks/api/(.*)",
+      "destination": "http://89.167.65.46:9090/bookmarks/api/$1"
     },
     {
       "source": "/bookmarks/login",
       "destination": "http://89.167.65.46:9090/bookmarks/login/"
     },
     {
-      "source": "/bookmarks/:path*",
-      "destination": "http://89.167.65.46:9090/bookmarks/:path*"
+      "source": "/bookmarks/(.*)",
+      "destination": "http://89.167.65.46:9090/bookmarks/$1"
     },
     {
       "source": "/location-tool",
