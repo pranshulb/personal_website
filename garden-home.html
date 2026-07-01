@@ -415,63 +415,62 @@
     glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
     c.fillStyle = glow; c.fillRect(0, 0, W, H);
 
-    // Ground — soft watercolor mound + cool water reflection (matches the reference)
+    // Ground — a soft rolling green hill (crest sits under the tree)
     const trunkBaseY = H * 0.90;
+    const crestY = H * 0.87;                 // top of the hill, right under the trunk
+    const edgeY  = H * 0.965;                // where the hill meets the sides
 
-    // Cool blue-grey water wash beneath the mound — the reflection pool
-    const waterR = isMobile ? W * 0.44 : W * 0.30;
-    const water = c.createRadialGradient(treeX, trunkBaseY + 26, 0, treeX, trunkBaseY + 26, waterR);
-    water.addColorStop(0,   'rgba(148, 162, 190, 0.34)');
-    water.addColorStop(0.5, 'rgba(166, 178, 202, 0.18)');
-    water.addColorStop(1,   'rgba(184, 194, 214, 0)');
-    c.fillStyle = water;
+    // hill silhouette: rises to a crest beneath the tree, slopes down to both edges
     c.beginPath();
-    c.ellipse(treeX, trunkBaseY + 26, waterR, waterR * 0.22, 0, 0, PI2);
+    c.moveTo(0, H);
+    c.lineTo(0, edgeY);
+    c.quadraticCurveTo(treeX * 0.5, (edgeY + crestY) / 2, treeX, crestY);
+    c.quadraticCurveTo(treeX + (W - treeX) * 0.5, (edgeY + crestY) / 2, W, edgeY);
+    c.lineTo(W, H);
+    c.closePath();
+
+    const green = c.createLinearGradient(0, crestY, 0, H);
+    green.addColorStop(0,    '#A7C97E');
+    green.addColorStop(0.35, '#8FBA63');
+    green.addColorStop(1,    '#6E9F49');
+    c.fillStyle = green;
     c.fill();
 
-    // Mossy grey-brown mound the tree sits on
-    const moundR = isMobile ? W * 0.36 : W * 0.24;
-    const mound = c.createRadialGradient(treeX, trunkBaseY + 6, 0, treeX, trunkBaseY + 8, moundR);
-    mound.addColorStop(0,    'rgba(86, 78, 84, 0.52)');
-    mound.addColorStop(0.45, 'rgba(108, 102, 106, 0.34)');
-    mound.addColorStop(0.8,  'rgba(140, 138, 142, 0.12)');
-    mound.addColorStop(1,    'rgba(160, 160, 166, 0)');
-    c.fillStyle = mound;
-    c.beginPath();
-    c.ellipse(treeX, trunkBaseY + 8, moundR, moundR * 0.30, 0, 0, PI2);
-    c.fill();
+    // soft lighter rim along the crest
+    c.save();
+    c.clip();
+    const rim = c.createLinearGradient(0, crestY - 8, 0, crestY + 40);
+    rim.addColorStop(0, 'rgba(200, 226, 156, 0.6)');
+    rim.addColorStop(1, 'rgba(200, 226, 156, 0)');
+    c.fillStyle = rim;
+    c.fillRect(0, crestY - 8, W, 50);
 
-    // Faint grass tufts on the mound — thin cool strokes for texture
+    // grass blade texture across the hill
     srand(31);
     c.lineCap = 'round';
-    for (let i = 0; i < moundR / 3; i++) {
-      const off = sRngR(-moundR, moundR);
-      const bx = treeX + off;
-      const edge = 1 - Math.abs(off) / moundR;
-      const by = trunkBaseY + 6 - edge * moundR * 0.10 + sRngR(-3, 6);
-      const bh = sRngR(4, 12) * (0.5 + edge);
+    for (let i = 0; i < W / 3.5; i++) {
+      const bx = sRng() * W;
+      // hill surface height at bx (matches the two quadratics above)
+      let surf;
+      if (bx < treeX) {
+        const t = bx / treeX;
+        surf = qB(edgeY, (edgeY + crestY) / 2, crestY, t);
+      } else {
+        const t = (bx - treeX) / (W - treeX);
+        surf = qB(crestY, (edgeY + crestY) / 2, edgeY, t);
+      }
+      const by = surf + sRngR(0, (H - surf) * 0.85);
+      const depth = (by - surf) / Math.max(1, H - surf);
+      const bh = sRngR(5, 16) * (0.6 + depth);
       const lean = sRngR(-3, 3);
-      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.42)' : 'rgba(122, 118, 124, 0.34)';
-      c.lineWidth = sRngR(0.5, 1.2);
+      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 138, 58, 0.55)' : 'rgba(150, 192, 104, 0.5)';
+      c.lineWidth = sRngR(0.6, 1.4);
       c.beginPath();
       c.moveTo(bx, by);
       c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
       c.stroke();
     }
-
-    // Scattered fallen-petal specks pooling at the base — subtle pink
-    srand(99);
-    for (let i = 0; i < 22; i++) {
-      const a = sRng() * PI2;
-      const dist = moundR * sRngR(0.4, 1.1);
-      const px = treeX + Math.cos(a) * dist;
-      const py = trunkBaseY + 8 + Math.sin(a) * dist * 0.24;
-      c.globalAlpha = sRngR(0.10, 0.28);
-      c.fillStyle = sRng() < 0.5 ? '#D8506E' : '#EE9AB2';
-      c.beginPath();
-      c.arc(px, py, sRngR(1.5, 5), 0, PI2);
-      c.fill();
-    }
+    c.restore();
     c.globalAlpha = 1;
   }
 
