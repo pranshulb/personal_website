@@ -55,6 +55,10 @@
       "destination": "http://89.167.65.46:8080/london-events/"
     },
     {
+      "source": "/london-events/",
+      "destination": "http://89.167.65.46:8080/london-events/"
+    },
+    {
       "source": "/london-events/:path*",
       "destination": "http://89.167.65.46:8080/london-events/:path*"
     },
