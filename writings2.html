@@ -544,8 +544,8 @@
     box.appendChild(p);
     setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},(dur+del)*1000+200);
   }
-  var pi=setInterval(petal,1800);
-  document.addEventListener('visibilitychange',function(){if(document.hidden)clearInterval(pi);else pi=setInterval(petal,1800);});
+  var pi=setInterval(petal,1500);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)clearInterval(pi);else pi=setInterval(petal,1500);});
   for(var k=0;k<5;k++)setTimeout(petal,k*600);
 })();
 </script>
