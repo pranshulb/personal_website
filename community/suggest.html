@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>suggest a place — pranshul.cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unkempt&family=Princess+Sofia&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #faf5ef;
+      color: #3a2f2f;
+      font-family: 'Unkempt', cursive;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.12;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    .page {
+      max-width: 520px;
+      margin: 0 0 0 max(2rem, 5vw);
+      padding: 3rem 0 6rem 0;
+    }
+
+    h1 {
+      font-family: 'Princess Sofia', cursive;
+      font-size: 2rem;
+      font-weight: normal;
+      color: #3a2f2f;
+      margin-bottom: 0.3rem;
+      line-height: 1.3;
+    }
+
+    .intro {
+      color: #6a5545;
+      margin-bottom: 2.5rem;
+      font-size: 1.05rem;
+    }
+
+    /* ---- conversational form ---- */
+
+    .conversation {
+      color: #6a5545;
+    }
+
+    .conversation .line {
+      margin-bottom: 1.6rem;
+    }
+
+    .conversation .line .prompt-text {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .conversation .aside {
+      font-size: 0.88rem;
+      color: #b8a090;
+      font-style: italic;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      font-family: 'Unkempt', cursive;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #3a2f2f;
+      background-color: transparent;
+      border: none;
+      border-bottom: 1px solid #d4a080;
+      padding: 0.4rem 0;
+      outline: none;
+      transition: border-color 0.3s ease;
+      border-radius: 0;
+      -webkit-appearance: none;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-bottom-color: #c47a7a;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      border: 1px solid #d4a080;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+    }
+
+    textarea:focus {
+      border-color: #c47a7a;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #c8b8a8;
+    }
+
+    /* ---- tags as togglable words ---- */
+
+    .tag-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem 0.6rem;
+      margin-top: 0.35rem;
+      line-height: 2;
+    }
+
+    .tag-word {
+      cursor: pointer;
+      color: #b8a090;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: all 0.25s ease;
+      padding-bottom: 1px;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Unkempt', cursive;
+      font-size: 1rem;
+    }
+
+    .tag-word:hover {
+      color: #6a5545;
+    }
+
+    .tag-word.picked {
+      color: #3a2f2f;
+      border-bottom: 1px solid #c47a7a;
+    }
+
+    .tag-word input {
+      display: none;
+    }
+
+    /* ---- submit link ---- */
+
+    .submit-line {
+      margin-top: 2.2rem;
+      color: #6a5545;
+    }
+
+    .submit-link {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-family: 'Unkempt', cursive;
+      background: none;
+      border: none;
+      padding: 0;
+      transition: all 0.3s ease;
+      display: inline;
+      line-height: inherit;
+    }
+
+    .submit-link:hover {
+      color: #c47a7a;
+      text-decoration-color: #c47a7a;
+    }
+
+    /* ---- error ---- */
+
+    .error-msg {
+      color: #c47a7a;
+      margin-top: 0.8rem;
+      display: none;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+
+    /* ---- form transition ---- */
+
+    .form-wrapper {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .form-wrapper.sending {
+      opacity: 0.4;
+      transform: translateY(-4px);
+      pointer-events: none;
+    }
+
+    .form-wrapper.gone {
+      opacity: 0;
+      transform: translateY(-12px);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    /* ---- success ---- */
+
+    .thank-you {
+      display: none;
+      color: #6a5545;
+      padding: 1rem 0;
+    }
+
+    .thank-you.visible {
+      display: block;
+      animation: fadeInUp 0.6s ease both;
+    }
+
+    .thank-you p {
+      margin-bottom: 0.8rem;
+    }
+
+    .thank-you .heart {
+      display: inline-block;
+      color: #c47a7a;
+      animation: heartbeat 1.2s ease 0.8s 2;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.2); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.15); }
+    }
+
+    /* ---- footer ---- */
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e8d5c4;
+      color: #b8a090;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .footer a:hover {
+      color: #c47a7a;
+    }
+
+    /* ---- mobile ---- */
+
+    @media (max-width: 900px) {
+      .page {
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem 1.5rem;
+        max-width: 100%;
+      }
+
+      .form-wrapper {
+        background: rgba(250, 245, 239, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(212, 160, 128, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 0 -0.5rem;
+      }
+
+      .thank-you {
+        background: rgba(250, 245, 239, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(212, 160, 128, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 0 -0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <h1>tell me about a place</h1>
+  <p class="intro">you know that thing where you find somewhere so good you immediately want to text someone about it? this is that text. if i go and love it, it ends up on the list.</p>
+
+  <div class="form-wrapper" id="form-wrapper">
+    <form id="suggest-form" class="conversation" novalidate>
+
+      <div class="line">
+        <span class="prompt-text">ok so it's called</span>
+        <input type="text" id="name" name="name" placeholder="the name of the place or event">
+      </div>
+
+      <div class="line">
+        <span class="prompt-text">and it's in</span>
+        <input type="text" id="city" name="city" placeholder="city">
+        <input type="text" id="area" name="area" placeholder="neighbourhood, if you remember" style="margin-top: 0.3rem;">
+      </div>
+
+      <div class="line">
+        <span class="prompt-text">i'd call it</span>
+        <span class="aside">pick as many as feel right</span>
+        <div class="tag-words" id="tag-words">
+          <label class="tag-word"><input type="checkbox" name="tags" value="workshop">workshop</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="food">food</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="art">art</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="community">community</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="film">film</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="talk">talk</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="music">music</label>
+          <label class="tag-word"><input type="checkbox" name="tags" value="outdoors">outdoors</label>
+        </div>
+      </div>
+
+      <div class="line">
+        <span class="prompt-text">here's a link if there is one</span>
+        <input type="url" id="url" name="url" placeholder="https://...">
+      </div>
+
+      <div class="line">
+        <span class="prompt-text">and honestly, what's good about it?</span>
+        <textarea id="note" name="note" rows="3" placeholder="the kind of thing you'd say to a friend over coffee"></textarea>
+      </div>
+
+      <div class="line">
+        <span class="prompt-text">who should i thank for this?</span>
+        <input type="text" id="submitted_by" name="submitted_by" placeholder="your name, if you feel like it">
+      </div>
+
+      <p class="error-msg" id="error-msg"></p>
+
+      <div class="submit-line">
+        <a href="#" class="submit-link" id="submit-link">send it my way</a>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="thank-you" id="thank-you">
+    <p>got it <span class="heart">&hearts;</span></p>
+    <p>i'll look into this one. if i end up going and love it, it'll show up on the list. thanks for thinking of me.</p>
+    <p style="margin-top: 1.5rem;"><a href="#" id="another-link" style="color: #4a3020; text-decoration: underline; text-decoration-color: #d4a080; text-underline-offset: 3px;">want to suggest another?</a></p>
+  </div>
+
+  <div class="footer">
+    <p><a href="/community">back to the list</a></p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('suggest-form');
+  const formWrapper = document.getElementById('form-wrapper');
+  const thankYou = document.getElementById('thank-you');
+  const errorMsg = document.getElementById('error-msg');
+  const submitLink = document.getElementById('submit-link');
+  const anotherLink = document.getElementById('another-link');
+
+  // tag toggling
+  document.querySelectorAll('.tag-word').forEach(function (label) {
+    label.addEventListener('click', function (e) {
+      e.preventDefault();
+      var cb = label.querySelector('input[type="checkbox"]');
+      cb.checked = !cb.checked;
+      label.classList.toggle('picked', cb.checked);
+    });
+  });
+
+  // submit
+  submitLink.addEventListener('click', function (e) {
+    e.preventDefault();
+    send();
+  });
+
+  async function send() {
+    errorMsg.style.display = 'none';
+
+    var data = {
+      name: form.name.value.trim(),
+      city: form.city.value.trim(),
+      area: form.area.value.trim(),
+      tags: [].slice.call(form.querySelectorAll('input[name="tags"]:checked')).map(function (c) { return c.value; }),
+      url: form.url.value.trim(),
+      note: form.note.value.trim(),
+      submitted_by: form.submitted_by.value.trim(),
+      submitted_at: new Date().toISOString()
+    };
+
+    if (!data.name || !data.city) {
+      errorMsg.textContent = 'i just need the name and the city at least — the rest is up to you';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    formWrapper.classList.add('sending');
+
+    try {
+      var res = await fetch('/api/community/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) throw new Error('failed');
+
+      formWrapper.classList.add('gone');
+      setTimeout(function () {
+        formWrapper.style.display = 'none';
+        thankYou.classList.add('visible');
+      }, 500);
+    } catch (err) {
+      formWrapper.classList.remove('sending');
+      errorMsg.textContent = 'hmm, that didn’t go through. maybe try once more?';
+      errorMsg.style.display = 'block';
+    }
+  }
+
+  // suggest another
+  anotherLink.addEventListener('click', function (e) {
+    e.preventDefault();
+    form.reset();
+    document.querySelectorAll('.tag-word').forEach(function (label) {
+      label.classList.remove('picked');
+    });
+    errorMsg.style.display = 'none';
+    thankYou.classList.remove('visible');
+    thankYou.style.display = 'none';
+    formWrapper.style.display = '';
+    formWrapper.classList.remove('sending', 'gone');
+    // slight delay so the re-appearance animates
+    requestAnimationFrame(function () {
+      formWrapper.style.opacity = '0';
+      formWrapper.style.transform = 'translateY(8px)';
+      requestAnimationFrame(function () {
+        formWrapper.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        formWrapper.style.opacity = '';
+        formWrapper.style.transform = '';
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

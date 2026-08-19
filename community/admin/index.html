@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>admin — pranshul.cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unkempt&family=Princess+Sofia&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #faf5ef;
+      color: #3a2f2f;
+      font-family: 'Unkempt', cursive;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* grain */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.12;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    .page {
+      max-width: 520px;
+      margin: 0 0 0 max(2rem, 5vw);
+      padding: 3rem 0 6rem 0;
+    }
+
+    h1 {
+      font-family: 'Princess Sofia', cursive;
+      font-size: 2.4rem;
+      font-weight: normal;
+      color: #3a2f2f;
+      margin-bottom: 0.15rem;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+
+    h2 {
+      font-family: 'Princess Sofia', cursive;
+      font-size: 1.6rem;
+      font-weight: normal;
+      color: #3a2f2f;
+      margin-bottom: 0.6rem;
+      margin-top: 3rem;
+      line-height: 1.3;
+    }
+
+    .intro {
+      color: #6a5545;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    /* ---- LOGIN ---- */
+
+    .login-section {
+      margin-bottom: 2rem;
+    }
+
+    .login-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .login-row .prompt-text {
+      color: #6a5545;
+    }
+
+    .login-row input {
+      font-family: 'Unkempt', cursive;
+      font-size: 1rem;
+      color: #3a2f2f;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #d4a080;
+      padding: 0.3rem 0;
+      outline: none;
+      width: 160px;
+      transition: border-color 0.3s ease;
+      border-radius: 0;
+      -webkit-appearance: none;
+    }
+
+    .login-row input:focus {
+      border-bottom-color: #c47a7a;
+    }
+
+    .login-status {
+      font-size: 0.85rem;
+      color: #b8a090;
+      font-style: italic;
+      margin-top: 0.3rem;
+      min-height: 1.2em;
+    }
+
+    .login-status.ok { color: #8a9a6a; }
+    .login-status.fail { color: #c47a7a; }
+
+    /* ---- SWIPE DECK ---- */
+
+    .deck-counter {
+      color: #b8a090;
+      font-size: 0.88rem;
+      margin-bottom: 0.8rem;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+    }
+
+    .deck-area {
+      position: relative;
+      min-height: 180px;
+      margin-bottom: 1.5rem;
+      touch-action: pan-y;
+    }
+
+    .swipe-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.2rem;
+      background: rgba(255, 248, 240, 0.85);
+      border: 1px solid rgba(212, 160, 128, 0.25);
+      border-radius: 2px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      will-change: transform;
+      transition: transform 0.35s ease, opacity 0.35s ease, box-shadow 0.15s ease;
+    }
+
+    .swipe-card.dragging {
+      cursor: grabbing;
+      transition: none;
+      box-shadow: 2px 4px 16px rgba(58, 47, 47, 0.12);
+    }
+
+    .swipe-card.exiting {
+      transition: transform 0.4s ease, opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .swipe-card .card-name {
+      font-size: 1rem;
+      color: #3a2f2f;
+      margin-bottom: 0.15rem;
+    }
+
+    .swipe-card .card-area {
+      font-size: 0.82rem;
+      color: #b8a090;
+      margin-bottom: 0.5rem;
+    }
+
+    .swipe-card .card-tags {
+      margin-bottom: 0.5rem;
+      line-height: 2;
+    }
+
+    .swipe-card .card-tag {
+      color: #3a2f2f;
+      font-size: 0.88rem;
+      border-bottom: 1px solid #c47a7a;
+      padding-bottom: 1px;
+      margin-right: 0.5rem;
+    }
+
+    .swipe-card .card-note {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.98rem;
+      color: #6a5545;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .swipe-card .card-meta {
+      font-size: 0.78rem;
+      color: #b8a090;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      margin-top: 0.8rem;
+    }
+
+    .card-actions a {
+      color: #b8a090;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .card-actions a:hover {
+      text-decoration-color: currentColor;
+    }
+
+    .card-actions .action-reject:hover {
+      color: #c47a7a;
+    }
+
+    .card-actions .action-approve:hover {
+      color: #8a9a6a;
+    }
+
+    .deck-empty {
+      color: #b8a090;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      padding: 2rem 0;
+    }
+
+    /* stacked cards behind */
+    .swipe-card.behind-1 {
+      top: 6px;
+      transform: scale(0.97);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .swipe-card.behind-2 {
+      top: 12px;
+      transform: scale(0.94);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* ---- BULK ADD ---- */
+
+    .bulk-section {
+      margin-top: 2rem;
+    }
+
+    .bulk-section .aside {
+      font-size: 0.85rem;
+      color: #b8a090;
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      font-family: 'EB Garamond', serif;
+    }
+
+    textarea {
+      width: 100%;
+      font-family: 'Unkempt', cursive;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #3a2f2f;
+      background-color: transparent;
+      border: 1px solid #d4a080;
+      padding: 0.6rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+      border-radius: 0;
+      -webkit-appearance: none;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    textarea:focus {
+      border-color: #c47a7a;
+    }
+
+    textarea::placeholder {
+      color: #c8b8a8;
+    }
+
+    .bulk-actions {
+      margin-top: 0.6rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .text-link {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      font-family: 'Unkempt', cursive;
+      font-size: 1rem;
+      background: none;
+      border: none;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    .text-link:hover {
+      color: #c47a7a;
+      text-decoration-color: #c47a7a;
+    }
+
+    .text-link.muted {
+      color: #b8a090;
+      text-decoration-color: transparent;
+    }
+
+    .text-link.muted:hover {
+      text-decoration-color: #b8a090;
+    }
+
+    .bulk-preview {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .bulk-preview-item {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(212, 160, 128, 0.2);
+      font-size: 0.92rem;
+    }
+
+    .bulk-preview-item .bp-name {
+      color: #3a2f2f;
+    }
+
+    .bulk-preview-item .bp-area {
+      color: #b8a090;
+      font-size: 0.82rem;
+    }
+
+    .bulk-preview-item .bp-area::before {
+      content: ' · ';
+      color: #d4a080;
+    }
+
+    .bulk-preview-item .bp-tags {
+      margin-left: 0.3rem;
+    }
+
+    .bulk-preview-item .bp-tag {
+      color: #3a2f2f;
+      font-size: 0.82rem;
+      border-bottom: 1px solid #c47a7a;
+      padding-bottom: 0px;
+      margin-right: 0.3rem;
+    }
+
+    .bulk-status {
+      color: #b8a090;
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+
+    .bulk-status.ok { color: #8a9a6a; }
+    .bulk-status.fail { color: #c47a7a; }
+
+    /* ---- FOOTER ---- */
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e8d5c4;
+      color: #b8a090;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      transition: color 0.3s ease;
+    }
+
+    .footer a:hover { color: #c47a7a; }
+
+    /* swipe indicator overlays */
+    .swipe-indicator {
+      position: absolute;
+      top: 12px;
+      font-family: 'Unkempt', cursive;
+      font-size: 1.1rem;
+      font-weight: normal;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 2;
+    }
+    .swipe-indicator.approve-hint {
+      right: 12px;
+      color: #6a8a4a;
+      border: 1px solid #6a8a4a;
+    }
+    .swipe-indicator.reject-hint {
+      left: 12px;
+      color: #c47a7a;
+      border: 1px solid #c47a7a;
+    }
+
+    /* ---- MOBILE ---- */
+
+    @media (max-width: 900px) {
+      .page {
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem 1.5rem;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        margin: 0;
+        padding: 1.5rem 1rem 4rem 1rem;
+        max-width: 100%;
+      }
+      h1 { font-size: 2rem; }
+
+      .login-row {
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .login-row input {
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 0.5rem 0;
+      }
+
+      .deck-area {
+        min-height: 220px;
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+      }
+
+      .swipe-card {
+        background: rgba(255, 248, 240, 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 1rem;
+      }
+
+      .swipe-card .card-name {
+        font-size: 1.1rem;
+      }
+
+      .swipe-card .card-note {
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .card-actions {
+        gap: 0;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding: 0 0.5rem;
+      }
+
+      .card-actions a {
+        font-size: 1.2rem;
+        padding: 0.8rem 1.8rem;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .card-actions .action-reject {
+        color: #c47a7a;
+        text-decoration-color: #c47a7a;
+      }
+
+      .card-actions .action-approve {
+        color: #8a9a6a;
+        text-decoration-color: #8a9a6a;
+      }
+
+      textarea {
+        font-size: 1rem;
+        min-height: 100px;
+      }
+
+      .bulk-actions {
+        gap: 1rem;
+      }
+
+      .bulk-actions a {
+        font-size: 1.1rem;
+        padding: 0.5rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <h1>admin panel</h1>
+  <p class="intro">approve suggestions, add places in bulk. the usual gardening.</p>
+
+  <!-- LOGIN -->
+  <div class="login-section">
+    <div class="login-row">
+      <span class="prompt-text">password:</span>
+      <input type="password" id="pass-input" placeholder="the one you know">
+    </div>
+    <div class="login-status" id="login-status"></div>
+  </div>
+
+  <!-- SWIPE DECK -->
+  <div id="deck-section" style="display:none;">
+    <h2>pending suggestions</h2>
+    <div class="deck-counter" id="deck-counter"></div>
+
+    <div class="deck-area" id="deck-area">
+      <div class="deck-empty" id="deck-empty" style="display:none;">nothing pending — go find more cool things</div>
+    </div>
+    <div class="card-actions" id="card-actions" style="display:none;">
+      <a class="action-reject" id="btn-reject">reject</a>
+      <a class="action-approve" id="btn-approve">approve</a>
+    </div>
+
+    <!-- BULK ADD -->
+    <div class="bulk-section">
+      <h2>bulk add</h2>
+      <p class="aside">one per line: Name — Area — tags (comma sep) — note. or paste a JSON array.</p>
+      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
+      <div class="bulk-actions">
+        <a class="text-link" id="btn-parse">parse this</a>
+        <a class="text-link muted" id="btn-queue" style="display:none;">queue these up</a>
+      </div>
+      <div class="bulk-preview" id="bulk-preview"></div>
+      <div class="bulk-status" id="bulk-status"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p><a href="/community">back to the list</a></p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var password = '';
+  var pending = [];
+  var currentIdx = 0;
+  var parsedBulk = [];
+
+  var passInput = document.getElementById('pass-input');
+  var loginStatus = document.getElementById('login-status');
+  var deckSection = document.getElementById('deck-section');
+  var deckCounter = document.getElementById('deck-counter');
+  var deckArea = document.getElementById('deck-area');
+  var deckEmpty = document.getElementById('deck-empty');
+  var cardActions = document.getElementById('card-actions');
+  var btnReject = document.getElementById('btn-reject');
+  var btnApprove = document.getElementById('btn-approve');
+  var bulkText = document.getElementById('bulk-text');
+  var btnParse = document.getElementById('btn-parse');
+  var btnQueue = document.getElementById('btn-queue');
+  var bulkPreview = document.getElementById('bulk-preview');
+  var bulkStatus = document.getElementById('bulk-status');
+
+  // ---- API helpers ----
+
+  function api(method, path, body) {
+    var opts = {
+      method: method,
+      headers: { 'X-Admin-Pass': password, 'Content-Type': 'application/json' }
+    };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    return fetch(path, opts).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    });
+  }
+
+  // ---- LOGIN ----
+
+  passInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      password = passInput.value.trim();
+      loginStatus.textContent = 'checking...';
+      loginStatus.className = 'login-status';
+
+      api('GET', '/api/community/pending').then(function (data) {
+        loginStatus.textContent = 'in.';
+        loginStatus.className = 'login-status ok';
+        pending = data;
+        currentIdx = 0;
+        deckSection.style.display = '';
+        renderDeck();
+      }).catch(function () {
+        loginStatus.textContent = 'wrong password';
+        loginStatus.className = 'login-status fail';
+      });
+    }
+  });
+
+  // ---- DECK RENDERING ----
+
+  function renderDeck() {
+    // clear old cards
+    var oldCards = deckArea.querySelectorAll('.swipe-card');
+    for (var i = 0; i < oldCards.length; i++) {
+      deckArea.removeChild(oldCards[i]);
+    }
+
+    if (currentIdx >= pending.length) {
+      deckEmpty.style.display = '';
+      cardActions.style.display = 'none';
+      deckCounter.textContent = '';
+      return;
+    }
+
+    deckEmpty.style.display = 'none';
+    cardActions.style.display = 'flex';
+    deckCounter.textContent = (currentIdx + 1) + ' of ' + pending.length + ' pending';
+
+    // show up to 3 stacked cards
+    var end = Math.min(currentIdx + 3, pending.length);
+    for (var j = end - 1; j >= currentIdx; j--) {
+      var card = makeCard(pending[j]);
+      if (j === currentIdx) {
+        // top card — interactive
+        setupSwipe(card, pending[j]);
+      } else if (j === currentIdx + 1) {
+        card.classList.add('behind-1');
+      } else {
+        card.classList.add('behind-2');
+      }
+      deckArea.appendChild(card);
+    }
+  }
+
+  function makeCard(item) {
+    var card = document.createElement('div');
+    card.className = 'swipe-card';
+
+    // swipe indicator overlays
+    var approveHint = document.createElement('div');
+    approveHint.className = 'swipe-indicator approve-hint';
+    approveHint.textContent = 'yes';
+    card.appendChild(approveHint);
+
+    var rejectHint = document.createElement('div');
+    rejectHint.className = 'swipe-indicator reject-hint';
+    rejectHint.textContent = 'nah';
+    card.appendChild(rejectHint);
+
+    var name = document.createElement('div');
+    name.className = 'card-name';
+    name.textContent = item.name;
+    card.appendChild(name);
+
+    if (item.area) {
+      var area = document.createElement('div');
+      area.className = 'card-area';
+      area.textContent = item.area;
+      card.appendChild(area);
+    }
+
+    if (item.tags && item.tags.length) {
+      var tags = document.createElement('div');
+      tags.className = 'card-tags';
+      item.tags.forEach(function (t) {
+        var span = document.createElement('span');
+        span.className = 'card-tag';
+        span.textContent = t;
+        tags.appendChild(span);
+      });
+      card.appendChild(tags);
+    }
+
+    if (item.note) {
+      var note = document.createElement('div');
+      note.className = 'card-note';
+      note.textContent = item.note;
+      card.appendChild(note);
+    }
+
+    var meta = document.createElement('div');
+    meta.className = 'card-meta';
+    var parts = [];
+    if (item.submitted_by) parts.push('from ' + item.submitted_by);
+    if (item.submitted_at) {
+      try {
+        var d = new Date(item.submitted_at);
+        parts.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }));
+      } catch (e) { /* ignore */ }
+    }
+    if (item.source === 'bulk') parts.push('bulk import');
+    meta.textContent = parts.join(' · ');
+    card.appendChild(meta);
+
+    return card;
+  }
+
+  // ---- SWIPE MECHANICS ----
+
+  // adaptive threshold — smaller on mobile
+  var SWIPE_THRESHOLD = window.innerWidth < 600 ? 70 : 100;
+
+  function setupSwipe(card, item) {
+    var startX = 0;
+    var startY = 0;
+    var deltaX = 0;
+    var deltaY = 0;
+    var isDragging = false;
+    var isTouch = false;
+    var directionLocked = false; // true once we know if horizontal or vertical
+    var isHorizontal = false;
+
+    var approveHint = card.querySelector('.approve-hint');
+    var rejectHint = card.querySelector('.reject-hint');
+
+    function onStart(e) {
+      isDragging = true;
+      directionLocked = false;
+      isHorizontal = false;
+      card.classList.add('dragging');
+      if (e.touches) {
+        isTouch = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      } else {
+        isTouch = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        e.preventDefault();
+      }
+      deltaX = 0;
+      deltaY = 0;
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      var clientX = isTouch ? e.touches[0].clientX : e.clientX;
+      var clientY = isTouch ? e.touches[0].clientY : e.clientY;
+      deltaX = clientX - startX;
+      deltaY = clientY - startY;
+
+      // lock direction after 8px of movement
+      if (!directionLocked && (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)) {
+        directionLocked = true;
+        isHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+      }
+
+      // if vertical scroll, release the card
+      if (directionLocked && !isHorizontal) {
+        isDragging = false;
+        card.classList.remove('dragging');
+        card.style.transform = '';
+        card.style.background = '';
+        if (approveHint) approveHint.style.opacity = '0';
+        if (rejectHint) rejectHint.style.opacity = '0';
+        return;
+      }
+
+      // horizontal swipe — prevent page scroll
+      if (isHorizontal && e.cancelable) {
+        e.preventDefault();
+      }
+
+      var rotation = deltaX * 0.06;
+      if (rotation > 15) rotation = 15;
+      if (rotation < -15) rotation = -15;
+
+      card.style.transform = 'translateX(' + deltaX + 'px) rotate(' + rotation + 'deg)';
+
+      // tint + hint labels
+      if (deltaX > 20) {
+        var greenAlpha = Math.min((deltaX - 20) / 150, 0.15);
+        card.style.background = 'rgba(' + (230 + 25 * greenAlpha) + ', ' + (248 + 7 * greenAlpha) + ', ' + (230) + ', 0.9)';
+        if (approveHint) approveHint.style.opacity = Math.min((deltaX - 20) / 80, 1);
+        if (rejectHint) rejectHint.style.opacity = '0';
+      } else if (deltaX < -20) {
+        var redAlpha = Math.min((-deltaX - 20) / 150, 0.15);
+        card.style.background = 'rgba(' + (255) + ', ' + (240 - 20 * redAlpha) + ', ' + (235 - 20 * redAlpha) + ', 0.9)';
+        if (rejectHint) rejectHint.style.opacity = Math.min((-deltaX - 20) / 80, 1);
+        if (approveHint) approveHint.style.opacity = '0';
+      } else {
+        card.style.background = '';
+        if (approveHint) approveHint.style.opacity = '0';
+        if (rejectHint) rejectHint.style.opacity = '0';
+      }
+    }
+
+    function onEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      card.classList.remove('dragging');
+
+      if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        var direction = deltaX > 0 ? 1 : -1;
+        card.classList.add('exiting');
+        card.style.transform = 'translateX(' + (direction * 600) + 'px) rotate(' + (direction * 30) + 'deg)';
+
+        if (direction > 0) {
+          doApprove(item);
+        } else {
+          doReject(item);
+        }
+      } else {
+        // snap back
+        card.style.transform = '';
+        card.style.background = '';
+        if (approveHint) approveHint.style.opacity = '0';
+        if (rejectHint) rejectHint.style.opacity = '0';
+      }
+    }
+
+    // touch — NOT passive so we can preventDefault on horizontal swipe
+    card.addEventListener('touchstart', onStart, { passive: true });
+    card.addEventListener('touchmove', onMove, { passive: false });
+    card.addEventListener('touchend', onEnd);
+    card.addEventListener('touchcancel', onEnd);
+
+    // mouse
+    card.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', function handler(e) {
+      if (!isDragging) return;
+      onMove(e);
+    });
+    document.addEventListener('mouseup', function handler() {
+      if (!isDragging) return;
+      onEnd();
+    });
+  }
+
+  // ---- APPROVE / REJECT ----
+
+  function doApprove(item) {
+    api('POST', '/api/community/approve/' + item.id).then(function () {
+      currentIdx++;
+      setTimeout(renderDeck, 350);
+    }).catch(function () {
+      // snap back on error
+      renderDeck();
+    });
+  }
+
+  function doReject(item) {
+    api('POST', '/api/community/reject/' + item.id).then(function () {
+      currentIdx++;
+      setTimeout(renderDeck, 350);
+    }).catch(function () {
+      renderDeck();
+    });
+  }
+
+  // button actions
+  btnApprove.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (currentIdx >= pending.length) return;
+    var item = pending[currentIdx];
+    var card = deckArea.querySelector('.swipe-card:not(.behind-1):not(.behind-2)');
+    if (card) {
+      card.classList.add('exiting');
+      card.style.transform = 'translateX(600px) rotate(30deg)';
+    }
+    doApprove(item);
+  });
+
+  btnReject.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (currentIdx >= pending.length) return;
+    var item = pending[currentIdx];
+    var card = deckArea.querySelector('.swipe-card:not(.behind-1):not(.behind-2)');
+    if (card) {
+      card.classList.add('exiting');
+      card.style.transform = 'translateX(-600px) rotate(-30deg)';
+    }
+    doReject(item);
+  });
+
+  // ---- BULK ADD ----
+
+  btnParse.addEventListener('click', function (e) {
+    e.preventDefault();
+    var raw = bulkText.value.trim();
+    if (!raw) return;
+
+    parsedBulk = [];
+    bulkStatus.textContent = '';
+
+    // try JSON first
+    try {
+      var arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        parsedBulk = arr.map(function (item) {
+          return {
+            name: (item.name || '').trim(),
+            area: (item.area || '').trim(),
+            tags: item.tags || [],
+            note: (item.note || '').trim(),
+            url: (item.url || '').trim()
+          };
+        }).filter(function (item) { return item.name; });
+      }
+    } catch (_) {
+      // parse line format: Name — Area — tags — note
+      var lines = raw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+      lines.forEach(function (line) {
+        // support both em-dash and regular dash with spaces
+        var parts = line.split(/\s*[—–]\s*/);
+        if (parts.length < 1) return;
+        var name = (parts[0] || '').trim();
+        if (!name) return;
+        var area = parts.length > 1 ? (parts[1] || '').trim() : '';
+        var tags = parts.length > 2 ? (parts[2] || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean) : [];
+        var note = parts.length > 3 ? parts.slice(3).join(' — ').trim() : '';
+        parsedBulk.push({ name: name, area: area, tags: tags, note: note, url: '' });
+      });
+    }
+
+    if (parsedBulk.length === 0) {
+      bulkStatus.textContent = 'could not parse anything from that';
+      bulkStatus.className = 'bulk-status fail';
+      btnQueue.style.display = 'none';
+      bulkPreview.style.display = 'none';
+      return;
+    }
+
+    // render preview
+    bulkPreview.innerHTML = '';
+    parsedBulk.forEach(function (item) {
+      var div = document.createElement('div');
+      div.className = 'bulk-preview-item';
+
+      var html = '<span class="bp-name">' + escapeHtml(item.name) + '</span>';
+      if (item.area) html += '<span class="bp-area">' + escapeHtml(item.area) + '</span>';
+      if (item.tags.length) {
+        html += '<span class="bp-tags">';
+        item.tags.forEach(function (t) {
+          html += ' <span class="bp-tag">' + escapeHtml(t) + '</span>';
+        });
+        html += '</span>';
+      }
+      div.innerHTML = html;
+      bulkPreview.appendChild(div);
+    });
+
+    bulkPreview.style.display = 'block';
+    btnQueue.style.display = '';
+    bulkStatus.textContent = parsedBulk.length + ' place' + (parsedBulk.length === 1 ? '' : 's') + ' parsed';
+    bulkStatus.className = 'bulk-status';
+  });
+
+  btnQueue.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!parsedBulk.length) return;
+
+    bulkStatus.textContent = 'sending...';
+    bulkStatus.className = 'bulk-status';
+
+    api('POST', '/api/community/bulk-add', parsedBulk).then(function (data) {
+      bulkStatus.textContent = data.added + ' queued up. they are in the deck now.';
+      bulkStatus.className = 'bulk-status ok';
+      bulkText.value = '';
+      bulkPreview.style.display = 'none';
+      btnQueue.style.display = 'none';
+      parsedBulk = [];
+
+      // refresh pending
+      return api('GET', '/api/community/pending');
+    }).then(function (data) {
+      pending = data;
+      currentIdx = 0;
+      renderDeck();
+    }).catch(function () {
+      bulkStatus.textContent = 'something went wrong. try again?';
+      bulkStatus.className = 'bulk-status fail';
+    });
+  });
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+})();
+</script>
+
+</body>
+</html>
