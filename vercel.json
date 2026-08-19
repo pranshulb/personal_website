@@ -51,6 +51,18 @@
       "destination": "/pdfs.html"
     },
     {
+      "source": "/community",
+      "destination": "/community/index.html"
+    },
+    {
+      "source": "/community/suggest",
+      "destination": "/community/suggest.html"
+    },
+    {
+      "source": "/community/admin",
+      "destination": "/community/admin/index.html"
+    },
+    {
       "source": "/london-events",
       "destination": "http://89.167.65.46:8080/london-events/"
     },
