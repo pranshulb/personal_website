@@ -30,19 +30,28 @@ async function readBlob(key, fallback) {
 
 async function writeBlob(key, data) {
   // Write first, then prune older versions — so a failed prune can't lose data.
+  //
+  // No addRandomSuffix: it inserts the suffix before the extension
+  // ("community-pending.json" -> "community-pending-XyZ123.json"), which the
+  // exact-pathname prefix in readBlob would never match, so every read would
+  // silently fall through to the default. Writing to the fixed pathname needs
+  // allowOverwrite, since we deliberately put before pruning.
   await put(key, JSON.stringify(data, null, 2), {
     access: 'public',
     contentType: 'application/json',
-    addRandomSuffix: true,
+    allowOverwrite: true,
   });
   try {
-    const { blobs } = await list({ prefix: key });
-    const stale = blobs
-      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
-      .slice(1);
-    for (const b of stale) await del(b.url);
+    // Prune on the extension-less base ("community-pending"), not the exact
+    // key, so this also sweeps up any suffixed strays — reads only ever look
+    // at the exact pathname, so anything else is dead weight.
+    const base = key.replace(/\.json$/, '');
+    const { blobs } = await list({ prefix: base });
+    for (const b of blobs) {
+      if (b.pathname !== key) await del(b.url);
+    }
   } catch (e) {
-    // Extra blobs are harmless; the newest always wins on read.
+    // Failing to prune is harmless — reads target the exact pathname.
   }
 }
 
