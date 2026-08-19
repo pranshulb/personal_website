@@ -99,6 +99,30 @@
       border-bottom-color: #c47a7a;
     }
 
+    /* matches the submit on the suggest page */
+    .submit-link {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-family: 'Unkempt', cursive;
+      background: none;
+      border: none;
+      padding: 0.4rem 0;
+      transition: all 0.3s ease;
+      line-height: inherit;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .submit-link:hover,
+    .submit-link:active {
+      color: #c47a7a;
+      text-decoration-color: #c47a7a;
+    }
+
     .login-status {
       font-size: 0.85rem;
       color: #b8a090;
@@ -443,6 +467,15 @@
         padding: 0.5rem 0;
       }
 
+      /* the column layout stacks this under the field; give it a finger-sized
+         target rather than a text-sized one */
+      .login-row .submit-link {
+        align-self: flex-start;
+        font-size: 1.1rem;
+        padding: 0.7rem 0;
+        min-height: 44px;
+      }
+
       .deck-area {
         min-height: 220px;
         margin-left: -0.5rem;
@@ -513,10 +546,15 @@
 
   <!-- LOGIN -->
   <div class="login-section">
-    <div class="login-row">
+    <!-- A real form, so a phone keyboard's "go" key submits it. The visible
+         button matters just as much: mobile keyboards don't always expose a
+         return key on a lone password field, which left no way in at all. -->
+    <form class="login-row" id="login-form">
       <span class="prompt-text">password:</span>
-      <input type="password" id="pass-input" placeholder="the one you know">
-    </div>
+      <input type="password" id="pass-input" placeholder="the one you know"
+             autocomplete="current-password" enterkeyhint="go">
+      <button type="submit" class="submit-link" id="login-btn">let me in</button>
+    </form>
     <div class="login-status" id="login-status"></div>
   </div>
 
@@ -591,24 +629,38 @@
 
   // ---- LOGIN ----
 
-  passInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      password = passInput.value.trim();
-      loginStatus.textContent = 'checking...';
-      loginStatus.className = 'login-status';
-
-      api('GET', '/api/community/pending').then(function (data) {
-        loginStatus.textContent = 'in.';
-        loginStatus.className = 'login-status ok';
-        pending = data;
-        currentIdx = 0;
-        deckSection.style.display = '';
-        renderDeck();
-      }).catch(function () {
-        loginStatus.textContent = 'wrong password';
-        loginStatus.className = 'login-status fail';
-      });
+  function attemptLogin() {
+    password = passInput.value.trim();
+    if (!password) {
+      loginStatus.textContent = 'type the password first';
+      loginStatus.className = 'login-status fail';
+      return;
     }
+
+    loginStatus.textContent = 'checking...';
+    loginStatus.className = 'login-status';
+    passInput.blur(); // drop the phone keyboard so the deck is visible
+
+    api('GET', '/api/community/pending').then(function (data) {
+      loginStatus.textContent = 'in.';
+      loginStatus.className = 'login-status ok';
+      pending = data;
+      currentIdx = 0;
+      deckSection.style.display = '';
+      renderDeck();
+    }).catch(function (err) {
+      // 503 means COMMUNITY_ADMIN_PASS isn't set on the server — worth saying
+      // so, since retyping the password would never fix it.
+      loginStatus.textContent = String(err && err.message) === '503'
+        ? 'admin is disabled on the server (COMMUNITY_ADMIN_PASS not set)'
+        : 'wrong password';
+      loginStatus.className = 'login-status fail';
+    });
+  }
+
+  document.getElementById('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    attemptLogin();
   });
 
   // ---- DECK RENDERING ----
