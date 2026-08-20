@@ -408,6 +408,16 @@
     { name:"Bread & Roses Bookshop Talk", area:"Finsbury Park", tags:["talk","community"], note:"a talk about cooperative housing that somehow ended in everyone sharing their worst landlord stories. very cathartic.", url:"", when:"march 2026", lat:51.5642, lng:-0.1066 }
   ];
 
+  // Umami custom events. Silently does nothing if the script is blocked or
+  // hasn't loaded yet, so tracking can never break an interaction.
+  function track(name, data) {
+    try {
+      if (window.umami && typeof window.umami.track === 'function') {
+        window.umami.track(name, data);
+      }
+    } catch (e) {}
+  }
+
   function start(PLACES) {
 
   // assign indices
@@ -509,7 +519,11 @@
 
       // click card → fly to on map
       div.addEventListener('click', function(e) {
-        if (e.target.closest('a')) return;
+        if (e.target.closest('a')) {
+          track('place-link', { place: place.name });
+          return;
+        }
+        track('place-open', { place: place.name, via: 'list' });
         map.flyTo([place.lat, place.lng], 15, { duration: 1.2, easeLinearity: 0.3 });
         markers[place._idx].openPopup();
         activateMarker(place._idx);
@@ -590,7 +604,11 @@
       .bindPopup(popupHtml, { className: 'note-popup', closeButton: false, maxWidth: 220, offset: [0, -4] })
       .addTo(map);
 
-    marker.on('click', function() { highlightPlace(place._idx); });
+    // "via" separates the two ways in: whether people browse by map or by list
+    marker.on('click', function() {
+      track('place-open', { place: place.name, via: 'map' });
+      highlightPlace(place._idx);
+    });
     markers[place._idx] = marker;
   });
 
@@ -619,6 +637,7 @@
     var newTag = target.dataset.tag;
     if (newTag === activeTag) return;
     activeTag = newTag;
+    track('filter', { tag: newTag });
 
     // update active
     filtersEl.querySelectorAll('.filter-link').forEach(function(el) {
