@@ -392,6 +392,25 @@
   });
 
   // submit
+  // Umami custom events. No-ops if the script is blocked or hasn't loaded,
+  // so tracking can never stop a suggestion going through.
+  function track(name, data) {
+    try {
+      if (window.umami && typeof window.umami.track === 'function') {
+        window.umami.track(name, data);
+      }
+    } catch (e) {}
+  }
+
+  // Fires once, on the first real interaction. Together with the pageview and
+  // suggest-sent this gives the funnel: opened -> started typing -> sent.
+  var started = false;
+  form.addEventListener('input', function () {
+    if (started) return;
+    started = true;
+    track('suggest-start');
+  }, { once: false });
+
   submitLink.addEventListener('click', function (e) {
     e.preventDefault();
     send();
@@ -412,6 +431,7 @@
     };
 
     if (!data.name || !data.city) {
+      track('suggest-incomplete');
       errorMsg.textContent = 'i just need the name and the city at least — the rest is up to you';
       errorMsg.style.display = 'block';
       return;
@@ -428,12 +448,24 @@
 
       if (!res.ok) throw new Error('failed');
 
+      // Shape of the submission only — never the note, the link or who sent
+      // it. Those belong in the queue, not in analytics.
+      track('suggest-sent', {
+        tags: data.tags.length,
+        has_note: data.note ? 'yes' : 'no',
+        has_url: data.url ? 'yes' : 'no',
+        named: data.submitted_by ? 'yes' : 'no'
+      });
+
       formWrapper.classList.add('gone');
       setTimeout(function () {
         formWrapper.style.display = 'none';
         thankYou.classList.add('visible');
       }, 500);
     } catch (err) {
+      // Worth counting: a spike here means the endpoint is broken and people
+      // are being turned away silently.
+      track('suggest-failed');
       formWrapper.classList.remove('sending');
       errorMsg.textContent = 'hmm, that didn’t go through. maybe try once more?';
       errorMsg.style.display = 'block';
