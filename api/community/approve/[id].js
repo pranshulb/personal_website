@@ -1,7 +1,7 @@
 // POST /api/community/approve/<id> — admin. Moves one item from queue to map.
 
 import {
-  readPending, writePending, readPlaces, writePlaces,
+  readPending, removePending, appendPlace,
   requireAdmin, checkRate, clientIp, geocode,
 } from '../_store.js';
 
@@ -46,11 +46,10 @@ export default async function handler(req, res) {
     // The map skips entries without coordinates rather than pinning them at 0,0.
     if (lat === null || lng === null) place.needsCoords = true;
 
-    const places = await readPlaces();
-    places.push(place);
-
-    await writePlaces(places);
-    await writePending(pending.filter((p) => p.id !== id));
+    // Both concurrency-safe: rewriting the whole queue here used to drop any
+    // suggestion that arrived while the geocode lookup above was in flight.
+    await appendPlace(place);
+    await removePending(id);
 
     return res.status(200).json({ ok: true, place });
   } catch (e) {

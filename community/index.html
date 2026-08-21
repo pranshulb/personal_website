@@ -589,11 +589,23 @@
   }
 
   PLACES.forEach(function(place) {
-    var popupHtml = '<div class="popup-name">' + place.name + '</div>' +
-                    '<div class="popup-area">' + place.area + '</div>';
+    // Built as nodes, not concatenated HTML. The API strips angle brackets on
+    // the way in, but this is the one place a name reaches the DOM as markup,
+    // and it shouldn't depend on that staying true of every future write path.
+    var popupEl = document.createElement('div');
+    var pName = document.createElement('div');
+    pName.className = 'popup-name';
+    pName.textContent = place.name;
+    popupEl.appendChild(pName);
+    if (place.area) {
+      var pArea = document.createElement('div');
+      pArea.className = 'popup-area';
+      pArea.textContent = place.area;
+      popupEl.appendChild(pArea);
+    }
 
     var marker = L.marker([place.lat, place.lng], { icon: makeInkDot(false) })
-      .bindPopup(popupHtml, { className: 'note-popup', closeButton: false, maxWidth: 220, offset: [0, -4] })
+      .bindPopup(popupEl, { className: 'note-popup', closeButton: false, maxWidth: 220, offset: [0, -4] })
       .addTo(map);
 
     // "via" separates the two ways in: whether people browse by map or by list

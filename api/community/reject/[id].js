@@ -1,7 +1,7 @@
 // POST /api/community/reject/<id> — admin. Drops one item from the queue.
 
 import {
-  readPending, writePending, requireAdmin, checkRate, clientIp,
+  removePending, requireAdmin, checkRate, clientIp,
 } from '../_store.js';
 
 export default async function handler(req, res) {
@@ -20,14 +20,11 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   try {
-    const pending = await readPending();
-    const remaining = pending.filter((p) => p.id !== id);
-    if (remaining.length === pending.length) {
+    const remaining = await removePending(id);
+    if (remaining === null) {
       return res.status(404).json({ error: 'not found' });
     }
-
-    await writePending(remaining);
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, remaining: remaining.length });
   } catch (e) {
     console.error('POST reject failed:', e);
     return res.status(500).json({ error: 'failed to reject' });
