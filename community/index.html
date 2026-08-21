@@ -397,16 +397,8 @@
   // Offline fallback only — the live list comes from /api/community/places,
   // which is what the admin page writes to. This is what renders if that call
   // fails, so the page is never blank.
-  var SEED = [
-    { name:"The Bread Station", area:"Brixton", tags:["workshop","food"], note:"sourdough workshop where they actually let you take the starter home. the woman who runs it has been baking for 30 years and tells stories the whole time.", url:"", when:"march 2026", lat:51.4613, lng:-0.1145 },
-    { name:"Zine Night at Cafe OTO", area:"Dalston", tags:["workshop","art"], note:"cut, paste, photocopy. bring scraps. the vibe is very 'nobody here is a professional and that's the point'.", url:"", when:"february 2026", lat:51.5495, lng:-0.0757 },
-    { name:"Mending Circle", area:"Peckham", tags:["workshop","community"], note:"bring clothes that need fixing. needles and thread provided. i hemmed my jeans for the first time in my life here.", url:"", when:"april 2026", lat:51.4741, lng:-0.0693 },
-    { name:"Seed Swap", area:"Hackney", tags:["community","outdoors"], note:"traded some basil seeds for actual tomato plants. the guy who runs it grows everything on his balcony in zone 2.", url:"", when:"may 2026", lat:51.5450, lng:-0.0553 },
-    { name:"Print Club", area:"Dalston", tags:["workshop","art"], note:"risograph printing open evening. you design something, they print it, you leave with 20 copies. weirdly addictive.", url:"https://printclublondon.com", when:"january 2026", lat:51.5465, lng:-0.0750 },
-    { name:"Ceramics at Turning Earth", area:"Hoxton", tags:["workshop","art"], note:"open studio ceramics. i made the ugliest mug you've ever seen and i love it.", url:"https://turningearth.uk", when:"december 2025", lat:51.5340, lng:-0.0772 },
-    { name:"Koyaanisqatsi Screening", area:"Bermondsey", tags:["film","community"], note:"projector in someone's garden. popcorn. philip glass on a bluetooth speaker that kept cutting out. perfect.", url:"", when:"april 2026", lat:51.4980, lng:-0.0637 },
-    { name:"Bread & Roses Bookshop Talk", area:"Finsbury Park", tags:["talk","community"], note:"a talk about cooperative housing that somehow ended in everyone sharing their worst landlord stories. very cathartic.", url:"", when:"march 2026", lat:51.5642, lng:-0.1066 }
-  ];
+  // Offline fallback, shown only if /api/community/places is unreachable.
+  var SEED = [];
 
   // Umami custom events. Silently does nothing if the script is blocked or
   // hasn't loaded yet, so tracking can never break an interaction.
@@ -612,9 +604,19 @@
     markers[place._idx] = marker;
   });
 
-  // fit to all
+  // fit to all — but an empty list makes invalid bounds, and fitBounds throws
+  // on those, which would take the whole page down. Sit over London instead.
   var allCoords = PLACES.map(function(p) { return [p.lat, p.lng]; });
-  map.fitBounds(L.latLngBounds(allCoords).pad(0.15));
+  if (allCoords.length > 0) {
+    map.fitBounds(L.latLngBounds(allCoords).pad(0.15));
+  }
+
+  if (PLACES.length === 0) {
+    var empty = document.getElementById('no-results');
+    empty.textContent = 'nothing here yet — still collecting.';
+    empty.style.display = 'block';
+    document.getElementById('scroll-hint').style.display = 'none';
+  }
 
   // ---- SCROLL HINT ----
   var scrollHint = document.getElementById('scroll-hint');

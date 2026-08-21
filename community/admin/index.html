@@ -317,6 +317,50 @@
       flex-wrap: wrap;
     }
 
+    /* ---- live places list ---- */
+    .live-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.8rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid rgba(196, 122, 122, 0.12);
+    }
+    .live-row:last-child { border-bottom: none; }
+
+    .live-name { color: #3a2f2f; font-size: 0.95rem; }
+    .live-area {
+      color: #b8a090;
+      font-size: 0.8rem;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+    }
+    .live-empty {
+      color: #b8a090;
+      font-style: italic;
+      font-family: 'EB Garamond', serif;
+      padding: 0.5rem 0;
+    }
+
+    .live-remove {
+      color: #c47a7a;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-decoration: underline;
+      text-decoration-color: rgba(196, 122, 122, 0.4);
+      text-underline-offset: 3px;
+      background: none;
+      border: none;
+      font-family: 'Unkempt', cursive;
+      padding: 0.4rem 0 0.4rem 0.6rem;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .live-remove:hover { text-decoration-color: #c47a7a; }
+    .live-remove[disabled] { opacity: 0.4; cursor: default; }
+
+    .text-link.danger { color: #c47a7a; text-decoration-color: rgba(196, 122, 122, 0.4); }
+
     .text-link {
       color: #4a3020;
       text-decoration: underline;
@@ -571,6 +615,19 @@
       <a class="action-approve" id="btn-approve">approve</a>
     </div>
 
+    <!-- ON THE MAP -->
+    <div class="bulk-section">
+      <h2>on the map</h2>
+      <p class="aside">what's live at /community. removing is immediate — there's no undo.</p>
+      <div id="live-list"></div>
+      <div class="bulk-actions">
+        <a class="text-link danger" id="btn-wipe">wipe the whole map</a>
+        <a class="text-link danger" id="btn-wipe-confirm" style="display:none;">yes, remove every entry</a>
+        <a class="text-link muted" id="btn-wipe-cancel" style="display:none;">never mind</a>
+      </div>
+      <div class="bulk-status" id="live-status"></div>
+    </div>
+
     <!-- BULK ADD -->
     <div class="bulk-section">
       <h2>bulk add</h2>
@@ -607,6 +664,13 @@
   var cardActions = document.getElementById('card-actions');
   var btnReject = document.getElementById('btn-reject');
   var btnApprove = document.getElementById('btn-approve');
+  var liveList = document.getElementById('live-list');
+  var liveStatus = document.getElementById('live-status');
+  var btnWipe = document.getElementById('btn-wipe');
+  var btnWipeConfirm = document.getElementById('btn-wipe-confirm');
+  var btnWipeCancel = document.getElementById('btn-wipe-cancel');
+  var livePlaces = [];
+
   var bulkText = document.getElementById('bulk-text');
   var btnParse = document.getElementById('btn-parse');
   var btnQueue = document.getElementById('btn-queue');
@@ -648,6 +712,7 @@
       currentIdx = 0;
       deckSection.style.display = '';
       renderDeck();
+      loadLive();
     }).catch(function (err) {
       // 503 means COMMUNITY_ADMIN_PASS isn't set on the server — worth saying
       // so, since retyping the password would never fix it.
@@ -661,6 +726,116 @@
   document.getElementById('login-form').addEventListener('submit', function (e) {
     e.preventDefault();
     attemptLogin();
+  });
+
+  // ---- WHAT'S LIVE ON THE MAP ----
+
+  function loadLive() {
+    // cache-busted: /places is edge-cached for a minute, and after a removal
+    // the stale copy would show the entry still there.
+    api('GET', '/api/community/places?t=' + Date.now()).then(function (data) {
+      livePlaces = Array.isArray(data) ? data : [];
+      renderLive();
+    }).catch(function () {
+      liveList.innerHTML = '<div class="live-empty">couldn\'t load the map list.</div>';
+    });
+  }
+
+  function renderLive() {
+    liveList.innerHTML = '';
+
+    if (livePlaces.length === 0) {
+      liveList.innerHTML = '<div class="live-empty">nothing on the map yet.</div>';
+      btnWipe.style.display = 'none';
+      return;
+    }
+    btnWipe.style.display = '';
+
+    livePlaces.forEach(function (place, i) {
+      var row = document.createElement('div');
+      row.className = 'live-row';
+
+      var left = document.createElement('span');
+      var name = document.createElement('span');
+      name.className = 'live-name';
+      name.textContent = place.name;
+      left.appendChild(name);
+
+      if (place.area) {
+        var area = document.createElement('span');
+        area.className = 'live-area';
+        area.textContent = '  ·  ' + place.area;
+        left.appendChild(area);
+      }
+      if (place.needsCoords || typeof place.lat !== 'number') {
+        var warn = document.createElement('span');
+        warn.className = 'live-area';
+        warn.textContent = '  ·  no pin';
+        left.appendChild(warn);
+      }
+
+      var btn = document.createElement('button');
+      btn.className = 'live-remove';
+      btn.type = 'button';
+      btn.textContent = 'remove';
+      btn.addEventListener('click', function () {
+        removeLive(i, place.name, btn);
+      });
+
+      row.appendChild(left);
+      row.appendChild(btn);
+      liveList.appendChild(row);
+    });
+  }
+
+  function removeLive(index, name, btn) {
+    btn.disabled = true;
+    btn.textContent = 'removing...';
+    liveStatus.textContent = '';
+
+    var qs = '?index=' + index + '&name=' + encodeURIComponent(name);
+    api('DELETE', '/api/community/places' + qs, { index: index, name: name })
+      .then(function (data) {
+        liveStatus.textContent = 'removed "' + name + '". ' + data.remaining + ' left.';
+        loadLive();
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'remove';
+        // 409 means the list moved under us — reload rather than delete blind.
+        if (String(err && err.message) === '409') {
+          liveStatus.textContent = 'the list changed — reloading it.';
+          loadLive();
+        } else {
+          liveStatus.textContent = 'couldn\'t remove that one.';
+        }
+      });
+  }
+
+  function showWipeConfirm(on) {
+    btnWipe.style.display = on ? 'none' : '';
+    btnWipeConfirm.style.display = on ? '' : 'none';
+    btnWipeCancel.style.display = on ? '' : 'none';
+  }
+
+  btnWipe.addEventListener('click', function () {
+    liveStatus.textContent = '';
+    showWipeConfirm(true);
+  });
+  btnWipeCancel.addEventListener('click', function () { showWipeConfirm(false); });
+
+  btnWipeConfirm.addEventListener('click', function () {
+    btnWipeConfirm.textContent = 'wiping...';
+    api('DELETE', '/api/community/places?all=true', { all: true }).then(function (data) {
+      btnWipeConfirm.textContent = 'yes, remove every entry';
+      showWipeConfirm(false);
+      liveStatus.textContent = 'wiped ' + data.removed + ' entries. the map is empty.';
+      loadLive();
+    }).catch(function () {
+      btnWipeConfirm.textContent = 'yes, remove every entry';
+      showWipeConfirm(false);
+      liveStatus.textContent = 'wipe failed.';
+    });
   });
 
   // ---- DECK RENDERING ----
@@ -900,6 +1075,7 @@
     api('POST', '/api/community/approve/' + item.id).then(function () {
       currentIdx++;
       setTimeout(renderDeck, 350);
+      loadLive(); // it's on the map now — show it in the list below
     }).catch(function () {
       // snap back on error
       renderDeck();
