@@ -1,7 +1,7 @@
 // POST /api/community/bulk-add — admin. Pastes a JSON array into the queue.
 
 import {
-  readPending, writePending, requireAdmin, checkRate, clientIp, clean, cleanTags,
+  appendPending, requireAdmin, checkRate, clientIp, clean, cleanTags,
 } from './_store.js';
 
 const MAX_BATCH = 200;
@@ -28,7 +28,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const pending = await readPending();
     const added = [];
 
     for (const entry of entries) {
@@ -46,11 +45,12 @@ export default async function handler(req, res) {
         submitted_at: new Date().toISOString(),
         source: 'bulk',
       };
-      pending.push(item);
       added.push(item);
     }
 
-    await writePending(pending);
+    if (added.length > 0 && (await appendPending(added)) === null) {
+      return res.status(429).json({ error: 'queue is full' });
+    }
     return res.status(200).json({ ok: true, added: added.length, items: added });
   } catch (e) {
     console.error('POST bulk-add failed:', e);

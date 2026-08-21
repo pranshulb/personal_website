@@ -1,10 +1,8 @@
 // POST /api/community/suggest — public. Lands in the pending queue, never live.
 
 import {
-  readPending, writePending, checkRate, clientIp, clean, cleanTags,
+  appendPending, checkRate, clientIp, clean, cleanTags,
 } from './_store.js';
-
-const MAX_PENDING = 500;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,11 +21,6 @@ export default async function handler(req, res) {
   if (!name) return res.status(400).json({ error: 'name is required' });
 
   try {
-    const pending = await readPending();
-    if (pending.length >= MAX_PENDING) {
-      return res.status(429).json({ error: 'queue is full, try again later' });
-    }
-
     const item = {
       id: crypto.randomUUID(),
       name,
@@ -40,8 +33,12 @@ export default async function handler(req, res) {
       source: 'suggest',
     };
 
-    pending.push(item);
-    await writePending(pending);
+    // Concurrency-safe: a suggestion arriving while an approval is mid-flight
+    // used to be silently dropped.
+    const result = await appendPending([item]);
+    if (result === null) {
+      return res.status(429).json({ error: 'queue is full, try again later' });
+    }
 
     return res.status(200).json({ ok: true, id: item.id });
   } catch (e) {

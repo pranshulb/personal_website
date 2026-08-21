@@ -39,6 +39,12 @@ async function readBlob(key, fallback) {
   }
 }
 
+// A write in flight elsewhere must never be deleted by our prune. Two writers
+// that each delete "everything that isn't mine" delete each other, and the
+// store falls back to empty — losing both writes rather than one. Only blobs
+// older than this are candidates; reads take the newest, so extras are inert.
+const PRUNE_GRACE_MS = 120000;
+
 async function writeBlob(key, data) {
   // Write first, then prune older versions — so a failed prune can't lose data.
   const fresh = await put(key, JSON.stringify(data, null, 2), {
@@ -49,12 +55,38 @@ async function writeBlob(key, data) {
   });
   try {
     const { blobs } = await list({ prefix: baseOf(key) });
+    const newest = blobs
+      .slice()
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
+    const cutoff = Date.now() - PRUNE_GRACE_MS;
     for (const b of blobs) {
-      if (b.pathname !== fresh.pathname) await del(b.url);
+      if (b.pathname === fresh.pathname) continue;
+      if (newest && b.pathname === newest.pathname) continue;
+      if (new Date(b.uploadedAt).getTime() >= cutoff) continue;
+      await del(b.url);
     }
   } catch (e) {
     // Harmless: reads take the newest by uploadedAt, so leftovers are ignored.
   }
+}
+
+// Read-modify-write with a check afterwards. Two requests that read the same
+// version both write on top of it, and the loser's change vanishes — which for
+// a suggestion arriving mid-approval means silently dropping someone's
+// submission. `mutator` must be pure so replaying it on fresh data is safe.
+async function mutate(key, fallback, mutator, isApplied, attempts = 4) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    const current = await readBlob(key, fallback);
+    const next = mutator(current);
+    if (next === null) return null;          // nothing to do (e.g. id not found)
+    await writeBlob(key, next);
+    last = await readBlob(key, fallback);
+    if (isApplied(last)) return last;
+    // Someone landed between our read and our write; replay on what's there now.
+  }
+  console.error('mutate(' + key + ') did not converge after ' + attempts + ' attempts');
+  return last;
 }
 
 // places.json is seeded on first read so the map isn't empty on a fresh deploy.
@@ -62,6 +94,35 @@ export const readPlaces = () => readBlob(PLACES_KEY, SEED_PLACES);
 export const writePlaces = (data) => writeBlob(PLACES_KEY, data);
 export const readPending = () => readBlob(PENDING_KEY, []);
 export const writePending = (data) => writeBlob(PENDING_KEY, data);
+
+// Concurrency-safe queue operations. Use these rather than read/write pairs:
+// a suggestion arriving while an approval is in flight must not disappear.
+const MAX_PENDING = 500;
+
+export function appendPending(items) {
+  const ids = items.map((i) => i.id);
+  return mutate(
+    PENDING_KEY, [],
+    (current) => (current.length + items.length > MAX_PENDING ? null : current.concat(items)),
+    (after) => ids.every((id) => after.some((p) => p.id === id)),
+  );
+}
+
+export function removePending(id) {
+  return mutate(
+    PENDING_KEY, [],
+    (current) => (current.some((p) => p.id === id) ? current.filter((p) => p.id !== id) : null),
+    (after) => !after.some((p) => p.id === id),
+  );
+}
+
+export function appendPlace(place) {
+  return mutate(
+    PLACES_KEY, SEED_PLACES,
+    (current) => current.concat([place]),
+    (after) => after.some((p) => p.name === place.name && p.when === place.when),
+  );
+}
 
 // ---- admin auth ----
 
