@@ -600,6 +600,7 @@
       <button type="submit" class="submit-link" id="login-btn">let me in</button>
     </form>
     <div class="login-status" id="login-status"></div>
+    <a class="text-link muted" id="sign-out" style="display:none;">sign out</a>
   </div>
 
   <!-- SWIPE DECK -->
@@ -650,7 +651,6 @@
 
 <script>
 (function () {
-  var password = '';
   var pending = [];
   var currentIdx = 0;
   var parsedBulk = [];
@@ -664,6 +664,8 @@
   var cardActions = document.getElementById('card-actions');
   var btnReject = document.getElementById('btn-reject');
   var btnApprove = document.getElementById('btn-approve');
+  var loginForm = document.getElementById('login-form');
+  var signOut = document.getElementById('sign-out');
   var liveList = document.getElementById('live-list');
   var liveStatus = document.getElementById('live-status');
   var btnWipe = document.getElementById('btn-wipe');
@@ -682,7 +684,8 @@
   function api(method, path, body) {
     var opts = {
       method: method,
-      headers: { 'X-Admin-Pass': password, 'Content-Type': 'application/json' }
+      credentials: 'same-origin', // the signed cookie is the credential now
+      headers: { 'Content-Type': 'application/json' }
     };
     if (body !== undefined) opts.body = JSON.stringify(body);
     return fetch(path, opts).then(function (r) {
@@ -693,9 +696,21 @@
 
   // ---- LOGIN ----
 
+  function enterAdmin(data) {
+    loginStatus.textContent = 'in.';
+    loginStatus.className = 'login-status ok';
+    loginForm.style.display = 'none';
+    signOut.style.display = '';
+    pending = data;
+    currentIdx = 0;
+    deckSection.style.display = '';
+    renderDeck();
+    loadLive();
+  }
+
   function attemptLogin() {
-    password = passInput.value.trim();
-    if (!password) {
+    var typed = passInput.value.trim();
+    if (!typed) {
       loginStatus.textContent = 'type the password first';
       loginStatus.className = 'login-status fail';
       return;
@@ -705,28 +720,44 @@
     loginStatus.className = 'login-status';
     passInput.blur(); // drop the phone keyboard so the deck is visible
 
-    api('GET', '/api/community/pending').then(function (data) {
-      loginStatus.textContent = 'in.';
-      loginStatus.className = 'login-status ok';
-      pending = data;
-      currentIdx = 0;
-      deckSection.style.display = '';
-      renderDeck();
-      loadLive();
-    }).catch(function (err) {
+    // Swap the password for a cookie, then never hold it again. The password
+    // variable stays empty from here — requests authenticate with the cookie.
+    fetch('/api/community/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: typed })
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      passInput.value = '';
+      return api('GET', '/api/community/pending');
+    }).then(enterAdmin).catch(function (err) {
+      var code = String(err && err.message);
       // 503 means COMMUNITY_ADMIN_PASS isn't set on the server — worth saying
       // so, since retyping the password would never fix it.
-      loginStatus.textContent = String(err && err.message) === '503'
-        ? 'admin is disabled on the server (COMMUNITY_ADMIN_PASS not set)'
-        : 'wrong password';
+      loginStatus.textContent =
+        code === '503' ? 'admin is disabled on the server (COMMUNITY_ADMIN_PASS not set)' :
+        code === '429' ? 'too many attempts — wait a minute' :
+        'wrong password';
       loginStatus.className = 'login-status fail';
     });
   }
 
-  document.getElementById('login-form').addEventListener('submit', function (e) {
+  loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
     attemptLogin();
   });
+
+  signOut.addEventListener('click', function (e) {
+    e.preventDefault();
+    fetch('/api/community/login', { method: 'DELETE' }).then(function () {
+      location.reload();
+    });
+  });
+
+  // If the cookie from a previous visit is still good, go straight in.
+  api('GET', '/api/community/pending')
+    .then(enterAdmin)
+    .catch(function () { /* not signed in — the password prompt stands */ });
 
   // ---- WHAT'S LIVE ON THE MAP ----
 

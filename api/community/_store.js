@@ -5,7 +5,7 @@
 // instead, following the same read-modify-write pattern as api/wall.js.
 
 import { put, list, del } from '@vercel/blob';
-import { timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual, createHmac, randomBytes } from 'node:crypto';
 import SEED_PLACES from './_seed.js';
 
 export const PLACES_KEY = 'community-places.json';
@@ -13,9 +13,20 @@ export const PENDING_KEY = 'community-pending.json';
 
 // ---- blob helpers ----
 
+// Every write lands at a NEW pathname and so a new URL, and reads always take
+// the newest. That is deliberate: blob URLs are served through a CDN that
+// caches aggressively (the default is a month), so writing to one fixed
+// pathname hands back a stale copy on the next read — an edit appears to save
+// and then undo itself. fetch's `cache` option can't help; it governs the
+// runtime's own cache, not the blob CDN's. A fresh URL each time can never be
+// stale, so the reads are correct by construction rather than by cache-busting.
+const baseOf = (key) => key.replace(/\.json$/, '');
+
 async function readBlob(key, fallback) {
   try {
-    const { blobs } = await list({ prefix: key });
+    // Prefix is the extension-less base, because addRandomSuffix inserts the
+    // suffix before the extension: community-pending-XyZ123.json
+    const { blobs } = await list({ prefix: baseOf(key) });
     if (blobs.length === 0) return fallback;
     const latest = blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
     const res = await fetch(latest.url, { cache: 'no-store' });
@@ -30,28 +41,19 @@ async function readBlob(key, fallback) {
 
 async function writeBlob(key, data) {
   // Write first, then prune older versions — so a failed prune can't lose data.
-  //
-  // No addRandomSuffix: it inserts the suffix before the extension
-  // ("community-pending.json" -> "community-pending-XyZ123.json"), which the
-  // exact-pathname prefix in readBlob would never match, so every read would
-  // silently fall through to the default. Writing to the fixed pathname needs
-  // allowOverwrite, since we deliberately put before pruning.
-  await put(key, JSON.stringify(data, null, 2), {
+  const fresh = await put(key, JSON.stringify(data, null, 2), {
     access: 'public',
     contentType: 'application/json',
-    allowOverwrite: true,
+    addRandomSuffix: true,
+    cacheControlMaxAge: 60,
   });
   try {
-    // Prune on the extension-less base ("community-pending"), not the exact
-    // key, so this also sweeps up any suffixed strays — reads only ever look
-    // at the exact pathname, so anything else is dead weight.
-    const base = key.replace(/\.json$/, '');
-    const { blobs } = await list({ prefix: base });
+    const { blobs } = await list({ prefix: baseOf(key) });
     for (const b of blobs) {
-      if (b.pathname !== key) await del(b.url);
+      if (b.pathname !== fresh.pathname) await del(b.url);
     }
   } catch (e) {
-    // Failing to prune is harmless — reads target the exact pathname.
+    // Harmless: reads take the newest by uploadedAt, so leftovers are ignored.
   }
 }
 
@@ -63,25 +65,87 @@ export const writePending = (data) => writeBlob(PENDING_KEY, data);
 
 // ---- admin auth ----
 
-// No fallback password: if COMMUNITY_ADMIN_PASS is unset the admin endpoints
-// stay shut rather than accepting a value baked into the repo.
-export function requireAdmin(req, res) {
+export const COOKIE_NAME = 'pcafe_community';
+const COOKIE_DAYS = 30;
+
+// Signed with the admin password itself, so there's no second env var to set
+// — and changing the password invalidates every cookie already issued, which
+// is the behaviour you'd want anyway.
+const cookieSecret = () =>
+  process.env.PRIVATE_SECRET || process.env.COMMUNITY_ADMIN_PASS || '';
+
+const b64url = (buf) => Buffer.from(buf).toString('base64url');
+const sign = (payloadB64) =>
+  createHmac('sha256', cookieSecret()).update(payloadB64).digest('hex');
+
+function constantEquals(a, b) {
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
+export function passwordMatches(given) {
   const expected = process.env.COMMUNITY_ADMIN_PASS;
-  if (!expected) {
+  return Boolean(expected) && constantEquals(given ?? '', expected);
+}
+
+export function makeAdminCookie() {
+  const exp = Math.floor(Date.now() / 1000) + COOKIE_DAYS * 86400;
+  // jti only exists so two cookies minted in the same second still differ
+  const payload = b64url(JSON.stringify({ e: exp, jti: randomBytes(8).toString('hex') }));
+  const value = payload + '.' + sign(payload);
+  return [
+    COOKIE_NAME + '=' + value,
+    'Path=/',
+    'Max-Age=' + COOKIE_DAYS * 86400,
+    'HttpOnly',            // page scripts can't read it, unlike a stored password
+    'Secure',
+    'SameSite=Lax',
+  ].join('; ');
+}
+
+export const clearAdminCookie = () =>
+  COOKIE_NAME + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
+
+function readCookie(req, name) {
+  const header = req.headers.cookie || '';
+  for (const part of header.split(/;\s*/)) {
+    const eq = part.indexOf('=');
+    if (eq > 0 && part.slice(0, eq) === name) return decodeURIComponent(part.slice(eq + 1));
+  }
+  return null;
+}
+
+function cookieValid(req) {
+  const raw = readCookie(req, COOKIE_NAME);
+  if (!raw) return false;
+  const dot = raw.indexOf('.');
+  if (dot < 1) return false;
+
+  const payloadB64 = raw.slice(0, dot);
+  if (!constantEquals(raw.slice(dot + 1), sign(payloadB64))) return false;
+
+  try {
+    const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
+    return !(payload.e && Math.floor(Date.now() / 1000) > payload.e);
+  } catch (e) {
+    return false;
+  }
+}
+
+// Accepts a signed cookie or the X-Admin-Pass header. No fallback password: if
+// COMMUNITY_ADMIN_PASS is unset the admin endpoints stay shut rather than
+// accepting a value baked into the repo.
+export function requireAdmin(req, res) {
+  if (!process.env.COMMUNITY_ADMIN_PASS) {
     res.status(503).json({ error: 'admin disabled: COMMUNITY_ADMIN_PASS is not set' });
     return false;
   }
 
-  const given = req.headers['x-admin-pass'] || '';
-  const a = Buffer.from(String(given));
-  const b = Buffer.from(expected);
-  const ok = a.length === b.length && timingSafeEqual(a, b);
+  if (cookieValid(req) || passwordMatches(req.headers['x-admin-pass'])) return true;
 
-  if (!ok) {
-    res.status(401).json({ error: 'unauthorized' });
-    return false;
-  }
-  return true;
+  res.status(401).json({ error: 'unauthorized' });
+  return false;
 }
 
 // ---- misc ----
