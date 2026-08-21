@@ -622,11 +622,23 @@
       <p class="aside">what's live at /community. removing is immediate — there's no undo.</p>
       <div id="live-list"></div>
       <div class="bulk-actions">
+        <a class="text-link" id="btn-download">download a copy</a>
         <a class="text-link danger" id="btn-wipe">wipe the whole map</a>
         <a class="text-link danger" id="btn-wipe-confirm" style="display:none;">yes, remove every entry</a>
         <a class="text-link muted" id="btn-wipe-cancel" style="display:none;">never mind</a>
       </div>
       <div class="bulk-status" id="live-status"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="bulk-section">
+      <h2>history</h2>
+      <p class="aside">every change keeps a snapshot. nothing is ever really gone — roll back to any of these.</p>
+      <div id="history-list"></div>
+      <div class="bulk-actions">
+        <a class="text-link muted" id="btn-history">show history</a>
+      </div>
+      <div class="bulk-status" id="history-status"></div>
     </div>
 
     <!-- BULK ADD -->
@@ -666,6 +678,10 @@
   var btnApprove = document.getElementById('btn-approve');
   var loginForm = document.getElementById('login-form');
   var signOut = document.getElementById('sign-out');
+  var historyList = document.getElementById('history-list');
+  var historyStatus = document.getElementById('history-status');
+  var btnHistory = document.getElementById('btn-history');
+  var btnDownload = document.getElementById('btn-download');
   var liveList = document.getElementById('live-list');
   var liveStatus = document.getElementById('live-status');
   var btnWipe = document.getElementById('btn-wipe');
@@ -867,6 +883,99 @@
       showWipeConfirm(false);
       liveStatus.textContent = 'wipe failed.';
     });
+  });
+
+  // ---- HISTORY / RESTORE ----
+
+  function loadHistory() {
+    // Progress goes in the list, not the status line — this runs straight after
+    // a restore, and clearing the status here would wipe the confirmation of it.
+    historyList.innerHTML = '<div class="live-empty">loading…</div>';
+    api('GET', '/api/community/backups?which=places&t=' + Date.now())
+      .then(function (data) { renderHistory(data.versions || []); })
+      .catch(function () {
+        historyList.innerHTML = '';
+        historyStatus.textContent = 'couldn\'t load history.';
+      });
+  }
+
+  function renderHistory(versions) {
+    historyList.innerHTML = '';
+    if (versions.length === 0) {
+      historyList.innerHTML = '<div class="live-empty">no snapshots yet.</div>';
+      return;
+    }
+
+    versions.forEach(function (v) {
+      var row = document.createElement('div');
+      row.className = 'live-row';
+
+      var left = document.createElement('span');
+      var when = document.createElement('span');
+      when.className = 'live-name';
+      var d = new Date(v.uploadedAt);
+      when.textContent = isNaN(d) ? v.uploadedAt
+        : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      left.appendChild(when);
+
+      var detail = document.createElement('span');
+      detail.className = 'live-area';
+      detail.textContent = '  ·  ' + (v.count === null ? '?' : v.count)
+        + (v.count === 1 ? ' entry' : ' entries') + (v.current ? '  ·  current' : '');
+      left.appendChild(detail);
+      row.appendChild(left);
+
+      if (!v.current) {
+        var btn = document.createElement('button');
+        btn.className = 'live-remove';
+        btn.type = 'button';
+        btn.textContent = 'restore';
+        btn.addEventListener('click', function () {
+          btn.disabled = true;
+          btn.textContent = 'restoring...';
+          api('POST', '/api/community/backups', { which: 'places', pathname: v.pathname })
+            .then(function (data) {
+              historyStatus.textContent = 'restored ' + data.restored
+                + (data.restored === 1 ? ' entry.' : ' entries.');
+              loadLive();
+              loadHistory();
+            })
+            .catch(function () {
+              btn.disabled = false; btn.textContent = 'restore';
+              historyStatus.textContent = 'restore failed.';
+            });
+        });
+        row.appendChild(btn);
+      }
+
+      historyList.appendChild(row);
+    });
+  }
+
+  btnHistory.addEventListener('click', function () {
+    if (historyList.children.length > 0) {
+      historyList.innerHTML = '';
+      btnHistory.textContent = 'show history';
+      return;
+    }
+    btnHistory.textContent = 'hide history';
+    loadHistory();
+  });
+
+  // A copy that doesn't depend on Vercel, the blob store, or this site.
+  btnDownload.addEventListener('click', function () {
+    api('GET', '/api/community/places?t=' + Date.now()).then(function (data) {
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'places-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      liveStatus.textContent = 'downloaded ' + data.length
+        + (data.length === 1 ? ' entry.' : ' entries.');
+    }).catch(function () { liveStatus.textContent = 'download failed.'; });
   });
 
   // ---- DECK RENDERING ----

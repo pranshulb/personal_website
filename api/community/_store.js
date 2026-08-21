@@ -45,8 +45,16 @@ async function readBlob(key, fallback) {
 // older than this are candidates; reads take the newest, so extras are inert.
 const PRUNE_GRACE_MS = 120000;
 
+// Every write already leaves its predecessor behind as a complete file. Keeping
+// them instead of deleting them turns that into free version history: any bad
+// write, accidental wipe, or bug that empties the store can be rolled back to
+// a known-good copy. Each version is a few KB, so 30 costs nothing.
+export const KEEP_VERSIONS = 30;
+
+const byNewest = (a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt);
+
 async function writeBlob(key, data) {
-  // Write first, then prune older versions — so a failed prune can't lose data.
+  // Write first, then prune — so a failed prune can't lose data.
   const fresh = await put(key, JSON.stringify(data, null, 2), {
     access: 'public',
     contentType: 'application/json',
@@ -55,19 +63,55 @@ async function writeBlob(key, data) {
   });
   try {
     const { blobs } = await list({ prefix: baseOf(key) });
-    const newest = blobs
-      .slice()
-      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
+    const ordered = blobs.slice().sort(byNewest);
+    const keep = new Set(ordered.slice(0, KEEP_VERSIONS).map((b) => b.pathname));
+    keep.add(fresh.pathname);
     const cutoff = Date.now() - PRUNE_GRACE_MS;
+
     for (const b of blobs) {
-      if (b.pathname === fresh.pathname) continue;
-      if (newest && b.pathname === newest.pathname) continue;
+      if (keep.has(b.pathname)) continue;
       if (new Date(b.uploadedAt).getTime() >= cutoff) continue;
       await del(b.url);
     }
   } catch (e) {
     // Harmless: reads take the newest by uploadedAt, so leftovers are ignored.
   }
+}
+
+// ---- version history / restore ----
+
+// Newest first. Each entry is a full snapshot of the list at that moment.
+export async function listVersions(key) {
+  const { blobs } = await list({ prefix: baseOf(key) });
+  const ordered = blobs.slice().sort(byNewest);
+
+  return Promise.all(ordered.slice(0, KEEP_VERSIONS).map(async (b, i) => {
+    let count = null;
+    try {
+      const res = await fetch(b.url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) count = data.length;
+      }
+    } catch (e) { /* count stays null — the entry is still restorable */ }
+    return { pathname: b.pathname, uploadedAt: b.uploadedAt, count, current: i === 0 };
+  }));
+}
+
+// Restores by writing the old contents forward as a new version, so the
+// restore is itself undoable rather than rewriting history.
+export async function restoreVersion(key, pathname) {
+  const { blobs } = await list({ prefix: baseOf(key) });
+  const target = blobs.find((b) => b.pathname === pathname);
+  if (!target) return null;
+
+  const res = await fetch(target.url, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!Array.isArray(data)) return null;
+
+  await writeBlob(key, data);
+  return data;
 }
 
 // Read-modify-write with a check afterwards. Two requests that read the same
