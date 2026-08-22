@@ -1,7 +1,7 @@
 // POST /api/community/suggest — public. Lands in the pending queue, never live.
 
 import {
-  appendPending, checkRate, clientIp, clean, cleanTags,
+  appendPending, checkRate, clientIp, clean, cleanTags, cleanUrl,
 } from './_store.js';
 
 export default async function handler(req, res) {
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       area: clean(data.area || data.city, 80),
       tags: cleanTags(data.tags),
       note: clean(data.note, 500),
-      url: clean(data.url, 300),
+      url: cleanUrl(data.url),
       submitted_by: clean(data.submitted_by, 80),
       submitted_at: new Date().toISOString(),
       source: 'suggest',

@@ -5,15 +5,12 @@
 // anywhere a script (or anyone with the device) could read it back.
 
 import {
-  passwordMatches, makeAdminCookie, clearAdminCookie, requireAdmin,
+  passwordMatches, makeAdminCookie, clearAdminCookie, sameOrigin, adminCors,
   checkRate, clientIp,
 } from './_store.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
-  res.setHeader('Cache-Control', 'no-store');
+  adminCors(res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -31,12 +28,19 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'too many attempts, wait a minute' });
   }
 
+  if (!sameOrigin(req)) {
+    return res.status(403).json({ error: 'cross-origin request refused' });
+  }
+
   if (!process.env.COMMUNITY_ADMIN_PASS) {
     return res.status(503).json({ error: 'admin disabled: COMMUNITY_ADMIN_PASS is not set' });
   }
 
   const given = (req.body && req.body.password) || req.headers['x-admin-pass'] || '';
   if (!passwordMatches(given)) {
+    // The per-instance rate limit is weak on serverless — each cold instance
+    // gets its own counter — so make every wrong guess cost real time too.
+    await new Promise((r) => setTimeout(r, 500));
     return res.status(401).json({ error: 'unauthorized' });
   }
 

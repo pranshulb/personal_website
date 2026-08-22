@@ -2,13 +2,17 @@
 // DELETE /api/community/places — admin. Removes one entry, or wipes the lot.
 
 import {
-  readPlaces, writePlaces, requireAdmin, checkRate, clientIp,
+  readPlaces, writePlaces, requireAdmin, adminCors, checkRate, clientIp,
 } from './_store.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  if (req.method === 'GET' || req.method === 'OPTIONS') {
+    // The map list is deliberately a public read.
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  } else {
+    adminCors(res);
+  }
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 

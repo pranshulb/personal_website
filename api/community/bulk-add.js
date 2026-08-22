@@ -1,15 +1,13 @@
 // POST /api/community/bulk-add — admin. Pastes a JSON array into the queue.
 
 import {
-  appendPending, requireAdmin, checkRate, clientIp, clean, cleanTags,
+  appendPending, requireAdmin, adminCors, checkRate, clientIp, clean, cleanTags, cleanUrl,
 } from './_store.js';
 
 const MAX_BATCH = 200;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  adminCors(res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -40,7 +38,7 @@ export default async function handler(req, res) {
         area: clean(entry.area, 80),
         tags: cleanTags(entry.tags),
         note: clean(entry.note, 500),
-        url: clean(entry.url, 300),
+        url: cleanUrl(entry.url),
         submitted_by: 'pranshul (bulk)',
         submitted_at: new Date().toISOString(),
         source: 'bulk',

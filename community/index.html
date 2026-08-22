@@ -481,9 +481,12 @@
 
       var nameEl = document.createElement('span');
       nameEl.className = 'place-name';
-      if (place.url) {
+      // Second gate: the API only stores http(s), but a link is one attribute
+      // away from executing whatever scheme it was given, so don't trust it.
+      var safeUrl = /^https?:\/\//i.test(place.url || '') ? place.url : '';
+      if (safeUrl) {
         var link = document.createElement('a');
-        link.href = place.url;
+        link.href = safeUrl;
         link.target = '_blank';
         link.rel = 'noopener';
         link.textContent = place.name;

@@ -2,13 +2,11 @@
 
 import {
   readPending, removePending, appendPlace,
-  requireAdmin, checkRate, clientIp, geocode,
+  requireAdmin, adminCors, checkRate, clientIp, geocode,
 } from '../_store.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  adminCors(res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });

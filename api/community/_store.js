@@ -241,9 +241,29 @@ function cookieValid(req) {
 // Accepts a signed cookie or the X-Admin-Pass header. No fallback password: if
 // COMMUNITY_ADMIN_PASS is unset the admin endpoints stay shut rather than
 // accepting a value baked into the repo.
+// SameSite=Lax already stops the admin cookie riding along on a cross-site
+// write, but that's one browser default standing between a hostile page and a
+// wipe. Checked explicitly here too. A missing Origin (curl, server-to-server)
+// is allowed: those carry no ambient credentials, so there's nothing to ride.
+export function sameOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  try {
+    return new URL(origin).host === host;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function requireAdmin(req, res) {
   if (!process.env.COMMUNITY_ADMIN_PASS) {
     res.status(503).json({ error: 'admin disabled: COMMUNITY_ADMIN_PASS is not set' });
+    return false;
+  }
+
+  if (!sameOrigin(req)) {
+    res.status(403).json({ error: 'cross-origin request refused' });
     return false;
   }
 
@@ -251,6 +271,15 @@ export function requireAdmin(req, res) {
 
   res.status(401).json({ error: 'unauthorized' });
   return false;
+}
+
+// Admin responses are same-origin only; there is no reason to advertise them
+// to other sites. Public GETs keep their permissive header.
+export function adminCors(res) {
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Cache-Control', 'no-store');
 }
 
 // ---- misc ----
@@ -278,6 +307,23 @@ export function clientIp(req) {
 }
 
 export const clean = (s, max) => String(s ?? '').replace(/[<>]/g, '').trim().slice(0, max);
+
+// Links go straight into an <a href>. clean() only strips angle brackets, so
+// "javascript:..." survived it intact — a stored XSS anyone could plant through
+// the public form, and one the approval card never showed. Only http(s) links
+// are kept; anything else is dropped rather than rendered.
+export function cleanUrl(s, max = 300) {
+  const raw = clean(s, max);
+  if (!raw) return '';
+  try {
+    const u = new URL(raw);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? raw : '';
+  } catch (e) {
+    // Bare "example.com" is a reasonable thing to type; assume https.
+    if (/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(raw)) return 'https://' + raw;
+    return '';
+  }
+}
 
 export function cleanTags(tags) {
   if (!Array.isArray(tags)) return [];
