@@ -5,16 +5,14 @@
 // history so a bad write or an accidental wipe is recoverable.
 
 import {
-  listVersions, restoreVersion, requireAdmin, checkRate, clientIp,
+  listVersions, restoreVersion, requireAdmin, adminCors, checkRate, clientIp,
   PLACES_KEY, PENDING_KEY,
 } from './_store.js';
 
 const KEYS = { places: PLACES_KEY, pending: PENDING_KEY };
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  adminCors(res);
   res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') return res.status(200).end();

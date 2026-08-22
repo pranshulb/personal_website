@@ -1060,6 +1060,17 @@
       card.appendChild(note);
     }
 
+    // Show the link. It used to be hidden here, so a hostile URL could be
+    // approved without ever being seen. Rendered as text, never as an <a>.
+    if (item.url) {
+      var urlEl = document.createElement('div');
+      urlEl.className = 'card-area';
+      var safe = /^https?:\/\//i.test(item.url);
+      urlEl.textContent = (safe ? '' : '⚠ non-web link: ') + item.url;
+      if (!safe) urlEl.style.color = '#c47a7a';
+      card.appendChild(urlEl);
+    }
+
     var meta = document.createElement('div');
     meta.className = 'card-meta';
     var parts = [];

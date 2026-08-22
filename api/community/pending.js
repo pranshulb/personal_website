@@ -1,11 +1,9 @@
 // GET /api/community/pending — admin. The review queue.
 
-import { readPending, requireAdmin, checkRate, clientIp } from './_store.js';
+import { readPending, requireAdmin, adminCors, checkRate, clientIp } from './_store.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Pass');
+  adminCors(res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'method not allowed' });
