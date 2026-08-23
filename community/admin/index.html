@@ -32,9 +32,28 @@
     }
 
     .page {
-      max-width: 520px;
-      margin: 0 0 0 max(2rem, 5vw);
-      padding: 3rem 0 6rem 0;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 3rem max(2rem, 5vw) 6rem max(2rem, 5vw);
+    }
+
+    /* Moderating and seeing the result are the same job, so on a wide screen
+       the queue and what's already live sit side by side instead of a metre
+       of scrolling apart. */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0 3.5rem;
+      align-items: start;
+    }
+    .admin-grid > * { min-width: 0; }
+    .admin-grid section:first-child h2 { margin-top: 0; }
+
+    .masthead { margin-bottom: 1rem; }
+
+    @media (max-width: 940px) {
+      .page { max-width: 620px; padding-left: max(1.25rem, 4vw); padding-right: max(1.25rem, 4vw); }
+      .admin-grid { grid-template-columns: 1fr; gap: 0; }
     }
 
     h1 {
@@ -144,11 +163,16 @@
       font-style: italic;
     }
 
+    /* Cards are position:absolute so they can stack and swipe, which means the
+       container has no natural height — with a fixed min-height a card taller
+       than 180px simply overlapped the approve/reject controls beneath it. The
+       height is now set from the real card after each render. */
     .deck-area {
       position: relative;
       min-height: 180px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.2rem;
       touch-action: pan-y;
+      transition: height 0.25s ease;
     }
 
     .swipe-card {
@@ -157,7 +181,9 @@
       left: 0;
       right: 0;
       padding: 1.2rem;
-      background: rgba(255, 248, 240, 0.85);
+      /* opaque: the stacked cards behind used to read through the top one as
+         ghost text, which looked like a rendering fault rather than a stack */
+      background: #fdf8f2;
       border: 1px solid rgba(212, 160, 128, 0.25);
       border-radius: 2px;
       cursor: grab;
@@ -527,9 +553,9 @@
       }
 
       .swipe-card {
-        background: rgba(255, 248, 240, 0.8);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        /* opaque here too — a translucent top card let the stack behind it
+           read through as ghost text */
+        background: #fdf8f2;
         padding: 1rem;
       }
 
@@ -585,8 +611,10 @@
 
 <div class="page">
 
-  <h1>admin panel</h1>
-  <p class="intro">approve suggestions, add places in bulk. the usual gardening.</p>
+  <header class="masthead">
+    <h1>admin panel</h1>
+    <p class="intro">approve suggestions, add places in bulk. the usual gardening.</p>
+  </header>
 
   <!-- LOGIN -->
   <div class="login-section">
@@ -605,6 +633,8 @@
 
   <!-- SWIPE DECK -->
   <div id="deck-section" style="display:none;">
+  <div class="admin-grid">
+  <section>
     <h2>pending suggestions</h2>
     <div class="deck-counter" id="deck-counter"></div>
 
@@ -616,6 +646,22 @@
       <a class="action-approve" id="btn-approve">approve</a>
     </div>
 
+    <!-- BULK ADD -->
+    <div class="bulk-section">
+      <h2>bulk add</h2>
+      <p class="aside">one per line: Name — Area — tags (comma sep) — note. or paste a JSON array.</p>
+      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
+      <div class="bulk-actions">
+        <a class="text-link" id="btn-parse">parse this</a>
+        <a class="text-link muted" id="btn-queue" style="display:none;">queue these up</a>
+      </div>
+      <div class="bulk-preview" id="bulk-preview"></div>
+      <div class="bulk-status" id="bulk-status"></div>
+    </div>
+
+  </section>
+
+  <section>
     <!-- ON THE MAP -->
     <div class="bulk-section">
       <h2>on the map</h2>
@@ -641,18 +687,8 @@
       <div class="bulk-status" id="history-status"></div>
     </div>
 
-    <!-- BULK ADD -->
-    <div class="bulk-section">
-      <h2>bulk add</h2>
-      <p class="aside">one per line: Name — Area — tags (comma sep) — note. or paste a JSON array.</p>
-      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
-      <div class="bulk-actions">
-        <a class="text-link" id="btn-parse">parse this</a>
-        <a class="text-link muted" id="btn-queue" style="display:none;">queue these up</a>
-      </div>
-      <div class="bulk-preview" id="bulk-preview"></div>
-      <div class="bulk-status" id="bulk-status"></div>
-    </div>
+  </section>
+  </div>
   </div>
 
   <div class="footer">
@@ -991,6 +1027,7 @@
       deckEmpty.style.display = '';
       cardActions.style.display = 'none';
       deckCounter.textContent = '';
+      deckArea.style.height = '';
       return;
     }
 
@@ -1012,6 +1049,12 @@
       }
       deckArea.appendChild(card);
     }
+
+    // The cards are absolutely positioned, so the container has no height of
+    // its own; without this the approve/reject controls sat *underneath* a
+    // tall card. +12 leaves room for the two stacked cards peeking below.
+    var top = deckArea.querySelector('.swipe-card:not(.behind-1):not(.behind-2)');
+    if (top) deckArea.style.height = (top.offsetHeight + 12) + 'px';
   }
 
   function makeCard(item) {
