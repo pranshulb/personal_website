@@ -31,9 +31,9 @@
     }
 
     .page {
-      max-width: 520px;
-      margin: 0 0 0 max(2rem, 5vw);
-      padding: 3rem 0 6rem 0;
+      max-width: 34rem;
+      margin: 0 auto;
+      padding: 3rem max(1.5rem, 5vw) 6rem max(1.5rem, 5vw);
     }
 
     h1 {
@@ -123,8 +123,12 @@
     }
 
     .tag-word {
+      --c: #b09a8a;
       cursor: pointer;
-      color: #b8a090;
+      color: #a08a78;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
       text-decoration: none;
       border-bottom: 1px solid transparent;
       transition: all 0.25s ease;
@@ -141,8 +145,22 @@
 
     .tag-word.picked {
       color: #3a2f2f;
-      border-bottom: 1px solid #c47a7a;
+      border-bottom: 1px solid var(--c);
     }
+
+    /* the same dot the map and its filters use for this subject */
+    .tag-word::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--c);
+      opacity: 0.45;
+      flex: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .tag-word:hover::before { opacity: 0.8; }
+    .tag-word.picked::before { opacity: 1; transform: scale(1.25); }
 
     .tag-word input {
       display: none;
@@ -325,14 +343,14 @@
         <span class="prompt-text">i'd call it</span>
         <span class="aside">pick as many as feel right</span>
         <div class="tag-words" id="tag-words">
-          <label class="tag-word"><input type="checkbox" name="tags" value="workshop">workshop</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="food">food</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="art">art</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="community">community</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="film">film</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="talk">talk</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="music">music</label>
-          <label class="tag-word"><input type="checkbox" name="tags" value="outdoors">outdoors</label>
+          <label class="tag-word" style="--c:#b26f45"><input type="checkbox" name="tags" value="workshop">workshop</label>
+          <label class="tag-word" style="--c:#c08a3a"><input type="checkbox" name="tags" value="food">food</label>
+          <label class="tag-word" style="--c:#c8903f"><input type="checkbox" name="tags" value="art">art</label>
+          <label class="tag-word" style="--c:#7f9350"><input type="checkbox" name="tags" value="community">community</label>
+          <label class="tag-word" style="--c:#9c7b63"><input type="checkbox" name="tags" value="film">film</label>
+          <label class="tag-word" style="--c:#7f9350"><input type="checkbox" name="tags" value="talk">talk</label>
+          <label class="tag-word" style="--c:#5f86a8"><input type="checkbox" name="tags" value="music">music</label>
+          <label class="tag-word" style="--c:#6f9455"><input type="checkbox" name="tags" value="outdoors">outdoors</label>
         </div>
       </div>
 
