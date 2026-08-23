@@ -13,6 +13,19 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* One easing vocabulary for the whole page, so nothing moves with the flat
+       browser default. --ease-out settles things (entrances, the map reframing
+       its bounds); --ease-soft is for hovers; --ease-back gives dots and chips
+       a barely-there overshoot so they arrive rather than snap. */
+    :root {
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-back: cubic-bezier(0.34, 1.4, 0.64, 1);
+      --dur-fast: 0.22s;
+      --dur: 0.4s;
+      --dur-slow: 0.6s;
+    }
+
     body {
       background-color: #faf5ef;
       color: #3a2f2f;
@@ -104,7 +117,7 @@
       width: 100%;
       height: min(78vh, 720px);
       background: #f3ece2;
-      transition: height 0.35s ease;
+      transition: height var(--dur) var(--ease-out);
     }
 
     .leaflet-tile-pane {
@@ -157,12 +170,20 @@
     .ink-dot-marker { background: none !important; border: none !important; }
 
     .ink-dot-marker svg {
-      transition: transform 0.25s ease;
+      transform-origin: center;
+      transition: transform var(--dur-fast) var(--ease-back);
     }
     .ink-dot-marker:hover svg,
     .ink-dot-marker.active svg {
       transform: scale(1.4);
     }
+
+    /* dots settle in on load, staggered to match the list */
+    @keyframes dotIn {
+      from { opacity: 0; transform: scale(0); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .ink-dot-marker.dropping { animation: dotIn 0.5s var(--ease-back) both; }
 
     /* marker pulse on list hover */
     @keyframes markerPulse {
@@ -214,7 +235,7 @@
       0%, 100% { opacity: 0.3; transform: translateY(0); }
       50%      { opacity: 0.6; transform: translateY(2px); }
     }
-    .scroll-hint.faded { opacity: 0; transition: opacity 0.4s ease; }
+    .scroll-hint.faded { opacity: 0; transition: opacity var(--dur) var(--ease-soft); }
     @media (min-width: 901px) { .scroll-hint { display: none; } }
 
     /* ---- FILTERS ---- */
@@ -233,7 +254,7 @@
       text-decoration: none;
       cursor: pointer;
       font-size: 0.92rem;
-      transition: color 0.25s ease, border-color 0.25s ease;
+      transition: color var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
       border-bottom: 1px solid transparent;
       padding: 0.1rem 0 0.15rem 0;
       display: inline-flex;
@@ -249,7 +270,7 @@
       border-radius: 50%;
       flex: none;
       opacity: 0.75;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      transition: opacity var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-back);
     }
 
     .filter-count {
@@ -284,7 +305,7 @@
       color: #a89484;
       cursor: pointer;
       border-bottom: 1px solid transparent;
-      transition: color 0.25s ease;
+      transition: color var(--dur-fast) var(--ease-soft);
       -webkit-tap-highlight-color: transparent;
     }
     .sort-link:hover { color: #6a5545; }
@@ -319,11 +340,14 @@
       margin-bottom: 1.6rem;
       padding: 0.15rem 0 0.15rem 0.9rem;
       border-left: 2px solid rgba(212, 160, 128, 0.2);
-      transition: border-left-color 0.3s ease, background-color 0.4s ease;
+      transition: border-left-color var(--dur) var(--ease-soft), background-color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-soft);
       cursor: pointer;
     }
 
-    .place:hover { border-left-color: var(--c); }
+    .place:hover {
+      border-left-color: var(--c);
+      transform: translateX(2px);
+    }
 
     .place.hidden { display: none; }
 
@@ -360,7 +384,7 @@
       text-decoration: underline;
       text-decoration-color: #d4a080;
       text-underline-offset: 3px;
-      transition: color 0.3s ease, text-decoration-color 0.3s ease;
+      transition: color var(--dur) var(--ease-soft), text-decoration-color var(--dur) var(--ease-soft);
     }
     .place-name a:hover {
       color: #c47a7a;
@@ -393,19 +417,19 @@
 
     /* page load stagger */
     @keyframes fadeStaggerIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .place.entering {
       opacity: 0;
-      animation: fadeStaggerIn 0.35s ease forwards;
+      animation: fadeStaggerIn var(--dur-slow) var(--ease-out) forwards;
     }
 
     /* filter transitions */
     .place.filtering-out {
       opacity: 0;
       transform: translateY(6px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      transition: opacity var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
       pointer-events: none;
     }
 
@@ -430,7 +454,7 @@
       text-decoration: underline;
       text-decoration-color: #d4a080;
       text-underline-offset: 3px;
-      transition: color 0.3s ease;
+      transition: color var(--dur) var(--ease-soft);
     }
     .footer a:hover { color: #c47a7a; }
 
@@ -872,6 +896,24 @@
   var allCoords = PLACES.map(function(p) { return [p.lat, p.lng]; });
   if (allCoords.length > 0) {
     map.fitBounds(L.latLngBounds(allCoords).pad(0.15));
+  }
+
+  // Dots arrive with the same staggered rhythm as the list, rather than all
+  // appearing at once. Honour reduced-motion by skipping it entirely.
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    requestAnimationFrame(function() {
+      PLACES.forEach(function(place, i) {
+        var el = markers[place._idx] && markers[place._idx].getElement();
+        if (!el) return;
+        el.classList.add('dropping');
+        el.style.animationDelay = (i * 40) + 'ms';
+        el.addEventListener('animationend', function h() {
+          el.classList.remove('dropping');
+          el.style.animationDelay = '';
+          el.removeEventListener('animationend', h);
+        });
+      });
+    });
   }
 
   if (PLACES.length === 0) {
