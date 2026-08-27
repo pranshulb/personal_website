@@ -1,0 +1,266 @@
+/* ================================================================
+   sticker book. saturated candy colours, thick ink outlines,
+   nothing sits still.
+   ================================================================ */
+:root{
+  --ink:#2b1b4d;
+  --pink:#ff3d8b;
+  --tang:#ff8a3d;
+  --sun:#ffd23d;
+  --mint:#3de0a0;
+  --sky:#3dbbff;
+  --grape:#a45cff;
+  --cream:#fff3e0;
+  --comic:"Comic Sans MS","Comic Sans","Chalkboard SE","Comic Neue","Marker Felt",cursive;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:var(--comic);
+  overflow:hidden;
+  overscroll-behavior:none;
+  cursor:none;
+  background:
+    radial-gradient(58% 48% at 12% 10%, rgba(255,210,61,.92) 0%, rgba(255,210,61,0) 62%),
+    radial-gradient(55% 48% at 88% 14%, rgba(255,61,139,.85) 0%, rgba(255,61,139,0) 62%),
+    radial-gradient(58% 50% at 86% 88%, rgba(61,187,255,.85) 0%, rgba(61,187,255,0) 62%),
+    radial-gradient(58% 50% at 10% 90%, rgba(61,224,160,.85) 0%, rgba(61,224,160,0) 62%),
+    linear-gradient(155deg,#fff3e0 0%,#ffe6f2 42%,#e6f8ff 72%,#fff6d9 100%);
+  background-attachment:fixed;
+}
+
+/* ---- rotating candy rays ---- */
+.rays{
+  position:fixed; z-index:0; pointer-events:none;
+  top:50%; left:50%;
+  width:230vmax; height:230vmax; margin:-115vmax 0 0 -115vmax;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+    rgba(255,255,255,.62) 0deg 7deg,
+    rgba(255,255,255,0)   7deg 14deg);
+  animation:spin 55s linear infinite;
+}
+.rays.b{
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+    rgba(255,61,139,.16) 0deg 5deg,
+    rgba(255,61,139,0)   5deg 10deg,
+    rgba(61,187,255,.16) 10deg 15deg,
+    rgba(61,187,255,0)   15deg 20deg);
+  animation:spin 88s linear infinite reverse;
+}
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+/* ---- pulsing rings ---- */
+.rings{
+  position:fixed; z-index:0; pointer-events:none; inset:-30%;
+  background:repeating-radial-gradient(circle at 50% 52%,
+    rgba(164,92,255,.18) 0 4px, rgba(164,92,255,0) 4px 58px);
+  animation:breathe 7s ease-in-out infinite;
+}
+@keyframes breathe{
+  0%,100%{ transform:scale(1) rotate(0deg) }
+  50%    { transform:scale(1.1) rotate(3deg) }
+}
+
+/* ---- drifting multicoloured dots ---- */
+.dots{
+  position:fixed; z-index:1; pointer-events:none; inset:-20%;
+  background-image:
+    radial-gradient(circle at 22px 24px,  rgba(255,61,139,.42) 6px, transparent 7px),
+    radial-gradient(circle at 96px 76px,  rgba(255,210,61,.45) 5px, transparent 6px),
+    radial-gradient(circle at 148px 30px, rgba(61,224,160,.42) 7px, transparent 8px),
+    radial-gradient(circle at 60px 140px, rgba(164,92,255,.40) 5px, transparent 6px);
+  background-size:180px 180px;
+  animation:driftdots 16s linear infinite;
+}
+@keyframes driftdots{ to{ transform:translate(180px,180px) } }
+
+/* ---- grain ---- */
+.grain{
+  position:fixed; inset:0; z-index:3; pointer-events:none;
+  opacity:.42;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+
+/* ---------- canvas ---------- */
+#scene{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  display:block; z-index:2;
+  touch-action:none;
+}
+
+/* ---------- the title, shouting ---------- */
+#ui{
+  position:fixed; inset:0; z-index:4;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(1.1rem,3.5vh,2.6rem);
+  padding:clamp(1rem,4vw,4rem);
+  pointer-events:none;
+}
+
+.title{
+  margin:0;
+  font-family:var(--comic);
+  font-weight:700;
+  line-height:.9;
+  font-size:clamp(3rem, 13.5vw, 12.5rem);
+  text-transform:uppercase;
+  text-align:center;
+  display:flex; flex-direction:column; align-items:center;
+  animation:heave 5s ease-in-out infinite;
+}
+@keyframes heave{
+  0%,100%{ transform:scale(1) rotate(-.8deg) }
+  50%    { transform:scale(1.05) rotate(.8deg) }
+}
+
+.title .line{
+  display:block;
+  padding:0 .06em;
+  -webkit-text-stroke:clamp(2px,.55vw,8px) var(--ink);
+  paint-order:stroke fill;
+}
+.title .line:nth-child(1){
+  color:var(--sun);
+  text-shadow:5px 5px 0 var(--pink), 10px 10px 0 var(--ink);
+  animation:sway1 3.2s ease-in-out infinite, hue1 6s steps(1) infinite;
+}
+.title .line:nth-child(2){
+  color:var(--mint);
+  text-shadow:5px 5px 0 var(--grape), 10px 10px 0 var(--ink);
+  animation:sway2 3.7s ease-in-out infinite, hue2 6s steps(1) infinite;
+}
+.title .line:nth-child(3){
+  color:var(--pink);
+  text-shadow:5px 5px 0 var(--sky), 10px 10px 0 var(--ink);
+  animation:sway1 2.9s ease-in-out infinite reverse, hue3 6s steps(1) infinite;
+}
+.title .apos{ color:var(--sky) }
+
+/* colours snap between palette entries so it never settles */
+@keyframes hue1{
+  0%  { color:var(--sun);  text-shadow:5px 5px 0 var(--pink), 10px 10px 0 var(--ink) }
+  33% { color:var(--mint); text-shadow:5px 5px 0 var(--tang), 10px 10px 0 var(--ink) }
+  66% { color:var(--sky);  text-shadow:5px 5px 0 var(--sun),  10px 10px 0 var(--ink) }
+}
+@keyframes hue2{
+  0%  { color:var(--mint);  text-shadow:5px 5px 0 var(--grape), 10px 10px 0 var(--ink) }
+  33% { color:var(--pink);  text-shadow:5px 5px 0 var(--sun),   10px 10px 0 var(--ink) }
+  66% { color:var(--tang);  text-shadow:5px 5px 0 var(--sky),   10px 10px 0 var(--ink) }
+}
+@keyframes hue3{
+  0%  { color:var(--pink);  text-shadow:5px 5px 0 var(--sky),  10px 10px 0 var(--ink) }
+  33% { color:var(--sun);   text-shadow:5px 5px 0 var(--mint), 10px 10px 0 var(--ink) }
+  66% { color:var(--grape); text-shadow:5px 5px 0 var(--sun),  10px 10px 0 var(--ink) }
+}
+
+@keyframes sway1{
+  0%,100%{ transform:rotate(-2.2deg) translateY(0) scale(1) }
+  35%    { transform:rotate(1.6deg) translateY(-12px) scale(1.04) }
+  70%    { transform:rotate(-.6deg) translateY(5px) scale(.98) }
+}
+@keyframes sway2{
+  0%,100%{ transform:rotate(2deg) translateY(0) scale(1) }
+  40%    { transform:rotate(-1.8deg) translateY(10px) scale(1.05) }
+  75%    { transform:rotate(.9deg) translateY(-6px) scale(.97) }
+}
+
+/* ---------- RSVP sticker button ---------- */
+/* the bob lives on a wrapper so the anchor's own hover/active transforms
+   are never overridden by a running animation */
+.rsvp-bob{
+  display:inline-block;
+  animation:rsvpbob 2.6s ease-in-out infinite;
+}
+.rsvp{
+  pointer-events:auto;
+  cursor:none;                       /* the big custom cursor stays in charge */
+  position:relative;
+  display:inline-block;
+  font-family:var(--comic);
+  font-weight:700;
+  font-size:clamp(1.6rem, 4.6vw, 3.4rem);
+  text-transform:uppercase;
+  text-decoration:none;
+  letter-spacing:.04em;
+  color:var(--ink);
+  background:var(--sun);
+  padding:.42em 1.05em .48em;
+  border:clamp(3px,.4vw,5px) solid var(--ink);
+  border-radius:999px;
+  box-shadow:6px 6px 0 var(--pink), 12px 12px 0 var(--ink);
+  transform:rotate(-2.5deg);
+  animation:rsvphue 6s steps(1) infinite;
+  transition:transform .18s cubic-bezier(.2,1.6,.4,1), box-shadow .18s;
+}
+.rsvp:hover,.rsvp:focus-visible{
+  transform:rotate(1.5deg) scale(1.12);
+  box-shadow:8px 8px 0 var(--grape), 16px 16px 0 var(--ink);
+}
+.rsvp:focus-visible{
+  outline:4px dashed var(--ink);
+  outline-offset:5px;
+}
+.rsvp:active{
+  transform:rotate(-1deg) scale(.94);
+  box-shadow:3px 3px 0 var(--pink), 6px 6px 0 var(--ink);
+}
+.rsvp-burst{
+  position:absolute; top:-.55em; right:-.5em;
+  font-size:.72em;
+  color:var(--pink);
+  -webkit-text-stroke:clamp(1.5px,.22vw,3px) var(--ink);
+  paint-order:stroke fill;
+  transform:rotate(14deg);
+  animation:burstpop 1.3s ease-in-out infinite;
+}
+@keyframes rsvpbob{
+  0%,100%{ transform:rotate(0deg)   translateY(0) }
+  50%    { transform:rotate(4.5deg) translateY(-9px) }
+}
+@keyframes rsvphue{
+  0%  { background:var(--sun) }
+  33% { background:var(--mint) }
+  66% { background:var(--sky) }
+}
+@keyframes burstpop{
+  0%,100%{ transform:rotate(14deg) scale(1) }
+  50%    { transform:rotate(22deg) scale(1.35) }
+}
+@media (pointer:coarse){ .rsvp{cursor:auto} }
+
+/* ---------- custom cursor ---------- */
+#cursor{
+  position:fixed; z-index:9; top:0; left:0;
+  width:36px; height:36px; margin:-18px 0 0 -18px;
+  border-radius:50%;
+  border:3px solid var(--ink);
+  background:rgba(255,255,255,.28);
+  pointer-events:none;
+  transition:width .2s cubic-bezier(.2,1.6,.4,1), height .2s cubic-bezier(.2,1.6,.4,1),
+             margin .2s cubic-bezier(.2,1.6,.4,1), background .2s, border-color .2s;
+  animation:cursorpulse 1.4s ease-in-out infinite;
+}
+@keyframes cursorpulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(255,61,139,.55) }
+  70%    { box-shadow:0 0 0 16px rgba(255,61,139,0) }
+}
+#cursor.grab{
+  width:66px; height:66px; margin:-33px 0 0 -33px;
+  background:rgba(255,61,139,.3);
+  border-color:var(--pink);
+}
+#cursor::after{
+  content:""; position:absolute; inset:50%; width:6px; height:6px; margin:-3px 0 0 -3px;
+  background:var(--ink); border-radius:50%;
+}
+
+@media (pointer:coarse){ body{cursor:auto} #cursor{display:none} }
+@media (prefers-reduced-motion:reduce){
+  .rays,.rings,.dots,.title,.title .line,#cursor,.rsvp,.rsvp-bob,.rsvp-burst{animation:none}
+}

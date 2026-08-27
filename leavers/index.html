@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- vercel.json sets cleanUrls, so this page can be served as /leavers as well as
+     /leavers/. Without a base, every relative path below (css, js, the import map,
+     images/manifest.json fetched by main.js, and the rsvp link) would resolve
+     against the site root on the no-slash form and 404. Update if the folder moves. -->
+<base href="/leavers/" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>PRANSHUL — Leavers Party</title>
+<meta name="description" content="Pranshul's leavers party." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Comic Neue = fallback for anyone whose machine lacks actual Comic Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=3" />
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+
+  <div class="rays" aria-hidden="true"></div>
+  <div class="rays b" aria-hidden="true"></div>
+  <div class="rings" aria-hidden="true"></div>
+  <div class="dots" aria-hidden="true"></div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <main id="ui">
+    <h1 class="title">
+      <span class="line">PRANSHUL<span class="apos">’S</span></span>
+      <span class="line">LEAVERS</span>
+      <span class="line">PARTY</span>
+    </h1>
+    <span class="rsvp-bob"><a class="rsvp" href="rsvp/">RSVP<span class="rsvp-burst" aria-hidden="true">!!</span></a></span>
+  </main>
+
+  <noscript><p style="padding:2rem;font-family:sans-serif">This party requires JavaScript.</p></noscript>
+
+  <script type="module" src="main.js?v=3"></script>
+</body>
+</html>
