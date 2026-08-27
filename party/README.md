@@ -1,6 +1,6 @@
 # 🫧 Pranshul's Leavers Party
 
-Live: **https://xide.quest/pranshul/**
+Live: **https://pranshul.cafe/party/**
 
 A screen full of big bouncy soap bubbles, each with one Pranshul photo
 stretched across it through a funhouse glass lens — plus a whole variety
