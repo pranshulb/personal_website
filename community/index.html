@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- WIP: unlinked from the site, and kept out of search results until it ships. -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>places i've liked — pranshul.cafe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unkempt&family=Princess+Sofia&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* One easing vocabulary for the whole page, so nothing moves with the flat
+       browser default. --ease-out settles things (entrances, the map reframing
+       its bounds); --ease-soft is for hovers; --ease-back gives dots and chips
+       a barely-there overshoot so they arrive rather than snap. */
+    :root {
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-back: cubic-bezier(0.34, 1.4, 0.64, 1);
+      --dur-fast: 0.22s;
+      --dur: 0.4s;
+      --dur-slow: 0.6s;
+    }
+
+    body {
+      background-color: #faf5ef;
+      color: #3a2f2f;
+      font-family: 'Unkempt', cursive;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* grain */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.12;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    .page {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 3rem max(2rem, 5vw) 0 max(2rem, 5vw);
+    }
+
+    /* The reading column keeps its old width and place; the map moves into
+       what used to be ~900px of empty space to its right, and stays put while
+       the list scrolls — so the dots and the entries are legible together
+       rather than one scrolling away from the other. */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+      gap: 0 4rem;
+      align-items: start;
+    }
+
+    .masthead { max-width: 30rem; }
+
+    .column { min-width: 0; padding-bottom: 6rem; }
+
+    .map-col {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 2rem 0 4rem 0;
+      min-width: 0;
+    }
+
+    /* the running count, so the size of the thing is legible before scrolling */
+    .tally {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #b8a090;
+      margin-bottom: 1.6rem;
+      letter-spacing: 0.01em;
+    }
+    .tally b { font-style: normal; font-weight: normal; color: #6a5545; }
+
+    h1 {
+      font-family: 'Princess Sofia', cursive;
+      font-size: 2.4rem;
+      font-weight: normal;
+      color: #3a2f2f;
+      margin-bottom: 0.15rem;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+
+    .intro {
+      color: #6a5545;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    /* ---- MAP ---- */
+    .map-wrap {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(58, 47, 47, 0.06);
+    }
+
+    #map {
+      width: 100%;
+      height: min(78vh, 720px);
+      background: #f3ece2;
+      transition: height var(--dur) var(--ease-out);
+    }
+
+    .leaflet-tile-pane {
+      filter: saturate(0.4) sepia(0.25) brightness(1.06) contrast(0.92);
+    }
+
+    /* warm zoom controls */
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .leaflet-control-zoom a {
+      background: rgba(250, 245, 239, 0.9) !important;
+      color: #6a5545 !important;
+      border: 1px solid #e8d5c4 !important;
+      font-family: 'Unkempt', cursive !important;
+      width: 28px !important;
+      height: 28px !important;
+      line-height: 26px !important;
+      font-size: 1rem !important;
+    }
+    .leaflet-control-zoom a:hover {
+      background: rgba(250, 245, 239, 1) !important;
+      color: #3a2f2f !important;
+    }
+
+    .leaflet-control-attribution {
+      font-family: 'EB Garamond', serif !important;
+      font-size: 0.65rem !important;
+      background: rgba(250, 245, 239, 0.85) !important;
+      color: #b8a090 !important;
+    }
+    .leaflet-control-attribution a { color: #b8a090 !important; }
+
+    /* the one gesture — a whisper at the edge of the map */
+    .map-whisper {
+      position: absolute;
+      bottom: 6px;
+      left: 12px;
+      z-index: 500;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: rgba(160, 130, 110, 0.45);
+      pointer-events: none;
+      letter-spacing: 0.02em;
+    }
+
+    /* ink-dot markers */
+    .ink-dot-marker { background: none !important; border: none !important; }
+
+    .ink-dot-marker svg {
+      transform-origin: center;
+      transition: transform var(--dur-fast) var(--ease-back);
+    }
+    .ink-dot-marker:hover svg,
+    .ink-dot-marker.active svg {
+      transform: scale(1.4);
+    }
+
+    /* dots settle in on load, staggered to match the list */
+    @keyframes dotIn {
+      from { opacity: 0; transform: scale(0); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .ink-dot-marker.dropping { animation: dotIn 0.5s var(--ease-back) both; }
+
+    /* marker pulse on list hover */
+    @keyframes markerPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(196, 122, 122, 0.5); }
+      70%  { box-shadow: 0 0 0 10px rgba(196, 122, 122, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(196, 122, 122, 0); }
+    }
+    .ink-dot-marker.pulsing {
+      animation: markerPulse 1.2s ease-in-out infinite;
+      border-radius: 50%;
+    }
+
+    /* warm popups */
+    .note-popup .leaflet-popup-content-wrapper {
+      background: #faf5ef !important;
+      font-family: 'Unkempt', cursive !important;
+      font-size: 0.88rem !important;
+      line-height: 1.5 !important;
+      color: #3a2f2f !important;
+      border-radius: 2px !important;
+      box-shadow: 2px 3px 8px rgba(58, 47, 47, 0.12) !important;
+      border: 1.5px solid rgba(196, 122, 122, 0.25) !important;
+      transform: rotate(-0.5deg);
+    }
+    .note-popup .leaflet-popup-content { margin: 10px 14px !important; }
+    .note-popup .leaflet-popup-tip {
+      background: #faf5ef !important;
+      border: 1px solid rgba(196, 122, 122, 0.2) !important;
+      box-shadow: none !important;
+    }
+    .popup-name { color: #c47a7a; font-size: 0.92rem; margin-bottom: 2px; }
+    .popup-area { font-size: 0.78rem; color: #b8a090; }
+
+    /* scroll hint */
+    .scroll-hint {
+      text-align: center;
+      padding: 0.8rem 0 0.4rem;
+      pointer-events: none;
+    }
+    .scroll-hint span {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.8rem;
+      color: #b8a090;
+      animation: hintBreathe 2.8s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes hintBreathe {
+      0%, 100% { opacity: 0.3; transform: translateY(0); }
+      50%      { opacity: 0.6; transform: translateY(2px); }
+    }
+    .scroll-hint.faded { opacity: 0; transition: opacity var(--dur) var(--ease-soft); }
+    @media (min-width: 901px) { .scroll-hint { display: none; } }
+
+    /* ---- FILTERS ---- */
+    /* Each chip carries its subject's colour, so the filter row is also the
+       map's legend — one control instead of two things to reconcile. */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.15rem 0.9rem;
+      margin: 0 0 1.4rem 0;
+      align-items: baseline;
+    }
+
+    .filter-link {
+      color: #a89484;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: color var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
+      border-bottom: 1px solid transparent;
+      padding: 0.1rem 0 0.15rem 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .filter-swatch {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex: none;
+      opacity: 0.75;
+      transition: opacity var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-back);
+    }
+
+    .filter-count {
+      font-family: 'EB Garamond', serif;
+      font-size: 0.78rem;
+      color: #c8b8a8;
+      font-style: italic;
+    }
+
+    .filter-link:hover { color: #6a5545; }
+    .filter-link:hover .filter-swatch { opacity: 1; transform: scale(1.25); }
+
+    .filter-link.active {
+      color: #3a2f2f;
+      border-bottom-color: currentColor;
+    }
+    .filter-link.active .filter-swatch { opacity: 1; transform: scale(1.25); }
+    .filter-link.active .filter-count { color: #a89484; }
+
+    /* ---- SORT ---- */
+    .sortbar {
+      display: flex;
+      gap: 0.9rem;
+      align-items: baseline;
+      margin: 0 0 1.6rem 0;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #c8b8a8;
+    }
+    .sort-link {
+      color: #a89484;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: color var(--dur-fast) var(--ease-soft);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sort-link:hover { color: #6a5545; }
+    .sort-link.active { color: #3a2f2f; border-bottom-color: #d4a080; }
+
+    /* ---- AREA GROUPING ---- */
+    .area-head {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #b8a090;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      margin: 2rem 0 0.9rem 0;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid rgba(212, 160, 128, 0.22);
+      position: sticky;
+      top: 0;
+      background: #faf5ef;
+      z-index: 3;
+    }
+    .area-head:first-child { margin-top: 0; }
+    .area-head .area-n { color: #cdbdad; }
+
+    /* ---- LIST ---- */
+
+    /* note-first layout. --c is the entry's subject colour, set inline, and
+       drives the rule on the left as well as the matching dot on the map. */
+    .place {
+      --c: #c47a7a;
+      position: relative;
+      margin-bottom: 1.6rem;
+      padding: 0.15rem 0 0.15rem 0.9rem;
+      border-left: 2px solid rgba(212, 160, 128, 0.2);
+      transition: border-left-color var(--dur) var(--ease-soft), background-color var(--dur) var(--ease-soft), transform var(--dur) var(--ease-soft);
+      cursor: pointer;
+    }
+
+    .place:hover {
+      border-left-color: var(--c);
+      transform: translateX(2px);
+    }
+
+    .place.hidden { display: none; }
+
+    .place.highlighted {
+      border-left-color: var(--c);
+      background: rgba(196, 122, 122, 0.05);
+    }
+
+    /* the note IS the entry */
+    .place-note {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: #6a5545;
+      margin-bottom: 0.2rem;
+    }
+
+    /* name + area + when as attribution below */
+    .place-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .place-name {
+      font-size: 0.9rem;
+      color: #3a2f2f;
+    }
+
+    .place-name a {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      transition: color var(--dur) var(--ease-soft), text-decoration-color var(--dur) var(--ease-soft);
+    }
+    .place-name a:hover {
+      color: #c47a7a;
+      text-decoration-color: #c47a7a;
+    }
+
+    .place-area {
+      font-size: 0.8rem;
+      color: #b8a090;
+    }
+
+    .place-when {
+      font-size: 0.78rem;
+      color: #b8a090;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+    }
+
+    .place-area::before {
+      content: '·';
+      margin-right: 0.4rem;
+      color: #d4a080;
+    }
+
+    .place-when::before {
+      content: '·';
+      margin-right: 0.4rem;
+      color: #d4a080;
+    }
+
+    /* page load stagger */
+    @keyframes fadeStaggerIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .place.entering {
+      opacity: 0;
+      animation: fadeStaggerIn var(--dur-slow) var(--ease-out) forwards;
+    }
+
+    /* filter transitions */
+    .place.filtering-out {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
+      pointer-events: none;
+    }
+
+    .no-results {
+      color: #b8a090;
+      font-style: italic;
+      padding: 2rem 0;
+      display: none;
+      font-family: 'EB Garamond', serif;
+    }
+
+    /* footer */
+    .footer {
+      margin-top: 4rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e8d5c4;
+      color: #b8a090;
+      font-size: 0.85rem;
+    }
+    .footer a {
+      color: #4a3020;
+      text-decoration: underline;
+      text-decoration-color: #d4a080;
+      text-underline-offset: 3px;
+      transition: color var(--dur) var(--ease-soft);
+    }
+    .footer a:hover { color: #c47a7a; }
+
+    /* ---- NARROW ---- */
+    /* One column, map first — and sticky, so it stays on screen instead of
+       scrolling away the moment you start reading. It shrinks once you're into
+       the list: enough to keep your bearings, small enough to read past. */
+    @media (max-width: 900px) {
+      .page {
+        max-width: 100%;
+        padding: 2rem max(1.25rem, 4vw) 0 max(1.25rem, 4vw);
+      }
+      .layout { grid-template-columns: 1fr; gap: 0; }
+      .masthead { max-width: none; }
+      .map-col {
+        display: block;
+        order: -1;
+        position: sticky;
+        top: 0;
+        height: auto;
+        padding: 0 0 1rem 0;
+        z-index: 5;
+        background: #faf5ef;
+        margin: 0 calc(-1 * max(1.25rem, 4vw));
+        padding-left: max(1.25rem, 4vw);
+        padding-right: max(1.25rem, 4vw);
+      }
+      .column { padding-bottom: 4rem; }
+      #map { height: 46vh; }
+      .map-wrap.shrunk #map { height: 22vh; }
+      /* clear the sticky map when a card scrolls itself into view */
+      .area-head { top: 0; }
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      #map { height: 40vh; }
+      .map-wrap.shrunk #map { height: 20vh; }
+
+      .place {
+        background: rgba(255, 248, 240, 0.6);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        padding: 0.8rem 0.8rem 0.8rem 0.75rem;
+        border-radius: 2px;
+        margin-bottom: 1.1rem;
+      }
+      .filters { gap: 0.1rem 0.8rem; }
+    }
+
+    /* someone who prefers less motion gets none of the flourishes */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <h1>places i've liked</h1>
+    <p class="intro">things i've been to and enjoyed around london. workshops, screenings, swaps, whatever. click the dots, or just scroll.</p>
+    <p class="tally" id="tally"></p>
+  </header>
+
+  <div class="layout">
+
+    <div class="column">
+      <div class="filters" id="filters"></div>
+
+      <div class="sortbar" id="sortbar" style="display:none;">
+        <span>order</span>
+        <span class="sort-link active" id="sort-recent" role="button" tabindex="0">most recent</span>
+        <span class="sort-link" id="sort-area" role="button" tabindex="0">by area</span>
+      </div>
+
+      <div id="places-container"></div>
+
+      <p class="no-results" id="no-results">nothing here for that filter. try another?</p>
+
+      <div class="footer">
+        <p><a href="/">← pranshul.cafe</a></p>
+        <p style="margin-top: 0.3rem;">know something i'd like? <a href="/community/suggest">tell me about it</a></p>
+      </div>
+    </div>
+
+    <aside class="map-col">
+      <div class="map-wrap" id="map-wrap">
+        <div id="map"></div>
+        <span class="map-whisper">i keep losing track of all this</span>
+      </div>
+      <div class="scroll-hint" id="scroll-hint"><span>↓ places below</span></div>
+    </aside>
+
+  </div>
+
+</div>
+
+<script>
+(function () {
+
+  // Offline fallback only — the live list comes from /api/community/places,
+  // which is what the admin page writes to. This is what renders if that call
+  // fails, so the page is never blank.
+  // Offline fallback, shown only if /api/community/places is unreachable.
+  var SEED = [];
+
+  // Umami custom events. Silently does nothing if the script is blocked or
+  // hasn't loaded yet, so tracking can never break an interaction.
+  function track(name, data) {
+    try {
+      if (window.umami && typeof window.umami.track === 'function') {
+        window.umami.track(name, data);
+      }
+    } catch (e) {}
+  }
+
+  function start(PLACES) {
+
+  // assign indices
+  PLACES.forEach(function(p, i) { p._idx = i; });
+
+  // ---- SUBJECT COLOUR ----
+  // Every dot used to be the same pink, which made a map of fifteen places
+  // across eleven subjects unreadable. Colour is keyed to the entry's first
+  // tag and reused on its card and its filter chip, so the three agree.
+  // Muted on purpose — these sit on warm paper, not a dashboard.
+  var SUBJECT_COLOURS = {
+    dance: '#c2717d', poetry: '#8b7aa8', art: '#c8903f', theatre: '#a4648b',
+    books: '#5f8f77', music: '#5f86a8', film: '#9c7b63', workshop: '#b26f45',
+    making: '#b26f45', community: '#7f9350', talk: '#7f9350',
+    storytelling: '#b86a53', food: '#c08a3a', outdoors: '#6f9455',
+    screening: '#9c7b63', science: '#5f86a8'
+  };
+  var FALLBACK_COLOURS = ['#c2717d','#8b7aa8','#c8903f','#a4648b','#5f8f77','#5f86a8','#b26f45','#7f9350'];
+
+  function subjectColour(tag) {
+    if (!tag) return '#b09a8a';
+    if (SUBJECT_COLOURS[tag]) return SUBJECT_COLOURS[tag];
+    var h = 0;
+    for (var i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) % 9973;
+    return FALLBACK_COLOURS[h % FALLBACK_COLOURS.length];
+  }
+  function placeColour(place) {
+    return subjectColour(place.tags && place.tags.length ? place.tags[0] : null);
+  }
+
+  // ---- INK DOT MARKER ----
+  function makeInkDot(colour, active) {
+    var size = active ? 19 : 13;
+    return L.divIcon({
+      className: 'ink-dot-marker' + (active ? ' active' : ''),
+      html: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 1.5 C13.5 0.5, 19 3.5, 18.5 10 C19.5 15, 14 19.5, 10 18.5 C5.5 19.5, 1 15.5, 1.5 10 C0.5 5, 6.5 0.5, 10 1.5Z" fill="' + colour + '" opacity="' + (active ? 0.95 : 0.78) + '"/></svg>',
+      iconSize: [size, size],
+      iconAnchor: [size/2, size/2],
+      popupAnchor: [0, -size/2]
+    });
+  }
+
+  // ---- TALLY ----
+  var areaNames = [];
+  var tagCounts = {};
+  PLACES.forEach(function(p) {
+    if (p.area && areaNames.indexOf(p.area) === -1) areaNames.push(p.area);
+    p.tags.forEach(function(t) { tagCounts[t] = (tagCounts[t] || 0) + 1; });
+  });
+  var allTags = Object.keys(tagCounts).sort(function(a, b) {
+    return tagCounts[b] - tagCounts[a] || a.localeCompare(b);
+  });
+
+  function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+  document.getElementById('tally').innerHTML =
+    '<b>' + plural(PLACES.length, 'place') + '</b> · ' +
+    plural(areaNames.length, 'corner') + ' of london · ' +
+    plural(allTags.length, 'subject');
+
+  // ---- BUILD FILTERS ----
+  // Ordered by how much of the list each subject accounts for, so the ones
+  // worth clicking come first rather than whatever happens to start with 'a'.
+  var filtersEl = document.getElementById('filters');
+
+  function makeChip(tag, label, count, colour, active) {
+    var a = document.createElement('a');
+    a.className = 'filter-link' + (active ? ' active' : '');
+    a.dataset.tag = tag;
+    a.href = '#';
+    if (colour) {
+      var sw = document.createElement('span');
+      sw.className = 'filter-swatch';
+      sw.style.background = colour;
+      a.appendChild(sw);
+    }
+    a.appendChild(document.createTextNode(label));
+    var c = document.createElement('span');
+    c.className = 'filter-count';
+    c.textContent = count;
+    a.appendChild(c);
+    return a;
+  }
+
+  filtersEl.appendChild(makeChip('all', 'everything', PLACES.length, null, true));
+  allTags.forEach(function(tag) {
+    filtersEl.appendChild(makeChip(tag, tag, tagCounts[tag], subjectColour(tag), false));
+  });
+
+  // Grouping only earns its keep once there are enough entries to lose track of.
+  var sortbar = document.getElementById('sortbar');
+  if (PLACES.length >= 6 && areaNames.length >= 3) sortbar.style.display = '';
+
+  // ---- BUILD LIST ----
+  var container = document.getElementById('places-container');
+  var placeEls = {};
+
+  function makeCard(place, staggerIdx) {
+    var div = document.createElement('div');
+    div.className = 'place entering';
+    div.id = 'place-' + place._idx;
+    div.dataset.tags = place.tags.join(',');
+    div.dataset.idx = place._idx;
+    div.style.animationDelay = (staggerIdx * 40) + 'ms';
+    // drives the left rule, and matches this entry's dot on the map
+    div.style.setProperty('--c', placeColour(place));
+
+    if (place.note) {
+      var note = document.createElement('p');
+      note.className = 'place-note';
+      note.textContent = place.note;
+      div.appendChild(note);
+    }
+
+    var meta = document.createElement('div');
+    meta.className = 'place-meta';
+
+    var nameEl = document.createElement('span');
+    nameEl.className = 'place-name';
+    // Second gate: the API only stores http(s), but a link is one attribute
+    // away from executing whatever scheme it was given, so don't trust it.
+    var safeUrl = /^https?:\/\//i.test(place.url || '') ? place.url : '';
+    if (safeUrl) {
+      var link = document.createElement('a');
+      link.href = safeUrl;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = place.name;
+      nameEl.appendChild(link);
+    } else {
+      nameEl.textContent = place.name;
+    }
+    meta.appendChild(nameEl);
+
+    if (place.area) {
+      var area = document.createElement('span');
+      area.className = 'place-area';
+      area.textContent = place.area;
+      meta.appendChild(area);
+    }
+
+    if (place.when) {
+      var when = document.createElement('span');
+      when.className = 'place-when';
+      when.textContent = place.when;
+      meta.appendChild(when);
+    }
+
+    div.appendChild(meta);
+
+    div.addEventListener('click', function(e) {
+      if (e.target.closest('a')) {
+        track('place-link', { place: place.name });
+        return;
+      }
+      track('place-open', { place: place.name, via: 'list' });
+      map.flyTo([place.lat, place.lng], 15, { duration: 1.2, easeLinearity: 0.3 });
+      markers[place._idx].openPopup();
+      activateMarker(place._idx);
+    });
+
+    div.addEventListener('mouseenter', function() {
+      var el = markers[place._idx] && markers[place._idx].getElement();
+      if (el) el.classList.add('pulsing');
+    });
+    div.addEventListener('mouseleave', function() {
+      var el = markers[place._idx] && markers[place._idx].getElement();
+      if (el) el.classList.remove('pulsing');
+    });
+
+    div.addEventListener('animationend', function handler() {
+      div.classList.remove('entering');
+      div.style.animationDelay = '';
+      div.removeEventListener('animationend', handler);
+    });
+
+    return div;
+  }
+
+  // "recent" keeps the order the list is stored in (newest additions last, so
+  // reversed); "area" groups London into its corners, which is the useful cut
+  // once there are more entries than fit on a screen.
+  var sortMode = 'recent';
+
+  function renderList() {
+    container.innerHTML = '';
+    placeEls = {};
+    var i = 0;
+
+    if (sortMode === 'area') {
+      var byArea = {};
+      var order = [];
+      PLACES.forEach(function(pl) {
+        var key = pl.area || 'elsewhere';
+        if (!byArea[key]) { byArea[key] = []; order.push(key); }
+        byArea[key].push(pl);
+      });
+      order.sort(function(a, b) {
+        return byArea[b].length - byArea[a].length || a.localeCompare(b);
+      });
+      order.forEach(function(key) {
+        var head = document.createElement('div');
+        head.className = 'area-head';
+        head.dataset.area = key;
+        head.appendChild(document.createTextNode(key + ' '));
+        var n = document.createElement('span');
+        n.className = 'area-n';
+        n.textContent = byArea[key].length;
+        head.appendChild(n);
+        container.appendChild(head);
+
+        byArea[key].forEach(function(pl) {
+          var el = makeCard(pl, i++);
+          container.appendChild(el);
+          placeEls[pl._idx] = el;
+        });
+      });
+    } else {
+      PLACES.slice().reverse().forEach(function(pl) {
+        var el = makeCard(pl, i++);
+        container.appendChild(el);
+        placeEls[pl._idx] = el;
+      });
+    }
+    applyFilter(false);
+  }
+
+  // ---- MAP ----
+  var map = L.map('map', {
+    scrollWheelZoom: false,
+    zoomControl: true,
+    attributionControl: true
+  }).setView([51.505, -0.09], 12);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 18
+  }).addTo(map);
+
+  // enable scroll zoom after first interaction
+  map.once('click', function() { map.scrollWheelZoom.enable(); });
+
+  // markers
+  var markers = {};
+  var markerColour = {};
+  var highlightedIdx = null;
+
+  function activateMarker(idx) {
+    markers[idx].setIcon(makeInkDot(markerColour[idx], true));
+  }
+  function deactivateMarker(idx) {
+    markers[idx].setIcon(makeInkDot(markerColour[idx], false));
+  }
+
+  function highlightPlace(idx) {
+    if (highlightedIdx !== null && placeEls[highlightedIdx]) {
+      placeEls[highlightedIdx].classList.remove('highlighted');
+      deactivateMarker(highlightedIdx);
+    }
+    highlightedIdx = idx;
+    if (placeEls[idx]) {
+      placeEls[idx].classList.add('highlighted');
+      placeEls[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      activateMarker(idx);
+      setTimeout(function() {
+        if (placeEls[idx]) placeEls[idx].classList.remove('highlighted');
+        deactivateMarker(idx);
+        if (highlightedIdx === idx) highlightedIdx = null;
+      }, 3500);
+    }
+  }
+
+  PLACES.forEach(function(place) {
+    // Built as nodes, not concatenated HTML. The API strips angle brackets on
+    // the way in, but this is the one place a name reaches the DOM as markup,
+    // and it shouldn't depend on that staying true of every future write path.
+    var popupEl = document.createElement('div');
+    var pName = document.createElement('div');
+    pName.className = 'popup-name';
+    pName.textContent = place.name;
+    popupEl.appendChild(pName);
+    if (place.area) {
+      var pArea = document.createElement('div');
+      pArea.className = 'popup-area';
+      pArea.textContent = place.area;
+      popupEl.appendChild(pArea);
+    }
+
+    var colour = placeColour(place);
+    markerColour[place._idx] = colour;
+
+    var marker = L.marker([place.lat, place.lng], { icon: makeInkDot(colour, false) })
+      .bindPopup(popupEl, { className: 'note-popup', closeButton: false, maxWidth: 220, offset: [0, -4] })
+      .addTo(map);
+
+    // "via" separates the two ways in: whether people browse by map or by list
+    marker.on('click', function() {
+      track('place-open', { place: place.name, via: 'map' });
+      highlightPlace(place._idx);
+    });
+
+    // The list already lit up its marker on hover; this is the other direction,
+    // so pointing at a dot tells you which entry it is without a click.
+    marker.on('mouseover', function() {
+      var el = placeEls[place._idx];
+      if (el) el.classList.add('highlighted');
+      activateMarker(place._idx);
+    });
+    marker.on('mouseout', function() {
+      var el = placeEls[place._idx];
+      if (el && place._idx !== highlightedIdx) el.classList.remove('highlighted');
+      if (place._idx !== highlightedIdx) deactivateMarker(place._idx);
+    });
+
+    markers[place._idx] = marker;
+  });
+
+  // fit to all — but an empty list makes invalid bounds, and fitBounds throws
+  // on those, which would take the whole page down. Sit over London instead.
+  var allCoords = PLACES.map(function(p) { return [p.lat, p.lng]; });
+  if (allCoords.length > 0) {
+    map.fitBounds(L.latLngBounds(allCoords).pad(0.15));
+  }
+
+  // Dots arrive with the same staggered rhythm as the list, rather than all
+  // appearing at once. Honour reduced-motion by skipping it entirely.
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    requestAnimationFrame(function() {
+      PLACES.forEach(function(place, i) {
+        var el = markers[place._idx] && markers[place._idx].getElement();
+        if (!el) return;
+        el.classList.add('dropping');
+        el.style.animationDelay = (i * 40) + 'ms';
+        el.addEventListener('animationend', function h() {
+          el.classList.remove('dropping');
+          el.style.animationDelay = '';
+          el.removeEventListener('animationend', h);
+        });
+      });
+    });
+  }
+
+  if (PLACES.length === 0) {
+    var empty = document.getElementById('no-results');
+    empty.textContent = 'nothing here yet — still collecting.';
+    empty.style.display = 'block';
+    document.getElementById('scroll-hint').style.display = 'none';
+  }
+
+  // ---- SCROLL HINT ----
+  var scrollHint = document.getElementById('scroll-hint');
+  var placesContainer = document.getElementById('places-container');
+  var hintObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) scrollHint.classList.add('faded');
+    });
+  }, { threshold: 0.05 });
+  hintObserver.observe(placesContainer);
+
+  // ---- FILTERING ----
+  var activeTag = 'all';
+  var firstRender = true;
+
+  function matches(place) {
+    return activeTag === 'all' || place.tags.indexOf(activeTag) !== -1;
+  }
+
+  function setMarkerVisible(idx, on) {
+    var el = markers[idx] && markers[idx].getElement();
+    if (!el) return;
+    el.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+    el.style.opacity = on ? '1' : '0';
+    el.style.transform = on ? 'scale(1)' : 'scale(0.5)';
+    el.style.pointerEvents = on ? 'auto' : 'none';
+  }
+
+  // Also hides an area heading whose entries have all been filtered away —
+  // otherwise grouping leaves stranded headers over nothing.
+  function syncAreaHeads() {
+    var heads = container.querySelectorAll('.area-head');
+    for (var i = 0; i < heads.length; i++) {
+      var visible = 0;
+      var node = heads[i].nextElementSibling;
+      while (node && !node.classList.contains('area-head')) {
+        if (node.classList.contains('place') && !node.classList.contains('hidden')) visible++;
+        node = node.nextElementSibling;
+      }
+      heads[i].style.display = visible ? '' : 'none';
+    }
+  }
+
+  function applyFilter(animate) {
+    var anyVisible = false;
+    var stIdx = 0;
+
+    PLACES.forEach(function(place) {
+      var el = placeEls[place._idx];
+      if (!el) return;
+      var show = matches(place);
+      if (show) anyVisible = true;
+
+      el.classList.toggle('hidden', !show);
+      setMarkerVisible(place._idx, show);
+
+      if (show && animate) {
+        el.classList.add('entering');
+        el.style.animationDelay = (stIdx * 40) + 'ms';
+        stIdx++;
+        el.addEventListener('animationend', function handler() {
+          el.classList.remove('entering');
+          el.style.animationDelay = '';
+          el.removeEventListener('animationend', handler);
+        });
+      }
+    });
+
+    syncAreaHeads();
+    document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+
+    // fitBounds already framed the initial view; only re-frame on a change
+    if (!firstRender) {
+      var visCoords = PLACES.filter(matches).map(function(p) { return [p.lat, p.lng]; });
+      if (visCoords.length > 0) {
+        map.flyToBounds(L.latLngBounds(visCoords).pad(0.15), { duration: 0.8 });
+      }
+    }
+    firstRender = false;
+  }
+
+  filtersEl.addEventListener('click', function(e) {
+    var target = e.target.closest ? e.target.closest('.filter-link') : e.target;
+    if (!target || !target.classList.contains('filter-link')) return;
+    e.preventDefault();
+
+    var newTag = target.dataset.tag;
+    if (newTag === activeTag) return;
+    activeTag = newTag;
+    track('filter', { tag: newTag });
+
+    filtersEl.querySelectorAll('.filter-link').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.tag === activeTag);
+    });
+
+    // fade the departing entries out before the rest re-flow
+    var leaving = PLACES.filter(function(pl) {
+      var el = placeEls[pl._idx];
+      return el && !matches(pl) && !el.classList.contains('hidden');
+    });
+    leaving.forEach(function(pl, i) {
+      var el = placeEls[pl._idx];
+      el.style.transitionDelay = (i * 25) + 'ms';
+      el.classList.add('filtering-out');
+    });
+
+    setTimeout(function() {
+      leaving.forEach(function(pl) {
+        var el = placeEls[pl._idx];
+        el.classList.remove('filtering-out');
+        el.style.transitionDelay = '';
+      });
+      applyFilter(true);
+    }, leaving.length ? 260 : 0);
+  });
+
+  // ---- ORDER ----
+  var sortRecent = document.getElementById('sort-recent');
+  var sortArea = document.getElementById('sort-area');
+
+  function setSort(mode) {
+    if (mode === sortMode) return;
+    sortMode = mode;
+    sortRecent.classList.toggle('active', mode === 'recent');
+    sortArea.classList.toggle('active', mode === 'area');
+    track('sort', { mode: mode });
+    renderList();
+  }
+  function onActivate(el, fn) {
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); }
+    });
+  }
+  onActivate(sortRecent, function() { setSort('recent'); });
+  onActivate(sortArea, function() { setSort('area'); });
+
+  // ---- STICKY MAP SHRINK (narrow screens) ----
+  // The map stays pinned while you read; once you are properly into the list
+  // it gives most of its height back rather than eating half the screen.
+  var mapWrap = document.getElementById('map-wrap');
+  var shrinkTicking = false;
+  function onScrollShrink() {
+    if (shrinkTicking) return;
+    shrinkTicking = true;
+    requestAnimationFrame(function() {
+      var shrink = window.scrollY > 260;
+      if (shrink !== mapWrap.classList.contains('shrunk')) {
+        mapWrap.classList.toggle('shrunk', shrink);
+        setTimeout(function() { map.invalidateSize({ animate: false }); }, 380);
+      }
+      shrinkTicking = false;
+    });
+  }
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    window.addEventListener('scroll', onScrollShrink, { passive: true });
+  }
+
+  // Now that the markers exist, draw the list and apply the initial filter.
+  renderList();
+
+  } // end start()
+
+  // Entries approved without a resolvable location are stored with
+  // lat/lng null; drop them rather than pinning them at 0,0.
+  function mappable(list) {
+    return list.filter(function (p) {
+      return typeof p.lat === 'number' && typeof p.lng === 'number'
+        && !(p.lat === 0 && p.lng === 0);
+    });
+  }
+
+  // The catch sits before the render step on purpose: attached after it, a
+  // throw inside start() would be treated as a failed fetch and render the
+  // whole list a second time from SEED.
+  fetch('/api/community/places')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; })
+    .then(function (data) {
+      var live = Array.isArray(data) ? mappable(data) : [];
+      start(live.length ? live : SEED);
+    });
+
+})();
+</script>
+
+</body>
+</html>
