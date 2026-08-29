@@ -53,5 +53,15 @@ PW_CHANNEL=chrome npm run test:pages
 PW_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:pages
 ```
 
-Tiles come from tile.openstreetmap.org, so the browser needs the network.
+Leaflet comes from unpkg and tiles from tile.openstreetmap.org, so by default
+the browser needs the network. In a sandbox that blocks CDNs, Leaflet never
+loads and all five map tests time out waiting for a list that never renders —
+which looks exactly like a broken page. Point `PW_FIXTURES` at a directory
+holding `leaflet.js`, `leaflet.css` and `tile.png` and those origins (plus the
+Google Fonts stylesheet) are served from disk instead:
+
+```
+PW_FIXTURES=/path/to/fixtures npm run test:pages
+```
+
 Screenshots land in `test/shots/` (gitignored).

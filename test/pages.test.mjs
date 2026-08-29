@@ -48,8 +48,24 @@ const browser = await chromium.launch(
 );
 let passed = 0, failed = 0;
 
+// Sandboxes with no outbound network can't reach unpkg (Leaflet) or the tile
+// server, and without Leaflet the map tests time out on a page that never
+// renders. Point PW_FIXTURES at a directory holding leaflet.js, leaflet.css,
+// and tile.png and those three origins are served from disk instead.
+const FIXTURES = process.env.PW_FIXTURES || '';
+async function offline(ctx) {
+  if (!FIXTURES) return;
+  const file = (n) => fs.readFileSync(FIXTURES.replace(/\/$/, '') + '/' + n);
+  await ctx.route(/^https:\/\/unpkg\.com\/.*\.js/, (r) => r.fulfill({ contentType: 'application/javascript', body: file('leaflet.js') }));
+  await ctx.route(/^https:\/\/unpkg\.com\/.*\.css/, (r) => r.fulfill({ contentType: 'text/css', body: file('leaflet.css') }));
+  await ctx.route(/^https:\/\/unpkg\.com\/.*\.png/, (r) => r.fulfill({ contentType: 'image/png', body: file('tile.png') }));
+  await ctx.route(/^https:\/\/tile\.openstreetmap\.org\//, (r) => r.fulfill({ contentType: 'image/png', body: file('tile.png') }));
+  await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (r) => r.fulfill({ contentType: 'text/css', body: '' }));
+}
+
 async function page(viewport = { width: 1400, height: 900 }) {
   const ctx = await browser.newContext({ viewport, ignoreHTTPSErrors: true });
+  await offline(ctx);
   const p = await ctx.newPage();
   p._errors = [];
   p.on('pageerror', (e) => p._errors.push('pageerror: ' + e.message));
