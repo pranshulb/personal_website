@@ -65,8 +65,9 @@ vercel.json                 routing, headers, proxies
 
 Push to `main` → Vercel builds automatically. Roughly 30–90 seconds.
 
-There is **no test suite and no CI**. Nothing stops a broken page reaching
-production, so verify before pushing (see §5).
+There is **no CI**. `npm test` (see §5) covers the community API and
+`npm run test:pages` drives the three community pages in a browser, but
+nothing runs them for you — run them before pushing.
 
 Vercel project: `personal-website` under team `pranshulbs-projects`.
 
@@ -101,20 +102,40 @@ link in `index.html` when it ships.
 | `GET /api/community/pending` | admin | the review queue |
 | `POST /api/community/approve/<id>` | admin | queue → map (geocodes) |
 | `POST /api/community/reject/<id>` | admin | drop from queue |
+| `POST /api/community/edit/<id>` | admin | change an entry that is on the map |
 | `POST /api/community/bulk-add` | admin | paste many into the queue |
-| `DELETE /api/community/places` | admin | remove one, or wipe all |
+| `DELETE /api/community/places` | admin | remove one (by `id`), or wipe all |
 | `GET/POST /api/community/backups` | admin | list / restore snapshots |
 
 `api/community/_store.js` is the core — storage, auth, validation, geocoding.
 Everything else is a thin handler over it. **Read it first.**
+
+### Data shape
+
+Every place and every pending item has an `id` (a UUID minted at suggest /
+bulk-add time). A place keeps the id of the suggestion it came from — that is
+what makes approval idempotent (see §4). Entries written before ids existed
+get a stable `legacy-…` id derived from their content on read, persisted on
+the next write.
+
+Place: `id, name, area, tags[], note, url, when, lat, lng` and `needsCoords:
+true` when the geocoder found nothing. Pending item: the same minus
+`when/lat/lng` (optional — bulk-add can supply them so approval skips the
+geocoder), plus `city, submitted_by, submitted_at, source`.
 
 ### Storage
 
 Vercel Blob, two keys: `community-places.json` and `community-pending.json`.
 There is no database. `_seed.js` is used *only* when the store is empty.
 
-Writes go through `appendPending` / `removePending` / `appendPlace`, which are
-concurrency-safe. **Do not add new `readX` + `writeX` pairs** — see §4.
+Every write takes a **lock** (`lock-community-<key>.txt`, see §4) and every
+mutation goes through `appendPending` / `removePending` / `appendPlace` /
+`replacePlace` / `removePlace`, or `overwrite` for wipe and restore. **Do not
+add new `readX` + `writeX` pairs**, and do not call `writeBlob` directly.
+
+A read that fails throws `StoreReadError` — it is never reported as an empty
+list. Handlers turn that (and `StoreBusyError`, the lock timing out) into a
+503 via `fail()`. The pages show "try again in a moment" for a 503.
 
 ### Config
 
@@ -139,10 +160,20 @@ Built up over several passes; don't loosen it casually.
   deliberately: it is a public read.
 - CSP, `X-Frame-Options: DENY`, nosniff and Referrer-Policy on `/community/*`
   via `vercel.json`. Clickjacking matters here — the admin has a one-tap wipe.
-- Input is stripped of `<`/`>` and length-capped. URLs are validated to
-  http(s) only, at ingest *and* again at render.
+- Input is stripped of `<`/`>` and control characters and length-capped. URLs
+  are validated to http(s) only, at ingest *and* again at render.
 - Failed logins cost 500ms; rate limits are per-IP per-route (suggest 5/min,
   login 10/min, admin 30/min, public reads 60/min).
+- The suggest form has a honeypot field (`website`). A filled one gets a 200
+  and nothing in the queue.
+
+### The map tiles
+
+`tile.openstreetmap.org`, warmed and muted by a CSS filter on the tile pane.
+It was CARTO Voyager until August 2026, when CARTO started stamping "API KEY
+REQUIRED" across every tile for anonymous use. If the provider changes again,
+the `img-src` in **both** CSP blocks in `vercel.json` has to change with it,
+or the tiles are silently blocked.
 
 ### Backups
 
@@ -184,11 +215,57 @@ overlapping requests each deleted the other's write, leaving *nothing*, so reads
 fell back to empty — two simultaneous suggestions lost **both**. The prune now
 skips the newest and anything written in the last two minutes.
 
-### Read-modify-write drops concurrent writes
+### Read-modify-write drops concurrent writes — and a check afterwards is not enough
 
 A suggestion arriving while an approval is mid-flight used to vanish silently —
-unrecoverable, and invisible. Use `appendPending` / `removePending` /
-`appendPlace`, which re-check after writing and replay on fresh data.
+unrecoverable, and invisible. The first fix re-read after writing and
+replayed on fresh data. That narrows the window but does not close it: a check
+can pass and the list still be overwritten a moment later by a writer that
+read *before* us. The test harness caught exactly that (a removal reported as
+done, then undone by a concurrent approval), and also that under a burst of
+nine simultaneous writers the old code gave up, **returned the wrong list, and
+the handler said 200** — five suggestions lost with their senders told
+otherwise.
+
+Blob has no compare-and-swap, but `put()` to an existing pathname **throws**
+(the previous trap, put to use). That is a mutex: every writer takes
+`lock-community-<key>.txt`, does its read-modify-write, and deletes it. A lock
+older than 10s is treated as a dead writer and broken; a writer that cannot
+get the lock within 8s throws `StoreBusyError` → 503, never a false 200. The
+lock's name must not share the data's prefix, or `list()` would return it as
+the newest version. Don't bypass `mutate` / `overwrite`.
+
+### Approving twice must not add twice
+
+Two tabs, a double tap, a retry after a timeout: the approve route used to
+append a fresh place each time. Places now carry the suggestion's id and
+`appendPlace` is a no-op when that id is already on the map (`alreadyOnMap:
+true` in the response). The map is written *before* the queue is trimmed, so
+a crash in between leaves the item in the queue where re-approving it is
+harmless — the other order would lose the suggestion.
+
+### A failed read is not an empty list
+
+`readBlob` used to swallow every error and return the fallback (`[]`). A
+transient `list()` failure inside a mutate therefore read as "the store is
+empty", and the write that followed replaced the whole list with one item.
+Reads now throw `StoreReadError`; nothing writes on top of a failed read.
+
+### Leaflet owns the marker element's `transform`
+
+`setMarkerVisible` used to set `transform: scale(…)` on the marker element to
+animate filtering — which overwrote the `translate3d` Leaflet positions the
+marker with, so on first render every dot sat stacked at the map origin until
+a zoom re-placed them. Scale the `<svg>` inside the marker, never the marker.
+The entrance animation is on the svg for the same reason.
+
+### Enter in the suggest form did a GET to itself
+
+The submit control was a bare `<a>` with a click handler and no `submit`
+handler on the form. Pressing Enter in any field fell through to the browser
+default: a GET of the same page with everything typed in the address bar, and
+an empty form. Any form needs a real `submit` handler and a real submit
+button, not a link.
 
 ### `fitBounds` throws on an empty list
 
@@ -211,26 +288,40 @@ submit control, not just a key handler.
 
 ## 5. Testing
 
-No test runner is wired up. What has worked:
+`test/` — see `test/README.md`. No framework, plain `node:assert`.
 
-- **Node with a stubbed `@vercel/blob`** for API logic — write a stub into
-  `node_modules/@vercel/blob` (gitignored), import the handlers directly, call
-  them with fake `req`/`res` objects.
-- **Playwright + the pre-installed Chromium** at
-  `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` for the pages. Install
-  `playwright-core` only; do not run `playwright install`.
-- Serve the repo with a small `node:http` script and stub the API routes.
-- The sandbox blocks CDNs in the browser, so route `unpkg.com` (Leaflet),
-  `basemaps.cartocdn.com` and the fonts to local fixtures.
+- `npm test` — the API (Node 22+). `test/hooks.mjs` is a loader hook that
+  resolves `@vercel/blob` to `test/blob-stub.mjs`, so the handlers are
+  imported exactly as written and nothing has to be planted in
+  `node_modules`. Covers sanitisers, auth, every route, the concurrency
+  cases in §4 (double approve, suggest-during-approve, remove-during-approve,
+  a nine-writer burst), legacy ids, history, prune, the lock.
+- `npm run test:pages` — Playwright drives `/community`, `/community/suggest`
+  and `/community/admin` against `test/server.mjs`, which serves the repo
+  like Vercel would and runs the *real* handlers over the stub. Needs
+  `npm install --no-save playwright-core` (deliberately not in
+  `package.json`) and a Chromium: Edge by default, `PW_CHANNEL=chrome`, or
+  `PW_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome` in the
+  sandbox. Do not run `playwright install`. The browser needs the network
+  for Leaflet (unpkg), the fonts and the OSM tiles; if the sandbox blocks
+  them, route those hosts to local fixtures.
+- `npm test -- "some words"` runs only tests whose name contains them.
 
 **The most important lesson**: three separate bugs reached production because
-the blob stub was more forgiving than the real service. If you stub something,
-model the behaviour that actually bites — the per-URL edge cache, the
-suffix-before-extension rule, `put` throwing on an existing pathname. A stub
-that always succeeds will happily prove a broken implementation correct.
+an earlier blob stub was more forgiving than the real service. `test/blob-stub.mjs`
+models the behaviour that actually bites — the per-URL edge cache, the
+suffix-before-extension rule, `put` throwing on an existing pathname, failure
+injection, random latency so concurrent callers interleave. Keep it that way.
+A stub that always succeeds will happily prove a broken implementation correct.
 
-Also: when running several fixture servers, give each pass its own port. Stale
-in-memory state between test passes produced three convincing false failures.
+Two things that cost time writing these:
+
+- All page-test requests come from `127.0.0.1`, so the per-IP rate limiter
+  would put every test in one bucket. `test/server.mjs` gives each request
+  its own fake `x-forwarded-for` unless a test pins one with `T.ip`.
+- Never `assert.equal(elementHandle, null)` in a Playwright test: on failure
+  Node tries to `inspect` the handle for the message and runs out of heap.
+  Assert on counts or text instead.
 
 ---
 
@@ -248,11 +339,15 @@ in-memory state between test passes produced three convincing false failures.
 
 1. **Get real entries in.** The whole design — subject colours, the tally, area
    grouping, the staggered entrance — is keyed to real data and looks inert
-   without it. `bulk-add` in the admin is the fast path.
+   without it. `bulk-add` in the admin is the fast path; the line format now
+   takes a link and a "month year" after the tags, and the JSON form takes
+   `when`, `lat`, `lng` too, so old favourites can be backfilled with the
+   right date and pin.
 2. **Ship it**: drop the `noindex` meta from the three community pages and add
    a nav link in `index.html`.
-3. Consider editing an existing entry — currently you can only remove and
-   re-add. It is the most obvious missing affordance.
+3. Entries approved without a pin show in the list with "no dot for this one
+   yet" and `no pin` in the admin — fix them with **edit → save and look the
+   pin up again**, or type the coordinates in.
 
 ---
 

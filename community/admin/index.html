@@ -395,6 +395,64 @@
     .live-remove:hover { text-decoration-color: #c47a7a; }
     .live-remove[disabled] { opacity: 0.4; cursor: default; }
 
+    .live-actions { display: flex; gap: 0.2rem; flex: none; }
+    .live-edit-btn { color: #b8a090; }
+    .live-edit-btn:hover { color: #6a5545; text-decoration-color: #b8a090; }
+
+    /* inline editor for one live entry */
+    .live-edit {
+      padding: 0.4rem 0 1rem 0;
+      border-bottom: 1px solid rgba(196, 122, 122, 0.12);
+    }
+    .live-edit label {
+      display: block;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.8rem;
+      color: #b8a090;
+      margin-top: 0.55rem;
+    }
+    .live-edit input,
+    .live-edit textarea {
+      width: 100%;
+      font-family: 'Unkempt', cursive;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #3a2f2f;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #d4a080;
+      padding: 0.25rem 0;
+      outline: none;
+      border-radius: 0;
+      -webkit-appearance: none;
+      transition: border-color var(--dur) var(--ease-soft);
+    }
+    .live-edit textarea {
+      min-height: 60px;
+      border: 1px solid #d4a080;
+      padding: 0.4rem;
+      margin-top: 0.2rem;
+      resize: vertical;
+    }
+    .live-edit input:focus, .live-edit textarea:focus { border-color: #c47a7a; }
+    .live-edit .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+    .live-edit .edit-actions { margin-top: 0.9rem; display: flex; gap: 1.4rem; flex-wrap: wrap; align-items: baseline; }
+    .live-edit .edit-actions .text-link { font-size: 0.95rem; }
+    .live-edit .edit-actions .text-link[disabled] { opacity: 0.4; pointer-events: none; }
+
+    .deck-status {
+      color: #b8a090;
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-top: 0.4rem;
+      min-height: 1.2em;
+      font-family: 'EB Garamond', serif;
+      text-align: center;
+    }
+    .deck-status.fail { color: #c47a7a; }
+    .deck-counter .text-link { font-size: 0.85rem; margin-left: 0.6rem; }
+
     .text-link.danger { color: #c47a7a; text-decoration-color: rgba(196, 122, 122, 0.4); }
 
     .text-link {
@@ -646,21 +704,22 @@
   <div class="admin-grid">
   <section>
     <h2>pending suggestions</h2>
-    <div class="deck-counter" id="deck-counter"></div>
+    <div class="deck-counter"><span id="deck-counter"></span><a class="text-link muted" id="btn-refresh">refresh</a></div>
 
     <div class="deck-area" id="deck-area">
       <div class="deck-empty" id="deck-empty" style="display:none;">nothing pending — go find more cool things</div>
     </div>
     <div class="card-actions" id="card-actions" style="display:none;">
-      <a class="action-reject" id="btn-reject">reject</a>
-      <a class="action-approve" id="btn-approve">approve</a>
+      <a class="action-reject" id="btn-reject" role="button" tabindex="0">reject</a>
+      <a class="action-approve" id="btn-approve" role="button" tabindex="0">approve</a>
     </div>
+    <div class="deck-status" id="deck-status"></div>
 
     <!-- BULK ADD -->
     <div class="bulk-section">
       <h2>bulk add</h2>
-      <p class="aside">one per line: Name — Area — tags (comma sep) — note. or paste a JSON array.</p>
-      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
+      <p class="aside">one per line: Name — Area — tags (comma sep) — note. a link or a "month year" can go anywhere after the tags. or paste a JSON array with name, area, tags, note, url, when, lat, lng.</p>
+      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough — goodbakery.com — june 2024&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
       <div class="bulk-actions">
         <a class="text-link" id="btn-parse">parse this</a>
         <a class="text-link muted" id="btn-queue" style="display:none;">queue these up</a>
@@ -675,7 +734,7 @@
     <!-- ON THE MAP -->
     <div class="bulk-section">
       <h2>on the map</h2>
-      <p class="aside">what's live at /community. removing is immediate — there's no undo.</p>
+      <p class="aside">what's live at /community. removing is immediate, but history below can bring it back.</p>
       <div id="live-list"></div>
       <div class="bulk-actions">
         <a class="text-link" id="btn-download">download a copy</a>
@@ -722,6 +781,8 @@
   var cardActions = document.getElementById('card-actions');
   var btnReject = document.getElementById('btn-reject');
   var btnApprove = document.getElementById('btn-approve');
+  var btnRefresh = document.getElementById('btn-refresh');
+  var deckStatus = document.getElementById('deck-status');
   var loginForm = document.getElementById('login-form');
   var signOut = document.getElementById('sign-out');
   var historyList = document.getElementById('history-list');
@@ -751,10 +812,36 @@
     };
     if (body !== undefined) opts.body = JSON.stringify(body);
     return fetch(path, opts).then(function (r) {
-      if (!r.ok) throw new Error(r.status);
+      if (!r.ok) {
+        // The status is the message (the callers switch on it); the server's
+        // own wording rides along for the status lines.
+        return r.json().catch(function () { return {}; }).then(function (body) {
+          var err = new Error(r.status);
+          err.detail = body && body.error;
+          throw err;
+        });
+      }
       return r.json();
     });
   }
+
+  function refreshPending() {
+    return api('GET', '/api/community/pending').then(function (data) {
+      pending = Array.isArray(data) ? data : [];
+      currentIdx = 0;
+      renderDeck();
+    });
+  }
+
+  btnRefresh.addEventListener('click', function (e) {
+    e.preventDefault();
+    deckStatus.textContent = '';
+    deckStatus.className = 'deck-status';
+    refreshPending().catch(function () {
+      deckStatus.textContent = 'couldn\'t reload the queue.';
+      deckStatus.className = 'deck-status fail';
+    });
+  });
 
   // ---- LOGIN ----
 
@@ -828,9 +915,12 @@
     // the stale copy would show the entry still there.
     api('GET', '/api/community/places?t=' + Date.now()).then(function (data) {
       livePlaces = Array.isArray(data) ? data : [];
+      openEditorEl = null;
       renderLive();
-    }).catch(function () {
-      liveList.innerHTML = '<div class="live-empty">couldn\'t load the map list.</div>';
+    }).catch(function (err) {
+      liveList.innerHTML = '<div class="live-empty">'
+        + (String(err && err.message) === '503' ? 'storage is unreachable right now.' : 'couldn\'t load the map list.')
+        + '</div>';
     });
   }
 
@@ -854,17 +944,29 @@
       name.textContent = place.name;
       left.appendChild(name);
 
-      if (place.area) {
+      var bits = [];
+      if (place.area) bits.push(place.area);
+      if (place.when) bits.push(place.when);
+      if (place.needsCoords || typeof place.lat !== 'number') bits.push('no pin');
+      if (bits.length) {
         var area = document.createElement('span');
         area.className = 'live-area';
-        area.textContent = '  ·  ' + place.area;
+        area.textContent = '  ·  ' + bits.join('  ·  ');
         left.appendChild(area);
       }
-      if (place.needsCoords || typeof place.lat !== 'number') {
-        var warn = document.createElement('span');
-        warn.className = 'live-area';
-        warn.textContent = '  ·  no pin';
-        left.appendChild(warn);
+
+      var actions = document.createElement('span');
+      actions.className = 'live-actions';
+
+      // Editing needs an id to address the entry; the API gives every entry
+      // one now, but a very old snapshot restored from history might not.
+      if (place.id) {
+        var editBtn = document.createElement('button');
+        editBtn.className = 'live-remove live-edit-btn';
+        editBtn.type = 'button';
+        editBtn.textContent = 'edit';
+        editBtn.addEventListener('click', function () { openEditor(place, row); });
+        actions.appendChild(editBtn);
       }
 
       var btn = document.createElement('button');
@@ -872,38 +974,180 @@
       btn.type = 'button';
       btn.textContent = 'remove';
       btn.addEventListener('click', function () {
-        removeLive(i, place.name, btn);
+        removeLive(place, i, btn);
       });
+      actions.appendChild(btn);
 
       row.appendChild(left);
-      row.appendChild(btn);
+      row.appendChild(actions);
       liveList.appendChild(row);
     });
   }
 
-  function removeLive(index, name, btn) {
+  function removeLive(place, index, btn) {
     btn.disabled = true;
     btn.textContent = 'removing...';
     liveStatus.textContent = '';
 
-    var qs = '?index=' + index + '&name=' + encodeURIComponent(name);
-    api('DELETE', '/api/community/places' + qs, { index: index, name: name })
+    // By id where there is one; the index + name pair is the older, weaker
+    // way of saying which entry, kept for entries that predate ids.
+    var qs = place.id
+      ? '?id=' + encodeURIComponent(place.id)
+      : '?index=' + index + '&name=' + encodeURIComponent(place.name);
+    var body = place.id ? { id: place.id } : { index: index, name: place.name };
+    api('DELETE', '/api/community/places' + qs, body)
       .then(function (data) {
-        liveStatus.textContent = 'removed "' + name + '". ' + data.remaining + ' left.';
+        liveStatus.textContent = 'removed "' + place.name + '". ' + data.remaining + ' left.';
         loadLive();
       })
       .catch(function (err) {
         btn.disabled = false;
         btn.textContent = 'remove';
-        // 409 means the list moved under us — reload rather than delete blind.
-        if (String(err && err.message) === '409') {
+        var code = String(err && err.message);
+        // 409/404 mean the list moved under us — reload rather than delete blind.
+        if (code === '409' || code === '404') {
           liveStatus.textContent = 'the list changed — reloading it.';
           loadLive();
+        } else if (code === '503') {
+          liveStatus.textContent = (err.detail || 'storage is busy') + ' — try again in a moment.';
         } else {
           liveStatus.textContent = 'couldn\'t remove that one.';
         }
       });
   }
+
+  // ---- EDIT ONE LIVE ENTRY ----
+
+  var openEditorEl = null;
+
+  function openEditor(place, row) {
+    if (openEditorEl) openEditorEl.remove();
+
+    var box = document.createElement('div');
+    box.className = 'live-edit';
+    openEditorEl = box;
+
+    function field(label, key, value, opts) {
+      opts = opts || {};
+      var wrap = document.createElement(opts.half ? 'span' : 'div');
+      var lab = document.createElement('label');
+      lab.textContent = label;
+      var id = 'edit-' + key + '-' + Math.random().toString(36).slice(2, 7);
+      lab.htmlFor = id;
+      wrap.appendChild(lab);
+      var input = document.createElement(opts.multiline ? 'textarea' : 'input');
+      if (!opts.multiline) input.type = 'text';
+      input.id = id;
+      input.value = value == null ? '' : String(value);
+      input.dataset.key = key;
+      if (opts.placeholder) input.placeholder = opts.placeholder;
+      wrap.appendChild(input);
+      return wrap;
+    }
+
+    box.appendChild(field('name', 'name', place.name));
+    box.appendChild(field('area', 'area', place.area));
+    box.appendChild(field('tags, comma separated — the first one sets the colour', 'tags', (place.tags || []).join(', ')));
+    box.appendChild(field('note', 'note', place.note, { multiline: true }));
+    box.appendChild(field('link', 'url', place.url, { placeholder: 'https://…' }));
+    box.appendChild(field('when', 'when', place.when, { placeholder: 'june 2024' }));
+    var pair = document.createElement('div');
+    pair.className = 'pair';
+    pair.appendChild(field('lat', 'lat', typeof place.lat === 'number' ? place.lat : '', { half: true, placeholder: '51.5' }));
+    pair.appendChild(field('lng', 'lng', typeof place.lng === 'number' ? place.lng : '', { half: true, placeholder: '-0.1' }));
+    box.appendChild(pair);
+
+    var actions = document.createElement('div');
+    actions.className = 'edit-actions';
+    // href="#" so the links are focusable — reachable by Tab, and clicking
+    // one keeps focus inside the editor rather than dropping it on <body>.
+    var save = document.createElement('a');
+    save.className = 'text-link';
+    save.href = '#';
+    save.textContent = 'save';
+    var findPin = document.createElement('a');
+    findPin.className = 'text-link muted';
+    findPin.href = '#';
+    findPin.textContent = 'save and look the pin up again';
+    findPin.title = 'geocodes from the name and area above, replacing lat/lng';
+    var cancel = document.createElement('a');
+    cancel.className = 'text-link muted';
+    cancel.href = '#';
+    cancel.textContent = 'never mind';
+    actions.appendChild(save);
+    actions.appendChild(findPin);
+    actions.appendChild(cancel);
+    box.appendChild(actions);
+
+    row.insertAdjacentElement('afterend', box);
+    box.querySelector('input').focus();
+
+    function values() {
+      var out = {};
+      box.querySelectorAll('[data-key]').forEach(function (el) {
+        out[el.dataset.key] = el.value.trim();
+      });
+      return out;
+    }
+
+    function submit(geocode) {
+      var v = values();
+      var patch = { name: v.name, area: v.area, tags: v.tags, note: v.note, url: v.url, when: v.when };
+      if (!patch.name) { liveStatus.textContent = 'it needs a name.'; return; }
+      if (geocode) {
+        patch.geocode = true;
+      } else if (v.lat === '' && v.lng === '') {
+        patch.lat = null; patch.lng = null;
+      } else {
+        var lat = Number(v.lat), lng = Number(v.lng);
+        if (!isFinite(lat) || !isFinite(lng) || v.lat === '' || v.lng === '') {
+          liveStatus.textContent = 'lat and lng need to both be numbers, or both be empty.';
+          return;
+        }
+        patch.lat = lat; patch.lng = lng;
+      }
+
+      [save, findPin, cancel].forEach(function (a) { a.setAttribute('disabled', ''); });
+      liveStatus.textContent = geocode ? 'saving and looking up the pin…' : 'saving…';
+      api('POST', '/api/community/edit/' + encodeURIComponent(place.id), patch)
+        .then(function (data) {
+          var p = data.place || {};
+          liveStatus.textContent = 'saved "' + p.name + '"'
+            + (p.needsCoords ? ' — no pin found for it.' : '.');
+          openEditorEl = null;
+          loadLive();
+        })
+        .catch(function (err) {
+          [save, findPin, cancel].forEach(function (a) { a.removeAttribute('disabled'); });
+          var code = String(err && err.message);
+          liveStatus.textContent =
+            code === '404' ? 'that entry is gone — reloading the list.' :
+            code === '400' ? (err.detail || 'that didn\'t look right.') :
+            code === '503' ? (err.detail || 'storage is busy') + ' — try again in a moment.' :
+            'couldn\'t save that.';
+          if (code === '404') { openEditorEl = null; loadLive(); }
+        });
+    }
+
+    save.addEventListener('click', function (e) { e.preventDefault(); submit(false); });
+    findPin.addEventListener('click', function (e) { e.preventDefault(); submit(true); });
+    cancel.addEventListener('click', function (e) {
+      e.preventDefault();
+      box.remove();
+      openEditorEl = null;
+    });
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); submit(false); }
+    });
+  }
+
+  // Escape closes whichever editor is open, wherever focus has wandered to.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && openEditorEl) {
+      openEditorEl.remove();
+      openEditorEl = null;
+    }
+  });
 
   function showWipeConfirm(on) {
     btnWipe.style.display = on ? 'none' : '';
@@ -1026,7 +1270,14 @@
 
   // ---- DECK RENDERING ----
 
+  // Each deck render re-binds the document-level mouse handlers for the top
+  // card; the previous card's are dropped here rather than piling up.
+  var swipeAbort = null;
+
   function renderDeck() {
+    if (swipeAbort) swipeAbort.abort();
+    swipeAbort = new AbortController();
+
     // clear old cards
     var oldCards = deckArea.querySelectorAll('.swipe-card');
     for (var i = 0; i < oldCards.length; i++) {
@@ -1087,10 +1338,15 @@
     name.textContent = item.name;
     card.appendChild(name);
 
-    if (item.area) {
+    var where = [];
+    if (item.area) where.push(item.area);
+    if (item.city && item.city !== item.area) where.push(item.city);
+    if (typeof item.lat === 'number' && typeof item.lng === 'number') where.push('pin known');
+    if (item.when) where.push(item.when);
+    if (where.length) {
       var area = document.createElement('div');
       area.className = 'card-area';
-      area.textContent = item.area;
+      area.textContent = where.join(' · ');
       card.appendChild(area);
     }
 
@@ -1266,33 +1522,54 @@
     document.addEventListener('mousemove', function handler(e) {
       if (!isDragging) return;
       onMove(e);
-    });
+    }, { signal: swipeAbort.signal });
     document.addEventListener('mouseup', function handler() {
       if (!isDragging) return;
       onEnd();
-    });
+    }, { signal: swipeAbort.signal });
   }
 
   // ---- APPROVE / REJECT ----
 
+  // A failed moderation used to snap the card back with no explanation. Now
+  // it says why, and a 404 (handled from another tab, or already gone)
+  // reloads the queue rather than leaving a phantom card.
+  function moderationFailed(err, verb) {
+    var code = String(err && err.message);
+    deckStatus.className = 'deck-status fail';
+    if (code === '404') {
+      deckStatus.textContent = 'that one was already handled elsewhere — refreshing the queue.';
+      refreshPending().catch(function () { renderDeck(); });
+      return;
+    }
+    deckStatus.textContent =
+      code === '503' ? (err.detail || 'storage is busy') + ' — try again in a moment.' :
+      code === '401' ? 'signed out — reload the page and sign in again.' :
+      'couldn\'t ' + verb + ' that one — try again.';
+    renderDeck(); // snap back
+  }
+
   function doApprove(item) {
-    api('POST', '/api/community/approve/' + item.id).then(function () {
+    deckStatus.textContent = '';
+    deckStatus.className = 'deck-status';
+    api('POST', '/api/community/approve/' + encodeURIComponent(item.id)).then(function (data) {
       currentIdx++;
+      var p = data && data.place;
+      deckStatus.textContent = data && data.alreadyOnMap
+        ? 'that one was already on the map — tidied the queue.'
+        : (p && p.needsCoords ? 'approved, but no pin was found — set one from the list.' : '');
       setTimeout(renderDeck, 350);
       loadLive(); // it's on the map now — show it in the list below
-    }).catch(function () {
-      // snap back on error
-      renderDeck();
-    });
+    }).catch(function (err) { moderationFailed(err, 'approve'); });
   }
 
   function doReject(item) {
-    api('POST', '/api/community/reject/' + item.id).then(function () {
+    deckStatus.textContent = '';
+    deckStatus.className = 'deck-status';
+    api('POST', '/api/community/reject/' + encodeURIComponent(item.id)).then(function () {
       currentIdx++;
       setTimeout(renderDeck, 350);
-    }).catch(function () {
-      renderDeck();
-    });
+    }).catch(function (err) { moderationFailed(err, 'reject'); });
   }
 
   // button actions
@@ -1306,6 +1583,12 @@
       card.style.transform = 'translateX(600px) rotate(30deg)';
     }
     doApprove(item);
+  });
+
+  [btnApprove, btnReject].forEach(function (el) {
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
   });
 
   btnReject.addEventListener('click', function (e) {
@@ -1330,33 +1613,54 @@
     parsedBulk = [];
     bulkStatus.textContent = '';
 
+    function splitTags(t) {
+      if (Array.isArray(t)) return t.map(String).map(function (x) { return x.trim(); }).filter(Boolean);
+      if (typeof t === 'string') return t.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+      return [];
+    }
+    var looksLikeUrl = function (p) { return /^(https?:\/\/\S+|[\w.-]+\.[a-z]{2,}(\/\S*)?)$/i.test(p); };
+    var looksLikeWhen = function (p) { return /^[a-z]+ \d{4}$/i.test(p); };
+
     // try JSON first
     try {
       var arr = JSON.parse(raw);
       if (Array.isArray(arr)) {
-        parsedBulk = arr.map(function (item) {
-          return {
-            name: (item.name || '').trim(),
-            area: (item.area || '').trim(),
-            tags: item.tags || [],
-            note: (item.note || '').trim(),
-            url: (item.url || '').trim()
+        parsedBulk = arr.filter(function (item) { return item && typeof item === 'object'; }).map(function (item) {
+          var out = {
+            name: String(item.name || '').trim(),
+            area: String(item.area || '').trim(),
+            tags: splitTags(item.tags),
+            note: String(item.note || '').trim(),
+            url: String(item.url || '').trim(),
+            when: String(item.when || '').trim()
           };
+          if (item.lat !== undefined && item.lng !== undefined && item.lat !== '' && item.lng !== '') {
+            out.lat = Number(item.lat); out.lng = Number(item.lng);
+          }
+          return out;
         }).filter(function (item) { return item.name; });
       }
     } catch (_) {
-      // parse line format: Name — Area — tags — note
+      // line format: Name — Area — tags — note. After the tags, a part that
+      // looks like a link or like "june 2024" is taken as such; the rest is
+      // the note (dashes inside it are put back).
       var lines = raw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
       lines.forEach(function (line) {
-        // support both em-dash and regular dash with spaces
+        // support both em-dash and en-dash with spaces
         var parts = line.split(/\s*[—–]\s*/);
         if (parts.length < 1) return;
         var name = (parts[0] || '').trim();
         if (!name) return;
         var area = parts.length > 1 ? (parts[1] || '').trim() : '';
-        var tags = parts.length > 2 ? (parts[2] || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean) : [];
-        var note = parts.length > 3 ? parts.slice(3).join(' — ').trim() : '';
-        parsedBulk.push({ name: name, area: area, tags: tags, note: note, url: '' });
+        var tags = parts.length > 2 ? splitTags(parts[2]) : [];
+        var url = '', when = '', noteParts = [];
+        parts.slice(3).forEach(function (p) {
+          p = p.trim();
+          if (!url && looksLikeUrl(p)) url = p;
+          else if (!when && looksLikeWhen(p)) when = p.toLowerCase();
+          else if (p) noteParts.push(p);
+        });
+        parsedBulk.push({ name: name, area: area, tags: tags, note: noteParts.join(' — '), url: url, when: when });
       });
     }
 
@@ -1383,6 +1687,11 @@
         });
         html += '</span>';
       }
+      var extra = [];
+      if (item.when) extra.push(item.when);
+      if (item.url) extra.push(item.url);
+      if (typeof item.lat === 'number') extra.push('pin ' + item.lat + ', ' + item.lng);
+      if (extra.length) html += '<span class="bp-area">' + escapeHtml(extra.join(' · ')) + '</span>';
       div.innerHTML = html;
       bulkPreview.appendChild(div);
     });
@@ -1409,13 +1718,13 @@
       parsedBulk = [];
 
       // refresh pending
-      return api('GET', '/api/community/pending');
-    }).then(function (data) {
-      pending = data;
-      currentIdx = 0;
-      renderDeck();
-    }).catch(function () {
-      bulkStatus.textContent = 'something went wrong. try again?';
+      return refreshPending();
+    }).catch(function (err) {
+      var code = String(err && err.message);
+      bulkStatus.textContent =
+        code === '429' ? (err.detail || 'the queue is full.') :
+        code === '503' ? (err.detail || 'storage is busy') + ' — try again in a moment.' :
+        'something went wrong. try again?';
       bulkStatus.className = 'bulk-status fail';
     });
   });

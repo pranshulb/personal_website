@@ -178,12 +178,18 @@
       transform: scale(1.4);
     }
 
-    /* dots settle in on load, staggered to match the list */
+    /* dots settle in on load, staggered to match the list. The animation is
+       on the svg, never the marker element: Leaflet positions the marker with
+       an inline transform, and animating (or setting) transform on that same
+       element throws every dot to the map's origin until the next zoom. */
     @keyframes dotIn {
       from { opacity: 0; transform: scale(0); }
       to   { opacity: 1; transform: scale(1); }
     }
-    .ink-dot-marker.dropping { animation: dotIn 0.5s var(--ease-back) both; }
+    .ink-dot-marker.dropping svg {
+      animation: dotIn 0.5s var(--ease-back) both;
+      animation-delay: inherit;
+    }
 
     /* marker pulse on list hover */
     @keyframes markerPulse {
@@ -351,6 +357,29 @@
 
     .place.hidden { display: none; }
 
+    /* keyboard: the card is a button, so it needs to show focus */
+    .place:focus-visible {
+      outline: 2px solid var(--c);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    /* an entry that hasn't got a dot yet is still an entry — it just doesn't
+       go anywhere when clicked */
+    .place.unpinned { cursor: default; }
+    .place.unpinned:hover { transform: none; }
+    .place-nopin {
+      font-size: 0.78rem;
+      color: #c8b8a8;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+    }
+    .place-nopin::before {
+      content: '·';
+      margin-right: 0.4rem;
+      color: #d4a080;
+    }
+
     .place.highlighted {
       border-left-color: var(--c);
       background: rgba(196, 122, 122, 0.05);
@@ -485,8 +514,9 @@
       .column { padding-bottom: 4rem; }
       #map { height: 46vh; }
       .map-wrap.shrunk #map { height: 22vh; }
-      /* clear the sticky map when a card scrolls itself into view */
-      .area-head { top: 0; }
+      /* the map is sticky above the list, so a sticky heading has to sit
+         below it, not under it. --map-h is measured from the real map. */
+      .area-head { top: var(--map-h, 0px); }
     }
 
     @media (max-width: 600px) {
@@ -561,7 +591,6 @@
   // Offline fallback only — the live list comes from /api/community/places,
   // which is what the admin page writes to. This is what renders if that call
   // fails, so the page is never blank.
-  // Offline fallback, shown only if /api/community/places is unreachable.
   var SEED = [];
 
   // Umami custom events. Silently does nothing if the script is blocked or
@@ -574,10 +603,19 @@
     } catch (e) {}
   }
 
-  function start(PLACES) {
+  function start(PLACES, loadFailed) {
 
-  // assign indices
-  PLACES.forEach(function(p, i) { p._idx = i; });
+  // assign indices, and make the shape safe to render whatever was stored:
+  // an entry approved before tags existed, or without a resolvable location,
+  // is still an entry — it just has no chips or no dot.
+  PLACES.forEach(function(p, i) {
+    p._idx = i;
+    if (!Array.isArray(p.tags)) p.tags = [];
+    p.tags = p.tags.filter(function(t) { return typeof t === 'string' && t; });
+    p._pinned = typeof p.lat === 'number' && typeof p.lng === 'number'
+      && isFinite(p.lat) && isFinite(p.lng) && !(p.lat === 0 && p.lng === 0);
+  });
+  var PINNED = PLACES.filter(function(p) { return p._pinned; });
 
   // ---- SUBJECT COLOUR ----
   // Every dot used to be the same pink, which made a map of fifteen places
@@ -672,8 +710,13 @@
 
   function makeCard(place, staggerIdx) {
     var div = document.createElement('div');
-    div.className = 'place entering';
+    div.className = 'place entering' + (place._pinned ? '' : ' unpinned');
     div.id = 'place-' + place._idx;
+    if (place._pinned) {
+      div.setAttribute('role', 'button');
+      div.setAttribute('tabindex', '0');
+      div.setAttribute('aria-label', 'show ' + place.name + ' on the map');
+    }
     div.dataset.tags = place.tags.join(',');
     div.dataset.idx = place._idx;
     div.style.animationDelay = (staggerIdx * 40) + 'ms';
@@ -721,17 +764,34 @@
       meta.appendChild(when);
     }
 
+    if (!place._pinned) {
+      var nopin = document.createElement('span');
+      nopin.className = 'place-nopin';
+      nopin.textContent = 'no dot for this one yet';
+      meta.appendChild(nopin);
+    }
+
     div.appendChild(meta);
+
+    function open() {
+      if (!place._pinned) return;
+      track('place-open', { place: place.name, via: 'list' });
+      map.flyTo([place.lat, place.lng], 15, { duration: 1.2, easeLinearity: 0.3 });
+      markers[place._idx].openPopup();
+      // lights the dot and, unlike a bare activateMarker, puts it out again
+      highlightPlace(place._idx, { scroll: false });
+    }
 
     div.addEventListener('click', function(e) {
       if (e.target.closest('a')) {
         track('place-link', { place: place.name });
         return;
       }
-      track('place-open', { place: place.name, via: 'list' });
-      map.flyTo([place.lat, place.lng], 15, { duration: 1.2, easeLinearity: 0.3 });
-      markers[place._idx].openPopup();
-      activateMarker(place._idx);
+      open();
+    });
+    div.addEventListener('keydown', function(e) {
+      if (e.target !== div) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
     });
 
     div.addEventListener('mouseenter', function() {
@@ -807,10 +867,14 @@
     attributionControl: true
   }).setView([51.505, -0.09], 12);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 18
+  // OpenStreetMap's own tiles. This was CARTO's Voyager, which now stamps
+  // "API KEY REQUIRED" across every tile for anonymous use. The tile-pane
+  // filter above does the warming and muting, so the busier OSM style still
+  // sits quietly under the dots. If this ever needs to change again, the CSP
+  // img-src in vercel.json has to change with it.
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
   }).addTo(map);
 
   // enable scroll zoom after first interaction
@@ -822,31 +886,38 @@
   var highlightedIdx = null;
 
   function activateMarker(idx) {
-    markers[idx].setIcon(makeInkDot(markerColour[idx], true));
+    if (markers[idx]) markers[idx].setIcon(makeInkDot(markerColour[idx], true));
   }
   function deactivateMarker(idx) {
-    markers[idx].setIcon(makeInkDot(markerColour[idx], false));
+    if (markers[idx]) markers[idx].setIcon(makeInkDot(markerColour[idx], false));
   }
 
-  function highlightPlace(idx) {
-    if (highlightedIdx !== null && placeEls[highlightedIdx]) {
-      placeEls[highlightedIdx].classList.remove('highlighted');
+  // Lights up one entry and its dot for a few seconds. Each highlight gets
+  // its own timer, and a newer highlight cancels the older one, so clicking
+  // two dots in quick succession doesn't leave the first lit forever.
+  var highlightTimer = null;
+  function highlightPlace(idx, opts) {
+    var scroll = !(opts && opts.scroll === false);
+    if (highlightTimer) { clearTimeout(highlightTimer); highlightTimer = null; }
+    if (highlightedIdx !== null && highlightedIdx !== idx) {
+      if (placeEls[highlightedIdx]) placeEls[highlightedIdx].classList.remove('highlighted');
       deactivateMarker(highlightedIdx);
     }
     highlightedIdx = idx;
     if (placeEls[idx]) {
       placeEls[idx].classList.add('highlighted');
-      placeEls[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      activateMarker(idx);
-      setTimeout(function() {
-        if (placeEls[idx]) placeEls[idx].classList.remove('highlighted');
-        deactivateMarker(idx);
-        if (highlightedIdx === idx) highlightedIdx = null;
-      }, 3500);
+      if (scroll) placeEls[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    activateMarker(idx);
+    highlightTimer = setTimeout(function() {
+      if (placeEls[idx]) placeEls[idx].classList.remove('highlighted');
+      deactivateMarker(idx);
+      if (highlightedIdx === idx) highlightedIdx = null;
+      highlightTimer = null;
+    }, 3500);
   }
 
-  PLACES.forEach(function(place) {
+  PINNED.forEach(function(place) {
     // Built as nodes, not concatenated HTML. The API strips angle brackets on
     // the way in, but this is the one place a name reaches the DOM as markup,
     // and it shouldn't depend on that staying true of every future write path.
@@ -893,16 +964,18 @@
 
   // fit to all — but an empty list makes invalid bounds, and fitBounds throws
   // on those, which would take the whole page down. Sit over London instead.
-  var allCoords = PLACES.map(function(p) { return [p.lat, p.lng]; });
+  var allCoords = PINNED.map(function(p) { return [p.lat, p.lng]; });
   if (allCoords.length > 0) {
-    map.fitBounds(L.latLngBounds(allCoords).pad(0.15));
+    // maxZoom: a single dot used to fit at street level, all pavement and
+    // no neighbourhood
+    map.fitBounds(L.latLngBounds(allCoords).pad(0.15), { maxZoom: 15 });
   }
 
   // Dots arrive with the same staggered rhythm as the list, rather than all
   // appearing at once. Honour reduced-motion by skipping it entirely.
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     requestAnimationFrame(function() {
-      PLACES.forEach(function(place, i) {
+      PINNED.forEach(function(place, i) {
         var el = markers[place._idx] && markers[place._idx].getElement();
         if (!el) return;
         el.classList.add('dropping');
@@ -918,7 +991,11 @@
 
   if (PLACES.length === 0) {
     var empty = document.getElementById('no-results');
-    empty.textContent = 'nothing here yet — still collecting.';
+    // An outage and an empty list look the same from here; don't tell
+    // someone the list is empty when it just didn't arrive.
+    empty.textContent = loadFailed
+      ? 'couldn\'t load the list right now — try again in a bit.'
+      : 'nothing here yet — still collecting.';
     empty.style.display = 'block';
     document.getElementById('scroll-hint').style.display = 'none';
   }
@@ -941,13 +1018,18 @@
     return activeTag === 'all' || place.tags.indexOf(activeTag) !== -1;
   }
 
+  // Opacity on the marker element, scale on the svg inside it. The scale used
+  // to be set on the marker itself, which overwrote the translate3d Leaflet
+  // uses to place it — so on first render every dot sat on top of the others
+  // at the map's origin until something triggered a zoom.
   function setMarkerVisible(idx, on) {
     var el = markers[idx] && markers[idx].getElement();
     if (!el) return;
-    el.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+    el.style.transition = 'opacity 0.35s ease';
     el.style.opacity = on ? '1' : '0';
-    el.style.transform = on ? 'scale(1)' : 'scale(0.5)';
     el.style.pointerEvents = on ? 'auto' : 'none';
+    var svg = el.querySelector('svg');
+    if (svg) svg.style.transform = on ? '' : 'scale(0.5)';
   }
 
   // Also hides an area heading whose entries have all been filtered away —
@@ -995,9 +1077,9 @@
 
     // fitBounds already framed the initial view; only re-frame on a change
     if (!firstRender) {
-      var visCoords = PLACES.filter(matches).map(function(p) { return [p.lat, p.lng]; });
+      var visCoords = PINNED.filter(matches).map(function(p) { return [p.lat, p.lng]; });
       if (visCoords.length > 0) {
-        map.flyToBounds(L.latLngBounds(visCoords).pad(0.15), { duration: 0.8 });
+        map.flyToBounds(L.latLngBounds(visCoords).pad(0.15), { duration: 0.8, maxZoom: 15 });
       }
     }
     firstRender = false;
@@ -1080,17 +1162,33 @@
     window.addEventListener('scroll', onScrollShrink, { passive: true });
   }
 
+  // The area headings are sticky too, and on a narrow screen they have to
+  // stick just under the map rather than behind it. Measured, not guessed,
+  // because the map changes height as you scroll.
+  var mapCol = document.querySelector('.map-col');
+  var narrow = window.matchMedia('(max-width: 900px)');
+  function syncMapHeight() {
+    if (narrow.matches) {
+      document.documentElement.style.setProperty('--map-h', mapCol.offsetHeight + 'px');
+    } else {
+      document.documentElement.style.removeProperty('--map-h');
+    }
+  }
+  if (window.ResizeObserver) new ResizeObserver(syncMapHeight).observe(mapCol);
+  window.addEventListener('resize', syncMapHeight);
+  syncMapHeight();
+
   // Now that the markers exist, draw the list and apply the initial filter.
   renderList();
 
   } // end start()
 
-  // Entries approved without a resolvable location are stored with
-  // lat/lng null; drop them rather than pinning them at 0,0.
-  function mappable(list) {
+  // Anything with a name renders. Entries approved without a resolvable
+  // location are stored with lat/lng null; they go in the list without a dot
+  // rather than being pinned at 0,0 — or, as before, dropped entirely.
+  function usable(list) {
     return list.filter(function (p) {
-      return typeof p.lat === 'number' && typeof p.lng === 'number'
-        && !(p.lat === 0 && p.lng === 0);
+      return p && typeof p === 'object' && typeof p.name === 'string' && p.name;
     });
   }
 
@@ -1101,8 +1199,9 @@
     .then(function (r) { return r.ok ? r.json() : null; })
     .catch(function () { return null; })
     .then(function (data) {
-      var live = Array.isArray(data) ? mappable(data) : [];
-      start(live.length ? live : SEED);
+      var ok = Array.isArray(data);
+      var live = ok ? usable(data) : [];
+      start(live.length ? live : SEED, !ok);
     });
 
 })();

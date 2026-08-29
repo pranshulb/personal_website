@@ -1,7 +1,8 @@
 // POST /api/community/bulk-add — admin. Pastes a JSON array into the queue.
 
 import {
-  appendPending, requireAdmin, adminCors, checkRate, clientIp, clean, cleanTags, cleanUrl,
+  appendPending, requireAdmin, adminCors, checkRate, clientIp, fail,
+  clean, cleanTags, cleanUrl, cleanWhen, cleanCoord, newId,
 } from './_store.js';
 
 const MAX_BATCH = 200;
@@ -29,11 +30,12 @@ export default async function handler(req, res) {
     const added = [];
 
     for (const entry of entries) {
-      const name = clean(entry?.name, 120);
+      if (!entry || typeof entry !== 'object') continue;
+      const name = clean(entry.name, 120);
       if (!name) continue;
 
       const item = {
-        id: crypto.randomUUID(),
+        id: newId(),
         name,
         area: clean(entry.area, 80),
         tags: cleanTags(entry.tags),
@@ -43,6 +45,13 @@ export default async function handler(req, res) {
         submitted_at: new Date().toISOString(),
         source: 'bulk',
       };
+      // Backfilling old favourites: "when" is when it was visited, not today,
+      // and known coordinates skip the geocode on approval.
+      const when = cleanWhen(entry.when);
+      if (when) item.when = when;
+      const lat = cleanCoord(entry.lat, 90);
+      const lng = cleanCoord(entry.lng, 180);
+      if (lat !== null && lng !== null) { item.lat = lat; item.lng = lng; }
       added.push(item);
     }
 
@@ -51,7 +60,6 @@ export default async function handler(req, res) {
     }
     return res.status(200).json({ ok: true, added: added.length, items: added });
   } catch (e) {
-    console.error('POST bulk-add failed:', e);
-    return res.status(500).json({ error: 'failed to queue entries' });
+    return fail(res, e, 'failed to queue entries');
   }
 }

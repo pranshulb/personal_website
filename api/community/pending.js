@@ -1,6 +1,6 @@
 // GET /api/community/pending — admin. The review queue.
 
-import { readPending, requireAdmin, adminCors, checkRate, clientIp } from './_store.js';
+import { readPending, requireAdmin, adminCors, checkRate, clientIp, fail } from './_store.js';
 
 export default async function handler(req, res) {
   adminCors(res);
@@ -18,7 +18,6 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json(await readPending());
   } catch (e) {
-    console.error('GET pending failed:', e);
-    return res.status(500).json({ error: 'failed to load queue' });
+    return fail(res, e, 'failed to load queue');
   }
 }

@@ -204,6 +204,24 @@
       text-decoration-color: #c47a7a;
     }
 
+    /* A field no person sees. Scripts that fill every input fill this one,
+       and the API quietly drops the submission. Off-screen rather than
+       display:none, since some bots skip hidden inputs. */
+    .hp {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .submit-link:focus-visible {
+      outline: 2px solid #c47a7a;
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+
     /* ---- error ---- */
 
     .error-msg {
@@ -339,14 +357,14 @@
     <form id="suggest-form" class="conversation" novalidate>
 
       <div class="line">
-        <span class="prompt-text">ok so it's called</span>
-        <input type="text" id="name" name="name" placeholder="the name of the place or event">
+        <label class="prompt-text" for="name">ok so it's called</label>
+        <input type="text" id="name" name="name" placeholder="the name of the place or event" autocomplete="off">
       </div>
 
       <div class="line">
-        <span class="prompt-text">and it's in</span>
-        <input type="text" id="city" name="city" placeholder="city">
-        <input type="text" id="area" name="area" placeholder="neighbourhood, if you remember" style="margin-top: 0.3rem;">
+        <label class="prompt-text" for="city">and it's in</label>
+        <input type="text" id="city" name="city" placeholder="london, probably" autocomplete="off">
+        <input type="text" id="area" name="area" placeholder="neighbourhood, if you remember" style="margin-top: 0.3rem;" aria-label="neighbourhood" autocomplete="off">
       </div>
 
       <div class="line">
@@ -365,24 +383,33 @@
       </div>
 
       <div class="line">
-        <span class="prompt-text">here's a link if there is one</span>
-        <input type="url" id="url" name="url" placeholder="https://...">
+        <label class="prompt-text" for="url">here's a link if there is one</label>
+        <input type="url" id="url" name="url" placeholder="https://..." autocomplete="off">
       </div>
 
       <div class="line">
-        <span class="prompt-text">and honestly, what's good about it?</span>
+        <label class="prompt-text" for="note">and honestly, what's good about it?</label>
         <textarea id="note" name="note" rows="3" placeholder="the kind of thing you'd say to a friend over coffee"></textarea>
       </div>
 
       <div class="line">
-        <span class="prompt-text">who should i thank for this?</span>
-        <input type="text" id="submitted_by" name="submitted_by" placeholder="your name, if you feel like it">
+        <label class="prompt-text" for="submitted_by">who should i thank for this?</label>
+        <input type="text" id="submitted_by" name="submitted_by" placeholder="your name, if you feel like it" autocomplete="off">
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="website">leave this empty</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
       <p class="error-msg" id="error-msg"></p>
 
       <div class="submit-line">
-        <a href="#" class="submit-link" id="submit-link">send it my way</a>
+        <!-- A real submit, so Enter in a field sends it. It used to be a bare
+             link with no submit handler on the form, and Enter did the
+             browser default: a GET to this same page with everything you had
+             typed in the address bar, and the form reset. -->
+        <button type="submit" class="submit-link" id="submit-link">send it my way</button>
       </div>
 
     </form>
@@ -439,9 +466,10 @@
     track('suggest-start');
   }, { once: false });
 
-  submitLink.addEventListener('click', function (e) {
+  var sending = false;
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
-    send();
+    if (!sending) send();
   });
 
   async function send() {
@@ -455,6 +483,7 @@
       url: form.url.value.trim(),
       note: form.note.value.trim(),
       submitted_by: form.submitted_by.value.trim(),
+      website: form.website.value,
       submitted_at: new Date().toISOString()
     };
 
@@ -466,6 +495,8 @@
     }
 
     formWrapper.classList.add('sending');
+    sending = true;
+    submitLink.textContent = 'sending…';
 
     try {
       var res = await fetch('/api/community/suggest', {
@@ -474,7 +505,7 @@
         body: JSON.stringify(data)
       });
 
-      if (!res.ok) throw new Error('failed');
+      if (!res.ok) throw new Error(String(res.status));
 
       // Shape of the submission only — never the note, the link or who sent
       // it. Those belong in the queue, not in analytics.
@@ -493,10 +524,17 @@
     } catch (err) {
       // Worth counting: a spike here means the endpoint is broken and people
       // are being turned away silently.
-      track('suggest-failed');
+      track('suggest-failed', { status: String(err && err.message) });
       formWrapper.classList.remove('sending');
-      errorMsg.textContent = 'hmm, that didn’t go through. maybe try once more?';
+      var code = String(err && err.message);
+      errorMsg.textContent =
+        code === '429' ? 'whoa, that’s a lot at once — give it a minute and try again' :
+        code === '503' ? 'the list is busy right now. try again in a moment?' :
+        'hmm, that didn’t go through. maybe try once more?';
       errorMsg.style.display = 'block';
+    } finally {
+      sending = false;
+      submitLink.textContent = 'send it my way';
     }
   }
 

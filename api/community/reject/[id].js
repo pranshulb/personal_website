@@ -1,7 +1,7 @@
 // POST /api/community/reject/<id> — admin. Drops one item from the queue.
 
 import {
-  removePending, requireAdmin, adminCors, checkRate, clientIp,
+  removePending, requireAdmin, adminCors, checkRate, clientIp, fail,
 } from '../_store.js';
 
 export default async function handler(req, res) {
@@ -24,7 +24,6 @@ export default async function handler(req, res) {
     }
     return res.status(200).json({ ok: true, remaining: remaining.length });
   } catch (e) {
-    console.error('POST reject failed:', e);
-    return res.status(500).json({ error: 'failed to reject' });
+    return fail(res, e, 'failed to reject');
   }
 }

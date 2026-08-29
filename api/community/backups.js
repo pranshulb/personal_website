@@ -30,8 +30,7 @@ export default async function handler(req, res) {
     try {
       return res.status(200).json({ which, versions: await listVersions(key) });
     } catch (e) {
-      console.error('GET backups failed:', e);
-      return res.status(500).json({ error: 'failed to list backups' });
+      return fail(res, e, 'failed to list backups');
     }
   }
 
@@ -47,8 +46,7 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ ok: true, restored: restored.length });
     } catch (e) {
-      console.error('POST backups failed:', e);
-      return res.status(500).json({ error: 'failed to restore' });
+      return fail(res, e, 'failed to restore');
     }
   }
 
