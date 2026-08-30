@@ -123,6 +123,25 @@ true` when the geocoder found nothing. Pending item: the same minus
 `when/lat/lng` (optional — bulk-add can supply them so approval skips the
 geocoder), plus `city, submitted_by, submitted_at, source`.
 
+### The note is Pranshul's, or it is empty
+
+**Never write a `note` for him.** No model-generated descriptions, no "a
+Victorian engine shed turned music venue" pulled from what you happen to know
+about the place, not in `bulk-add`, not in `suggest`, not as a helpful
+placeholder to be edited later. The whole point of the map is that he went and
+he liked it; an invented note is a plausible-sounding claim about a place he
+may remember completely differently, and once it is on the map it reads as his.
+
+When adding places on his behalf, send `note: ''` and leave it. He fills them
+in himself via **edit**, or they stay empty — both are fine. `.place.no-note`
+in `community/index.html` promotes the name to the entry's headline so an
+entry with no note reads as a normal entry rather than a caption with nothing
+above it. Notes coming from the public suggest form are somebody's own words
+about a place, which is a different thing, and they stay.
+
+The same goes for `area`, `when` and `tags`: fill them from what he actually
+told you or from his calendar, not from inference.
+
 ### Storage
 
 Vercel Blob, two keys: `community-places.json` and `community-pending.json`.

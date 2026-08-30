@@ -395,6 +395,19 @@
       margin-bottom: 0.2rem;
     }
 
+    /* An entry with no note has nothing above the meta line, so the name stops
+       being attribution and becomes the entry itself — at 0.9rem it read as a
+       caption for something that wasn't there. Notes are optional by design
+       (Pranshul writes them or nobody does), so this is a normal entry, not a
+       degraded one. */
+    .place.no-note { margin-bottom: 1.1rem; }
+    .place.no-note .place-name {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #3a2f2f;
+    }
+    .place.no-note .place-meta { gap: 0.55rem; }
+
     /* name + area + when as attribution below */
     .place-meta {
       display: flex;
@@ -710,7 +723,8 @@
 
   function makeCard(place, staggerIdx) {
     var div = document.createElement('div');
-    div.className = 'place entering' + (place._pinned ? '' : ' unpinned');
+    // No note means the name has to carry the entry on its own — see .no-note.
+    div.className = 'place entering' + (place._pinned ? '' : ' unpinned') + (place.note ? '' : ' no-note');
     div.id = 'place-' + place._idx;
     if (place._pinned) {
       div.setAttribute('role', 'button');
