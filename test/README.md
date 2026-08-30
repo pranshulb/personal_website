@@ -64,4 +64,14 @@ Google Fonts stylesheet) are served from disk instead:
 PW_FIXTURES=/path/to/fixtures npm run test:pages
 ```
 
+If the npm registry is reachable (it usually is even where CDNs aren't), the
+fixtures build in one line — leaflet.js and leaflet.css straight from the
+package, tile.png as any small png (a 1×1 will do):
+
+```
+cd /path/to/fixtures && npm pack leaflet@1.9.4 --silent && tar xzf leaflet-1.9.4.tgz \
+  && cp package/dist/leaflet.js package/dist/leaflet.css . \
+  && node -e "require('fs').writeFileSync('tile.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==','base64'))"
+```
+
 Screenshots land in `test/shots/` (gitignored).
