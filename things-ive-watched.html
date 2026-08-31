@@ -699,16 +699,39 @@
     return `https://letterboxd.com/film/${slug}/`;
   }
 
-  let activeFilter = 'all';
+  /* Filters combine: tags within a group are OR'd, groups are AND'd. So
+     english + movies means english movies, while movies + tv shows means
+     either one. Nothing selected means everything. */
+  const FILTER_GROUP = {
+    movies: 'type',      tv: 'type',
+    english: 'language', hindi: 'language',
+    animated: 'style',   favourites: 'favourites'
+  };
+  const activeFilters = new Set();
+
+  function matchesFilters(m) {
+    if (!activeFilters.size) return true;
+    const tags = m.tags || [];
+    const wanted = {};
+    for (const f of activeFilters) {
+      const g = FILTER_GROUP[f] || f;
+      (wanted[g] = wanted[g] || []).push(f);
+    }
+    return Object.keys(wanted).every(g => wanted[g].some(t => tags.includes(t)));
+  }
+
+  function syncFilterButtons() {
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      const f = b.dataset.filter;
+      b.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+    });
+  }
   let searchQuery = '';
 
   function renderMovies() {
     const grid = document.getElementById('movieGrid');
     const q = searchQuery.trim().toLowerCase();
-    const filtered = (activeFilter === 'all'
-      ? movies
-      : movies.filter(m => m.tags && m.tags.includes(activeFilter))
-    ).filter(m => !q || m.title.toLowerCase().includes(q))
+    const filtered = movies.filter(matchesFilters).filter(m => !q || m.title.toLowerCase().includes(q))
      .sort((a, b) => a.title.replace(/^The /, '').localeCompare(b.title.replace(/^The /, '')));
 
     document.getElementById('movie-count').textContent = filtered.length;
@@ -739,9 +762,11 @@
   // filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
+      const f = btn.dataset.filter;
+      if (f === 'all') activeFilters.clear();
+      else if (activeFilters.has(f)) activeFilters.delete(f);
+      else activeFilters.add(f);
+      syncFilterButtons();
       renderMovies();
     });
   });
