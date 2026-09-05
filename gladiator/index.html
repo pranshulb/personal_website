@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gladiator.cx — Casual hookups? Yawn. Enter the arena.</title>
+<meta name="description" content="The no-pants colosseum. Ranked matchmaking for consenting thrill-seekers — matched by kink, ranked by reviews and heartbeats, badged until the sheets surrender. Satire. 98% success rate, 0 lions.">
+<meta name="keywords" content="gladiator training, satire, comedy, arena, ranked, parody website">
+<meta name="theme-color" content="#0b0908">
+<meta name="rating" content="adult">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="gladiator.cx">
+<meta property="og:title" content="gladiator.cx — Casual hookups? Yawn. Enter the arena.">
+<meta property="og:description" content="The no-pants colosseum: ranked blood-sport for consenting thrill-seekers. 100% virtual, injury-free, and entirely satirical.">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="gladiator.cx — Casual hookups? Yawn. Enter the arena.">
+<meta name="twitter:description" content="The no-pants colosseum: ranked blood-sport for consenting thrill-seekers. Satire, 100% injury-free.">
+
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ============ icon sprite ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="sw" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+  <symbol id="i-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" x2="19" y1="19" y2="13"/><line x1="16" x2="20" y1="16" y2="20"/><line x1="19" x2="21" y1="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" x2="9" y1="14" y2="18"/><line x1="7" x2="4" y1="17" y2="20"/><line x1="3" x2="5" y1="19" y2="21"/>
+  </symbol>
+  <symbol id="i-helmet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.6 13.4v-1.9a7.4 7.4 0 0 1 14.8 0v1.9"/><path d="M4.6 13.4h14.8"/><path d="M6.2 13.4v3.1a3.1 3.1 0 0 0 3.1 3.1h1.2v-6.2"/><path d="M17.8 13.4v3.1a3.1 3.1 0 0 1-3.1 3.1h-1.2v-6.2"/><path d="M12 13.4V20"/><path d="M12 4.1V1.9"/><path d="M10.1 3.1c1.2-1.5 2.6-1.5 3.8 0"/>
+  </symbol>
+  <symbol id="i-laurel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 21c-4.97 0-9-4.03-9-9 0-3.3 1.8-6.2 4.5-7.7"/><path d="M12 21c4.97 0 9-4.03 9-9 0-3.3-1.8-6.2-4.5-7.7"/><path d="M5.6 9.3c1.8-.4 3.2.4 3.9 1.9"/><path d="M18.4 9.3c-1.8-.4-3.2.4-3.9 1.9"/><path d="M6.1 13.4c1.8-.4 3.2.4 3.9 1.9"/><path d="M17.9 13.4c-1.8-.4-3.2.4-3.9 1.9"/>
+  </symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+  </symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.2 13h6.3l.5-1 2 4.5 2-7 1.5 3.5h5.3"/>
+  </symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+  </symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
+  </symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+  </symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 5.5 12 3c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+  </symbol>
+  <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+  </symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
+  </symbol>
+  <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+  </symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
+  </symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m6 9 6 6 6-6"/>
+  </symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+    <path d="M4 7h16M4 12h16M4 17h16"/>
+  </symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+    <path d="M6 6l12 12M18 6 6 18"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+  </symbol>
+  <symbol id="i-login" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>
+  </symbol>
+  <symbol id="i-packet" viewBox="0 0 100 100">
+    <path fill="#b8281f" d="M3 3L7.7 6.2L12.4 3L17.1 6.2L21.8 3L26.5 6.2L31.2 3L35.9 6.2L40.6 3L45.3 6.2L50 3L54.7 6.2L59.4 3L64.1 6.2L68.8 3L73.5 6.2L78.2 3L82.9 6.2L87.6 3L92.3 6.2L97 3L93.8 7.7L97 12.4L93.8 17.1L97 21.8L93.8 26.5L97 31.2L93.8 35.9L97 40.6L93.8 45.3L97 50L93.8 54.7L97 59.4L93.8 64.1L97 68.8L93.8 73.5L97 78.2L93.8 82.9L97 87.6L93.8 92.3L97 97L92.3 93.8L87.6 97L82.9 93.8L78.2 97L73.5 93.8L68.8 97L64.1 93.8L59.4 97L54.7 93.8L50 97L45.3 93.8L40.6 97L35.9 93.8L31.2 97L26.5 93.8L21.8 97L17.1 93.8L12.4 97L7.7 93.8L3 97L6.2 92.3L3 87.6L6.2 82.9L3 78.2L6.2 73.5L3 68.8L6.2 64.1L3 59.4L6.2 54.7L3 50L6.2 45.3L3 40.6L6.2 35.9L3 31.2L6.2 26.5L3 21.8L6.2 17.1L3 12.4L6.2 7.7Z"/>
+    <rect x="13" y="13" width="74" height="74" rx="10" fill="#d8352a"/>
+    <circle cx="50" cy="50" r="21" fill="none" stroke="#8f1a13" stroke-width="4" opacity=".55"/>
+    <circle cx="50" cy="50" r="11" fill="#e8574a"/>
+    <path d="M24 24c8-4 16-5 22-3" fill="none" stroke="#f3897e" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+  </symbol>
+</svg>
+
+<!-- ============ header ============ -->
+<header class="site-header" id="header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="gladiator.cx home">
+      <svg class="mark" aria-hidden="true"><use href="#i-helmet"/></svg>
+      <span>gladiator<span class="tld">.cx</span></span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#arena">The Arena</a>
+      <a href="#ranks">Ranks</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="header-actions">
+      <a class="link-quiet" href="/login">
+        <svg aria-hidden="true"><use href="#i-login"/></svg>
+        <span>Login</span>
+      </a>
+      <a class="btn btn-primary btn-sm" href="#pricing">
+        <svg aria-hidden="true"><use href="#i-sparkles"/></svg>
+        <span>Enter Arena</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
+        <svg aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#arena">The Arena</a>
+    <a href="#ranks">Ranks</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="/login">Login</a>
+    <a class="btn btn-primary" href="#pricing">Fight</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ hero ============ -->
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <svg class="arcade" viewBox="0 0 1500 420" fill="none" stroke="currentColor" stroke-width="1.4">
+      <path opacity="0.75" d="M6 400V294a44 44 0 0 1 88 0V400ZM106 400V294a44 44 0 0 1 88 0V400ZM206 400V294a44 44 0 0 1 88 0V400ZM306 400V294a44 44 0 0 1 88 0V400ZM406 400V294a44 44 0 0 1 88 0V400ZM506 400V294a44 44 0 0 1 88 0V400ZM606 400V294a44 44 0 0 1 88 0V400ZM706 400V294a44 44 0 0 1 88 0V400ZM806 400V294a44 44 0 0 1 88 0V400ZM906 400V294a44 44 0 0 1 88 0V400ZM1006 400V294a44 44 0 0 1 88 0V400ZM1106 400V294a44 44 0 0 1 88 0V400ZM1206 400V294a44 44 0 0 1 88 0V400ZM1306 400V294a44 44 0 0 1 88 0V400ZM1406 400V294a44 44 0 0 1 88 0V400Z"/><path d="M0 400H1500"/><path opacity="0.57" d="M6 250V174a44 44 0 0 1 88 0V250ZM106 250V174a44 44 0 0 1 88 0V250ZM206 250V174a44 44 0 0 1 88 0V250ZM306 250V174a44 44 0 0 1 88 0V250ZM406 250V174a44 44 0 0 1 88 0V250ZM506 250V174a44 44 0 0 1 88 0V250ZM606 250V174a44 44 0 0 1 88 0V250ZM706 250V174a44 44 0 0 1 88 0V250ZM806 250V174a44 44 0 0 1 88 0V250ZM906 250V174a44 44 0 0 1 88 0V250ZM1006 250V174a44 44 0 0 1 88 0V250ZM1106 250V174a44 44 0 0 1 88 0V250ZM1206 250V174a44 44 0 0 1 88 0V250ZM1306 250V174a44 44 0 0 1 88 0V250ZM1406 250V174a44 44 0 0 1 88 0V250Z"/><path d="M0 250H1500"/><path opacity="0.39" d="M10 130V70a40 40 0 0 1 80 0V130ZM110 130V70a40 40 0 0 1 80 0V130ZM210 130V70a40 40 0 0 1 80 0V130ZM310 130V70a40 40 0 0 1 80 0V130ZM410 130V70a40 40 0 0 1 80 0V130ZM510 130V70a40 40 0 0 1 80 0V130ZM610 130V70a40 40 0 0 1 80 0V130ZM710 130V70a40 40 0 0 1 80 0V130ZM810 130V70a40 40 0 0 1 80 0V130ZM910 130V70a40 40 0 0 1 80 0V130ZM1010 130V70a40 40 0 0 1 80 0V130ZM1110 130V70a40 40 0 0 1 80 0V130ZM1210 130V70a40 40 0 0 1 80 0V130ZM1310 130V70a40 40 0 0 1 80 0V130ZM1410 130V70a40 40 0 0 1 80 0V130Z"/><path d="M0 130H1500"/>
+    </svg>
+    <div class="vignette"></div>
+  </div>
+
+  <div class="dust" aria-hidden="true">
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+  </div>
+
+  <div class="wrap hero-inner">
+    <p class="eyebrow reveal">Est. MMXXV &middot; The no-pants colosseum</p>
+    <h1 class="reveal" style="--d:90ms">
+      <span class="lead">Casual hookups? Yawn.</span>
+      <span class="gild">Enter the arena.</span>
+    </h1>
+    <p class="hero-sub reveal" style="--d:180ms">Dominate&hellip; <em>or be dominated</em></p>
+    <div class="hero-cta reveal" style="--d:260ms">
+      <a class="btn btn-primary btn-lg" href="#pricing">
+        <span>Get Started</span>
+        <svg aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+      <a class="btn btn-ghost btn-lg" href="#ranks">
+        <svg aria-hidden="true"><use href="#i-laurel"/></svg>
+        <span>See the ranks</span>
+      </a>
+    </div>
+    <p class="hero-fine reveal" style="--d:330ms">
+      <svg aria-hidden="true"><use href="#i-shield"/></svg>
+      100% virtual, injury-free, and entirely satirical. No lions.
+    </p>
+
+    <div class="plinth reveal" style="--d:420ms">
+      <div><b data-count="98" data-suffix="%">98%</b><span>Success rate</span></div>
+      <div><b data-count="0" data-suffix="">0</b><span>Lions involved</span></div>
+      <div><b>VIII</b><span>Ranks to climb</span></div>
+      <div><b data-count="170" data-suffix=" bpm">170 bpm</b><span>House record</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ the arena ============ -->
+<section class="band" id="arena">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">What this is</p>
+      <h2>Unsheathe Your <span class="gild">Sword</span></h2>
+      <p>Gladiator is the no&#8209;pants colosseum where consenting thrill&#8209;seekers turn sweaty hookups into ranked blood&#8209;sport&mdash;matching by kink, logging heartbeats, and collecting bragging&#8209;rights badges until the sheets (or your ego) surrender.</p>
+    </div>
+
+    <div class="feature-grid">
+      <article class="card feature reveal">
+        <span class="ghost-num">I</span>
+        <div class="icon"><svg aria-hidden="true"><use href="#i-swords"/></svg></div>
+        <h3>Match. Clash. Conquer.</h3>
+        <p>Find worthy adversaries by kink, location, or sheer hubris.</p>
+      </article>
+      <article class="card feature reveal" style="--d:110ms">
+        <span class="ghost-num">II</span>
+        <div class="icon"><svg aria-hidden="true"><use href="#i-pulse"/></svg></div>
+        <h3>Ranked by Reviews &amp; Heartbeats</h3>
+        <p>Our sacred algorithm transforms your sweaty feats into epic badges.</p>
+      </article>
+      <article class="card feature reveal" style="--d:220ms">
+        <span class="ghost-num">III</span>
+        <div class="icon"><svg aria-hidden="true"><use href="#i-helmet"/></svg></div>
+        <h3>Lessons from the Legion</h3>
+        <p>Train with our centurion sex&#8209;coaches&mdash;certified in &lsquo;G&#8209;String Warfare.&rsquo;</p>
+      </article>
+    </div>
+
+    <div class="center-cta reveal">
+      <a class="btn btn-gold btn-lg" href="#pricing">
+        <svg aria-hidden="true"><use href="#i-sparkles"/></svg>
+        <span>Summon Your First Challenger</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ranks ============ -->
+<section class="band alt" id="ranks">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">The pecking order</p>
+      <h2>Climb the <span class="gild">Colosseum</span></h2>
+      <p>Show your standing at a glance&mdash;every bout, every heartbeat, every review propels you up the pecking order.</p>
+    </div>
+
+    <div class="ladder-layout">
+      <div class="ladder reveal" role="tablist" aria-label="Gladiator ranks" id="ladder">
+        <button class="rank" role="tab" data-heat="1" data-desc="New to the arena, still fumbling for the sword (and the bedsheets)" aria-selected="true" id="rank-1" aria-controls="rank-detail">
+          <span class="tier">I</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-star"/></svg>
+          <span class="name">Pleasure Peasant</span>
+        </button>
+        <button class="rank" role="tab" data-heat="1" data-desc="You know what &quot;edging&quot; is, and you&rsquo;ve pushed past the casual brink." aria-selected="false" tabindex="-1" id="rank-2" aria-controls="rank-detail">
+          <span class="tier">II</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-flame"/></svg>
+          <span class="name">Edger</span>
+        </button>
+        <button class="rank" role="tab" data-heat="1" data-desc="You survive longer than most&mdash;your opponents fear the drip." aria-selected="false" tabindex="-1" id="rank-3" aria-controls="rank-detail">
+          <span class="tier">III</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-drop"/></svg>
+          <span class="name">Sweat&#8209;Stained Squire</span>
+        </button>
+        <button class="rank" role="tab" data-heat="2" data-desc="Your name echoes in the forums&mdash;you don&rsquo;t just &quot;goon,&quot; you master the goon." aria-selected="false" tabindex="-1" id="rank-4" aria-controls="rank-detail">
+          <span class="tier">IV</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-shield"/></svg>
+          <span class="name">Master Gooner</span>
+        </button>
+        <button class="rank" role="tab" data-heat="2" data-desc="Your ticker&rsquo;s a legend&mdash;crowds chant your name at 170 bpm." aria-selected="false" tabindex="-1" id="rank-5" aria-controls="rank-detail">
+          <span class="tier">V</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-pulse"/></svg>
+          <span class="name">Boner Baron</span>
+        </button>
+        <button class="rank" role="tab" data-heat="2" data-desc="You dictate the pace&mdash;edging is your art form, your offense and defense." aria-selected="false" tabindex="-1" id="rank-6" aria-controls="rank-detail">
+          <span class="tier">VI</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-swords"/></svg>
+          <span class="name">Edgelord Exemplar</span>
+        </button>
+        <button class="rank" role="tab" data-heat="3" data-desc="You don&rsquo;t just finish&mdash;you orchestrate symphonies of release." aria-selected="false" tabindex="-1" id="rank-7" aria-controls="rank-detail">
+          <span class="tier">VII</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-trophy"/></svg>
+          <span class="name">Climax Commander</span>
+        </button>
+        <button class="rank" role="tab" data-heat="3" data-desc="The stuff of legend&mdash;your name carved in marble (and memory foam)." aria-selected="false" tabindex="-1" id="rank-8" aria-controls="rank-detail">
+          <span class="tier">VIII</span>
+          <svg class="glyph" aria-hidden="true"><use href="#i-crown"/></svg>
+          <span class="name">Organsmic Overlord</span>
+        </button>
+      </div>
+
+      <div class="card rank-detail reveal" style="--d:120ms" id="rank-detail" role="tabpanel" aria-labelledby="rank-1" tabindex="0">
+        <div class="badge"><svg id="detailGlyph" aria-hidden="true"><use href="#i-star"/></svg></div>
+        <p class="tier-label" id="detailTier">Rank I of VIII</p>
+        <h3 id="detailName">Pleasure Peasant</h3>
+        <p id="detailDesc">New to the arena, still fumbling for the sword (and the bedsheets)</p>
+        <div class="meter"><i id="detailMeter" style="width:12.5%"></i></div>
+        <div class="meter-label"><span>Peasant</span><span>Overlord</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ pricing ============ -->
+<section class="band" id="pricing">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Tribute</p>
+      <h2>Pick Your <span class="gild">Gladiator Path</span></h2>
+      <p>Because everyone deserves a chance to become a champion.</p>
+    </div>
+
+    <div class="switch-wrap reveal">
+      <div class="switch" role="group" aria-label="Who are you buying for?">
+        <button type="button" id="buySelf" aria-pressed="true">
+          <svg aria-hidden="true"><use href="#i-card"/></svg>
+          I&rsquo;m buying for myself
+        </button>
+        <button type="button" id="buyGift" aria-pressed="false">
+          <svg aria-hidden="true"><use href="#i-gift"/></svg>
+          I&rsquo;m buying as a gift
+        </button>
+      </div>
+    </div>
+
+    <div class="plans">
+      <article class="card plan reveal" id="planClassic">
+        <h3>Classic Gladiator Training</h3>
+        <p class="pitch">Perfect for solo arena prep. You, a sword, and one less fear.</p>
+        <div class="price"><b>&pound;5</b><span>/ month</span></div>
+        <p class="price-note">Cancel any time the crowd turns.</p>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Unlimited &ldquo;No More War Cries&rdquo; sessions</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Weekly &ldquo;Arena Progress&rdquo; reports</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Access to our &ldquo;Gladiator Guild&rdquo; community forum</span></li>
+        </ul>
+        <div class="foot">
+          <button class="btn btn-primary btn-block" type="button" data-demo>Begin Training</button>
+        </div>
+      </article>
+
+      <article class="card plan featured reveal" style="--d:110ms" id="planGift">
+        <span class="tag">GIFT</span>
+        <h3>Gift &amp; Rescue Package</h3>
+        <p class="pitch">Send someone the gift of valor. Their inbox will thank you&mdash;and so will the emperor.</p>
+        <div class="price"><b>&pound;8</b><span>total</span></div>
+        <p class="price-note">
+          (or &pound;5 + &pound;3 Gift Fee)
+          <span class="tip" tabindex="0" role="note" aria-label="Worth every denarius for hourly Arena Alert emails">
+            <svg aria-hidden="true"><use href="#i-info"/></svg>
+            <span class="tip-body">Worth every denarius for hourly &lsquo;Arena Alert&rsquo; emails</span>
+          </span>
+        </p>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Everything in Classic</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>&pound;3 &ldquo;Hourly Arena Alert&rdquo; gift service</span></li>
+          <li><svg aria-hidden="true"><use href="#i-check"/></svg><span>Recipient gets an email every hour for 24h: &ldquo;Time to enter the arena!&rdquo;</span></li>
+        </ul>
+        <div class="foot">
+          <button class="btn btn-gold btn-block" type="button" data-demo>Rescue a Friend</button>
+          <p class="caveat">May cause mild embarrassment. Proceed wisely.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ faq ============ -->
+<section class="band alt" id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Before you enlist</p>
+      <h2>Frequently Asked <span class="gild">Questions</span></h2>
+    </div>
+
+    <div class="faq" id="faqList">
+      <div class="qa open">
+        <button type="button" aria-expanded="true">
+          <span>Is gladiator training safe?</span>
+          <svg class="chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+        <div class="answer"><div><p>Our training is 100% virtual and injury-free. No lions, tigers, or actual swords involved.</p></div></div>
+      </div>
+      <div class="qa">
+        <button type="button" aria-expanded="false">
+          <span>How long does it take to become a champion?</span>
+          <svg class="chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+        <div class="answer"><div><p>Most trainees see results in 6 weeks, but true glory is a lifelong pursuit.</p></div></div>
+      </div>
+      <div class="qa">
+        <button type="button" aria-expanded="false">
+          <span>Can I gift training to a friend?</span>
+          <svg class="chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+        <div class="answer"><div><p>Absolutely! Give the gift of valor and watch your friends conquer their fears.</p></div></div>
+      </div>
+      <div class="qa">
+        <button type="button" aria-expanded="false">
+          <span>Will I get a real sword?</span>
+          <svg class="chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+        </button>
+        <div class="answer"><div><p>Only in your heart. But we do offer a printable certificate of valor!</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ finale ============ -->
+<section class="band">
+  <div class="wrap">
+    <div class="finale reveal">
+      <p class="eyebrow">Ave, challenger</p>
+      <h2>The sand is <span class="gild">waiting</span>.</h2>
+      <p>Eight ranks, one printable certificate of valor, and absolutely no lions. The crowd has been chanting for a while now.</p>
+      <a class="btn btn-primary btn-lg" href="#pricing">
+        <span>Get Started</span>
+        <svg aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ footer ============ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <a class="brand" href="/">
+        <svg class="mark" aria-hidden="true"><use href="#i-helmet"/></svg>
+        <span>gladiator<span class="tld">.cx</span></span>
+      </a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#arena">The Arena</a>
+        <a href="#ranks">Ranks</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="/login">Login</a>
+      </nav>
+    </div>
+    <p class="disclaimer">
+      <span class="age">18+</span>
+      Gladiator Training is a satirical service. No actual combat, violence, or arena battles are provided. For entertainment purposes only. Consult a real trainer before fighting lions.
+    </p>
+    <p class="copyright">&copy; <span id="year">2025</span> gladiator.cx. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="/assets/app.js" defer></script>
+</body>
+</html>

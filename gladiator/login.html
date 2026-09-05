@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome Back, Warrior — gladiator.cx</title>
+<meta name="description" content="Return to the arena. (A satirical login screen: nothing is stored, nothing is sent.)">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b0908">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-helmet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.6 13.4v-1.9a7.4 7.4 0 0 1 14.8 0v1.9"/><path d="M4.6 13.4h14.8"/><path d="M6.2 13.4v3.1a3.1 3.1 0 0 0 3.1 3.1h1.2v-6.2"/><path d="M17.8 13.4v3.1a3.1 3.1 0 0 1-3.1 3.1h-1.2v-6.2"/><path d="M12 13.4V20"/><path d="M12 4.1V1.9"/><path d="M10.1 3.1c1.2-1.5 2.6-1.5 3.8 0"/>
+  </symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+  </symbol>
+  <symbol id="i-login" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>
+  </symbol>
+  <symbol id="i-packet" viewBox="0 0 100 100">
+    <path fill="#b8281f" d="M3 3L7.7 6.2L12.4 3L17.1 6.2L21.8 3L26.5 6.2L31.2 3L35.9 6.2L40.6 3L45.3 6.2L50 3L54.7 6.2L59.4 3L64.1 6.2L68.8 3L73.5 6.2L78.2 3L82.9 6.2L87.6 3L92.3 6.2L97 3L93.8 7.7L97 12.4L93.8 17.1L97 21.8L93.8 26.5L97 31.2L93.8 35.9L97 40.6L93.8 45.3L97 50L93.8 54.7L97 59.4L93.8 64.1L97 68.8L93.8 73.5L97 78.2L93.8 82.9L97 87.6L93.8 92.3L97 97L92.3 93.8L87.6 97L82.9 93.8L78.2 97L73.5 93.8L68.8 97L64.1 93.8L59.4 97L54.7 93.8L50 97L45.3 93.8L40.6 97L35.9 93.8L31.2 97L26.5 93.8L21.8 97L17.1 93.8L12.4 97L7.7 93.8L3 97L6.2 92.3L3 87.6L6.2 82.9L3 78.2L6.2 73.5L3 68.8L6.2 64.1L3 59.4L6.2 54.7L3 50L6.2 45.3L3 40.6L6.2 35.9L3 31.2L6.2 26.5L3 21.8L6.2 17.1L3 12.4L6.2 7.7Z"/>
+    <rect x="13" y="13" width="74" height="74" rx="10" fill="#d8352a"/>
+    <circle cx="50" cy="50" r="21" fill="none" stroke="#8f1a13" stroke-width="4" opacity=".55"/>
+    <circle cx="50" cy="50" r="11" fill="#e8574a"/>
+    <path d="M24 24c8-4 16-5 22-3" fill="none" stroke="#f3897e" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+  </symbol>
+</svg>
+
+<header class="site-header is-stuck">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="gladiator.cx home">
+      <svg class="mark" aria-hidden="true"><use href="#i-helmet"/></svg>
+      <span>gladiator<span class="tld">.cx</span></span>
+    </a>
+    <a class="link-quiet" href="/" style="margin-left:auto">
+      <svg aria-hidden="true"><use href="#i-back"/></svg>
+      <span>Back to the arena</span>
+    </a>
+  </div>
+</header>
+
+<main class="auth">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <div class="vignette"></div>
+  </div>
+  <div class="dust" aria-hidden="true">
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+    <svg class="packet"><use href="#i-packet"/></svg>
+  </div>
+
+  <div class="auth-card reveal">
+    <p class="eyebrow solo">Returning champion</p>
+    <h1>Welcome Back, <span class="gild">Warrior</span></h1>
+    <p class="intro">Time to pick up your sword and return to the arena. ⚔️</p>
+
+    <p class="form-msg" id="formMsg" role="status" hidden></p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="gladiator@colosseum.com" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <div class="field-row">
+        <label for="remember"><input type="checkbox" id="remember" name="remember"> Remember me</label>
+        <a href="#" data-forgot>Forgot password?</a>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">
+        <svg aria-hidden="true"><use href="#i-login"/></svg>
+        <span>Enter the Arena</span>
+      </button>
+      <p class="auth-alt">Don&rsquo;t have an account? <a href="/#pricing">Begin your gladiator training</a></p>
+    </form>
+
+    <p class="auth-note">&ldquo;Every login brings you one step closer to glory in the arena&rdquo; 🏛️</p>
+  </div>
+</main>
+
+<script>
+(function () {
+  document.querySelector('.reveal').classList.add('shown');
+
+  var form = document.getElementById('loginForm');
+  var msg = document.getElementById('formMsg');
+
+  var show = function (text) {
+    msg.textContent = text;
+    msg.hidden = false;
+  };
+
+  // A real submit handler, so Enter in a field never falls through to a GET
+  // of this page with the password sitting in the address bar.
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('email');
+    var pass = document.getElementById('password');
+    if (!email.value.trim() || !pass.value) {
+      show('The gatekeeper needs both an email and a password. He is very literal.');
+      (email.value.trim() ? pass : email).focus();
+      return;
+    }
+    form.reset();
+    show('There is no arena. This is a satire site — nothing was sent anywhere, and nothing was stored.');
+  });
+
+  document.querySelector('[data-forgot]').addEventListener('click', function (e) {
+    e.preventDefault();
+    show('Your password is whatever you just typed. There is no account. Go in peace.');
+  });
+})();
+</script>
+</body>
+</html>

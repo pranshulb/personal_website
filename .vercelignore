@@ -1,0 +1,4 @@
+# Not part of pranshul.cafe. gladiator/ is a separate, self-contained site
+# deployed as its own Vercel project; keeping it here stops it from being
+# served under this domain.
+gladiator
