@@ -12,13 +12,15 @@ through any static server and it works.
 ```
 index.html          the landing page
 login.html          the (deliberately non-functional) login screen
-robots.txt
-vercel.json         cleanUrls + security headers + asset caching
 assets/style.css    the whole design system
 assets/app.js       reveal-on-scroll, rank ladder, pricing switch, FAQ, toasts
 assets/fonts.css    @font-face for Anton + Cinzel + Inter, pinned to Google's files
 assets/favicon.svg  a galea
 ```
+
+Every path in the markup is absolute and starts with `/gladiator` — asset
+links, the nav, the login link. Relative paths would break the moment the URL
+lost or gained a trailing slash, which `cleanUrls` makes easy to do.
 
 ## The idea
 
@@ -59,6 +61,7 @@ times at 600px, and copy that never got a layout worthy of it.
 - **Accessibility**: skip link, visible focus rings, labelled controls,
   `aria-selected` / `aria-expanded` / `aria-pressed` kept in sync, and a full
   `prefers-reduced-motion` path.
+- **Analytics**: the site's Umami tag, same as every other content page here.
 - **Weight**: ~100 KB of source total, one third-party origin (fonts).
 
 ## Social card
@@ -69,11 +72,26 @@ text files, so there is no raster card to point at. To add one: drop a
 `og:image:width`, `og:image:height` and `twitter:image` tags, switching
 `twitter:card` back to `summary_large_image`.
 
-## Deploying
+## Where it lives
 
-Static; anything will serve it. On Vercel it is its own project, deliberately
-separate from the personal site in this repo — `.vercelignore` at the repo
-root keeps this directory out of the pranshul.cafe build.
+Served from the main site at **pranshul.cafe/gladiator**, off the repo root's
+`vercel.json`, which now carries:
+
+- two rewrites (`/gladiator` and `/gladiator/login`), the same shape the
+  `/community` pages use;
+- a CSP and the usual `nosniff` / `DENY` / referrer headers for
+  `/gladiator` and `/gladiator/:path*`. The CSP allows inline script because
+  `login.html` has one, and `fonts.gstatic.com` for the three woff2 files;
+- a year-long immutable cache on `/gladiator/assets/:path*`.
+
+`middleware.js` does not match these paths, so nothing here is behind the
+auth cookie. Nothing on the site links to it — add a nav entry in the root
+`index.html` if you want it findable.
+
+There is no `robots.txt` here (it would sit at `/gladiator/robots.txt` and do
+nothing) and no `vercel.json` (only the repo root's is read). `index.html`
+is indexable; add `<meta name="robots" content="noindex">` if you would
+rather it were not. `login.html` already carries one.
 
 ## Content note
 
