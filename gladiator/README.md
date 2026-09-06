@@ -16,9 +16,19 @@ robots.txt
 vercel.json         cleanUrls + security headers + asset caching
 assets/style.css    the whole design system
 assets/app.js       reveal-on-scroll, rank ladder, pricing switch, FAQ, toasts
-assets/fonts.css    @font-face for Cinzel + Inter, pinned to Google's own files
+assets/fonts.css    @font-face for Anton + Cinzel + Inter, pinned to Google's files
 assets/favicon.svg  a galea
 ```
+
+## The idea
+
+A fight bill for a Colosseum that doesn't exist. Black paper, red ink,
+everything hung off one left rule with a gutter for the labels. Red is the
+field, not an accent: the chant band, the selected rank, the prices, the
+closing block are all red, and the hero is lit from below like the sand is
+on fire.
+
+Nothing is centred except the things meant to shout.
 
 ## What changed from the original
 
@@ -26,18 +36,23 @@ The original was a Next.js page in default Tailwind greys: `bg-gray-800`
 cards, `rounded-3xl` everywhere, a stock condom-packet PNG scattered eight
 times at 600px, and copy that never got a layout worthy of it.
 
-- **Art direction.** Obsidian ground, imperial gold, arena red. Cinzel
-  (Roman inscriptional caps) for display, Inter for text. Film grain over
-  everything, a drawn colosseum arcade behind the hero, and the foil packet
-  redrawn as a 1.5 KB SVG instead of a 350 KB bitmap.
+- **Art direction.** Anton does the shouting, Cinzel handles anything meant
+  to look carved, Inter carries the sentences. Newsprint grain over
+  everything; a colosseum drawn as a black cut-out standing in front of the
+  fire; the foil packet redrawn as a 1.5 KB SVG instead of a 350 KB bitmap.
+- **No pill buttons, no glow.** Everything is squared off with a hard offset
+  shadow, and pressing one moves it into its own shadow.
 - **The ranks actually work.** Eight tiers as a real tablist: click or hover
   to switch, arrow keys / Home / End to navigate, roving tabindex, and a
   detail panel that swaps glyph, description and progress meter. In the
   original only the first tier's description was ever shown.
-- **The pricing toggle does something.** "Buying for myself" / "buying as a
-  gift" now dims the plan you are not looking at, and on mobile shows only
-  that one.
-- **The FAQ is an accordion** instead of four permanently-open boxes.
+- **The pricing toggle does something.** "For myself" / "as a gift" dims the
+  ticket you are not looking at, and on mobile shows only that one.
+- **The FAQ is an accordion** instead of four permanently-open boxes, ruled
+  rather than boxed.
+- **The stats became a chant.** Four numbers in a four-up panel became a red
+  marquee band that runs under the hero, and stops dead under
+  `prefers-reduced-motion`.
 - **The login form has a submit handler**, so pressing Enter no longer does a
   GET of the page with your password in the address bar. Every dead-end
   control answers rather than doing nothing.

@@ -1,7 +1,19 @@
-/* Cinzel + Inter, latin subset, pinned to the exact files Google serves.
-   Declared here rather than through a <link> to fonts.googleapis.com: one
-   fewer blocking request, and the versions cannot drift underneath us.
-   Both are variable fonts, so one file covers the whole weight range. */
+/* Three faces, pinned to the exact files Google serves. Declared here rather
+   than behind a <link> to fonts.googleapis.com so the page makes one fewer
+   blocking request and the versions can't drift under us.
+
+   Anton does the shouting. Cinzel handles anything that wants to look carved.
+   Inter carries the actual sentences. Cinzel and Inter are variable, so one
+   file each covers the whole weight range. */
+
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-C8.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 @font-face {
   font-family: 'Cinzel';

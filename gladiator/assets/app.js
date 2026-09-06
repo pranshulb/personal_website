@@ -1,26 +1,28 @@
-/* gladiator.cx — interactions. No framework, no build step. */
+/* gladiator.cx — everything the page does. Vanilla, no build step.
+   Each block bails out if its markup isn't on the page, so both pages
+   can load this file. */
 (function () {
   'use strict';
 
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  var $ = function (id) { return document.getElementById(id); };
+  var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
 
-  /* ---------- header shadow ---------- */
-  var header = document.getElementById('header');
+  /* --- header ties itself to the page once you leave the top --- */
+  var header = $('header');
   if (header) {
-    var onScroll = function () {
-      header.classList.toggle('is-stuck', window.scrollY > 12);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+    var stick = function () { header.classList.toggle('stuck', window.scrollY > 10); };
+    stick();
+    window.addEventListener('scroll', stick, { passive: true });
   }
 
-  /* ---------- mobile nav ---------- */
-  var toggle = document.getElementById('menuToggle');
-  var mobileNav = document.getElementById('mobileNav');
-  if (toggle && mobileNav) {
+  /* --- mobile menu --- */
+  var toggle = $('menuToggle');
+  var menu = $('mobileNav');
+  if (toggle && menu) {
     var setMenu = function (open) {
-      mobileNav.classList.toggle('open', open);
+      menu.classList.toggle('open', open);
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       toggle.querySelector('use').setAttribute('href', open ? '#i-close' : '#i-menu');
@@ -28,165 +30,125 @@
     toggle.addEventListener('click', function () {
       setMenu(toggle.getAttribute('aria-expanded') !== 'true');
     });
-    mobileNav.addEventListener('click', function (e) {
-      if (e.target.closest('a')) setMenu(false);
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') setMenu(false);
-    });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
   }
 
-  /* ---------- scroll reveal ---------- */
-  var reveals = document.querySelectorAll('.reveal');
-  if (!('IntersectionObserver' in window) || reduced) {
-    Array.prototype.forEach.call(reveals, function (el) { el.classList.add('shown'); });
+  /* --- things arrive as you reach them --- */
+  var hidden = document.querySelectorAll('.reveal');
+  if (still || !('IntersectionObserver' in window)) {
+    each(hidden, function (el) { el.classList.add('shown'); });
   } else {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('shown');
-        io.unobserve(entry.target);
+    var watcher = new IntersectionObserver(function (rows) {
+      rows.forEach(function (row) {
+        if (!row.isIntersecting) return;
+        row.target.classList.add('shown');
+        watcher.unobserve(row.target);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    Array.prototype.forEach.call(reveals, function (el) { io.observe(el); });
+    each(hidden, function (el) { watcher.observe(el); });
   }
 
-  /* ---------- stat count-up ---------- */
-  var counters = document.querySelectorAll('[data-count]');
-  if (counters.length && !reduced && 'IntersectionObserver' in window) {
-    var countIO = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var el = entry.target;
-        countIO.unobserve(el);
-        var target = parseFloat(el.getAttribute('data-count'));
-        var suffix = el.getAttribute('data-suffix') || '';
-        var start = performance.now();
-        var dur = 1100;
-        var step = function (now) {
-          var t = Math.min(1, (now - start) / dur);
-          var eased = 1 - Math.pow(1 - t, 3);
-          el.textContent = Math.round(target * eased) + suffix;
-          if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      });
-    }, { threshold: 0.6 });
-    Array.prototype.forEach.call(counters, function (el) { countIO.observe(el); });
-  }
-
-  /* ---------- rank ladder ---------- */
-  var ladder = document.getElementById('ladder');
+  /* --- the ladder ---
+     A tablist: click or hover to pick a rank, arrows to walk it. The
+     dossier reads everything it needs off the button that was chosen, so
+     adding a rank to the HTML needs no change here. */
+  var ladder = $('ladder');
   if (ladder) {
     var ranks = Array.prototype.slice.call(ladder.querySelectorAll('.rank'));
-    var detail = {
-      glyph: document.getElementById('detailGlyph'),
-      tier: document.getElementById('detailTier'),
-      name: document.getElementById('detailName'),
-      desc: document.getElementById('detailDesc'),
-      meter: document.getElementById('detailMeter'),
-      panel: document.getElementById('rank-detail')
-    };
+    var glyph = $('detailGlyph'), tier = $('detailTier'), name = $('detailName'),
+        desc = $('detailDesc'), meter = $('detailMeter'), dossier = $('dossier');
 
-    var select = function (index, focus) {
-      ranks.forEach(function (btn, i) {
-        var on = i === index;
-        btn.setAttribute('aria-selected', String(on));
-        btn.tabIndex = on ? 0 : -1;
+    var pick = function (i, andFocus) {
+      ranks.forEach(function (btn, n) {
+        btn.setAttribute('aria-selected', String(n === i));
+        btn.tabIndex = n === i ? 0 : -1;
       });
-      var btn = ranks[index];
-      detail.name.textContent = btn.querySelector('.name').textContent;
-      detail.desc.innerHTML = btn.getAttribute('data-desc');
-      detail.tier.textContent = 'Rank ' + ROMAN[index] + ' of ' + ROMAN[ranks.length - 1];
-      detail.meter.style.width = ((index + 1) / ranks.length * 100).toFixed(1) + '%';
-      detail.glyph.querySelector('use')
+      var btn = ranks[i];
+      name.textContent = btn.querySelector('.name').textContent;
+      desc.innerHTML = btn.getAttribute('data-desc');
+      tier.textContent = 'Rank ' + ROMAN[i] + ' of ' + ROMAN[ranks.length - 1];
+      meter.style.width = ((i + 1) / ranks.length * 100).toFixed(1) + '%';
+      glyph.querySelector('use')
         .setAttribute('href', btn.querySelector('.glyph use').getAttribute('href'));
-      detail.panel.setAttribute('aria-labelledby', btn.id);
-      if (focus) btn.focus();
+      dossier.setAttribute('aria-labelledby', btn.id);
+      if (andFocus) btn.focus();
     };
 
     ranks.forEach(function (btn, i) {
-      btn.addEventListener('click', function () { select(i); });
-      btn.addEventListener('mouseenter', function () { select(i); });
+      btn.addEventListener('click', function () { pick(i); });
+      btn.addEventListener('mouseenter', function () { pick(i); });
       btn.addEventListener('keydown', function (e) {
-        var next = null;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (i + 1) % ranks.length;
-        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = (i - 1 + ranks.length) % ranks.length;
-        else if (e.key === 'Home') next = 0;
-        else if (e.key === 'End') next = ranks.length - 1;
-        if (next === null) return;
+        var to = null;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') to = (i + 1) % ranks.length;
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') to = (i - 1 + ranks.length) % ranks.length;
+        else if (e.key === 'Home') to = 0;
+        else if (e.key === 'End') to = ranks.length - 1;
+        if (to === null) return;
         e.preventDefault();
-        select(next, true);
+        pick(to, true);
       });
     });
 
-    select(0);
+    pick(0);
   }
 
-  /* ---------- pricing switch ---------- */
-  var buySelf = document.getElementById('buySelf');
-  var buyGift = document.getElementById('buyGift');
-  var planClassic = document.getElementById('planClassic');
-  var planGift = document.getElementById('planGift');
-  if (buySelf && buyGift && planClassic && planGift) {
-    var setMode = function (gift) {
-      buySelf.setAttribute('aria-pressed', String(!gift));
-      buyGift.setAttribute('aria-pressed', String(gift));
-      planClassic.classList.toggle('dimmed', gift);
-      planGift.classList.toggle('dimmed', !gift);
+  /* --- who the ticket is for --- */
+  var mine = $('buySelf'), theirs = $('buyGift'),
+      classic = $('planClassic'), gift = $('planGift');
+  if (mine && theirs && classic && gift) {
+    var mode = function (asGift) {
+      mine.setAttribute('aria-pressed', String(!asGift));
+      theirs.setAttribute('aria-pressed', String(asGift));
+      classic.classList.toggle('dimmed', asGift);
+      gift.classList.toggle('dimmed', !asGift);
     };
-    buySelf.addEventListener('click', function () { setMode(false); });
-    buyGift.addEventListener('click', function () { setMode(true); });
-    setMode(false);
+    mine.addEventListener('click', function () { mode(false); });
+    theirs.addEventListener('click', function () { mode(true); });
+    mode(false);
   }
 
-  /* ---------- faq accordion ---------- */
-  var faqList = document.getElementById('faqList');
-  if (faqList) {
-    faqList.addEventListener('click', function (e) {
+  /* --- one question open at a time --- */
+  var faq = $('faqList');
+  if (faq) {
+    faq.addEventListener('click', function (e) {
       var btn = e.target.closest('.qa > button');
       if (!btn) return;
-      var qa = btn.parentElement;
-      var open = !qa.classList.contains('open');
-      Array.prototype.forEach.call(faqList.querySelectorAll('.qa'), function (item) {
-        item.classList.remove('open');
-        item.querySelector('button').setAttribute('aria-expanded', 'false');
+      var opening = !btn.parentElement.classList.contains('open');
+      each(faq.querySelectorAll('.qa'), function (qa) {
+        qa.classList.remove('open');
+        qa.querySelector('button').setAttribute('aria-expanded', 'false');
       });
-      if (open) {
-        qa.classList.add('open');
+      if (opening) {
+        btn.parentElement.classList.add('open');
         btn.setAttribute('aria-expanded', 'true');
       }
     });
   }
 
-  /* ---------- the buttons that go nowhere, going nowhere gracefully ---------- */
-  var quips = [
-    'The gates are still being oiled. Try again after the parade.',
+  /* --- the buttons lead nowhere; at least they can say so --- */
+  var lines = [
+    'The gates are still being oiled. Come back after the parade.',
     'Your challenger is warming up. This is a satire site, remember.',
-    'Payment declined: the emperor only accepts denarii.',
-    'Nothing was charged. Nothing was ever going to be charged.'
+    'Declined. The emperor only accepts denarii.',
+    'Nothing was charged. Nothing was ever going to be charged.',
+    'The lions were never booked. There is no arena.'
   ];
-  var toast = null, toastTimer = null;
-  var say = function (msg) {
+  var toast, timer;
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-demo]')) return;
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'toast';
       toast.setAttribute('role', 'status');
-      toast.setAttribute('aria-live', 'polite');
       document.body.appendChild(toast);
     }
-    toast.textContent = msg;
+    toast.textContent = lines[Math.floor(Math.random() * lines.length)];
     toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 3600);
-  };
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-demo]');
-    if (!b) return;
-    say(quips[Math.floor(Math.random() * quips.length)]);
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove('show'); }, 3600);
   });
 
-  /* ---------- year ---------- */
-  var year = document.getElementById('year');
+  var year = $('year');
   if (year) year.textContent = new Date().getFullYear();
 })();
