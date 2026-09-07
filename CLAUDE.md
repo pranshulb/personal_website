@@ -27,6 +27,7 @@ typewriter.html             index of the typed variants
 garden.html, garden-home.html
 examined/, examinedv2/      philosophy personality test
 community/                  the community map (see §3)
+gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 middleware.js               edge auth gate for private pages
 vercel.json                 routing, headers, proxies
@@ -56,6 +57,10 @@ vercel.json                 routing, headers, proxies
   Those apps are *not* in this repo. If one 502s, the box is down, not Vercel.
 - `middleware.js` gates `/typeshit`, `/pdfs`, `/london-events` behind an
   HMAC-signed cookie (`pcafe_auth`), with the login form at `/login`.
+- `gladiator/` is a self-contained static site served at `/gladiator` — its
+  own type, palette and stylesheet, sharing nothing with the rest of the
+  site. Every path in its markup is absolute and prefixed `/gladiator`.
+  Nothing links to it. See `gladiator/README.md`.
 - Umami analytics on every content page, self-hosted at
   `analytics.pranshul.cafe`, website id `fd5100ed-…`. Add the tag to new pages.
 
