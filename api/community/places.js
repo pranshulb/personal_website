@@ -3,6 +3,7 @@
 
 import {
   readPlaces, writePlaces, removePlace, requireAdmin, adminCors, checkRate, clientIp, fail,
+  SEED_PLACES,
 } from './_store.js';
 
 export default async function handler(req, res) {
@@ -52,7 +53,9 @@ export default async function handler(req, res) {
       if (body.all === true) {
         const places = await readPlaces();
         await writePlaces([]);
-        return res.status(200).json({ ok: true, removed: places.length, remaining: 0 });
+        // An empty map shows the seed (withSeed in _store.js), so "remaining"
+        // is what the map shows from here, not what was just written.
+        return res.status(200).json({ ok: true, removed: places.length, remaining: SEED_PLACES.length });
       }
 
       let id = typeof body.id === 'string' ? body.id : '';

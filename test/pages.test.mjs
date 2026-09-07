@@ -20,6 +20,9 @@ fs.mkdirSync(SHOTS, { recursive: true });
 
 const PORT = await start();
 const BASE = 'http://127.0.0.1:' + PORT;
+// The seed the store sees (hooks.mjs swaps the real one for this); empty
+// unless a test fills it.
+const SEED = (await import(new URL('./seed-stub.mjs', import.meta.url).href)).default;
 
 const SAMPLE = [
   { id: 'p1', name: 'Peckham Levels', area: 'Peckham', tags: ['art', 'community'], note: 'a car park turned into studios, and the view from the top is the whole of london', url: 'https://peckhamlevels.org', when: 'march 2026', lat: 51.4715, lng: -0.0693 },
@@ -192,6 +195,34 @@ test('map: empty list and failed load say different things', async () => {
   T.fail.list = false;
   assert.deepEqual(p2._errors.filter((e) => !/favicon|analytics|umami|503/.test(e)), []);
   await p2.context().close();
+});
+
+test('map: an empty store shows the seed, and the footer carries the other lists', async () => {
+  T.reset();
+  const pinned = (id, area, lat, lng) => ({ id, name: id, area, tags: ['books'], note: '', url: '', when: '', lat, lng });
+  const roving = (id) => ({ id, name: id, area: '', tags: ['community'], note: '', url: '', when: '', lat: null, lng: null, needsCoords: true });
+  SEED.push(
+    pinned('seed-a', 'Peckham', 51.47, -0.07), pinned('seed-b', 'Soho', 51.51, -0.13), pinned('seed-c', 'Hackney', 51.54, -0.05),
+    roving('seed-d'), roving('seed-e'), roving('seed-f'),
+  );
+  const p = await page();
+  await p.goto(BASE + '/community');
+  await p.waitForSelector('.place');
+  await p.waitForTimeout(600);
+  assert.equal((await p.$$('.place')).length, 6);
+  assert.equal((await p.$$('.ink-dot-marker')).length, 3);
+  assert.match(await p.textContent('#tally'), /6 places · 3 corners/);
+  const links = await p.$$eval('#other-lists a', (els) => els.map((a) => a.href));
+  assert.equal(links.length, 6);
+  assert.ok(links.every((h) => /^https:\/\//.test(h)), links.join(' '));
+  // by area: the entries with no area group under "elsewhere", after the real
+  // corners — even though it is the biggest group
+  await p.click('#sort-area');
+  await p.waitForTimeout(400);
+  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Hackney', 'Peckham', 'Soho', 'elsewhere']);
+  await p.screenshot({ path: SHOTS + 'map-seeded.png', fullPage: true });
+  assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
+  await p.context().close();
 });
 
 test('map: narrow screen — sticky map, area heads sit below it', async () => {
@@ -461,6 +492,7 @@ test('admin: mobile layout — login button visible, deck fits, actions not cove
 const only = process.argv[2];
 for (const { name, fn } of tests) {
   if (only && !name.includes(only)) continue;
+  SEED.length = 0;
   try {
     await fn();
     passed++;

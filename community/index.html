@@ -500,6 +500,16 @@
     }
     .footer a:hover { color: #c47a7a; }
 
+    /* other people's directories — pointers, not places, so they live down
+       here rather than as pinless entries in the list */
+    .other-lists {
+      margin-top: 1.2rem;
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+
     /* ---- NARROW ---- */
     /* One column, map first — and sticky, so it stays on screen instead of
        scrolling away the moment you start reading. It shrinks once you're into
@@ -583,6 +593,14 @@
       <div class="footer">
         <p><a href="/">← pranshul.cafe</a></p>
         <p style="margin-top: 0.3rem;">know something i'd like? <a href="/community/suggest">tell me about it</a></p>
+        <p class="other-lists" id="other-lists">other lists of london:
+          <a href="https://otherwise.london/" target="_blank" rel="noopener">otherwise.london</a>,
+          <a href="https://social-fabric-london.onrender.com/" target="_blank" rel="noopener">social fabric london</a>,
+          <a href="https://londonsocialclubs.com/" target="_blank" rel="noopener">london social clubs</a>,
+          <a href="https://openworkshopnetwork.com/" target="_blank" rel="noopener">open workshop network</a>,
+          <a href="https://www.london.gov.uk/programmes-strategies/communities-and-social-justice/civil-society/loved-and-wanted/community-spaces?ac-712984=712977#find-a-community-space-712975-title" target="_blank" rel="noopener">london.gov.uk's community spaces</a>,
+          <a href="https://radar.squat.net/en/london/430-go" target="_blank" rel="noopener">radar (london)</a>
+        </p>
       </div>
     </div>
 
@@ -640,7 +658,8 @@
     books: '#5f8f77', music: '#5f86a8', film: '#9c7b63', workshop: '#b26f45',
     making: '#b26f45', community: '#7f9350', talk: '#7f9350',
     storytelling: '#b86a53', food: '#c08a3a', outdoors: '#6f9455',
-    screening: '#9c7b63', science: '#5f86a8'
+    screening: '#9c7b63', science: '#5f86a8',
+    tech: '#4f7f8c', philosophy: '#8f6b8f', curiosities: '#a37e4e', living: '#7c8f88'
   };
   var FALLBACK_COLOURS = ['#c2717d','#8b7aa8','#c8903f','#a4648b','#5f8f77','#5f86a8','#b26f45','#7f9350'];
 
@@ -844,7 +863,11 @@
         if (!byArea[key]) { byArea[key] = []; order.push(key); }
         byArea[key].push(pl);
       });
+      // Biggest corner first — except "elsewhere", which isn't a corner: the
+      // entries with no area (a meetup that moves around) go after the ones
+      // that have one, however many there are.
       order.sort(function(a, b) {
+        if ((a === 'elsewhere') !== (b === 'elsewhere')) return a === 'elsewhere' ? 1 : -1;
         return byArea[b].length - byArea[a].length || a.localeCompare(b);
       });
       order.forEach(function(key) {

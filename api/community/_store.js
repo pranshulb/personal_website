@@ -261,8 +261,19 @@ export function withIds(places) {
 
 export const newId = () => randomUUID();
 
-// places.json is seeded on first read so the map isn't empty on a fresh deploy.
-export const readPlaces = async () => withIds(await readBlob(PLACES_KEY, SEED_PLACES));
+// The seed fills an EMPTY map — not only a never-written one. A wipe writes
+// [] (so does removing the last entry, or restoring an empty version), and
+// the old rule ("seed only when nothing has ever been written") left the seed
+// inert for good after that: nothing pushed through git could reach a map
+// that had once been wiped. Applied on read and inside every place mutation
+// alike, so the first write after the map is empty persists the seed
+// alongside its own change, and from then on the blob is the source of truth
+// again. The consequence to know: an empty map shows the seed. For a
+// genuinely empty map, empty the seed.
+const withSeed = (list) => withIds(list.length === 0 ? structuredClone(SEED_PLACES) : list);
+export { SEED_PLACES };
+
+export const readPlaces = async () => withSeed(await readBlob(PLACES_KEY, []));
 export const writePlaces = (data) => overwrite(PLACES_KEY, data);
 export const readPending = () => readBlob(PENDING_KEY, []);
 export const writePending = (data) => overwrite(PENDING_KEY, data);
@@ -294,10 +305,10 @@ export function removePending(id) {
 export function appendPlace(place) {
   if (!place.id) throw new Error('appendPlace: place needs an id');
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => (current.some((p) => p.id === place.id) ? null : current.concat([place])),
     (after) => after.some((p) => p.id === place.id),
-    withIds,
+    withSeed,
   );
 }
 
@@ -307,7 +318,7 @@ export function replacePlace(next) {
   if (!next.id) throw new Error('replacePlace: place needs an id');
   const want = JSON.stringify(next);
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => {
       const i = current.findIndex((p) => p.id === next.id);
       if (i === -1) return null;
@@ -316,7 +327,7 @@ export function replacePlace(next) {
       return copy;
     },
     (after) => after.some((p) => p.id === next.id && JSON.stringify(p) === want),
-    withIds,
+    withSeed,
   );
 }
 
@@ -327,15 +338,19 @@ export function removePlace(id) {
   const count = (list) => list.filter((p) => p.id === id).length;
   let expect = 0;
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => {
       const i = current.findIndex((p) => p.id === id);
       if (i === -1) return null;
       expect = count(current) - 1;
-      return current.slice(0, i).concat(current.slice(i + 1));
+      const next = current.slice(0, i).concat(current.slice(i + 1));
+      // Taking out the last entry empties the map, and an empty map shows the
+      // seed. Write that — minus this entry, so the removal holds — rather
+      // than [] and have the check afterwards read the seed back as a failure.
+      return next.length === 0 ? withSeed([]).filter((p) => p.id !== id) : next;
     },
     (after) => count(after) <= expect,
-    withIds,
+    withSeed,
   );
 }
 

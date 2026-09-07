@@ -145,7 +145,17 @@ told you or from his calendar, not from inference.
 ### Storage
 
 Vercel Blob, two keys: `community-places.json` and `community-pending.json`.
-There is no database. `_seed.js` is used *only* when the store is empty.
+There is no database.
+
+`_seed.js` is what an **empty** map shows — never written, wiped, or down
+to zero entries. It is not written on read; the first approval, edit or
+removal after that persists the seed alongside its own change, and from then
+on Blob is the source of truth and edits to `_seed.js` change nothing until
+the map is empty again. So the seed is the one way to get a batch of entries
+onto the live map through git, and a wipe puts the seed back rather than
+leaving nothing (the admin says so). For a genuinely empty map, empty the
+seed. Seed entries carry `seed-…` ids, and the API test suite checks the
+real file: every note empty, every `when` empty, every pin inside London.
 
 Every write takes a **lock** (`lock-community-<key>.txt`, see §4) and every
 mutation goes through `appendPending` / `removePending` / `appendPlace` /
@@ -263,6 +273,17 @@ true` in the response). The map is written *before* the queue is trimmed, so
 a crash in between leaves the item in the queue where re-approving it is
 harmless — the other order would lose the suggestion.
 
+### The seed used to be inert after the first write
+
+The original rule was "seed only when nothing has ever been written". The
+prototype's placeholders were wiped, which *writes* `[]` — so from then on the
+store was non-empty-but-empty and a seed pushed through git reached nothing,
+with no error anywhere. The rule is now "an empty list shows the seed",
+applied on read and inside the place mutations (`withSeed`), and
+`removePlace` writes the seed-minus-the-entry rather than `[]` when it takes
+the last one out, so the check afterwards doesn't read the seed back as a
+failed write.
+
 ### A failed read is not an empty list
 
 `readBlob` used to swallow every error and return the fallback (`[]`). A
@@ -310,11 +331,13 @@ submit control, not just a key handler.
 `test/` — see `test/README.md`. No framework, plain `node:assert`.
 
 - `npm test` — the API (Node 22+). `test/hooks.mjs` is a loader hook that
-  resolves `@vercel/blob` to `test/blob-stub.mjs`, so the handlers are
-  imported exactly as written and nothing has to be planted in
-  `node_modules`. Covers sanitisers, auth, every route, the concurrency
+  resolves `@vercel/blob` to `test/blob-stub.mjs` (and the store's
+  `./_seed.js` to `test/seed-stub.mjs`, an empty list a test can fill), so
+  the handlers are imported exactly as written and nothing has to be planted
+  in `node_modules`. Covers sanitisers, auth, every route, the concurrency
   cases in §4 (double approve, suggest-during-approve, remove-during-approve,
-  a nine-writer burst), legacy ids, history, prune, the lock.
+  a nine-writer burst), legacy ids, history, prune, the lock, the seed rule,
+  and the shape of the real seed file.
 - `npm run test:pages` — Playwright drives `/community`, `/community/suggest`
   and `/community/admin` against `test/server.mjs`, which serves the repo
   like Vercel would and runs the *real* handlers over the stub. Needs
@@ -346,9 +369,14 @@ Two things that cost time writing these:
 
 ## 6. Current state
 
-- The map is **live but empty** (0 entries) and unlinked from the site.
-- The seed list is empty on purpose; the prototype's placeholder places were
-  wiped.
+- The map is **live and seeded** with Pranshul's first list (September 2026,
+  40 entries in `_seed.js`): 16 places with a door and a pin, 22 things that
+  happen without a fixed address (meetups, networks, event series — pinless
+  on purpose), 2 under `living`. Notes are all empty — his to write. Tags
+  are a first sort he asked for; areas are the venue's neighbourhood; pins on
+  the 16 were placed from memory of the address, not the geocoder.
+- Six directories he collects from (otherwise.london, social fabric, …) are
+  links in the map page's footer, not entries: pointers, not places.
 - Nothing links to `/community` from `index.html` — Pranshul asked for it to
   stay unlisted while WIP.
 - There may be leftover test entries in the pending queue (names containing
@@ -356,17 +384,16 @@ Two things that cost time writing these:
 
 ### Sensible next steps
 
-1. **Get real entries in.** The whole design — subject colours, the tally, area
-   grouping, the staggered entrance — is keyed to real data and looks inert
-   without it. `bulk-add` in the admin is the fast path; the line format now
-   takes a link and a "month year" after the tags, and the JSON form takes
-   `when`, `lat`, `lng` too, so old favourites can be backfilled with the
-   right date and pin.
-2. **Ship it**: drop the `noindex` meta from the three community pages and add
+1. **Check the 16 pins** — a pin from memory a street off is still wrong.
+   **edit → save and look the pin up again** re-places one from the name and
+   area via the geocoder.
+2. **Retag what's guessed.** The pinless entries under a bare `community`
+   are the ones nothing was known about; retag or remove in the admin.
+3. **Ship it**: drop the `noindex` meta from the three community pages and add
    a nav link in `index.html`.
-3. Entries approved without a pin show in the list with "no dot for this one
-   yet" and `no pin` in the admin — fix them with **edit → save and look the
-   pin up again**, or type the coordinates in.
+4. More entries go through `bulk-add` in the admin (the line format takes a
+   link and a "month year" after the tags; the JSON form takes `when`, `lat`,
+   `lng` too), or through the seed if they should arrive with a deploy.
 
 ---
 

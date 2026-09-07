@@ -14,6 +14,8 @@ const T = blob.__test;
 if (!T) throw new Error('the real @vercel/blob was loaded — run through test/register.mjs (npm test)');
 
 const store = await import(REPO + 'api/community/_store.js');
+// The same module instance hooks.mjs hands the store, so tests fill it in place.
+const SEED = (await import(REPO + 'test/seed-stub.mjs')).default;
 const places = await imp('api/community/places.js');
 const suggest = await imp('api/community/suggest.js');
 const login = await imp('api/community/login.js');
@@ -37,6 +39,7 @@ async function run() {
   for (const { name, fn } of tests) {
     if (only && !name.includes(only)) continue;
     T.reset();
+    SEED.length = 0;
     try {
       await fn();
       passed++;
@@ -489,6 +492,100 @@ test('a removal racing an approval loses neither the removal nor the approval', 
   assert.equal(d.statusCode, 200);
   assert.equal(a.statusCode, 200);
   assert.deepEqual((await getPlaces()).map((p) => p.name), ['New']);
+});
+
+// ======================================================================
+// the seed (fills an empty map, persisted by the first write after)
+// ======================================================================
+
+const seedEntry = (id, extra = {}) => ({
+  id, name: id, area: 'Peckham', tags: ['books'], note: '', url: '', when: '', lat: 51.47, lng: -0.07, ...extra,
+});
+
+test('seed: an empty map shows the seed, and the first write persists it', async () => {
+  SEED.push(seedEntry('seed-a'), seedEntry('seed-b'));
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-a', 'seed-b']);
+  // nothing was written just to read it
+  assert.equal(T.pathnames().filter((p) => p.startsWith('community-places')).length, 0);
+
+  const p = await approved({ name: 'New' });
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-a', 'seed-b', p.id]);
+  const versions = (await call(backups, { method: 'GET', headers: admin() })).body.versions;
+  assert.equal(versions[0].count, 3, 'the seed went into the store with the approval');
+
+  // from here the blob is the source of truth: a later seed edit changes nothing
+  SEED.length = 0;
+  assert.equal((await getPlaces()).length, 3);
+});
+
+test('seed: a wipe shows the seed again, and the response says how many', async () => {
+  SEED.push(seedEntry('seed-a'));
+  await approved({ name: 'One' });
+  await approved({ name: 'Two' });
+  const res = await call(places, { method: 'DELETE', query: { all: 'true' }, headers: admin() });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.removed, 3);
+  assert.equal(res.body.remaining, 1);
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-a']);
+});
+
+test('seed: removing a seed entry stays removed; removing the last entry shows the seed', async () => {
+  SEED.push(seedEntry('seed-a'), seedEntry('seed-b'));
+  let res = await call(places, { method: 'DELETE', body: { id: 'seed-a' }, headers: admin() });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.remaining, 1);
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-b']);
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-b'], 'and it stays gone');
+
+  // the map is [seed-b]; taking it out empties the map, and an empty map shows
+  // the seed — but the removal itself still holds, so seed-b does not return
+  res = await call(places, { method: 'DELETE', body: { id: 'seed-b' }, headers: admin() });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.remaining, 1);
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-a']);
+  const versions = (await call(backups, { method: 'GET', headers: admin() })).body.versions;
+  assert.equal(versions[0].count, 1, 'written as the seed minus the entry, not as []');
+});
+
+test('seed: a seed entry without a pin can be edited and looked up like any other', async () => {
+  SEED.push(seedEntry('seed-a', { lat: null, lng: null, needsCoords: true }));
+  T.nominatim = [{ lat: '51.52', lon: '-0.07' }];
+  const res = await post(edit, { area: 'Peckham', geocode: true }, { id: 'seed-a' });
+  assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+  const [p] = await getPlaces();
+  assert.equal(p.lat, 51.52);
+  assert.equal(p.needsCoords, undefined);
+  // the seed object itself was not written to
+  assert.equal(SEED[0].lat, null);
+});
+
+test('seed: the real list is well-formed, and carries no notes', async () => {
+  // Absolute specifier, so the hook leaves it alone and this is the real file.
+  const real = (await import(REPO + 'api/community/_seed.js')).default;
+  assert.ok(Array.isArray(real) && real.length > 0);
+  const ids = new Set();
+  for (const p of real) {
+    assert.deepEqual(Object.keys(p).sort(), [...new Set(['id', 'name', 'area', 'tags', 'note', 'url', 'when', 'lat', 'lng', ...(p.needsCoords !== undefined ? ['needsCoords'] : [])])].sort(), p.id);
+    assert.match(p.id, /^seed-[a-z0-9-]+$/, p.id);
+    assert.ok(!ids.has(p.id), 'duplicate id ' + p.id);
+    ids.add(p.id);
+    assert.equal(store.clean(p.name, 120), p.name, p.id);
+    assert.ok(p.name, p.id);
+    assert.equal(store.clean(p.area, 80), p.area, p.id);
+    assert.deepEqual(store.cleanTags(p.tags), p.tags, p.id);
+    assert.ok(p.tags.length > 0, p.id + ' needs a subject to sort under');
+    assert.equal(p.note, '', p.id + ': the note is Pranshul\'s or it is empty');
+    assert.equal(p.when, '', p.id + ': "when" is when he went, and only he knows');
+    assert.equal(store.cleanUrl(p.url), p.url, p.id);
+    if (p.lat === null) {
+      assert.equal(p.lng, null, p.id);
+      assert.equal(p.needsCoords, true, p.id);
+    } else {
+      assert.equal(p.needsCoords, undefined, p.id);
+      // inside London, roughly — a pin from memory that lands elsewhere is a typo
+      assert.ok(p.lat > 51.28 && p.lat < 51.7 && p.lng > -0.51 && p.lng < 0.33, p.id + ' is not in london: ' + p.lat + ',' + p.lng);
+    }
+  }
 });
 
 // ======================================================================

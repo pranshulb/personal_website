@@ -15,7 +15,8 @@ Pass a substring to run one test: `npm test -- "double"`.
 | file | what it is |
 |---|---|
 | `blob-stub.mjs` | stand-in for `@vercel/blob` — see below |
-| `hooks.mjs`, `register.mjs` | Node loader hook that swaps the stub in for `@vercel/blob` |
+| `hooks.mjs`, `register.mjs` | Node loader hook that swaps the stub in for `@vercel/blob`, and `seed-stub.mjs` in for the store's `_seed.js` |
+| `seed-stub.mjs` | the seed the store sees under test: an empty list a test fills in place |
 | `fake.mjs` | fake `req` / `res` in the shape Vercel hands to a function |
 | `api.test.mjs` | the API: sanitisers, auth, moderation, editing, concurrency, storage mechanics |
 | `server.mjs` | serves the repo like Vercel would, routing `/api/community/*` to the real handlers |
