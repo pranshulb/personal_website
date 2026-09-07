@@ -203,13 +203,30 @@ Built up over several passes; don't loosen it casually.
 - The suggest form has a honeypot field (`website`). A filled one gets a 200
   and nothing in the queue.
 
-### The map tiles
+### The map itself
 
-`tile.openstreetmap.org`, warmed and muted by a CSS filter on the tile pane.
-It was CARTO Voyager until August 2026, when CARTO started stamping "API KEY
-REQUIRED" across every tile for anonymous use. If the provider changes again,
-the `img-src` in **both** CSP blocks in `vercel.json` has to change with it,
-or the tiles are silently blocked.
+MapLibre GL (5.x, the UMD build from unpkg) over **OpenFreeMap** vector
+tiles, drawn in the page's own palette by `paperStyle()` in
+`community/index.html`: paper ground, ink-line roads, muted water and parks,
+and low 3D building extrusions under a 52° camera on desktop (flat on
+phones). No labels come from the tiles — the "corners of london" are drawn
+from the entries' own areas as HTML markers, in EB Garamond, once you're
+zoomed in enough. No key, no quota to watch.
+
+The page fetches OpenFreeMap's published `positron` style only to take its
+`sources` (so the tile URL is theirs to keep right), then swaps in our own
+layers with `setStyle`. If that fetch fails it guesses the planet TileJSON;
+if that fails too, the dots sit on plain paper and the page still works.
+`#map-wrap` gets `map-ready` when MapLibre is up and `map-ground` once the
+full style has drawn; the tests wait on those.
+
+It replaced Leaflet over raster OSM tiles (a road atlas muted by a CSS
+filter), which had replaced CARTO Voyager when CARTO started stamping "API
+KEY REQUIRED" on anonymous tiles. Anything the map loads must be allowed in
+**both** community CSP blocks in `vercel.json`: the style and the vector
+tiles are *fetched*, so it is `connect-src` (not `img-src`) that needs
+`tiles.openfreemap.org`, and MapLibre runs its worker from a blob URL, so
+`worker-src blob:` is required — without it the map silently never draws.
 
 ### Backups
 
@@ -300,13 +317,17 @@ transient `list()` failure inside a mutate therefore read as "the store is
 empty", and the write that followed replaced the whole list with one item.
 Reads now throw `StoreReadError`; nothing writes on top of a failed read.
 
-### Leaflet owns the marker element's `transform`
+### The map library owns the marker element's `transform` — and its opacity
 
 `setMarkerVisible` used to set `transform: scale(…)` on the marker element to
-animate filtering — which overwrote the `translate3d` Leaflet positions the
+animate filtering — which overwrote the `translate3d` Leaflet positioned the
 marker with, so on first render every dot sat stacked at the map origin until
-a zoom re-placed them. Scale the `<svg>` inside the marker, never the marker.
-The entrance animation is on the svg for the same reason.
+a zoom re-placed them. MapLibre places markers the same way (an inline
+`translate` + `rotate`), so the rule stands: scale the `<svg>` inside the
+marker, never the marker. The entrance animation is on the svg for the same
+reason. MapLibre also re-applies its own opacity to the element on every
+move, so hiding a dot goes through `marker.setOpacity()`, never an inline
+style — and the area labels are markers too, so the same goes for them.
 
 ### Enter in the suggest form did a GET to itself
 
@@ -354,8 +375,9 @@ submit control, not just a key handler.
   `package.json`) and a Chromium: Edge by default, `PW_CHANNEL=chrome`, or
   `PW_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome` in the
   sandbox. Do not run `playwright install`. The browser needs the network
-  for Leaflet (unpkg), the fonts and the OSM tiles; if the sandbox blocks
-  them, route those hosts to local fixtures.
+  for MapLibre (unpkg), the fonts and OpenFreeMap; with `PW_FIXTURES` set,
+  MapLibre is served from disk and the style and tiles are stubbed (see
+  `test/README.md`).
 - `npm test -- "some words"` runs only tests whose name contains them.
 
 **The most important lesson**: three separate bugs reached production because
@@ -386,6 +408,10 @@ Two things that cost time writing these:
   the 16 were placed from memory of the address, not the geocoder.
 - Six directories he collects from (otherwise.london, social fabric, …) are
   links in the map page's footer, not entries: pointers, not places.
+- The map is MapLibre over OpenFreeMap vector tiles in the page's own
+  palette, with low 3D buildings (September 2026 — see "The map itself").
+  It could only be checked with stubbed tiles from the sandbox; the real
+  ground was first seen on the Vercel preview.
 - Nothing links to `/community` from `index.html` — Pranshul asked for it to
   stay unlisted while WIP.
 - There may be leftover test entries in the pending queue (names containing

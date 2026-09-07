@@ -8,8 +8,8 @@
   <title>places i've liked — pranshul.cafe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Unkempt&family=Princess+Sofia&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -116,41 +116,58 @@
     #map {
       width: 100%;
       height: min(78vh, 720px);
-      background: #f3ece2;
+      background: #f4ede2;
       transition: height var(--dur) var(--ease-out);
     }
+    .maplibregl-map { font: inherit; }
+    .maplibregl-canvas { outline: none; }
 
-    .leaflet-tile-pane {
-      filter: saturate(0.4) sepia(0.25) brightness(1.06) contrast(0.92);
+    /* The ground fades up once the vector tiles have drawn. Until then — and
+       for good, if they never arrive — the dots sit on plain paper, which
+       still reads as the page rather than as a broken map. */
+    .maplibregl-canvas-container canvas {
+      opacity: 0;
+      transition: opacity var(--dur-slow) var(--ease-soft);
     }
+    .map-wrap.map-ground .maplibregl-canvas-container canvas { opacity: 1; }
 
-    /* warm zoom controls */
-    .leaflet-control-zoom {
-      border: none !important;
+    /* warm zoom controls, as before */
+    .maplibregl-ctrl-top-left .maplibregl-ctrl { margin: 10px 0 0 10px; }
+    .maplibregl-ctrl-group {
+      background: rgba(250, 245, 239, 0.9) !important;
+      border: 1px solid #e8d5c4;
+      border-radius: 2px;
       box-shadow: none !important;
     }
-    .leaflet-control-zoom a {
-      background: rgba(250, 245, 239, 0.9) !important;
-      color: #6a5545 !important;
-      border: 1px solid #e8d5c4 !important;
-      font-family: 'Unkempt', cursive !important;
+    .maplibregl-ctrl-group button {
       width: 28px !important;
       height: 28px !important;
-      line-height: 26px !important;
-      font-size: 1rem !important;
+      font-family: 'Unkempt', cursive;
+      font-size: 1rem;
+      line-height: 26px;
+      color: #6a5545;
+      border-radius: 0 !important;
     }
-    .leaflet-control-zoom a:hover {
-      background: rgba(250, 245, 239, 1) !important;
-      color: #3a2f2f !important;
-    }
+    .maplibregl-ctrl-group button + button { border-top: 1px solid #e8d5c4 !important; }
+    .maplibregl-ctrl-group button:hover { background-color: rgba(250, 245, 239, 1) !important; color: #3a2f2f; }
+    .maplibregl-ctrl-group button .maplibregl-ctrl-icon { display: none; }
+    .maplibregl-ctrl-zoom-in::after { content: '+'; }
+    .maplibregl-ctrl-zoom-out::after { content: '\2212'; }
 
-    .leaflet-control-attribution {
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl { margin: 0; }
+    .maplibregl-ctrl-attrib {
       font-family: 'EB Garamond', serif !important;
       font-size: 0.65rem !important;
       background: rgba(250, 245, 239, 0.85) !important;
-      color: #b8a090 !important;
+      color: #b8a090;
+      padding: 1px 6px !important;
     }
-    .leaflet-control-attribution a { color: #b8a090 !important; }
+    .maplibregl-ctrl-attrib a { color: #b8a090; text-decoration: none; }
+    .maplibregl-ctrl-attrib.maplibregl-compact { min-height: 20px; border-radius: 10px !important; }
+    /* open, the (i) button sits at the right and needs its room back */
+    .maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 1px 28px 1px 8px !important; }
+    .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) { padding: 0 !important; }
+    .maplibregl-ctrl-attrib-button { background-color: transparent !important; }
 
     /* the one gesture — a whisper at the edge of the map */
     .map-whisper {
@@ -166,16 +183,52 @@
       letter-spacing: 0.02em;
     }
 
-    /* ink-dot markers */
-    .ink-dot-marker { background: none !important; border: none !important; }
-
+    /* ink-dot markers. MapLibre owns the element's transform (that is how it
+       places the dot), exactly as Leaflet did — so size, scale and glow all
+       live on the svg inside, and showing/hiding goes through the marker's
+       own setOpacity, because MapLibre rewrites the element's opacity on
+       every move. */
+    .ink-dot-marker {
+      --c: #c47a7a;
+      width: 13px;
+      height: 13px;
+      cursor: pointer;
+      transition: opacity 0.35s ease;
+    }
     .ink-dot-marker svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
       transform-origin: center;
-      transition: transform var(--dur-fast) var(--ease-back);
+      transition: transform var(--dur-fast) var(--ease-back), filter var(--dur-fast) var(--ease-soft);
+    }
+    .ink-dot-marker svg path {
+      fill: var(--c);
+      opacity: 0.78;
+      transition: opacity var(--dur-fast) var(--ease-soft);
     }
     .ink-dot-marker:hover svg,
     .ink-dot-marker.active svg {
       transform: scale(1.4);
+      /* a little warmth around a lit dot — not a glow stick */
+      filter: drop-shadow(0 0 3px var(--c));
+    }
+    .ink-dot-marker:hover svg path,
+    .ink-dot-marker.active svg path { opacity: 0.95; }
+
+    /* the corners of london, in the page's own hand: one label per area that
+       has a dot in it, just under the dots, only once you are close enough */
+    .area-label {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      color: #8f7a6a;
+      text-shadow: 0 0 4px #faf5ef, 0 0 8px #faf5ef, 0 0 12px #faf5ef;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity var(--dur) var(--ease-soft);
     }
 
     /* dots settle in on load, staggered to match the list. The animation is
@@ -203,23 +256,26 @@
     }
 
     /* warm popups */
-    .note-popup .leaflet-popup-content-wrapper {
-      background: #faf5ef !important;
-      font-family: 'Unkempt', cursive !important;
-      font-size: 0.88rem !important;
-      line-height: 1.5 !important;
-      color: #3a2f2f !important;
-      border-radius: 2px !important;
-      box-shadow: 2px 3px 8px rgba(58, 47, 47, 0.12) !important;
-      border: 1.5px solid rgba(196, 122, 122, 0.25) !important;
+    .note-popup .maplibregl-popup-content {
+      background: #faf5ef;
+      font-family: 'Unkempt', cursive;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #3a2f2f;
+      padding: 10px 14px;
+      border-radius: 2px;
+      box-shadow: 2px 3px 8px rgba(58, 47, 47, 0.12);
+      border: 1.5px solid rgba(196, 122, 122, 0.25);
       transform: rotate(-0.5deg);
     }
-    .note-popup .leaflet-popup-content { margin: 10px 14px !important; }
-    .note-popup .leaflet-popup-tip {
-      background: #faf5ef !important;
-      border: 1px solid rgba(196, 122, 122, 0.2) !important;
-      box-shadow: none !important;
-    }
+    .note-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+    .note-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+    .note-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: #faf5ef; }
+    .note-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+    .note-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+    .note-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: #faf5ef; }
+    .note-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: #faf5ef; }
+    .note-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: #faf5ef; }
     .popup-name { color: #c47a7a; font-size: 0.92rem; margin-bottom: 2px; }
     .popup-area { font-size: 0.78rem; color: #b8a090; }
 
@@ -537,6 +593,9 @@
       .column { padding-bottom: 4rem; }
       #map { height: 46vh; }
       .map-wrap.shrunk #map { height: 22vh; }
+      /* the attribution has the bottom edge on a phone; the whisper is a
+         desktop flourish and would sit on top of it */
+      .map-whisper { display: none; }
       /* the map is sticky above the list, so a sticky heading has to sit
          below it, not under it. --map-h is measured from the real map. */
       .area-head { top: var(--map-h, 0px); }
@@ -675,15 +734,14 @@
   }
 
   // ---- INK DOT MARKER ----
-  function makeInkDot(colour, active) {
-    var size = active ? 19 : 13;
-    return L.divIcon({
-      className: 'ink-dot-marker' + (active ? ' active' : ''),
-      html: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 1.5 C13.5 0.5, 19 3.5, 18.5 10 C19.5 15, 14 19.5, 10 18.5 C5.5 19.5, 1 15.5, 1.5 10 C0.5 5, 6.5 0.5, 10 1.5Z" fill="' + colour + '" opacity="' + (active ? 0.95 : 0.78) + '"/></svg>',
-      iconSize: [size, size],
-      iconAnchor: [size/2, size/2],
-      popupAnchor: [0, -size/2]
-    });
+  // One element per place for the life of the page. "active" is a class on
+  // it, and the colour rides on --c so the svg, its halo and the card agree.
+  function makeInkDotEl(colour) {
+    var el = document.createElement('div');
+    el.className = 'ink-dot-marker';
+    el.style.setProperty('--c', colour);
+    el.innerHTML = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 1.5 C13.5 0.5, 19 3.5, 18.5 10 C19.5 15, 14 19.5, 10 18.5 C5.5 19.5, 1 15.5, 1.5 10 C0.5 5, 6.5 0.5, 10 1.5Z"/></svg>';
+    return el;
   }
 
   // ---- TALLY ----
@@ -807,10 +865,12 @@
     div.appendChild(meta);
 
     function open() {
-      if (!place._pinned) return;
+      if (!place._pinned || !map) return;
       track('place-open', { place: place.name, via: 'list' });
-      map.flyTo([place.lat, place.lng], 15, { duration: 1.2, easeLinearity: 0.3 });
-      markers[place._idx].openPopup();
+      // MapLibre jumps instead of flying for anyone who prefers reduced motion
+      map.flyTo({ center: [place.lng, place.lat], zoom: 15.4, pitch: PITCH, duration: 1200 });
+      var m = markers[place._idx];
+      if (m && !m.getPopup().isOpen()) m.togglePopup();
       // lights the dot and, unlike a bare activateMarker, puts it out again
       highlightPlace(place._idx, { scroll: false });
     }
@@ -898,36 +958,135 @@
   }
 
   // ---- MAP ----
-  var map = L.map('map', {
-    scrollWheelZoom: false,
-    zoomControl: true,
-    attributionControl: true
-  }).setView([51.505, -0.09], 12);
+  // MapLibre GL over OpenFreeMap's vector tiles, drawn in the page's own
+  // palette (paperStyle, below) with low 3D buildings under a tilted camera.
+  // This replaced Leaflet over raster OSM tiles, which put a road atlas under
+  // the dots and muted it with a CSS filter. The style is ours, here in the
+  // page, so the ground looks like the paper it sits on.
+  var STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+  var TILEJSON_FALLBACK = 'https://tiles.openfreemap.org/planet';
+  var ATTRIBUTION = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  var narrow = window.matchMedia('(max-width: 900px)');
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Flat on a phone: the tilt eats a small screen, and the extrusions cost.
+  var PITCH = narrow.matches ? 0 : 52;
+  var FIT_PADDING = { top: 70, right: 50, bottom: 50, left: 50 };
+  var mapWrap = document.getElementById('map-wrap');
 
-  // OpenStreetMap's own tiles. This was CARTO's Voyager, which now stamps
-  // "API KEY REQUIRED" across every tile for anonymous use. The tile-pane
-  // filter above does the warming and muting, so the busier OSM style still
-  // sits quietly under the dots. If this ever needs to change again, the CSP
-  // img-src in vercel.json has to change with it.
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19
-  }).addTo(map);
+  // The page's palette as a map style. `source` is { id, def } for the one
+  // vector source (OpenMapTiles schema). With none it is paper and nothing
+  // else — what shows until the tiles are known to be reachable.
+  function paperStyle(source) {
+    var style = {
+      version: 8,
+      sources: {},
+      light: { anchor: 'viewport', color: '#fff9f0', intensity: 0.38, position: [1.15, 215, 32] },
+      layers: [{ id: 'paper', type: 'background', paint: { 'background-color': '#f4ede2' } }]
+    };
+    if (!source) return style;
+    var s = source.id;
+    style.sources[s] = source.def;
+    // Tunnels are left out: a line for something you cannot see is noise.
+    function road(id, classes, colour, widths) {
+      return {
+        id: id, type: 'line', source: s, 'source-layer': 'transportation',
+        filter: ['all', ['match', ['get', 'class'], classes, true, false], ['!=', ['get', 'brunnel'], 'tunnel']],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': colour, 'line-width': ['interpolate', ['exponential', 1.4], ['zoom']].concat(widths) }
+      };
+    }
+    style.layers.push(
+      { id: 'green', type: 'fill', source: s, 'source-layer': 'landcover',
+        filter: ['match', ['get', 'class'], ['grass', 'wood', 'farmland', 'wetland'], true, false],
+        paint: { 'fill-color': '#e8e6d3', 'fill-opacity': 0.55 } },
+      { id: 'park', type: 'fill', source: s, 'source-layer': 'park',
+        paint: { 'fill-color': '#e6e5d0', 'fill-opacity': 0.75 } },
+      { id: 'water', type: 'fill', source: s, 'source-layer': 'water',
+        paint: { 'fill-color': '#d9dbd4' } },
+      { id: 'waterway', type: 'line', source: s, 'source-layer': 'waterway',
+        paint: { 'line-color': '#d9dbd4', 'line-width': ['interpolate', ['exponential', 1.4], ['zoom'], 10, 0.6, 16, 3] } },
+      { id: 'rail', type: 'line', source: s, 'source-layer': 'transportation',
+        filter: ['all', ['==', ['get', 'class'], 'rail'], ['!=', ['get', 'brunnel'], 'tunnel']],
+        paint: { 'line-color': '#e2d7c8', 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 0.4, 16, 1.4], 'line-dasharray': [3, 3] } },
+      road('road-minor', ['minor', 'service'], '#ebe0d1', [12, 0.3, 14, 0.9, 17, 3.2]),
+      road('road-mid', ['secondary', 'tertiary'], '#e1d3c1', [11, 0.5, 14, 1.3, 17, 4.6]),
+      road('road-major', ['motorway', 'trunk', 'primary'], '#d6c1a9', [10, 0.7, 14, 1.9, 17, 6.5]),
+      // The paper model. Heights rise from nothing over a zoom level and a
+      // half, so the city grows out of the page rather than popping in.
+      { id: 'buildings', type: 'fill-extrusion', source: s, 'source-layer': 'building', minzoom: 13,
+        filter: ['!=', ['get', 'hide_3d'], true],
+        paint: {
+          'fill-extrusion-color': '#efe5d7',
+          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.6, ['number', ['get', 'render_height'], 8]],
+          'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.6, ['number', ['get', 'render_min_height'], 0]],
+          'fill-extrusion-opacity': 0.92,
+          'fill-extrusion-vertical-gradient': true
+        } }
+    );
+    return style;
+  }
 
-  // enable scroll zoom after first interaction
-  map.once('click', function() { map.scrollWheelZoom.enable(); });
+  var map = null;
+  try {
+    if (!window.maplibregl) throw new Error('maplibre-gl did not load');
+    map = new maplibregl.Map({
+      container: 'map',
+      style: paperStyle(null),
+      center: [-0.09, 51.505],
+      zoom: 11.5,
+      pitch: PITCH,
+      bearing: 0,
+      maxPitch: 60,
+      maxZoom: 17,
+      scrollZoom: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      attributionControl: false,
+      fadeDuration: 300
+    });
+  } catch (e) {
+    // No WebGL, or the script never arrived. The list still renders below;
+    // the cards just don't fly anywhere.
+    map = null;
+  }
+
+  if (map) {
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+    // Folded to an (i) on a phone, where the full line ran into the whisper.
+    map.addControl(new maplibregl.AttributionControl({ compact: narrow.matches }), 'bottom-right');
+    // enable scroll zoom after first interaction
+    map.once('click', function() { map.scrollZoom.enable(); });
+    map.once('load', function() { mapWrap.classList.add('map-ready'); });
+
+    // The ground. The tile source is taken from OpenFreeMap's own published
+    // style, so its URL is theirs to keep right rather than ours to get
+    // wrong; only if that can't be fetched is the planet TileJSON guessed at.
+    var published = fetch(STYLE_URL)
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .catch(function() { return null; });
+    var mapLoaded = new Promise(function(resolve) { map.once('load', resolve); });
+    Promise.all([mapLoaded, published]).then(function(results) {
+      var sources = results[1] && results[1].sources;
+      var ids = sources ? Object.keys(sources).filter(function(k) { return sources[k] && sources[k].type === 'vector'; }) : [];
+      var source = ids.length
+        ? { id: ids[0], def: sources[ids[0]] }
+        : { id: 'openmaptiles', def: { type: 'vector', url: TILEJSON_FALLBACK } };
+      source.def = Object.assign({}, source.def, { attribution: ATTRIBUTION });
+      map.setStyle(paperStyle(source));
+      map.once('idle', function() { mapWrap.classList.add('map-ground'); });
+    });
+  } else {
+    mapWrap.classList.add('map-failed');
+  }
 
   // markers
   var markers = {};
-  var markerColour = {};
   var highlightedIdx = null;
 
-  function activateMarker(idx) {
-    if (markers[idx]) markers[idx].setIcon(makeInkDot(markerColour[idx], true));
-  }
-  function deactivateMarker(idx) {
-    if (markers[idx]) markers[idx].setIcon(makeInkDot(markerColour[idx], false));
-  }
+  function markerEl(idx) { return markers[idx] ? markers[idx].getElement() : null; }
+  function activateMarker(idx) { var el = markerEl(idx); if (el) el.classList.add('active'); }
+  function deactivateMarker(idx) { var el = markerEl(idx); if (el) el.classList.remove('active'); }
 
   // Lights up one entry and its dot for a few seconds. Each highlight gets
   // its own timer, and a newer highlight cancels the older one, so clicking
@@ -955,6 +1114,7 @@
   }
 
   PINNED.forEach(function(place) {
+    if (!map) return;
     // Built as nodes, not concatenated HTML. The API strips angle brackets on
     // the way in, but this is the one place a name reaches the DOM as markup,
     // and it shouldn't depend on that staying true of every future write path.
@@ -970,50 +1130,97 @@
       popupEl.appendChild(pArea);
     }
 
-    var colour = placeColour(place);
-    markerColour[place._idx] = colour;
-
-    var marker = L.marker([place.lat, place.lng], { icon: makeInkDot(colour, false) })
-      .bindPopup(popupEl, { className: 'note-popup', closeButton: false, maxWidth: 220, offset: [0, -4] })
+    var el = makeInkDotEl(placeColour(place));
+    var popup = new maplibregl.Popup({
+      closeButton: false, closeOnClick: true, className: 'note-popup',
+      offset: 12, maxWidth: '220px', focusAfterOpen: false
+    }).setDOMContent(popupEl);
+    var marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([place.lng, place.lat])
+      .setPopup(popup)
       .addTo(map);
 
-    // "via" separates the two ways in: whether people browse by map or by list
-    marker.on('click', function() {
+    // MapLibre itself toggles the popup on a click of the dot; this is the
+    // rest. "via" separates the two ways in: by map or by list.
+    el.addEventListener('click', function() {
       track('place-open', { place: place.name, via: 'map' });
       highlightPlace(place._idx);
     });
 
     // The list already lit up its marker on hover; this is the other direction,
     // so pointing at a dot tells you which entry it is without a click.
-    marker.on('mouseover', function() {
-      var el = placeEls[place._idx];
-      if (el) el.classList.add('highlighted');
+    el.addEventListener('mouseenter', function() {
+      var card = placeEls[place._idx];
+      if (card) card.classList.add('highlighted');
       activateMarker(place._idx);
     });
-    marker.on('mouseout', function() {
-      var el = placeEls[place._idx];
-      if (el && place._idx !== highlightedIdx) el.classList.remove('highlighted');
+    el.addEventListener('mouseleave', function() {
+      var card = placeEls[place._idx];
+      if (card && place._idx !== highlightedIdx) card.classList.remove('highlighted');
       if (place._idx !== highlightedIdx) deactivateMarker(place._idx);
     });
 
     markers[place._idx] = marker;
   });
 
-  // fit to all — but an empty list makes invalid bounds, and fitBounds throws
-  // on those, which would take the whole page down. Sit over London instead.
-  var allCoords = PINNED.map(function(p) { return [p.lat, p.lng]; });
-  if (allCoords.length > 0) {
+  function boundsOf(list) {
+    var b = new maplibregl.LngLatBounds();
+    list.forEach(function(p) { b.extend([p.lng, p.lat]); });
+    return b;
+  }
+
+  // fit to all — but an empty list has no bounds, and fitting nothing throws,
+  // which would take the whole page down. Sit over London instead.
+  if (map && PINNED.length > 0) {
     // maxZoom: a single dot used to fit at street level, all pavement and
     // no neighbourhood
-    map.fitBounds(L.latLngBounds(allCoords).pad(0.15), { maxZoom: 15 });
+    map.fitBounds(boundsOf(PINNED), { padding: FIT_PADDING, maxZoom: 14.6, pitch: PITCH, duration: 0 });
+  }
+
+  // ---- AREA LABELS ----
+  // The map carries no labels of its own. Instead each area with a dot in it
+  // is named once, in the page's hand, just under the middle of its dots —
+  // under, because popups open above a dot and would sit on the name — so
+  // the "corners of london" in the tally are the words on the map. They are
+  // markers too, so their opacity goes through setOpacity like the dots'.
+  var areaLabels = [];
+  if (map) {
+    var pinsByArea = {};
+    PINNED.forEach(function(p) {
+      if (!p.area) return;
+      (pinsByArea[p.area] = pinsByArea[p.area] || []).push(p);
+    });
+    Object.keys(pinsByArea).forEach(function(area) {
+      var pts = pinsByArea[area];
+      var lat = 0, lng = 0;
+      pts.forEach(function(p) { lat += p.lat; lng += p.lng; });
+      var el = document.createElement('div');
+      el.className = 'area-label';
+      el.textContent = area.toLowerCase();
+      var marker = new maplibregl.Marker({ element: el, anchor: 'top', offset: [0, 10], opacity: '0' })
+        .setLngLat([lng / pts.length, lat / pts.length])
+        .addTo(map);
+      areaLabels.push({ places: pts, marker: marker });
+    });
+    map.on('zoom', syncAreaLabels);
+  }
+  // Shown only once you are close enough for them to sit apart, and only
+  // for areas that still have a visible dot under the current filter.
+  function syncAreaLabels() {
+    if (!map) return;
+    var close = map.getZoom() >= 12.8;
+    areaLabels.forEach(function(l) {
+      var any = l.places.some(matches);
+      l.marker.setOpacity(close && any ? '0.85' : '0');
+    });
   }
 
   // Dots arrive with the same staggered rhythm as the list, rather than all
   // appearing at once. Honour reduced-motion by skipping it entirely.
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (map && !reducedMotion) {
     requestAnimationFrame(function() {
       PINNED.forEach(function(place, i) {
-        var el = markers[place._idx] && markers[place._idx].getElement();
+        var el = markerEl(place._idx);
         if (!el) return;
         el.classList.add('dropping');
         el.style.animationDelay = (i * 40) + 'ms';
@@ -1055,16 +1262,21 @@
     return activeTag === 'all' || place.tags.indexOf(activeTag) !== -1;
   }
 
-  // Opacity on the marker element, scale on the svg inside it. The scale used
-  // to be set on the marker itself, which overwrote the translate3d Leaflet
-  // uses to place it — so on first render every dot sat on top of the others
-  // at the map's origin until something triggered a zoom.
+  // Opacity through the marker's API (MapLibre re-applies its own value to
+  // the element on every move and would undo an inline one), scale on the
+  // svg inside. The scale used to be set on the marker itself, which
+  // overwrote the transform the map library places it with — so on first
+  // render every dot sat on top of the others at the map's origin until
+  // something triggered a zoom.
   function setMarkerVisible(idx, on) {
-    var el = markers[idx] && markers[idx].getElement();
-    if (!el) return;
-    el.style.transition = 'opacity 0.35s ease';
-    el.style.opacity = on ? '1' : '0';
-    el.style.pointerEvents = on ? 'auto' : 'none';
+    var m = markers[idx];
+    if (!m) return;
+    m.setOpacity(on ? '1' : '0');
+    // a popup left floating over a dot that has just been filtered away
+    // points at nothing
+    if (!on && m.getPopup() && m.getPopup().isOpen()) m.getPopup().remove();
+    var el = m.getElement();
+    el.style.pointerEvents = on ? '' : 'none';
     var svg = el.querySelector('svg');
     if (svg) svg.style.transform = on ? '' : 'scale(0.5)';
   }
@@ -1113,12 +1325,13 @@
     document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
 
     // fitBounds already framed the initial view; only re-frame on a change
-    if (!firstRender) {
-      var visCoords = PINNED.filter(matches).map(function(p) { return [p.lat, p.lng]; });
-      if (visCoords.length > 0) {
-        map.flyToBounds(L.latLngBounds(visCoords).pad(0.15), { duration: 0.8, maxZoom: 15 });
+    if (!firstRender && map) {
+      var visible = PINNED.filter(matches);
+      if (visible.length > 0) {
+        map.fitBounds(boundsOf(visible), { padding: FIT_PADDING, maxZoom: 15, pitch: PITCH, duration: 800 });
       }
     }
+    syncAreaLabels();
     firstRender = false;
   }
 
@@ -1190,7 +1403,7 @@
       var shrink = window.scrollY > 260;
       if (shrink !== mapWrap.classList.contains('shrunk')) {
         mapWrap.classList.toggle('shrunk', shrink);
-        setTimeout(function() { map.invalidateSize({ animate: false }); }, 380);
+        if (map) setTimeout(function() { map.resize(); }, 380);
       }
       shrinkTicking = false;
     });
@@ -1203,7 +1416,6 @@
   // stick just under the map rather than behind it. Measured, not guessed,
   // because the map changes height as you scroll.
   var mapCol = document.querySelector('.map-col');
-  var narrow = window.matchMedia('(max-width: 900px)');
   function syncMapHeight() {
     if (narrow.matches) {
       document.documentElement.style.setProperty('--map-h', mapCol.offsetHeight + 'px');
