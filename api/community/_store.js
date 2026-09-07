@@ -261,16 +261,21 @@ export function withIds(places) {
 
 export const newId = () => randomUUID();
 
-// The seed fills an EMPTY map — not only a never-written one. A wipe writes
-// [] (so does removing the last entry, or restoring an empty version), and
-// the old rule ("seed only when nothing has ever been written") left the seed
-// inert for good after that: nothing pushed through git could reach a map
-// that had once been wiped. Applied on read and inside every place mutation
-// alike, so the first write after the map is empty persists the seed
-// alongside its own change, and from then on the blob is the source of truth
-// again. The consequence to know: an empty map shows the seed. For a
-// genuinely empty map, empty the seed.
-const withSeed = (list) => withIds(list.length === 0 ? structuredClone(SEED_PLACES) : list);
+// The seed goes into any map that has NO SEED ENTRIES in it — empty, wiped,
+// or holding only entries approved before the seed existed — ahead of what
+// is already there. The first rule was "seed only when nothing has ever been
+// written": the prototype's placeholders were wiped, which writes [], and
+// from then on a seed pushed through git reached nothing. The second was "an
+// empty map shows the seed", which missed a map that already had a couple of
+// approvals on it. Applied on read and inside every place mutation alike, so
+// nothing is written just to read, and the first write after that persists
+// the seed alongside its own change; from then on the blob is the source of
+// truth again and edits to the seed change nothing. The consequence to know:
+// a map with no seed- ids on it shows the seed, so taking every seed entry
+// off by hand brings them back. For that, empty the seed.
+const isSeedId = (p) => Boolean(p && typeof p.id === 'string' && p.id.startsWith('seed-'));
+const withSeed = (list) =>
+  withIds(SEED_PLACES.length > 0 && !list.some(isSeedId) ? structuredClone(SEED_PLACES).concat(list) : list);
 export { SEED_PLACES };
 
 export const readPlaces = async () => withSeed(await readBlob(PLACES_KEY, []));
@@ -344,10 +349,14 @@ export function removePlace(id) {
       if (i === -1) return null;
       expect = count(current) - 1;
       const next = current.slice(0, i).concat(current.slice(i + 1));
-      // Taking out the last entry empties the map, and an empty map shows the
-      // seed. Write that — minus this entry, so the removal holds — rather
-      // than [] and have the check afterwards read the seed back as a failure.
-      return next.length === 0 ? withSeed([]).filter((p) => p.id !== id) : next;
+      // Taking out the last seed entry (or the last entry) leaves a list the
+      // seed would go straight back into on the next read. Write it merged —
+      // minus the seed's own copy of this entry, so the removal holds — rather
+      // than have the check afterwards read the seed back as a failed write.
+      // Only the seed's copy: two legacy duplicates share an id, and this has
+      // to take one of them, not both.
+      if (next.some(isSeedId) || SEED_PLACES.length === 0) return next;
+      return withSeed(next).filter((p) => !(isSeedId(p) && p.id === id));
     },
     (after) => count(after) <= expect,
     withSeed,

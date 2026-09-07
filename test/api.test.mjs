@@ -518,6 +518,23 @@ test('seed: an empty map shows the seed, and the first write persists it', async
   assert.equal((await getPlaces()).length, 3);
 });
 
+test('seed: a map that already has entries but no seed gets the seed merged in ahead of them', async () => {
+  // entries approved before the seed existed — the live map the day it shipped
+  const p1 = await approved({ name: 'Before one' });
+  const p2 = await approved({ name: 'Before two' });
+  assert.equal((await getPlaces()).length, 2);
+  SEED.push(seedEntry('seed-a'), seedEntry('seed-b'));
+  // the seed sits behind them, so "most recent" still shows the approvals first
+  assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-a', 'seed-b', p1.id, p2.id]);
+  // an edit to one of the old entries persists the lot
+  const res = await post(edit, { note: 'x' }, { id: p1.id });
+  assert.equal(res.statusCode, 200);
+  const versions = (await call(backups, { method: 'GET', headers: admin() })).body.versions;
+  assert.equal(versions[0].count, 4);
+  SEED.length = 0;
+  assert.equal((await getPlaces()).length, 4);
+});
+
 test('seed: a wipe shows the seed again, and the response says how many', async () => {
   SEED.push(seedEntry('seed-a'));
   await approved({ name: 'One' });
@@ -537,8 +554,8 @@ test('seed: removing a seed entry stays removed; removing the last entry shows t
   assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-b']);
   assert.deepEqual((await getPlaces()).map((p) => p.id), ['seed-b'], 'and it stays gone');
 
-  // the map is [seed-b]; taking it out empties the map, and an empty map shows
-  // the seed — but the removal itself still holds, so seed-b does not return
+  // the map is [seed-b]; taking it out leaves no seed entry, so the seed comes
+  // back — but the removal itself still holds, so seed-b does not return
   res = await call(places, { method: 'DELETE', body: { id: 'seed-b' }, headers: admin() });
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.remaining, 1);

@@ -152,15 +152,17 @@ told you or from his calendar, not from inference.
 Vercel Blob, two keys: `community-places.json` and `community-pending.json`.
 There is no database.
 
-`_seed.js` is what an **empty** map shows — never written, wiped, or down
-to zero entries. It is not written on read; the first approval, edit or
-removal after that persists the seed alongside its own change, and from then
-on Blob is the source of truth and edits to `_seed.js` change nothing until
-the map is empty again. So the seed is the one way to get a batch of entries
-onto the live map through git, and a wipe puts the seed back rather than
-leaving nothing (the admin says so). For a genuinely empty map, empty the
-seed. Seed entries carry `seed-…` ids, and the API test suite checks the
-real file: every note empty, every `when` empty, every pin inside London.
+`_seed.js` is merged into any map that holds **no seed entries** — never
+written, wiped, or carrying only entries approved before the seed existed —
+ahead of whatever is already there. It is not written on read; the first
+approval, edit or removal after that persists the seed alongside its own
+change, and from then on Blob is the source of truth and edits to `_seed.js`
+change nothing until the map has no seed entries again. So the seed is the
+one way to get a batch of entries onto the live map through git, and a wipe
+puts the seed back rather than leaving nothing (the admin says so). For a
+genuinely empty map, empty the seed. Seed entries carry `seed-…` ids, and
+the API test suite checks the real file: every note empty, every `when`
+empty, every pin inside London.
 
 Every write takes a **lock** (`lock-community-<key>.txt`, see §4) and every
 mutation goes through `appendPending` / `removePending` / `appendPlace` /
@@ -283,11 +285,13 @@ harmless — the other order would lose the suggestion.
 The original rule was "seed only when nothing has ever been written". The
 prototype's placeholders were wiped, which *writes* `[]` — so from then on the
 store was non-empty-but-empty and a seed pushed through git reached nothing,
-with no error anywhere. The rule is now "an empty list shows the seed",
-applied on read and inside the place mutations (`withSeed`), and
-`removePlace` writes the seed-minus-the-entry rather than `[]` when it takes
-the last one out, so the check afterwards doesn't read the seed back as a
-failed write.
+with no error anywhere. The second rule, "an empty list shows the seed",
+missed the live map the day it shipped: a couple of entries had been approved
+before the deploy, so the list wasn't empty and the seed stayed hidden. The
+rule is now "a list with no `seed-` ids gets the seed merged in", applied on
+read and inside the place mutations (`withSeed`), and `removePlace` writes
+the merged list minus the entry when it takes the last seed entry out, so the
+check afterwards doesn't read the seed back as a failed write.
 
 ### A failed read is not an empty list
 

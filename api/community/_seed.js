@@ -1,7 +1,8 @@
-// Seed list — what the map shows while it is EMPTY (see withSeed in
-// _store.js), and what gets written into the store alongside the first
-// approval, edit or removal after that. Once written, the blob is the source
-// of truth and edits here change nothing until the map is empty again.
+// Seed list — merged into the map whenever the map holds no seed entries
+// (empty, wiped, or only ever approved-through-the-admin; see withSeed in
+// _store.js), and written into the store alongside the first approval, edit
+// or removal after that. Once written, the blob is the source of truth and
+// edits here change nothing until the map has no seed entries again.
 //
 // The rules for these entries are the rules for every entry: the note is
 // Pranshul's or it is empty, and area / tags / when come from him. The tags
