@@ -401,15 +401,15 @@ Two things that cost time writing these:
 ## 6. Current state
 
 - The map is **live and seeded** with Pranshul's first list (September 2026,
-  41 entries in `_seed.js`): 20 places with a door, 5 things that happen at a
-  regular home (pinned at the venue — two of them at Newspeak House), 13
-  things without a fixed address (pinless on purpose), 3 under `living`.
+  39 entries in `_seed.js`): 21 places with a door, 5 things that happen at a
+  regular home (pinned at the venue — two of them at Newspeak House), 12
+  things without a fixed address (pinless on purpose), 1 under `living`.
   Notes are all empty — his to write. Tags are a first sort he asked for.
   Every address and link was verified by web search in September 2026; pins
   were placed from the verified street address (two from published
   coordinates), so any that look off are a "look the pin up again" away.
-  Still unresolved and left as given: "Night Cafe" (two candidates), Mosaic
-  and 59OG (nothing public), cranberrylemonade (a name-match only).
+  Mosaic and 59OG (nothing public about either) were left out at his word;
+  Gabriella Ina likewise.
 - Five directories he collects from (otherwise.london, social fabric, …) are
   links in the map page's footer, not entries: pointers, not places.
 - The map is MapLibre over OpenFreeMap vector tiles in the page's own
@@ -423,12 +423,11 @@ Two things that cost time writing these:
 
 ### Sensible next steps
 
-1. **Glance at the 25 pins** — placed from verified addresses, not the
+1. **Glance at the 26 pins** — placed from verified addresses, not the
    geocoder; **edit → save and look the pin up again** re-places one from the
    name and area if it looks off.
-2. **Settle the open ones**: which "Night Cafe" (London Night Cafe on
-   Middlesex Street, or the late-night builders' café at IDEALondon), and
-   whether Mosaic / 59OG want a link at all.
+2. **Death Cafe** is still the generic London search: pin whichever one he
+   actually goes to (Bonnington Centre, Jamyang, 430 On the Go…).
 3. **Ship it**: drop the `noindex` meta from the three community pages and add
    a nav link in `index.html`.
 4. More entries go through `bulk-add` in the admin (the line format takes a
