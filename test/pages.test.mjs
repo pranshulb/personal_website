@@ -235,7 +235,7 @@ test('map: an empty store shows the seed, and the footer carries the other lists
   assert.equal((await p.$$('.ink-dot-marker')).length, 3);
   assert.match(await p.textContent('#tally'), /6 places · 3 corners/);
   const links = await p.$$eval('#other-lists a', (els) => els.map((a) => a.href));
-  assert.equal(links.length, 6);
+  assert.equal(links.length, 5);
   assert.ok(links.every((h) => /^https:\/\//.test(h)), links.join(' '));
   // by area: the entries with no area group under "elsewhere", after the real
   // corners — even though it is the biggest group

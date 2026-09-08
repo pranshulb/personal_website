@@ -401,12 +401,16 @@ Two things that cost time writing these:
 ## 6. Current state
 
 - The map is **live and seeded** with Pranshul's first list (September 2026,
-  40 entries in `_seed.js`): 16 places with a door and a pin, 22 things that
-  happen without a fixed address (meetups, networks, event series — pinless
-  on purpose), 2 under `living`. Notes are all empty — his to write. Tags
-  are a first sort he asked for; areas are the venue's neighbourhood; pins on
-  the 16 were placed from memory of the address, not the geocoder.
-- Six directories he collects from (otherwise.london, social fabric, …) are
+  41 entries in `_seed.js`): 20 places with a door, 5 things that happen at a
+  regular home (pinned at the venue — two of them at Newspeak House), 13
+  things without a fixed address (pinless on purpose), 3 under `living`.
+  Notes are all empty — his to write. Tags are a first sort he asked for.
+  Every address and link was verified by web search in September 2026; pins
+  were placed from the verified street address (two from published
+  coordinates), so any that look off are a "look the pin up again" away.
+  Still unresolved and left as given: "Night Cafe" (two candidates), Mosaic
+  and 59OG (nothing public), cranberrylemonade (a name-match only).
+- Five directories he collects from (otherwise.london, social fabric, …) are
   links in the map page's footer, not entries: pointers, not places.
 - The map is MapLibre over OpenFreeMap vector tiles in the page's own
   palette, with low 3D buildings (September 2026 — see "The map itself").
@@ -419,11 +423,12 @@ Two things that cost time writing these:
 
 ### Sensible next steps
 
-1. **Check the 16 pins** — a pin from memory a street off is still wrong.
-   **edit → save and look the pin up again** re-places one from the name and
-   area via the geocoder.
-2. **Retag what's guessed.** The pinless entries under a bare `community`
-   are the ones nothing was known about; retag or remove in the admin.
+1. **Glance at the 25 pins** — placed from verified addresses, not the
+   geocoder; **edit → save and look the pin up again** re-places one from the
+   name and area if it looks off.
+2. **Settle the open ones**: which "Night Cafe" (London Night Cafe on
+   Middlesex Street, or the late-night builders' café at IDEALondon), and
+   whether Mosaic / 59OG want a link at all.
 3. **Ship it**: drop the `noindex` meta from the three community pages and add
    a nav link in `index.html`.
 4. More entries go through `bulk-add` in the admin (the line format takes a
