@@ -150,7 +150,19 @@ told you or from his calendar, not from inference.
 ### Storage
 
 Vercel Blob, two keys: `community-places.json` and `community-pending.json`.
-There is no database. `_seed.js` is used *only* when the store is empty.
+There is no database.
+
+`_seed.js` is merged into any map that holds **no seed entries** — never
+written, wiped, or carrying only entries approved before the seed existed —
+ahead of whatever is already there. It is not written on read; the first
+approval, edit or removal after that persists the seed alongside its own
+change, and from then on Blob is the source of truth and edits to `_seed.js`
+change nothing until the map has no seed entries again. So the seed is the
+one way to get a batch of entries onto the live map through git, and a wipe
+puts the seed back rather than leaving nothing (the admin says so). For a
+genuinely empty map, empty the seed. Seed entries carry `seed-…` ids, and
+the API test suite checks the real file: every note empty, every `when`
+empty, every pin inside London.
 
 Every write takes a **lock** (`lock-community-<key>.txt`, see §4) and every
 mutation goes through `appendPending` / `removePending` / `appendPlace` /
@@ -191,13 +203,30 @@ Built up over several passes; don't loosen it casually.
 - The suggest form has a honeypot field (`website`). A filled one gets a 200
   and nothing in the queue.
 
-### The map tiles
+### The map itself
 
-`tile.openstreetmap.org`, warmed and muted by a CSS filter on the tile pane.
-It was CARTO Voyager until August 2026, when CARTO started stamping "API KEY
-REQUIRED" across every tile for anonymous use. If the provider changes again,
-the `img-src` in **both** CSP blocks in `vercel.json` has to change with it,
-or the tiles are silently blocked.
+MapLibre GL (5.x, the UMD build from unpkg) over **OpenFreeMap** vector
+tiles, drawn in the page's own palette by `paperStyle()` in
+`community/index.html`: paper ground, ink-line roads, muted water and parks,
+and low 3D building extrusions under a 52° camera on desktop (flat on
+phones). No labels come from the tiles — the "corners of london" are drawn
+from the entries' own areas as HTML markers, in EB Garamond, once you're
+zoomed in enough. No key, no quota to watch.
+
+The page fetches OpenFreeMap's published `positron` style only to take its
+`sources` (so the tile URL is theirs to keep right), then swaps in our own
+layers with `setStyle`. If that fetch fails it guesses the planet TileJSON;
+if that fails too, the dots sit on plain paper and the page still works.
+`#map-wrap` gets `map-ready` when MapLibre is up and `map-ground` once the
+full style has drawn; the tests wait on those.
+
+It replaced Leaflet over raster OSM tiles (a road atlas muted by a CSS
+filter), which had replaced CARTO Voyager when CARTO started stamping "API
+KEY REQUIRED" on anonymous tiles. Anything the map loads must be allowed in
+**both** community CSP blocks in `vercel.json`: the style and the vector
+tiles are *fetched*, so it is `connect-src` (not `img-src`) that needs
+`tiles.openfreemap.org`, and MapLibre runs its worker from a blob URL, so
+`worker-src blob:` is required — without it the map silently never draws.
 
 ### Backups
 
@@ -268,6 +297,19 @@ true` in the response). The map is written *before* the queue is trimmed, so
 a crash in between leaves the item in the queue where re-approving it is
 harmless — the other order would lose the suggestion.
 
+### The seed used to be inert after the first write
+
+The original rule was "seed only when nothing has ever been written". The
+prototype's placeholders were wiped, which *writes* `[]` — so from then on the
+store was non-empty-but-empty and a seed pushed through git reached nothing,
+with no error anywhere. The second rule, "an empty list shows the seed",
+missed the live map the day it shipped: a couple of entries had been approved
+before the deploy, so the list wasn't empty and the seed stayed hidden. The
+rule is now "a list with no `seed-` ids gets the seed merged in", applied on
+read and inside the place mutations (`withSeed`), and `removePlace` writes
+the merged list minus the entry when it takes the last seed entry out, so the
+check afterwards doesn't read the seed back as a failed write.
+
 ### A failed read is not an empty list
 
 `readBlob` used to swallow every error and return the fallback (`[]`). A
@@ -275,13 +317,17 @@ transient `list()` failure inside a mutate therefore read as "the store is
 empty", and the write that followed replaced the whole list with one item.
 Reads now throw `StoreReadError`; nothing writes on top of a failed read.
 
-### Leaflet owns the marker element's `transform`
+### The map library owns the marker element's `transform` — and its opacity
 
 `setMarkerVisible` used to set `transform: scale(…)` on the marker element to
-animate filtering — which overwrote the `translate3d` Leaflet positions the
+animate filtering — which overwrote the `translate3d` Leaflet positioned the
 marker with, so on first render every dot sat stacked at the map origin until
-a zoom re-placed them. Scale the `<svg>` inside the marker, never the marker.
-The entrance animation is on the svg for the same reason.
+a zoom re-placed them. MapLibre places markers the same way (an inline
+`translate` + `rotate`), so the rule stands: scale the `<svg>` inside the
+marker, never the marker. The entrance animation is on the svg for the same
+reason. MapLibre also re-applies its own opacity to the element on every
+move, so hiding a dot goes through `marker.setOpacity()`, never an inline
+style — and the area labels are markers too, so the same goes for them.
 
 ### Enter in the suggest form did a GET to itself
 
@@ -315,11 +361,13 @@ submit control, not just a key handler.
 `test/` — see `test/README.md`. No framework, plain `node:assert`.
 
 - `npm test` — the API (Node 22+). `test/hooks.mjs` is a loader hook that
-  resolves `@vercel/blob` to `test/blob-stub.mjs`, so the handlers are
-  imported exactly as written and nothing has to be planted in
-  `node_modules`. Covers sanitisers, auth, every route, the concurrency
+  resolves `@vercel/blob` to `test/blob-stub.mjs` (and the store's
+  `./_seed.js` to `test/seed-stub.mjs`, an empty list a test can fill), so
+  the handlers are imported exactly as written and nothing has to be planted
+  in `node_modules`. Covers sanitisers, auth, every route, the concurrency
   cases in §4 (double approve, suggest-during-approve, remove-during-approve,
-  a nine-writer burst), legacy ids, history, prune, the lock.
+  a nine-writer burst), legacy ids, history, prune, the lock, the seed rule,
+  and the shape of the real seed file.
 - `npm run test:pages` — Playwright drives `/community`, `/community/suggest`
   and `/community/admin` against `test/server.mjs`, which serves the repo
   like Vercel would and runs the *real* handlers over the stub. Needs
@@ -327,8 +375,9 @@ submit control, not just a key handler.
   `package.json`) and a Chromium: Edge by default, `PW_CHANNEL=chrome`, or
   `PW_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome` in the
   sandbox. Do not run `playwright install`. The browser needs the network
-  for Leaflet (unpkg), the fonts and the OSM tiles; if the sandbox blocks
-  them, route those hosts to local fixtures.
+  for MapLibre (unpkg), the fonts and OpenFreeMap; with `PW_FIXTURES` set,
+  MapLibre is served from disk and the style and tiles are stubbed (see
+  `test/README.md`).
 - `npm test -- "some words"` runs only tests whose name contains them.
 
 **The most important lesson**: three separate bugs reached production because
@@ -351,9 +400,18 @@ Two things that cost time writing these:
 
 ## 6. Current state
 
-- The map is **live but empty** (0 entries) and unlinked from the site.
-- The seed list is empty on purpose; the prototype's placeholder places were
-  wiped.
+- The map is **live and seeded** with Pranshul's first list (September 2026,
+  40 entries in `_seed.js`): 16 places with a door and a pin, 22 things that
+  happen without a fixed address (meetups, networks, event series — pinless
+  on purpose), 2 under `living`. Notes are all empty — his to write. Tags
+  are a first sort he asked for; areas are the venue's neighbourhood; pins on
+  the 16 were placed from memory of the address, not the geocoder.
+- Six directories he collects from (otherwise.london, social fabric, …) are
+  links in the map page's footer, not entries: pointers, not places.
+- The map is MapLibre over OpenFreeMap vector tiles in the page's own
+  palette, with low 3D buildings (September 2026 — see "The map itself").
+  It could only be checked with stubbed tiles from the sandbox; the real
+  ground was first seen on the Vercel preview.
 - Nothing links to `/community` from `index.html` — Pranshul asked for it to
   stay unlisted while WIP.
 - There may be leftover test entries in the pending queue (names containing
@@ -361,17 +419,16 @@ Two things that cost time writing these:
 
 ### Sensible next steps
 
-1. **Get real entries in.** The whole design — subject colours, the tally, area
-   grouping, the staggered entrance — is keyed to real data and looks inert
-   without it. `bulk-add` in the admin is the fast path; the line format now
-   takes a link and a "month year" after the tags, and the JSON form takes
-   `when`, `lat`, `lng` too, so old favourites can be backfilled with the
-   right date and pin.
-2. **Ship it**: drop the `noindex` meta from the three community pages and add
+1. **Check the 16 pins** — a pin from memory a street off is still wrong.
+   **edit → save and look the pin up again** re-places one from the name and
+   area via the geocoder.
+2. **Retag what's guessed.** The pinless entries under a bare `community`
+   are the ones nothing was known about; retag or remove in the admin.
+3. **Ship it**: drop the `noindex` meta from the three community pages and add
    a nav link in `index.html`.
-3. Entries approved without a pin show in the list with "no dot for this one
-   yet" and `no pin` in the admin — fix them with **edit → save and look the
-   pin up again**, or type the coordinates in.
+4. More entries go through `bulk-add` in the admin (the line format takes a
+   link and a "month year" after the tags; the JSON form takes `when`, `lat`,
+   `lng` too), or through the seed if they should arrive with a deploy.
 
 ---
 

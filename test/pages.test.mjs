@@ -20,6 +20,9 @@ fs.mkdirSync(SHOTS, { recursive: true });
 
 const PORT = await start();
 const BASE = 'http://127.0.0.1:' + PORT;
+// The seed the store sees (hooks.mjs swaps the real one for this); empty
+// unless a test fills it.
+const SEED = (await import(new URL('./seed-stub.mjs', import.meta.url).href)).default;
 
 const SAMPLE = [
   { id: 'p1', name: 'Peckham Levels', area: 'Peckham', tags: ['art', 'community'], note: 'a car park turned into studios, and the view from the top is the whole of london', url: 'https://peckhamlevels.org', when: 'march 2026', lat: 51.4715, lng: -0.0693 },
@@ -48,24 +51,34 @@ const browser = await chromium.launch(
 );
 let passed = 0, failed = 0;
 
-// Sandboxes with no outbound network can't reach unpkg (Leaflet) or the tile
-// server, and without Leaflet the map tests time out on a page that never
-// renders. Point PW_FIXTURES at a directory holding leaflet.js, leaflet.css,
-// and tile.png and those three origins are served from disk instead.
+// Sandboxes with no outbound network can't reach unpkg (MapLibre) or
+// OpenFreeMap, and without MapLibre the map tests time out on a page that
+// never renders. Point PW_FIXTURES at a directory holding maplibre-gl.js and
+// maplibre-gl.css and the library is served from disk; the published style
+// and the tiles are stubbed here (a vector source that serves empty tiles),
+// which is enough to prove the page's own style loads and draws to idle.
 const FIXTURES = process.env.PW_FIXTURES || '';
-async function offline(ctx) {
+const STUB_TILES = 'https://tiles.openfreemap.org/planet/stub/{z}/{x}/{y}.pbf';
+const STUB_STYLE = { version: 8, sources: { openmaptiles: { type: 'vector', tiles: [STUB_TILES], minzoom: 0, maxzoom: 14 } }, layers: [] };
+const STUB_TILEJSON = { tilejson: '2.2.0', tiles: [STUB_TILES], minzoom: 0, maxzoom: 14 };
+async function offline(ctx, opts = {}) {
+  // With `styleFails`, the published style is unreachable even on a networked
+  // machine, so the page's fallback (guess the planet TileJSON) is what runs.
+  if (opts.styleFails) await ctx.route(/^https:\/\/tiles\.openfreemap\.org\/styles\//, (r) => r.abort('failed'));
   if (!FIXTURES) return;
   const file = (n) => fs.readFileSync(FIXTURES.replace(/\/$/, '') + '/' + n);
-  await ctx.route(/^https:\/\/unpkg\.com\/.*\.js/, (r) => r.fulfill({ contentType: 'application/javascript', body: file('leaflet.js') }));
-  await ctx.route(/^https:\/\/unpkg\.com\/.*\.css/, (r) => r.fulfill({ contentType: 'text/css', body: file('leaflet.css') }));
-  await ctx.route(/^https:\/\/unpkg\.com\/.*\.png/, (r) => r.fulfill({ contentType: 'image/png', body: file('tile.png') }));
-  await ctx.route(/^https:\/\/tile\.openstreetmap\.org\//, (r) => r.fulfill({ contentType: 'image/png', body: file('tile.png') }));
+  await ctx.route(/^https:\/\/unpkg\.com\/maplibre-gl@[^/]+\/dist\/maplibre-gl\.js$/, (r) => r.fulfill({ contentType: 'application/javascript', body: file('maplibre-gl.js') }));
+  await ctx.route(/^https:\/\/unpkg\.com\/maplibre-gl@[^/]+\/dist\/maplibre-gl\.css$/, (r) => r.fulfill({ contentType: 'text/css', body: file('maplibre-gl.css') }));
+  if (!opts.styleFails) await ctx.route(/^https:\/\/tiles\.openfreemap\.org\/styles\//, (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify(STUB_STYLE) }));
+  await ctx.route(/^https:\/\/tiles\.openfreemap\.org\/planet$/, (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify(STUB_TILEJSON) }));
+  // an empty body is a valid, empty vector tile
+  await ctx.route(/^https:\/\/tiles\.openfreemap\.org\/planet\//, (r) => r.fulfill({ status: 200, contentType: 'application/x-protobuf', body: Buffer.alloc(0) }));
   await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (r) => r.fulfill({ contentType: 'text/css', body: '' }));
 }
 
-async function page(viewport = { width: 1400, height: 900 }) {
+async function page(viewport = { width: 1400, height: 900 }, opts = {}) {
   const ctx = await browser.newContext({ viewport, ignoreHTTPSErrors: true });
-  await offline(ctx);
+  await offline(ctx, opts);
   const p = await ctx.newPage();
   p._errors = [];
   p.on('pageerror', (e) => p._errors.push('pageerror: ' + e.message));
@@ -106,9 +119,10 @@ test('map: renders every entry, dots for the pinned ones, no errors', async () =
     return r.left >= box.left && r.right <= box.right && r.top >= box.top && r.bottom <= box.bottom;
   }), mapBox);
   assert.ok(inside, 'a dot is outside the map: ' + spots.join(' | '));
-  // and tiles actually arrive from the tile server
-  const tileOk = await p.evaluate(() => [...document.querySelectorAll('.leaflet-tile-loaded')].length > 0);
-  assert.ok(tileOk, 'no tiles loaded');
+  // and the ground arrived: the page's own style went in and drew to idle
+  await p.waitForSelector('#map-wrap.map-ground', { timeout: 20000 });
+  // one label per area that has a dot (Peckham, Soho, Hackney, Brixton)
+  assert.equal((await p.$$('.area-label')).length, 4);
   const tally = await p.textContent('#tally');
   assert.match(tally, /7 places · 4 corners of london · \d+ subjects/);
   assert.ok((await p.textContent('#places-container')).includes('no dot for this one yet'));
@@ -159,7 +173,7 @@ test('map: clicking a card opens its popup and lights the dot, then puts it out;
   await p.waitForTimeout(600);
   await p.click('.place:not(.unpinned)');
   await p.waitForTimeout(400);
-  assert.equal(await p.isVisible('.leaflet-popup'), true);
+  assert.equal(await p.isVisible('.maplibregl-popup'), true);
   assert.equal(await p.$$eval('.ink-dot-marker.active', (els) => els.length), 1);
   await p.waitForTimeout(3800);
   assert.equal(await p.$$eval('.ink-dot-marker.active', (els) => els.length), 0, 'dot stayed lit');
@@ -172,6 +186,17 @@ test('map: clicking a card opens its popup and lights the dot, then puts it out;
   await p.keyboard.press('Enter');
   await p.waitForTimeout(300);
   assert.equal(await p.$$eval('.ink-dot-marker.active', (els) => els.length), 1);
+  assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
+  await p.context().close();
+});
+
+test('map: if the published style cannot be fetched, the planet TileJSON is tried and the ground still draws', async () => {
+  seed();
+  const p = await page(undefined, { styleFails: true });
+  await p.goto(BASE + '/community');
+  await p.waitForSelector('.place');
+  await p.waitForSelector('#map-wrap.map-ground', { timeout: 20000 });
+  assert.equal((await p.$$('.ink-dot-marker')).length, 6);
   assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
   await p.context().close();
 });
@@ -192,6 +217,34 @@ test('map: empty list and failed load say different things', async () => {
   T.fail.list = false;
   assert.deepEqual(p2._errors.filter((e) => !/favicon|analytics|umami|503/.test(e)), []);
   await p2.context().close();
+});
+
+test('map: an empty store shows the seed, and the footer carries the other lists', async () => {
+  T.reset();
+  const pinned = (id, area, lat, lng) => ({ id, name: id, area, tags: ['books'], note: '', url: '', when: '', lat, lng });
+  const roving = (id) => ({ id, name: id, area: '', tags: ['community'], note: '', url: '', when: '', lat: null, lng: null, needsCoords: true });
+  SEED.push(
+    pinned('seed-a', 'Peckham', 51.47, -0.07), pinned('seed-b', 'Soho', 51.51, -0.13), pinned('seed-c', 'Hackney', 51.54, -0.05),
+    roving('seed-d'), roving('seed-e'), roving('seed-f'),
+  );
+  const p = await page();
+  await p.goto(BASE + '/community');
+  await p.waitForSelector('.place');
+  await p.waitForTimeout(600);
+  assert.equal((await p.$$('.place')).length, 6);
+  assert.equal((await p.$$('.ink-dot-marker')).length, 3);
+  assert.match(await p.textContent('#tally'), /6 places · 3 corners/);
+  const links = await p.$$eval('#other-lists a', (els) => els.map((a) => a.href));
+  assert.equal(links.length, 6);
+  assert.ok(links.every((h) => /^https:\/\//.test(h)), links.join(' '));
+  // by area: the entries with no area group under "elsewhere", after the real
+  // corners — even though it is the biggest group
+  await p.click('#sort-area');
+  await p.waitForTimeout(400);
+  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Hackney', 'Peckham', 'Soho', 'elsewhere']);
+  await p.screenshot({ path: SHOTS + 'map-seeded.png', fullPage: true });
+  assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
+  await p.context().close();
 });
 
 test('map: narrow screen — sticky map, area heads sit below it', async () => {
@@ -461,6 +514,7 @@ test('admin: mobile layout — login button visible, deck fits, actions not cove
 const only = process.argv[2];
 for (const { name, fn } of tests) {
   if (only && !name.includes(only)) continue;
+  SEED.length = 0;
   try {
     await fn();
     passed++;

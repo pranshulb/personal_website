@@ -1166,7 +1166,9 @@
     api('DELETE', '/api/community/places?all=true', { all: true }).then(function (data) {
       btnWipeConfirm.textContent = 'yes, remove every entry';
       showWipeConfirm(false);
-      liveStatus.textContent = 'wiped ' + data.removed + ' entries. the map is empty.';
+      liveStatus.textContent = data.remaining
+        ? 'wiped ' + data.removed + ' entries. an empty map shows the seed list, so ' + data.remaining + ' are back on it.'
+        : 'wiped ' + data.removed + ' entries. the map is empty.';
       loadLive();
     }).catch(function () {
       btnWipeConfirm.textContent = 'yes, remove every entry';

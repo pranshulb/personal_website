@@ -15,7 +15,8 @@ Pass a substring to run one test: `npm test -- "double"`.
 | file | what it is |
 |---|---|
 | `blob-stub.mjs` | stand-in for `@vercel/blob` — see below |
-| `hooks.mjs`, `register.mjs` | Node loader hook that swaps the stub in for `@vercel/blob` |
+| `hooks.mjs`, `register.mjs` | Node loader hook that swaps the stub in for `@vercel/blob`, and `seed-stub.mjs` in for the store's `_seed.js` |
+| `seed-stub.mjs` | the seed the store sees under test: an empty list a test fills in place |
 | `fake.mjs` | fake `req` / `res` in the shape Vercel hands to a function |
 | `api.test.mjs` | the API: sanitisers, auth, moderation, editing, concurrency, storage mechanics |
 | `server.mjs` | serves the repo like Vercel would, routing `/api/community/*` to the real handlers |
@@ -53,15 +54,28 @@ PW_CHANNEL=chrome npm run test:pages
 PW_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:pages
 ```
 
-Leaflet comes from unpkg and tiles from tile.openstreetmap.org, so by default
-the browser needs the network. In a sandbox that blocks CDNs, Leaflet never
-loads and all five map tests time out waiting for a list that never renders —
-which looks exactly like a broken page. Point `PW_FIXTURES` at a directory
-holding `leaflet.js`, `leaflet.css` and `tile.png` and those origins (plus the
-Google Fonts stylesheet) are served from disk instead:
+MapLibre comes from unpkg and the map's ground from tiles.openfreemap.org, so
+by default the browser needs the network. In a sandbox that blocks CDNs,
+MapLibre never loads and every map test times out waiting for a list that
+never renders — which looks exactly like a broken page. Point `PW_FIXTURES`
+at a directory holding `maplibre-gl.js` and `maplibre-gl.css` and the library
+is served from disk; the published style and the tiles are stubbed by the
+test file itself (a vector source serving empty tiles), and the Google Fonts
+stylesheet is blanked:
 
 ```
 PW_FIXTURES=/path/to/fixtures npm run test:pages
 ```
+
+If the npm registry is reachable (it usually is even where CDNs aren't), the
+fixtures build in one line, straight from the package the page pins:
+
+```
+cd /path/to/fixtures && npm pack maplibre-gl@5.24.0 --silent && tar xzf maplibre-gl-5.24.0.tgz \
+  && cp package/dist/maplibre-gl.js package/dist/maplibre-gl.css .
+```
+
+Headless Chromium renders MapLibre through software WebGL; it logs "GPU stall
+due to ReadPixels" warnings, which are noise, not errors.
 
 Screenshots land in `test/shots/` (gitignored).

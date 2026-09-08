@@ -261,8 +261,24 @@ export function withIds(places) {
 
 export const newId = () => randomUUID();
 
-// places.json is seeded on first read so the map isn't empty on a fresh deploy.
-export const readPlaces = async () => withIds(await readBlob(PLACES_KEY, SEED_PLACES));
+// The seed goes into any map that has NO SEED ENTRIES in it — empty, wiped,
+// or holding only entries approved before the seed existed — ahead of what
+// is already there. The first rule was "seed only when nothing has ever been
+// written": the prototype's placeholders were wiped, which writes [], and
+// from then on a seed pushed through git reached nothing. The second was "an
+// empty map shows the seed", which missed a map that already had a couple of
+// approvals on it. Applied on read and inside every place mutation alike, so
+// nothing is written just to read, and the first write after that persists
+// the seed alongside its own change; from then on the blob is the source of
+// truth again and edits to the seed change nothing. The consequence to know:
+// a map with no seed- ids on it shows the seed, so taking every seed entry
+// off by hand brings them back. For that, empty the seed.
+const isSeedId = (p) => Boolean(p && typeof p.id === 'string' && p.id.startsWith('seed-'));
+const withSeed = (list) =>
+  withIds(SEED_PLACES.length > 0 && !list.some(isSeedId) ? structuredClone(SEED_PLACES).concat(list) : list);
+export { SEED_PLACES };
+
+export const readPlaces = async () => withSeed(await readBlob(PLACES_KEY, []));
 export const writePlaces = (data) => overwrite(PLACES_KEY, data);
 export const readPending = () => readBlob(PENDING_KEY, []);
 export const writePending = (data) => overwrite(PENDING_KEY, data);
@@ -294,10 +310,10 @@ export function removePending(id) {
 export function appendPlace(place) {
   if (!place.id) throw new Error('appendPlace: place needs an id');
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => (current.some((p) => p.id === place.id) ? null : current.concat([place])),
     (after) => after.some((p) => p.id === place.id),
-    withIds,
+    withSeed,
   );
 }
 
@@ -307,7 +323,7 @@ export function replacePlace(next) {
   if (!next.id) throw new Error('replacePlace: place needs an id');
   const want = JSON.stringify(next);
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => {
       const i = current.findIndex((p) => p.id === next.id);
       if (i === -1) return null;
@@ -316,7 +332,7 @@ export function replacePlace(next) {
       return copy;
     },
     (after) => after.some((p) => p.id === next.id && JSON.stringify(p) === want),
-    withIds,
+    withSeed,
   );
 }
 
@@ -327,15 +343,23 @@ export function removePlace(id) {
   const count = (list) => list.filter((p) => p.id === id).length;
   let expect = 0;
   return mutate(
-    PLACES_KEY, SEED_PLACES,
+    PLACES_KEY, [],
     (current) => {
       const i = current.findIndex((p) => p.id === id);
       if (i === -1) return null;
       expect = count(current) - 1;
-      return current.slice(0, i).concat(current.slice(i + 1));
+      const next = current.slice(0, i).concat(current.slice(i + 1));
+      // Taking out the last seed entry (or the last entry) leaves a list the
+      // seed would go straight back into on the next read. Write it merged —
+      // minus the seed's own copy of this entry, so the removal holds — rather
+      // than have the check afterwards read the seed back as a failed write.
+      // Only the seed's copy: two legacy duplicates share an id, and this has
+      // to take one of them, not both.
+      if (next.some(isSeedId) || SEED_PLACES.length === 0) return next;
+      return withSeed(next).filter((p) => !(isSeedId(p) && p.id === id));
     },
     (after) => count(after) <= expect,
-    withIds,
+    withSeed,
   );
 }
 
