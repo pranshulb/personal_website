@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧅</text></svg>">
+  <title>shrek — pranshul's cafe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unkempt:wght@400;700&display=block" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Unkempt', cursive;
+      background: #78b43a;   /* ogre */
+      color: #2b3a16;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* paper grain, same as the rest of the site */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 220px;
+      z-index: 100;
+    }
+
+    /* the corners: plain ink, with a soft green halo behind the letters so
+       they stay readable when a photo lands under them — no box */
+    .corner {
+      position: fixed;
+      font-family: inherit;
+      font-size: 1.1rem;
+      color: #2b3a16;
+      z-index: 20;
+      text-decoration: none;
+      background: none;
+      border: 0;
+      padding: 0;
+      line-height: 1.6;
+      text-shadow: 0 0 2px #78b43a, 0 0 4px #78b43a, 0 0 8px #78b43a, 0 0 14px #78b43a, 0 0 22px #78b43a, 0 0 32px #78b43a;
+    }
+    .back { top: 1.5rem; left: 1.5rem; opacity: 0.85; transition: opacity 0.3s ease, color 0.3s ease; }
+    .back:hover { opacity: 1; }
+    .note { top: 1.5rem; right: 1.5rem; pointer-events: none; }
+    .note em { font-style: italic; }
+    .sound { bottom: 1.5rem; right: 1.5rem; cursor: pointer; opacity: 0.85; transition: opacity 0.3s ease; border-bottom: 1px solid rgba(43, 58, 22, 0.35); }
+    .sound:hover, .sound:focus-visible { opacity: 1; }
+
+    /* the swamp: shrek, everywhere, never still */
+    .swamp { position: fixed; inset: 0; z-index: 1; }
+
+    .ogre {
+      position: absolute;
+      left: var(--x); top: var(--y);
+      width: var(--w);
+      transform: rotate(var(--r));
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      animation: bob var(--t) ease-in-out var(--d) infinite;
+      will-change: transform;
+    }
+    /* the blurred shadow costs a re-render of every photo every frame; only where there's a GPU to spare */
+    @media (hover: hover) and (pointer: fine) {
+      .ogre { filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28)); }
+      .ogre.held { filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38)); }
+    }
+    .ogre img {
+      width: 100%; height: auto;
+      display: block;
+      aspect-ratio: var(--ar, auto);
+      object-fit: cover;
+      clip-path: var(--clip);          /* each photo cut into a goofy shape: a heart, a star, an onion… */
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    .ogre.cutout img { clip-path: none; aspect-ratio: auto; }
+    .ogre.jiggle { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .ogre.held {
+      animation: none;
+      transform: rotate(var(--r)) scale(1.06);
+      cursor: grabbing;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: rotate(var(--r)) translateY(0); }
+      50%      { transform: rotate(calc(var(--r) + 4deg)) translateY(-14px); }
+    }
+    @keyframes jiggle {
+      10%, 90% { transform: rotate(calc(var(--r) - 7deg)) scale(1.04); }
+      30%, 70% { transform: rotate(calc(var(--r) + 9deg)) scale(1.09); }
+      50%      { transform: rotate(calc(var(--r) - 9deg)) scale(1.12); }
+      100%     { transform: rotate(var(--r)) scale(1); }
+    }
+
+    /* the lunge: click one and it comes at you */
+    .lunge {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      overflow: hidden;
+      background: #2b3a16;
+      transform-origin: center;
+      will-change: transform;
+      transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.3, 1);
+    }
+    .lunge img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1);
+      transition: transform 0.9s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+    .lunge.in img { transform: scale(1.35); }     /* keeps coming after it has filled the screen */
+    .lunge.out { transition: transform 0.35s cubic-bezier(0.4, 0, 0.6, 1); }
+    .swamp.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translate(-2px, 1px); }
+      20%, 80% { transform: translate(4px, -2px); }
+      30%, 50%, 70% { transform: translate(-7px, 3px); }
+      40%, 60% { transform: translate(7px, -3px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ogre, .ogre.jiggle, .swamp.shook { animation: none; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+<a href="/things-i-like" class="corner back">← back</a>
+<p class="corner note">(pls do <em>not</em> click on the pics)</p>
+<div class="swamp" id="swamp"></div>
+<button class="corner sound" id="sound" type="button">sound: on</button>
+
+<script>
+(() => {
+  const files = [
+    'somebody-once-told-me.png', 'green.png', 'pinocchio.png',
+    'my-swamp.jpg', 'donkey.jpg', 'the-face.jpg', 'the-face-wide.jpg', 'waffles.jpg', 'better-out-than-in.jpg',
+    'yes-donkey.jpg', 'onions.jpg', 'this-is-my-swamp.jpg', 'the-rock.jpg', 'sunflowers.jpg',
+    'fiona-field.jpg', 'fiona-sunset.jpg', 'mirror.jpg', 'forest-three.jpg', 'wedding.jpg', 'ogre-kids.jpg',
+    'pinocchio-nose.jpg', 'pinocchio-walk.jpg', 'cast.jpg', 'dragon-blue.jpg', 'dragon-red.jpg', 'windmill.jpg',
+  ];
+  const cutouts = new Set(['somebody-once-told-me.png', 'green.png', 'pinocchio.png']);
+  const rng = (a, b) => a + Math.random() * (b - a);
+
+  // /shrek?debug — a small readout of what the device fires, for when a
+  // phone misbehaves and I can't hold it
+  const DEBUG = /[?&]debug/.test(location.search);
+  let dbgEl = null;
+  function dbg(msg) {
+    if (!DEBUG) return;
+    if (!dbgEl) { dbgEl = document.createElement('pre'); dbgEl.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;font:12px/1.3 monospace;color:#fff;background:rgba(0,0,0,.7);padding:6px 8px;max-width:80vw;white-space:pre-wrap;pointer-events:none'; document.body.appendChild(dbgEl); }
+    dbgEl.textContent = (dbgEl.textContent + '\n' + ((performance.now() | 0) + ' ' + msg)).split('\n').slice(-9).join('\n');
+  }
+  if (DEBUG) {
+    dbg(navigator.userAgent.slice(0, 70));
+    for (const n of ['pointerdown', 'pointerup', 'pointercancel', 'click', 'touchstart', 'touchend']) document.addEventListener(n, e => dbg(n + ' ' + (e.target.className || e.target.tagName)), true);
+    window.addEventListener('error', e => dbg('ERROR ' + e.message));
+  }
+
+  // ---- the shapes. Each is a polygon in percentages, so it fits any size.
+  // `square` ones crop the photo square first so the shape isn't stretched.
+  const poly = pts => 'polygon(' + pts.map(([x, y]) => x.toFixed(1) + '% ' + y.toFixed(1) + '%').join(',') + ')';
+  const polar = (n, f) => { const pts = []; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, r = f(a, i); pts.push([50 + 50 * r * Math.cos(a), 50 + 50 * r * Math.sin(a)]); } return pts; };
+  const SHAPES = {
+    heart: () => { const pts = []; for (let i = 0; i < 48; i++) { const t = i / 48 * Math.PI * 2; const x = 16 * Math.pow(Math.sin(t), 3), y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t); pts.push([50 + x / 16 * 48, 50 - (y + 2.5) / 14.5 * 48]); } return { clip: poly(pts), square: true }; },
+    star:  () => { const p = rng(0, 6.28); return { clip: poly(polar(10, (a, i) => i % 2 ? 0.46 : 1)), square: true, rot: p }; },
+    onion: () => { const pts = []; for (let i = 0; i < 48; i++) { const t = i / 48 * Math.PI * 2; pts.push([50 + 46 * Math.sin(t) * Math.pow((1 - Math.cos(t)) / 2, 0.55), 50 - 50 * Math.cos(t)]); } return { clip: poly(pts), square: true }; },
+    cloud: () => { const p = rng(0, 6.28); return { clip: poly(polar(72, a => 0.78 + 0.22 * Math.abs(Math.sin(3 * a + p)))), square: false }; },
+    splat: () => { const j = Array.from({ length: 16 }, () => rng(-0.12, 0.12)); return { clip: poly(polar(16, (a, i) => (i % 2 ? 0.58 : 1) + j[i])), square: true }; },
+    flower:() => ({ clip: poly(polar(96, a => 0.76 + 0.24 * Math.abs(Math.sin(4 * a)))), square: true }),
+    scrap: () => ({ clip: poly(polar(28, a => { const c = Math.cos(a), s = Math.sin(a); return rng(0.86, 1) * Math.hypot(Math.sign(c) * Math.pow(Math.abs(c), 0.5), Math.sign(s) * Math.pow(Math.abs(s), 0.5)) / Math.hypot(c, s) * Math.hypot(c, s); })), square: false }),
+    bolt:  () => ({ clip: poly([[48, 0], [82, 0], [60, 38], [88, 38], [28, 100], [42, 56], [12, 56]]), square: true }),
+    bubble:() => ({ clip: poly([[14, 0], [86, 0], [100, 14], [100, 60], [86, 74], [42, 74], [18, 100], [30, 74], [14, 74], [0, 60], [0, 14]]), square: false }),
+    wonky: () => ({ clip: poly(polar(6, () => rng(0.82, 1))), square: true }),
+    wobble:() => { const p = rng(0, 6.28); return { clip: poly(polar(60, a => 0.9 + 0.08 * Math.sin(3 * a + p) + 0.04 * Math.sin(5 * a - p))), square: false }; },
+  };
+  const SHAPE_NAMES = ['heart', 'star', 'onion', 'cloud', 'splat', 'flower', 'scrap', 'bolt', 'bubble', 'wonky', 'wobble', 'heart', 'star', 'splat'];
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const swamp = document.getElementById('swamp');
+  const phone = window.innerWidth < 640;
+
+  // The pile: every picture once, and half of them a second time, on a
+  // jittered grid so the whole screen is shrek. A different pile every visit.
+  // Phones get each photo once, from a set sized for a phone; a big screen
+  // gets every photo plus half of them again, full size.
+  const list = phone ? shuffle(files.slice()) : shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
+  const dir = phone ? '/images/shrek/small/' : '/images/shrek/';
+  const cols = phone ? 3 : 6, rows = Math.ceil(list.length / cols);
+  let zTop = list.length;
+  const ogres = list.map((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'ogre' + (cutouts.has(f) ? ' cutout' : '');
+    const w = phone ? rng(28, 54) : rng(12, 28);
+    const cx = ((i % cols) + 0.5) * (100 / cols), cy = (Math.floor(i / cols) + 0.5) * (100 / rows);
+    el.style.setProperty('--w', w + 'vw');
+    el.style.setProperty('--x', (cx - w / 2 + rng(-12, 12)) + 'vw');
+    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.3) + rng(-10, 10)) + 'vh');
+    el.style.setProperty('--r', rng(-22, 22).toFixed(1) + 'deg');
+    el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
+    el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
+    if (!cutouts.has(f)) {
+      const shape = SHAPES[SHAPE_NAMES[Math.floor(Math.random() * SHAPE_NAMES.length)]]();
+      el.style.setProperty('--clip', shape.clip);
+      if (shape.square) el.style.setProperty('--ar', '1');
+    }
+    el.style.zIndex = i + 1;
+    const img = document.createElement('img');
+    img.src = dir + f; img.alt = 'shrek'; img.draggable = false;
+    el.appendChild(img);
+    swamp.appendChild(el);
+    return el;
+  });
+
+  /* ---- sounds: made on the spot with the Web Audio API. No files, nothing
+     borrowed, and they are goofier this way. The browser only lets a page
+     make noise after a tap or click, so the first sound is on the first
+     interaction, and the switch bottom-right turns them off. */
+  let ac = null, master = null;
+  let muted = false;
+  try { muted = localStorage.getItem('shrek-sound') === 'off'; } catch (e) {}
+  function audio() {
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = muted ? 0 : 1; master.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function tone(type, f0, f1, dur, vol) {
+    const c = audio(), o = c.createOscillator(), g = c.createGain(), now = c.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(f0, now); o.frequency.exponentialRampToValueAtTime(f1, now + dur);
+    g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    o.connect(g).connect(master); o.start(now); o.stop(now + dur);
+  }
+  function thump(dur, vol) {
+    const c = audio(), b = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const s = c.createBufferSource(), g = c.createGain();
+    s.buffer = b; g.gain.value = vol; s.connect(g).connect(master); s.start();
+  }
+  const sfx = {
+    blip() { tone('sine', 520, 940, 0.09, 0.10); },                       // a photo fidgets under the pointer
+    pop()  { tone('sine', 330, 140, 0.07, 0.22); thump(0.03, 0.12); },    // picked up
+    boing() {                                                            // put down: a spring, wobbling as it falls
+      const c = audio(), o = c.createOscillator(), g = c.createGain(), v = c.createOscillator(), vg = c.createGain(), now = c.currentTime;
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(280, now); o.frequency.exponentialRampToValueAtTime(110, now + 0.5);
+      v.frequency.value = 16; vg.gain.value = 45; v.connect(vg).connect(o.frequency);
+      g.gain.setValueAtTime(0.28, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      o.connect(g).connect(master); o.start(now); v.start(now); o.stop(now + 0.5); v.stop(now + 0.5);
+    },
+    roar() {                                                             // the lunge: a hit, then two saws falling out of tune
+      thump(0.14, 0.55);
+      tone('sawtooth', 120, 36, 0.75, 0.33); tone('sawtooth', 128, 40, 0.75, 0.33); tone('square', 1500, 700, 0.12, 0.07);
+    },
+  };
+  function play(name) { if (muted) return; try { sfx[name](); } catch (e) {} }
+
+  const btn = document.getElementById('sound');
+  const showSound = () => { btn.textContent = muted ? 'sound: off' : 'sound: on'; };
+  showSound();
+  btn.addEventListener('click', () => {
+    muted = !muted;
+    try { localStorage.setItem('shrek-sound', muted ? 'off' : 'on'); } catch (e) {}
+    if (master) master.gain.value = muted ? 0 : 1;
+    showSound();
+    play('blip');
+  });
+
+  // one of them fidgets every couple of seconds (quietly), and whichever one
+  // the pointer touches fidgets too (not quietly)
+  function jiggle(el) { el.classList.remove('jiggle'); void el.offsetWidth; el.classList.add('jiggle'); }
+  setInterval(() => { if (!lunge && !dragEl) jiggle(ogres[Math.floor(Math.random() * ogres.length)]); }, 1900);
+
+  // ---- pick one up and move it; let go of one without moving it and it comes at you
+  let dragEl = null, dragged = false, sx = 0, sy = 0, ox = 0, oy = 0, lastLunge = 0;
+  // iPhones treat a first tap on anything with a hover listener as a hover,
+  // not a tap. So the fidget-under-the-pointer only exists where there is a
+  // real pointer to hover with.
+  const canHover = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  ogres.forEach(el => {
+    el.addEventListener('animationend', e => { if (e.animationName === 'jiggle') el.classList.remove('jiggle'); });
+    if (canHover) el.addEventListener('pointerenter', () => { if (!lunge && !dragEl) { jiggle(el); play('blip'); } });
+    el.addEventListener('pointerdown', e => {
+      if (lunge || dragEl) return;
+      e.preventDefault();
+      dragEl = el; dragged = false;
+      sx = e.clientX; sy = e.clientY; ox = el.offsetLeft; oy = el.offsetTop;
+      el.style.zIndex = ++zTop;   // whatever you touch comes to the top of the pile
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', e => {
+      if (dragEl !== el) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragged && Math.hypot(dx, dy) > (e.pointerType === 'touch' ? 12 : 5)) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
+      if (dragged) { el.style.left = (ox + dx) + 'px'; el.style.top = (oy + dy) + 'px'; }
+    });
+    const letGo = e => {
+      if (dragEl !== el) return;
+      dragEl = null;
+      if (dragged) { el.classList.remove('held'); play('boing'); }
+      else { lastLunge = performance.now(); comeAtMe(el); }   // a cancel without movement is still a tap
+    };
+    el.addEventListener('pointerup', letGo);
+    el.addEventListener('pointercancel', letGo);
+    // Belt and braces: whatever a phone does with pointer events, a tap
+    // always ends in a click. If that click arrives and nothing lunged for
+    // it, lunge now.
+    el.addEventListener('click', () => {
+      if (dragged || dragEl || performance.now() - lastLunge < 700) return;
+      lastLunge = performance.now(); comeAtMe(el);
+    });
+    // And the oldest path of all, which every iPhone has had since 2007:
+    // a finger lifted where it landed is a tap.
+    let tx = 0, ty = 0, tMoved = false;
+    el.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; tMoved = false; }, { passive: true });
+    el.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.hypot(t.clientX - tx, t.clientY - ty) > 12) tMoved = true; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      dbg('touchend moved=' + tMoved + ' dragged=' + dragged);
+      if (tMoved || dragged || performance.now() - lastLunge < 700) return;
+      if (dragEl === el) dragEl = null;
+      lastLunge = performance.now(); comeAtMe(el);
+    }, { passive: true });
+  });
+
+  // The lunge: a copy of the picture starts exactly where it is, fills the
+  // screen in a fifth of a second with a little overshoot, keeps creeping
+  // closer, and the page shakes. Another click, Escape, or a moment later,
+  // it goes back where it came from.
+  let lunge = null, retreatTimer = 0, closedAt = -1e9;
+  // the transform that shrinks a full-screen box onto a photo's rectangle
+  function onto(r) {
+    const W = window.innerWidth, H = window.innerHeight;
+    return `translate(${r.left + r.width / 2 - W / 2}px, ${r.top + r.height / 2 - H / 2}px) scale(${r.width / W}, ${r.height / H})`;
+  }
+  function comeAtMe(ogre) {
+    // A tap that closes one is followed, on a phone, by a late click that
+    // lands on whatever is underneath. Nothing opens for a moment after a close.
+    if (lunge || performance.now() - closedAt < 700) return;
+    const img = ogre.querySelector('img');
+    const r = img.getBoundingClientRect();
+    lunge = document.createElement('div');
+    lunge.className = 'lunge';
+    const copy = document.createElement('img');
+    copy.src = img.src; copy.alt = '';
+    lunge.appendChild(copy);
+    lunge.style.transform = onto(r);
+    document.body.appendChild(lunge);
+    void lunge.offsetWidth;
+    lunge.style.transform = 'translate(0px, 0px) scale(1, 1)';
+    lunge.classList.add('in');
+    play('roar');
+    swamp.classList.remove('shook'); void swamp.offsetWidth; swamp.classList.add('shook');
+    dbg('lunge open');
+    const back = () => {
+      if (!lunge) return;
+      clearTimeout(retreatTimer);
+      const el = lunge; lunge = null;
+      closedAt = performance.now();
+      dbg('lunge close');
+      el.classList.remove('in'); el.classList.add('out');
+      el.style.transform = onto(img.getBoundingClientRect());
+      // stays (invisible once retreated) long enough to catch the phone's late click
+      setTimeout(() => { el.style.opacity = '0'; }, 380);
+      setTimeout(() => el.remove(), 800);
+    };
+    // Phones deliver the opening tap's click late and to whatever is under
+    // the finger — by then, this. So this never closes on a click: only on a
+    // fresh touch after it has settled, Escape, or the timer.
+    const born = performance.now();
+    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(); });
+    lunge.addEventListener('click', e => e.stopPropagation());   // the late click ends here, not on a photo
+    const thisLunge = lunge;
+    retreatTimer = setTimeout(back, 1500);
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
+  }
+  swamp.addEventListener('animationend', e => { if (e.animationName === 'shake') swamp.classList.remove('shook'); });
+})();
+</script>
+
+</body>
+</html>
