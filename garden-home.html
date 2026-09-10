@@ -491,8 +491,134 @@
   }
 
   /* ================================================================
+     LEDGES — the words are part of the garden
+
+     The title and the nav links are HTML: the browser paints them, not
+     us, so we can't draw petals *into* them. What we can do is find out
+     exactly where their letters are and let petals settle on top.
+
+     Each ledge is one element. Its "skyline" is the height of the ink in
+     every pixel column, measured by painting the same text with the same
+     font into a scratch canvas and scanning each column down to the first
+     inked pixel. The inline box's top edge sits one font-ascent above the
+     baseline — the same ascent the canvas reports — so the scratch canvas
+     and the element share a coordinate system. A petal whose foot crosses
+     the skyline while falling perches there; perched petals move with the
+     words if the page scrolls, and slide off when the word is hovered or
+     the tree is shaken. Wrapped elements (two line boxes) are skipped
+     rather than guessed.
+  ================================================================ */
+  const LEDGE_SEL = 'h1 a, ul li a';
+  let ledges = [];    // { el, left, top, width, height, sky, cap }
+  let perched = [];   // { l, ox, oy, r, rot, color, alpha, age }
+  const hotEls = new Set();   // words under the pointer: petals slide off and don't come back while it stays
+  const measC = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+
+  function measureLedge(el) {
+    const rects = el.getClientRects();
+    if (rects.length !== 1) return null;
+    const r = rects[0];
+    if (r.width < 8 || r.height < 8) return null;
+    const cs = getComputedStyle(el);
+    const w = Math.ceil(r.width), h = Math.ceil(r.height);
+    let sky = null;
+    try {
+      measC.canvas.width = w; measC.canvas.height = h;
+      measC.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      if ('letterSpacing' in measC) measC.letterSpacing = cs.letterSpacing;
+      measC.textBaseline = 'alphabetic';
+      measC.fillStyle = '#000';
+      const text = el.textContent;
+      const m = measC.measureText(text);
+      const ascent = m.fontBoundingBoxAscent || m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * 0.8;
+      measC.fillText(text, 0, ascent + (parseFloat(cs.paddingTop) || 0));
+      const px = measC.getImageData(0, 0, w, h).data;
+      sky = new Int16Array(w).fill(-1);
+      for (let x = 0; x < w; x++) {
+        for (let y = 0; y < h; y++) {
+          if (px[(y * w + x) * 4 + 3] > 40) { sky[x] = y; break; }
+        }
+      }
+    } catch (e) { sky = null; }   // tainted or unsupported: fall back to a flat ledge
+    // On phones the canopy hangs right over the title, so it fills fast; a
+    // lower cap keeps it a dusting rather than a burial.
+    return { el, left: r.left, top: r.top, width: r.width, height: r.height, sky,
+             cap: el.closest('h1') ? (isMobile ? 8 : 14) : 3 };
+  }
+
+  // Full measure: skylines and positions. Runs on load, once the fonts are
+  // in, and on a real resize. Perched petals are dropped rather than moved,
+  // since the word they sat on may now be somewhere else entirely.
+  function measureLedges() {
+    perched = [];
+    ledges = [];
+    document.querySelectorAll(LEDGE_SEL).forEach(el => {
+      const L = measureLedge(el);
+      if (L) ledges.push(L);
+    });
+  }
+
+  // Cheap re-layout: positions only. The words scroll with the container on
+  // phones, and perched petals are stored relative to their word, so this
+  // is all a scroll needs.
+  function layoutLedges() {
+    for (const L of ledges) {
+      const r = L.el.getBoundingClientRect();
+      L.left = r.left; L.top = r.top;
+    }
+  }
+
+  function skyAt(L, x) {
+    if (x < L.left || x >= L.left + L.width) return -1;
+    if (!L.sky) return L.height * 0.3;
+    return L.sky[Math.floor(x - L.left)];
+  }
+
+  function perchPetal(p, k, s) {
+    const L = ledges[k];
+    const mine = perched.filter(q => q.l === k);
+    if (mine.length >= L.cap) releasePetal(mine[0], 0);   // the oldest slides off to make room
+    perched.push({ l: k, ox: p.x - L.left, oy: s - p.r * 0.45, r: p.r,
+      rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha, age: 0 });
+  }
+
+  function releasePetal(q, gust) {
+    const idx = perched.indexOf(q);
+    if (idx < 0) return;
+    perched.splice(idx, 1);
+    const L = ledges[q.l];
+    airPetals.push(newAirPetal(L.left + q.ox, L.top + q.oy,
+      rng(-0.3, 0.3) + gust, rng(-0.12, 0.06), q));
+  }
+
+  function releaseLedge(el, gust) {
+    const k = ledges.findIndex(L => L.el === el);
+    if (k < 0) return;
+    for (const q of perched.filter(q => q.l === k)) releasePetal(q, gust);
+  }
+
+  function releaseAll(gust) {
+    for (const q of perched.slice()) releasePetal(q, gust * rng(0.4, 1));
+  }
+
+  /* ================================================================
      PETAL PHYSICS — gentle illustrated drift
   ================================================================ */
+  // `keep` is a petal that already exists (one sliding off a word): its
+  // size, colour and alpha carry over, and it gets a short grace period in
+  // which it can't land again on the word it just left.
+  function newAirPetal(px, py, vx, vy, keep) {
+    return {
+      x: px, y: py, vx, vy,
+      r: keep ? keep.r : rng(5, 11), rot: keep ? keep.rot : rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
+      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
+      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
+      color: keep ? keep.color : (Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT)),
+      alpha: keep ? keep.alpha : rng(0.55, 0.90),
+      noLand: keep ? 45 : 0
+    };
+  }
+
   function spawnPetal(fromTree) {
     let px, py, vx, vy;
     if (fromTree && blossoms.length) {
@@ -503,14 +629,7 @@
       px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
       vx = rng(-0.1, 0.1); vy = rng(0.04, 0.09);
     }
-    airPetals.push({
-      x: px, y: py, vx, vy,
-      r: rng(5, 11), rot: rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
-      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
-      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
-      color: Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
-      alpha: rng(0.55, 0.90)
-    });
+    airPetals.push(newAirPetal(px, py, vx, vy));
   }
 
   function updatePetals() {
@@ -523,7 +642,23 @@
       p.swp += p.swSpd;
       p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;
+      const foot0 = p.y + p.r * 0.5;   // where the petal's lower edge was before this step
       p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
+
+      // Settling on a word: the foot crossed a letter's skyline while falling.
+      if (p.noLand > 0) p.noLand--;
+      else if (p.vy > 0 && ledges.length) {
+        const foot1 = p.y + p.r * 0.5;
+        let landed = false;
+        for (let k = 0; k < ledges.length; k++) {
+          if (hotEls.has(ledges[k].el)) continue;
+          const s = skyAt(ledges[k], p.x);
+          if (s < 0) continue;                       // outside the word, or over a gap between letters
+          const yTop = ledges[k].top + s;
+          if (foot0 < yTop && foot1 >= yTop) { perchPetal(p, k, s); landed = true; break; }
+        }
+        if (landed) { airPetals.splice(i, 1); continue; }
+      }
       const gy = H * 0.90;
       if (p.y > gy) {
         // Every petal that lands should actually be seen — if we're at the cap,
@@ -540,6 +675,10 @@
     for (let i = groundPetals.length - 1; i >= 0; i--) {
       groundPetals[i].age += 0.0001;
       if (groundPetals[i].age > 1) groundPetals.splice(i, 1);
+    }
+    for (let i = perched.length - 1; i >= 0; i--) {
+      perched[i].age += 0.0001;
+      if (perched[i].age > 1) perched.splice(i, 1);
     }
     if (airPetals.length < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
   }
@@ -608,6 +747,13 @@
     for (const p of groundPetals) {
       const a = p.alpha * Math.max(0, 1 - p.age);
       if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
+    }
+    // Petals resting on the words. The overlay sits above the text, so these
+    // draw on top of the letters they landed on.
+    for (const q of perched) {
+      const L = ledges[q.l];
+      const a = q.alpha * Math.max(0, 1 - q.age);
+      if (a > 0.015) drawPetalShape(c, L.left + q.ox, L.top + q.oy, q.r, q.rot, q.color, a);
     }
     for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
   }
@@ -705,6 +851,7 @@
   let scrollTicking = false;
   function applyScrollFade() {
     scrollTicking = false;
+    layoutLedges();
     if (!isMobile) { containerEl.style.removeProperty('--card-a'); return; }
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
     const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
@@ -722,7 +869,7 @@
   /* ================================================================
      EVENTS
   ================================================================ */
-  window.addEventListener('resize', () => { resize(); applyScrollFade(); });
+  window.addEventListener('resize', () => { resize(); measureLedges(); applyScrollFade(); });
   document.addEventListener('mousemove', e => {
     mx = (e.clientX / W - 0.5) * 2;
   });
@@ -734,6 +881,7 @@
     if (now - lastShakeAt < 400) return;
     lastShakeAt = now;
     shakeV = (Math.random() > 0.5 ? 1 : -1) * rng(9, 14);
+    releaseAll(Math.sign(shakeV) * 0.6);
     // cap total petals so rapid repeated taps can't grow this unbounded
     const room = Math.max(0, 260 - airPetals.length);
     for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true);
@@ -768,6 +916,22 @@
   ================================================================ */
   resize();
   applyScrollFade();
+  // The skyline is only right once the real fonts have loaded; until then
+  // the scratch canvas measures the fallback face. Measure now so ledges
+  // exist, then again when the fonts arrive.
+  measureLedges();
+  if (document.fonts) {
+    document.fonts.ready.then(measureLedges);
+    document.fonts.addEventListener('loadingdone', measureLedges);
+  }
+  document.querySelectorAll(LEDGE_SEL).forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      hotEls.add(el);
+      // one breath of wind per word, so its petals slide off together
+      releaseLedge(el, (Math.random() < 0.5 ? -1 : 1) * rng(0.5, 0.9));
+    });
+    el.addEventListener('mouseleave', () => hotEls.delete(el));
+  });
   // Pre-scatter hearts so it feels alive on load
   for (let i = 0; i < 26; i++) {
     spawnPetal(true);
