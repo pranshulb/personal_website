@@ -33,21 +33,27 @@
       z-index: 100;
     }
 
-    .back, .note {
+    /* the corners: plain ink, with a soft green halo behind the letters so
+       they stay readable when a photo lands under them — no box */
+    .corner {
       position: fixed;
-      top: 1.5rem;
+      font-family: inherit;
       font-size: 0.9rem;
       color: #2b3a16;
       z-index: 20;
       text-decoration: none;
-      background: #78b43a;          /* stays readable when a photo lands under it */
-      padding: 0.15rem 0.5rem;
-      border-radius: 2px;
+      background: none;
+      border: 0;
+      padding: 0;
+      line-height: 1.6;
+      text-shadow: 0 0 2px #78b43a, 0 0 4px #78b43a, 0 0 8px #78b43a, 0 0 14px #78b43a, 0 0 22px #78b43a, 0 0 32px #78b43a;
     }
-    .back { left: 1.5rem; opacity: 0.85; transition: opacity 0.3s ease; }
+    .back { top: 1.5rem; left: 1.5rem; opacity: 0.85; transition: opacity 0.3s ease, color 0.3s ease; }
     .back:hover { opacity: 1; }
-    .note { right: 1.5rem; pointer-events: none; }
+    .note { top: 1.5rem; right: 1.5rem; pointer-events: none; }
     .note em { font-style: italic; }
+    .sound { bottom: 1.5rem; right: 1.5rem; cursor: pointer; opacity: 0.85; transition: opacity 0.3s ease; border-bottom: 1px solid rgba(43, 58, 22, 0.35); }
+    .sound:hover, .sound:focus-visible { opacity: 1; }
 
     /* the swamp: shrek, everywhere, never still */
     .swamp { position: fixed; inset: 0; z-index: 1; }
@@ -57,7 +63,8 @@
       left: var(--x); top: var(--y);
       width: var(--w);
       transform: rotate(var(--r));
-      cursor: pointer;
+      cursor: grab;
+      touch-action: none;
       user-select: none;
       -webkit-user-select: none;
       animation: bob var(--t) ease-in-out var(--d) infinite;
@@ -72,6 +79,12 @@
     }
     .ogre.cutout img { border-radius: 0; }
     .ogre.jiggle { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .ogre.held {
+      animation: none;
+      transform: rotate(var(--r)) scale(1.06);
+      cursor: grabbing;
+      filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38));
+    }
 
     @keyframes bob {
       0%, 100% { transform: rotate(var(--r)) translateY(0); }
@@ -118,69 +131,146 @@
 </head>
 <body>
 
-<a href="/things-i-like" class="back">← back</a>
-<p class="note">(pls do <em>not</em> click on the pics)</p>
-
+<a href="/things-i-like" class="corner back">← back</a>
+<p class="corner note">(pls do <em>not</em> click on the pics)</p>
 <div class="swamp" id="swamp"></div>
+<button class="corner sound" id="sound" type="button">sound: on</button>
 
 <script>
 (() => {
-  const pics = [
-    { src: '/images/shrek/somebody-once-told-me.png', cutout: true },
-    { src: '/images/shrek/green.png', cutout: true },
-    { src: '/images/shrek/my-swamp.jpg' },
-    { src: '/images/shrek/donkey.jpg' },
-    { src: '/images/shrek/the-face.jpg' },
-    { src: '/images/shrek/waffles.jpg' },
-    { src: '/images/shrek/better-out-than-in.jpg' },
-    { src: '/images/shrek/yes-donkey.jpg' },
-    { src: '/images/shrek/onions.jpg' },
-    { src: '/images/shrek/this-is-my-swamp.jpg' },
-    { src: '/images/shrek/the-rock.jpg' },
+  const files = [
+    'somebody-once-told-me.png', 'green.png', 'pinocchio.png',
+    'my-swamp.jpg', 'donkey.jpg', 'the-face.jpg', 'the-face-wide.jpg', 'waffles.jpg', 'better-out-than-in.jpg',
+    'yes-donkey.jpg', 'onions.jpg', 'this-is-my-swamp.jpg', 'the-rock.jpg', 'sunflowers.jpg',
+    'fiona-field.jpg', 'fiona-sunset.jpg', 'mirror.jpg', 'forest-three.jpg', 'wedding.jpg', 'ogre-kids.jpg',
+    'pinocchio-nose.jpg', 'pinocchio-walk.jpg', 'cast.jpg', 'dragon-blue.jpg', 'dragon-red.jpg', 'windmill.jpg',
   ];
+  const cutouts = new Set(['somebody-once-told-me.png', 'green.png', 'pinocchio.png']);
   const rng = (a, b) => a + Math.random() * (b - a);
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const swamp = document.getElementById('swamp');
   const phone = window.innerWidth < 640;
 
-  // Scatter: a different pile every visit. Sizes are in viewport widths so
-  // the pile fills a phone and a big screen alike; positions may run off the
-  // edges on purpose.
-  for (let i = pics.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pics[i], pics[j]] = [pics[j], pics[i]]; }
-  // A jittered grid rather than pure chance, so the whole screen is shrek
-  // and no corner is left green by accident.
-  const cols = phone ? 2 : 4, rows = Math.ceil(pics.length / cols);
-  const ogres = pics.map((p, i) => {
+  // The pile: every picture once, and half of them a second time, on a
+  // jittered grid so the whole screen is shrek. A different pile every visit.
+  const list = shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
+  const cols = phone ? 3 : 6, rows = Math.ceil(list.length / cols);
+  let zTop = list.length;
+  const ogres = list.map((f, i) => {
     const el = document.createElement('div');
-    el.className = 'ogre' + (p.cutout ? ' cutout' : '');
-    const w = phone ? rng(44, 72) : rng(20, 36);
+    el.className = 'ogre' + (cutouts.has(f) ? ' cutout' : '');
+    const w = phone ? rng(28, 54) : rng(12, 28);
     const cx = ((i % cols) + 0.5) * (100 / cols), cy = (Math.floor(i / cols) + 0.5) * (100 / rows);
     el.style.setProperty('--w', w + 'vw');
-    el.style.setProperty('--x', (cx - w / 2 + rng(-14, 14)) + 'vw');
-    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.35) + rng(-14, 14)) + 'vh');
-    el.style.setProperty('--r', rng(-18, 18).toFixed(1) + 'deg');
+    el.style.setProperty('--x', (cx - w / 2 + rng(-12, 12)) + 'vw');
+    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.3) + rng(-10, 10)) + 'vh');
+    el.style.setProperty('--r', rng(-22, 22).toFixed(1) + 'deg');
     el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
     el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
     el.style.setProperty('--blob', `${rng(35, 60) | 0}% ${rng(40, 65) | 0}% ${rng(35, 60) | 0}% ${rng(40, 65) | 0}% / ${rng(40, 60) | 0}% ${rng(35, 60) | 0}% ${rng(40, 65) | 0}% ${rng(35, 60) | 0}%`);
+    el.style.zIndex = i + 1;
     const img = document.createElement('img');
-    img.src = p.src; img.alt = 'shrek'; img.draggable = false;
+    img.src = '/images/shrek/' + f; img.alt = 'shrek'; img.draggable = false;
     el.appendChild(img);
     swamp.appendChild(el);
     return el;
   });
 
-  // one of them fidgets every couple of seconds, and whichever one you touch
+  /* ---- sounds: made on the spot with the Web Audio API. No files, nothing
+     borrowed, and they are goofier this way. The browser only lets a page
+     make noise after a tap or click, so the first sound is on the first
+     interaction, and the switch bottom-right turns them off. */
+  let ac = null, master = null;
+  let muted = false;
+  try { muted = localStorage.getItem('shrek-sound') === 'off'; } catch (e) {}
+  function audio() {
+    if (!ac) {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = muted ? 0 : 1; master.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function tone(type, f0, f1, dur, vol) {
+    const c = audio(), o = c.createOscillator(), g = c.createGain(), now = c.currentTime;
+    o.type = type;
+    o.frequency.setValueAtTime(f0, now); o.frequency.exponentialRampToValueAtTime(f1, now + dur);
+    g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    o.connect(g).connect(master); o.start(now); o.stop(now + dur);
+  }
+  function thump(dur, vol) {
+    const c = audio(), b = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const s = c.createBufferSource(), g = c.createGain();
+    s.buffer = b; g.gain.value = vol; s.connect(g).connect(master); s.start();
+  }
+  const sfx = {
+    blip() { tone('sine', 520, 940, 0.09, 0.10); },                       // a photo fidgets under the pointer
+    pop()  { tone('sine', 330, 140, 0.07, 0.22); thump(0.03, 0.12); },    // picked up
+    boing() {                                                            // put down: a spring, wobbling as it falls
+      const c = audio(), o = c.createOscillator(), g = c.createGain(), v = c.createOscillator(), vg = c.createGain(), now = c.currentTime;
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(280, now); o.frequency.exponentialRampToValueAtTime(110, now + 0.5);
+      v.frequency.value = 16; vg.gain.value = 45; v.connect(vg).connect(o.frequency);
+      g.gain.setValueAtTime(0.28, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      o.connect(g).connect(master); o.start(now); v.start(now); o.stop(now + 0.5); v.stop(now + 0.5);
+    },
+    roar() {                                                             // the lunge: a hit, then two saws falling out of tune
+      thump(0.14, 0.55);
+      tone('sawtooth', 120, 36, 0.75, 0.33); tone('sawtooth', 128, 40, 0.75, 0.33); tone('square', 1500, 700, 0.12, 0.07);
+    },
+  };
+  function play(name) { if (muted) return; try { sfx[name](); } catch (e) {} }
+
+  const btn = document.getElementById('sound');
+  const showSound = () => { btn.textContent = muted ? 'sound: off' : 'sound: on'; };
+  showSound();
+  btn.addEventListener('click', () => {
+    muted = !muted;
+    try { localStorage.setItem('shrek-sound', muted ? 'off' : 'on'); } catch (e) {}
+    if (master) master.gain.value = muted ? 0 : 1;
+    showSound();
+    play('blip');
+  });
+
+  // one of them fidgets every couple of seconds (quietly), and whichever one
+  // the pointer touches fidgets too (not quietly)
   function jiggle(el) { el.classList.remove('jiggle'); void el.offsetWidth; el.classList.add('jiggle'); }
+  setInterval(() => { if (!lunge && !dragEl) jiggle(ogres[Math.floor(Math.random() * ogres.length)]); }, 1900);
+
+  // ---- pick one up and move it; let go of one without moving it and it comes at you
+  let dragEl = null, dragged = false, sx = 0, sy = 0, ox = 0, oy = 0;
   ogres.forEach(el => {
     el.addEventListener('animationend', e => { if (e.animationName === 'jiggle') el.classList.remove('jiggle'); });
-    el.addEventListener('mouseenter', () => { if (!lunge) jiggle(el); });
-    el.addEventListener('click', () => comeAtMe(el));
+    el.addEventListener('pointerenter', e => { if (!lunge && !dragEl && e.pointerType === 'mouse') { jiggle(el); play('blip'); } });
+    el.addEventListener('pointerdown', e => {
+      if (lunge || dragEl) return;
+      e.preventDefault();
+      dragEl = el; dragged = false;
+      sx = e.clientX; sy = e.clientY; ox = el.offsetLeft; oy = el.offsetTop;
+      el.style.zIndex = ++zTop;   // whatever you touch comes to the top of the pile
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', e => {
+      if (dragEl !== el) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragged && Math.hypot(dx, dy) > 5) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
+      if (dragged) { el.style.left = (ox + dx) + 'px'; el.style.top = (oy + dy) + 'px'; }
+    });
+    const letGo = e => {
+      if (dragEl !== el) return;
+      dragEl = null;
+      if (dragged) { el.classList.remove('held'); play('boing'); }
+      else if (e.type === 'pointerup') comeAtMe(el);
+    };
+    el.addEventListener('pointerup', letGo);
+    el.addEventListener('pointercancel', letGo);
   });
-  setInterval(() => { if (!lunge) jiggle(ogres[Math.floor(Math.random() * ogres.length)]); }, 1900);
 
-  // Click one and it comes at you: a copy of the picture starts exactly
-  // where it is, fills the screen in a fifth of a second with a little
-  // overshoot, keeps creeping closer, and the page shakes. Another click,
-  // Escape, or a moment later, it goes back where it came from.
+  // The lunge: a copy of the picture starts exactly where it is, fills the
+  // screen in a fifth of a second with a little overshoot, keeps creeping
+  // closer, and the page shakes. Another click, Escape, or a moment later,
+  // it goes back where it came from.
   let lunge = null, retreatTimer = 0;
   function place(el, r) { el.style.left = r.left + 'px'; el.style.top = r.top + 'px'; el.style.width = r.width + 'px'; el.style.height = r.height + 'px'; }
   function comeAtMe(ogre) {
@@ -197,6 +287,7 @@
     void lunge.offsetWidth;
     place(lunge, { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight });
     lunge.classList.add('in');
+    play('roar');
     document.body.classList.remove('shook'); void document.body.offsetWidth; document.body.classList.add('shook');
     const back = () => {
       if (!lunge) return;
