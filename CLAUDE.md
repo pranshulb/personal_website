@@ -31,7 +31,6 @@ gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
 tune.js                     sliders and curves for a page's motion (?tune)
-garden-home2.html           phone experiment: the tree rises as the words scroll away
 middleware.js               edge auth gate for private pages
 vercel.json                 routing, headers, proxies
 ```
@@ -69,7 +68,7 @@ vercel.json                 routing, headers, proxies
   water canvas under the words). Position is a `transform`, never
   `left`/`top` after layout. The ink canvas under the words is stamped
   along the eased path.
-- **Tuning panel** (`tune.js`). `things-i-like.html` and `garden-home2.html`
+- **Tuning panel** (`tune.js`). `things-i-like.html` and `index.html`
   open with a labelled block of every number and curve that shapes their
   motion (`MOTION`, `REVEAL`; curves are CSS cubic-bezier quadruples or a
   name from `EASE`) and expose it as `window.TUNE` with plain-words
@@ -81,10 +80,15 @@ vercel.json                 routing, headers, proxies
   technical: this is how he steers the motion. The home page styles every
   `canvas` as `position: fixed`, so the panel's curve canvases set
   `position: relative` explicitly.
-- **`garden-home2.html`** is the phone experiment where the words fill the
-  first screen and the tree rises into view as they scroll away
-  (September 2026). It is a copy of `index.html` plus that; fold it into
-  the home page when he says so.
+- **The home page on phones** puts the words on the first screen and the
+  tree on the second: a viewport of room below the words, the card and its
+  blur gone as you scroll, the tree rising from a little low and faint to
+  its place at full strength (`REVEAL` at the top of the script; the bg and
+  scene canvases are translated and everything on the ground is kept in
+  ground coordinates, `sceneShift`). On phones the content wrap takes the
+  finger everywhere so a swipe anywhere scrolls, and the touch handlers
+  tell a tap from a swipe. It was tried at `/garden-home2` first
+  (September 2026), which now redirects home.
 
 ### Routing and hosting
 

@@ -61,6 +61,11 @@
       "source": "/track",
       "destination": "https://analytics.pranshul.cafe",
       "statusCode": 302
+    },
+    {
+      "source": "/garden-home2",
+      "destination": "/",
+      "statusCode": 302
     }
   ],
   "rewrites": [

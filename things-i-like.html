@@ -117,6 +117,9 @@
       text-shadow: 0 0 0 rgba(58,47,47,0);
     }
     .thing.in { opacity: 1; }
+    /* each letter is its own box, so a ring passing under the word can lift
+       the letters one after another */
+    .thing .ch { display: inline-block; will-change: transform; }
     .thing:hover, .thing.dragging {
       text-shadow: 0 10px 22px rgba(58,47,47,0.14);
     }
@@ -239,7 +242,11 @@
       lift:     0.035,  // scale added while hovered or held
     },
     // the bob: a spring back to level after a dip
-    bob: { spring: 0.04, damping: 0.92, hoverDip: 0.7, lifted: 2.2 },
+    bob: { spring: 0.04, damping: 0.92, hoverDip: 0.7, lifted: 1.2 },
+    // the letters: a ring passing under a word lifts each letter as its
+    // front goes by, so the word itself ripples. lift in px at full ring
+    // strength; width is how wide the ring's front is, in px
+    letters: { lift: 6, width: 18 },
     // rings on the water: how far they reach (px, plus a share of the
     // word's width), how long (frames at 60/s), how dark (0..1)
     rings: {
@@ -324,6 +331,9 @@
       { path: 'rings.fade',     label: 'how soon it fades',     kind: 'number', min: 0.5, max: 4, step: 0.1 },
       { path: 'bob.hoverDip',   label: 'the dip when touched',  kind: 'number', min: 0, max: 4, step: 0.1 },
       { path: 'bob.lifted',     label: 'the lift a passing ring gives', kind: 'number', min: 0, max: 8, step: 0.1 },
+      { section: 'the letters' },
+      { path: 'letters.lift',   label: 'how much the letters ripple', kind: 'number', min: 0, max: 24, step: 0.5, unit: 'px' },
+      { path: 'letters.width',  label: 'how wide the wave is',        kind: 'number', min: 6, max: 60, step: 1, unit: 'px' },
     ],
   };
 
@@ -415,7 +425,11 @@
   things.forEach((item, idx) => {
     const el = document.createElement(item.url ? 'a' : 'span');
     el.className = 'thing';
-    el.textContent = item.text;
+    for (const ch of item.text) {
+      if (ch === ' ') { el.appendChild(document.createTextNode(' ')); continue; }
+      const sp = document.createElement('span'); sp.className = 'ch'; sp.textContent = ch;
+      el.appendChild(sp);
+    }
     el.dataset.idx = idx;
     if (item.url) {
       el.href = item.url;
@@ -434,6 +448,13 @@
     }
 
     const w = el.offsetWidth, h = el.offsetHeight;
+    // each letter's centre, relative to the word's centre, measured before
+    // the word is turned
+    const wr = el.getBoundingClientRect();
+    const letters = Array.from(el.querySelectorAll('.ch')).map((sp) => {
+      const r = sp.getBoundingClientRect();
+      return { el: sp, dx: r.left + r.width / 2 - (wr.left + wr.width / 2), dy: r.top + r.height / 2 - (wr.top + wr.height / 2), y: 0 };
+    });
     const padX = isMobile ? 15 : 60;
     const maxX = Math.max(field.clientWidth - w - padX, padX);
     const topMin = isMobile ? 120 : 110;
@@ -459,7 +480,7 @@
 
     const rot = -3.5 + Math.random() * 7;
     const word = {
-      el, x, y, vx: 0, vy: 0, w, h, rot, lean: 0, lift: 0, hot: false,
+      el, x, y, vx: 0, vy: 0, w, h, rot, lean: 0, lift: 0, hot: false, letters, rippling: false,
       born: performance.now() + 250 + idx * MOTION.entrance.stagger * 1000,
       bob: 0, bobV: 0,
       ua: Math.random(), us: Math.random(), ul: Math.random(),   // where in each range this word sits
@@ -542,6 +563,41 @@
     c.stroke();
   }
 
+  // Each ring lifts the letters its front is passing under: a bump the
+  // width of the front, fading with the ring. Summed over all rings, so
+  // two rings crossing add up, and left alone (no style writes) once no
+  // ring is near.
+  function rippleLetters() {
+    const L = MOTION.letters;
+    for (const q of words) {
+      const cx = q.x + q.w / 2, cy = q.y + q.h / 2;
+      let any = false;
+      for (const l of q.letters) l.y = 0;
+      for (const g of rings) {
+        const k = g.age / g.life;
+        // the lift follows the ring's life, not its darkness: a faint ring
+        // still moves the letters; only very small ones (a wake) do less
+        const a = Math.min(1, g.a / 0.2) * Math.pow(1 - k, MOTION.rings.fade);
+        if (a < 0.02) continue;
+        // skip rings nowhere near this word
+        const dc = Math.hypot(cx - g.x, (cy - g.y) / 0.55);
+        if (Math.abs(dc - g.r) > q.w / 2 + L.width * 2) continue;
+        for (const l of q.letters) {
+          const d = Math.hypot(cx + l.dx - g.x, (cy + l.dy - g.y) / 0.55) - g.r;
+          const bump = Math.exp(-(d * d) / (2 * L.width * L.width));
+          if (bump > 0.01) { l.y -= L.lift * a * bump; any = true; }
+        }
+      }
+      if (any) {
+        q.rippling = true;
+        for (const l of q.letters) l.el.style.transform = l.y ? `translateY(${l.y.toFixed(2)}px)` : '';
+      } else if (q.rippling) {
+        q.rippling = false;
+        for (const l of q.letters) l.el.style.transform = '';
+      }
+    }
+  }
+
   function updateWater() {
     for (let i = rings.length - 1; i >= 0; i--) {
       const g = rings[i];
@@ -618,6 +674,7 @@
       place(q, dt);
     }
     updateWater();
+    rippleLetters();
     requestAnimationFrame(tick);
   }
 
