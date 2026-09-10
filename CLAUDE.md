@@ -30,6 +30,8 @@ community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
+tune.js                     sliders and curves for a page's motion (?tune)
+garden-home2.html           phone experiment: the tree rises as the words scroll away
 middleware.js               edge auth gate for private pages
 vercel.json                 routing, headers, proxies
 ```
@@ -63,9 +65,26 @@ vercel.json                 routing, headers, proxies
   were.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
-  a lean and a glide on release, neighbours nudged aside). Position is a
-  `transform`, never `left`/`top` after layout. The ink canvas under the
-  words is stamped along the eased path.
+  a lean and a glide on release, neighbours nudged aside, rings on a
+  water canvas under the words). Position is a `transform`, never
+  `left`/`top` after layout. The ink canvas under the words is stamped
+  along the eased path.
+- **Tuning panel** (`tune.js`). `things-i-like.html` and `garden-home2.html`
+  open with a labelled block of every number and curve that shapes their
+  motion (`MOTION`, `REVEAL`; curves are CSS cubic-bezier quadruples or a
+  name from `EASE`) and expose it as `window.TUNE` with plain-words
+  controls. Add `?tune` to the address and `/tune.js` draws sliders and
+  draggable curves that change the page live; "keep on this device"
+  stores the values in localStorage, which the page merges in on every
+  load, and "copy the settings" gives a JSON block to paste to whoever
+  keeps the site, to be written into the block by hand. Pranshul is not
+  technical: this is how he steers the motion. The home page styles every
+  `canvas` as `position: fixed`, so the panel's curve canvases set
+  `position: relative` explicitly.
+- **`garden-home2.html`** is the phone experiment where the words fill the
+  first screen and the tree rises into view as they scroll away
+  (September 2026). It is a copy of `index.html` plus that; fold it into
+  the home page when he says so.
 
 ### Routing and hosting
 

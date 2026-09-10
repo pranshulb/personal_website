@@ -224,6 +224,19 @@
     // how tall the tree stands on phones, as a share of the screen
     treeHeight: 0.68,
   };
+  const VALUES = REVEAL;
+
+  // A tuning panel, for the page's owner: open the page with ?tune on the
+  // end of the address and /tune.js draws sliders and draggable curves for
+  // everything above, changing the page as you move them. "keep on this
+  // device" stores the values in localStorage, and they are merged in here
+  // on every load; "copy" puts them on the clipboard to send on.
+  try {
+    const saved = JSON.parse(localStorage.getItem('tune:garden-home2') || 'null');
+    const merge = (into, from) => { for (const k in from) { if (from[k] && typeof from[k] === 'object' && !Array.isArray(from[k]) && into[k] && typeof into[k] === 'object') merge(into[k], from[k]); else into[k] = from[k]; } };
+    if (saved) merge(VALUES, saved);
+  } catch (e) {}
+  if (/[?&]tune\b/.test(location.search)) { const sc = document.createElement('script'); sc.src = '/tune.js'; document.body.appendChild(sc); }
 
   // A CSS cubic-bezier as a function: four numbers, the same ones
   // cubic-bezier.com or the browser's easing editor gives you, and the
@@ -252,6 +265,27 @@
 
   const curve = (e) => { const c = Array.isArray(e) ? e : EASE[e]; return bezier(c[0], c[1], c[2], c[3]); };
   const prog = (p, part) => curve(part.ease)(Math.min(1, p / part.until));
+
+  // what the tuning panel needs (see /tune.js); apply is filled in below
+  // once the functions it calls exist
+  window.TUNE = {
+    key: 'garden-home2', values: REVEAL, EASE, apply() {},
+    controls: [
+      { section: 'the words' },
+      { path: 'card.until',     label: 'their card is gone by (share of the scroll)', kind: 'number', min: 0.1, max: 1, step: 0.01 },
+      { path: 'card.ease',      label: 'how it goes', kind: 'curve' },
+      { path: 'card.alphaFrom', label: 'how strong the card is at the top', kind: 'number', min: 0, max: 1, step: 0.01 },
+      { path: 'card.blurFrom',  label: 'how blurred, at the top', kind: 'number', min: 0, max: 12, step: 0.5, unit: 'px' },
+      { section: 'the tree' },
+      { path: 'tree.until',     label: 'it is in place by (share of the scroll)', kind: 'number', min: 0.1, max: 1, step: 0.01 },
+      { path: 'tree.ease',      label: 'how it rises', kind: 'curve' },
+      { path: 'tree.dropFrom',  label: 'starts this far down (share of the screen)', kind: 'number', min: 0, max: 0.5, step: 0.01 },
+      { path: 'tree.alphaFrom', label: 'how faint it starts', kind: 'number', min: 0, max: 1, step: 0.01 },
+      { path: 'treeHeight',     label: 'how tall it stands', kind: 'number', min: 0.3, max: 0.95, step: 0.01 },
+      { section: 'the hint' },
+      { path: 'hint.until',     label: '"the tree is below" is gone by', kind: 'number', min: 0.02, max: 1, step: 0.01 },
+    ],
+  };
 
   /* ================================================================
      GARDEN HOME — hand-drawn cherry blossom, illustrated warm aesthetic
@@ -1257,6 +1291,7 @@
   /* ================================================================
      INIT
   ================================================================ */
+  window.TUNE.apply = () => { lastW = -1; resize(); measureLedges(); applyScrollFade(); };
   resize();
   applyScrollFade();
   // The skyline is only right once the real fonts have loaded; until then
