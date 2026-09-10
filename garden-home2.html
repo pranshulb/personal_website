@@ -114,6 +114,12 @@
          away and leaves the tree standing on its own. The card, the blur
          and the tree's own strength follow the scroll (see applyScrollFade). */
       .content-wrap::after { content: ''; display: block; height: 100vh; }
+      /* On desktop the wrap lets the pointer through to the tree. On a
+         phone it must take the finger everywhere, or a swipe on the room
+         below the words goes to the canvases and nothing scrolls. Taps on
+         the tree still arrive: they bubble to the document handlers,
+         which now tell a tap from the start of a swipe. */
+      .content-wrap { pointer-events: auto; }
       /* the bg canvas slides down with the tree; what shows above it must
          match its top edge, which is white */
       body { background: #FFFFFF; }
@@ -1202,6 +1208,7 @@
     for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true);
   }
   document.addEventListener('click', e => {
+    if (performance.now() - lastTouchTapAt < 700) return;        // the touch handler already did this tap
     if (held.length) { releaseHeld(false); return; }             // a click lets go; it doesn't also shake
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
     if (onWater(e.clientX, e.clientY - sceneShift)) { tapWater(e.clientX, e.clientY - sceneShift); return; }
@@ -1211,16 +1218,27 @@
     const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
     px = tc.clientX; py = tc.clientY;
   }, { passive: true });
+  // A finger that lands and lifts without travelling is a tap: it shakes
+  // the tree or stirs the water. One that travels is a swipe, scrolling the
+  // page, and must not shake the tree every time it starts.
+  let touchStart = null, lastTouchTapAt = 0;
   document.addEventListener('touchstart', e => {
     const tc = e.touches[0];
     px = ppx = tc.clientX; py = ppy = tc.clientY;   // a finger arrives with no speed
-    if (e.target.closest('.container, .epigraph, .copy-toast')) return;
-    if (onWater(tc.clientX, tc.clientY - sceneShift)) { tapWater(tc.clientX, tc.clientY - sceneShift); return; }
-    shakeAndBurst();
+    touchStart = e.target.closest('.container, .epigraph, .copy-toast') ? null
+      : { x: tc.clientX, y: tc.clientY, at: performance.now() };
   }, { passive: true });
-  document.addEventListener('touchend', () => {
+  document.addEventListener('touchend', e => {
     if (held.length) releaseHeld(true);
     px = -1e4; py = -1e4;
+    const tc = e.changedTouches && e.changedTouches[0];
+    if (touchStart && tc && Math.hypot(tc.clientX - touchStart.x, tc.clientY - touchStart.y) < 12
+        && performance.now() - touchStart.at < 500) {
+      lastTouchTapAt = performance.now();
+      if (onWater(tc.clientX, tc.clientY - sceneShift)) tapWater(tc.clientX, tc.clientY - sceneShift);
+      else shakeAndBurst();
+    }
+    touchStart = null;
   }, { passive: true });
 
   function copyEmail() {
