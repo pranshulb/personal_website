@@ -93,9 +93,9 @@ moderation panel.
 | `/community/admin` | private moderation panel |
 
 All three still carry `noindex, nofollow` while the feature is WIP. The home
-page (and its twin `garden-home.html`) links to `/community` as "places i've
-liked (a map of london, WIP)" since September 2026; drop the meta tag and the
-"WIP" when it ships.
+page (and its twin `garden-home.html`) links to `/community` as "community
+map of london (WIP)" since September 2026; drop the meta tag and the "WIP"
+when it ships.
 
 ### API (`api/community/`)
 
