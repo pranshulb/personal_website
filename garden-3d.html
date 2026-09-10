@@ -21,8 +21,11 @@
     }
     ::selection { background: rgba(240, 166, 35, 0.3); color: #4a2f1a; }
 
+    /* a canvas is a replaced element: inset:0 alone does not stretch it, it takes
+       its buffer size, which is the viewport times the pixel ratio — so on a 2x
+       screen it was twice the page, anchored top-left. Size it explicitly. */
     #scene {
-      position: fixed; inset: 0; display: block; z-index: 1;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: block; z-index: 1;
       touch-action: none; cursor: grab;
     }
     #scene.dragging { cursor: grabbing; }
@@ -834,7 +837,7 @@ function fitCamera() {
     dist *= ratio * 1.01;
   }
   scene.fog.near = dist + canopyR * 2.2; scene.fog.far = dist + canopyR * 2.2 + 30;
-  renderer.setSize(W, H, false);
+  renderer.setSize(W, H);                                       // buffer and CSS size both
   threadSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   tagWidths = tagEls.map(el => el.firstElementChild.offsetWidth);
   tagHeights = tagEls.map(el => el.firstElementChild.offsetHeight + 9);
