@@ -252,7 +252,8 @@
     rings: {
       hover:  { reach: 50, share: 0.60, life: 170, alpha: 0.22, second: 0.65 },
       pickup: { reach: 30, share: 0.50, life: 130, alpha: 0.18 },
-      wake:   { reach: 12, life: 100, alpha: 0.13, every: 44 },   // every: px between rings
+      wake:   { reach: 22, life: 150, alpha: 0.2, every: 30 },    // behind a dragged word; every: px between rings
+      trail:  { reach: 14, life: 130, alpha: 0.11, every: 56 },   // behind the mouse crossing the water (desktop)
       splash: { reach: 60, share: 0.70, life: 190, alpha: 0.26, second: 0.62 },
       tap:    { reach: 64, life: 160, alpha: 0.20, second: 0.6 },
       spread: 'outQuad',   // how the radius grows over the ring's life
@@ -312,6 +313,7 @@
   window.TUNE = {
     key: 'things-i-like', values: MOTION, EASE,
     apply() { spreadCurve = curve(MOTION.rings.spread); entranceCurve = curve(MOTION.entrance.ease); },
+    ringCount: () => rings.length,   // for the tests
     controls: [
       { section: 'floating' },
       { path: 'float.amp',   label: 'how far the words bob', kind: 'pair', min: 0, max: 30, step: 0.5, unit: 'px' },
@@ -327,6 +329,10 @@
       { section: 'the water' },
       { path: 'rings.strength', label: 'how dark the rings are', kind: 'number', min: 0, max: 3, step: 0.05, unit: '×' },
       { path: 'rings.size',     label: 'how far they spread',   kind: 'number', min: 0.2, max: 3, step: 0.05, unit: '×' },
+      { path: 'rings.wake.alpha',  label: 'the wake behind a dragged word', kind: 'number', min: 0, max: 0.6, step: 0.01 },
+      { path: 'rings.wake.every',  label: 'px between its rings', kind: 'number', min: 10, max: 120, step: 2, unit: 'px' },
+      { path: 'rings.trail.alpha', label: 'the trail behind the mouse', kind: 'number', min: 0, max: 0.4, step: 0.01 },
+      { path: 'rings.trail.every', label: 'px between its rings', kind: 'number', min: 20, max: 200, step: 2, unit: 'px' },
       { path: 'rings.spread',   label: 'how a ring grows over its life', kind: 'curve' },
       { path: 'rings.fade',     label: 'how soon it fades',     kind: 'number', min: 0.5, max: 4, step: 0.1 },
       { path: 'bob.hoverDip',   label: 'the dip when touched',  kind: 'number', min: 0, max: 4, step: 0.1 },
@@ -648,7 +654,7 @@
         if (sp > 0.8 && wakeDist > MOTION.rings.wake.every) {
           wakeDist = 0;
           const R = MOTION.rings.wake;
-          ripple(q.x + q.w / 2 + (Math.random() - 0.5) * q.w * 0.5, q.y + q.h / 2, R.reach + Math.min(sp, 14) * 1.4, R.life, R.alpha);
+          ripple(q.x + q.w / 2 + (Math.random() - 0.5) * q.w * 0.5, q.y + q.h / 2, R.reach + Math.min(sp, 14) * 2, R.life, R.alpha);
         }
       } else {
         q.x += q.vx; q.y += q.vy;
@@ -815,6 +821,22 @@
     }
     dragEl = null;
   }
+
+  // the mouse crossing the water leaves a trail of small rings (a finger
+  // is scrolling, so not on touch); while a word is dragged its own wake
+  // does this instead
+  let trailX = 0, trailY = 0, trailDist = 0;
+  field.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse' || dragEl) return;
+    const R = MOTION.rings.trail;
+    const r = field.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    trailDist += Math.hypot(x - trailX, y - trailY);
+    trailX = x; trailY = y;
+    if (trailDist < R.every) return;
+    trailDist = 0;
+    ripple(x, y, R.reach + Math.random() * 8, R.life, R.alpha);
+  });
 
   // a finger or a click on the water itself: a ring where it touched
   field.addEventListener('pointerdown', (e) => {
