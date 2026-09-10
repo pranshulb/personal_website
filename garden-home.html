@@ -1227,6 +1227,7 @@
 ================================================================== */
 import * as THREE from 'three';
 
+const T0 = performance.now();
 const G = window.__garden;
 const canvas = document.getElementById('scene3d');
 const isMobile = /Mobi|Android/i.test(navigator.userAgent) || G.box().isMobile;
@@ -1250,21 +1251,18 @@ function rnd() { _s |= 0; _s = _s + 0x6D2B79F5 | 0; let t = Math.imul(_s ^ _s >>
 const rr = (a, b) => a + rnd() * (b - a);
 const pick = a => a[Math.floor(rnd() * a.length)];
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const _q = new THREE.Quaternion();
 
 /* ==================================================================
-   TREE GENERATION — polylines with radii, smoothed, then tapered tubes
+   TREE GENERATION — a hand-drawn trunk, then a crown grown by space
+   colonisation: the crown is a cloud of points the branches reach for,
+   so limbs come out asymmetric, curve up and out, and end in a shell of
+   twigs with bare wood inside, the way a real crown does. Radii follow
+   the pipe model (a branch is as thick as its children add up to).
+   Every branch is a chain of points with a radius and a "flex" (how far
+   from the trunk it is, for the wind) at each point.
 ================================================================== */
-const branches = [];   // { pts: Vector3[], r0, r1, depth, len }
-const RULES = {
-  //         len   r0     r1     segs  droop  spread(min,max)  children t positions
-  1: { len: 3.5, r0: 0.23, r1: 0.13, segs: 9, droop: 0.07, ang: [0.55, 0.85], kids: [0.38, 0.6, 0.8, 1.0] },
-  2: { len: 2.2, r0: 0.12, r1: 0.065, segs: 6, droop: 0.11, ang: [0.5, 0.85], kids: [0.45, 0.75, 1.0] },
-  3: { len: 1.4, r0: 0.06, r1: 0.032, segs: 5, droop: 0.16, ang: [0.5, 0.9], kids: [0.4, 0.72, 1.0] },
-  4: { len: 0.9, r0: 0.031, r1: 0.016, segs: 4, droop: 0.26, ang: [0.5, 1.0], kids: [0.3, 0.55, 0.8, 1.0] },
-  5: { len: 0.55, r0: 0.018, r1: 0.008, segs: 3, droop: 0.36, ang: [0.5, 1.1], kids: [] },
-};
-const MAX_DEPTH = 5;
-const _q = new THREE.Quaternion();
+const branches = [];   // { pts: Vector3[], rads: number[], flex: number[], depth, tip: bool }
 
 function perpendicular(dir) {
   const a = Math.abs(dir.y) < 0.9 ? V3(0, 1, 0) : V3(1, 0, 0);
@@ -1274,56 +1272,34 @@ function pointAt(pts, t) {
   const f = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(f)), k = f - i;
   return pts[i].clone().lerp(pts[i + 1], k);
 }
-function tangentAt(pts, t) {
-  const f = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(f));
-  return pts[i + 1].clone().sub(pts[i]).normalize();
-}
-// a polyline through the same points, but rounded: Catmull-Rom, `k` points per segment
-function smooth(pts, k) {
-  if (pts.length < 3 || k < 2) return pts;
+// a polyline through the same points, but rounded, with its per-point values resampled
+function smoothChain(pts, vals, k) {
+  if (pts.length < 3 || k < 2) return { pts, vals: vals.map(v => v.slice ? v.slice() : v) };
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
-  return curve.getPoints((pts.length - 1) * k);
-}
-
-function grow(start, dir, depth, scale) {
-  const R = RULES[depth];
-  const len = R.len * scale * rr(0.8, 1.15);
-  const pts = [start.clone()];
-  const d = dir.clone().normalize();
-  const wobble = depth <= 2 ? 0.16 : 0.32;
-  for (let i = 1; i <= R.segs; i++) {
-    d.add(V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(wobble)).normalize();
-    d.y -= R.droop * (i / R.segs);
-    if (pts[i - 1].y < 2.3 && d.y < 0) d.y *= 0.25;      // the skirt stays clear of the ground
-    d.normalize();
-    pts.push(pts[i - 1].clone().addScaledVector(d, len / R.segs));
-  }
-  const b = { pts, r0: R.r0 * scale, r1: R.r1 * scale, depth, len };
-  branches.push(b);
-  if (depth >= MAX_DEPTH) return;
-  const kids = R.kids;
-  let baseAz = rnd() * Math.PI * 2;
-  kids.forEach((t, k) => {
-    const p = pointAt(pts, t), tg = tangentAt(pts, t);
-    const isTip = t >= 0.999;
-    const n = isTip ? 2 : 1;                       // a fork at the tip
-    for (let j = 0; j < n; j++) {
-      const az = baseAz + (k + j * 0.5) * 2.4 + rr(-0.5, 0.5);
-      const ang = isTip ? rr(0.35, 0.6) : rr(R.ang[0], R.ang[1]);
-      const axis = perpendicular(tg).applyAxisAngle(tg, az);
-      const nd = tg.clone().applyAxisAngle(axis, ang);
-      if (nd.y < -0.2 && depth < 3) nd.y = -0.2;    // keep the big limbs off the floor
-      grow(p, nd, depth + 1, scale * rr(0.85, 1.0));
-    }
+  const n = (pts.length - 1) * k;
+  const out = curve.getPoints(n);
+  const res = vals.map(arr => {
+    const o = [];
+    for (let i = 0; i <= n; i++) { const f = i / n * (arr.length - 1), j = Math.min(arr.length - 2, Math.floor(f)), t = f - j; o.push(arr[j] + (arr[j + 1] - arr[j]) * t); }
+    return o;
   });
+  return { pts: out, vals: res };
 }
 
 srand(1013);
-// trunk: an S, leaning, flared at the foot
-const trunkPts = smooth([V3(0, -0.25, 0), V3(0.05, 0.55, 0), V3(0.42, 1.35, 0.12), V3(0.66, 2.15, 0.22), V3(0.42, 2.95, 0.18), V3(-0.05, 3.65, 0.05), V3(-0.18, 4.15, 0)], 4);
-branches.push({ pts: trunkPts, r0: 0.6, r1: 0.25, depth: 0, len: 4.4, flare: true });
+/* ---------- trunk: an S, leaning, flared at the foot ---------- */
+const TRUNK_CTRL = [V3(0, -0.25, 0), V3(0.05, 0.55, 0), V3(0.42, 1.35, 0.12), V3(0.66, 2.15, 0.22), V3(0.42, 2.95, 0.18), V3(-0.05, 3.65, 0.05), V3(-0.18, 4.1, 0)];
+const TRUNK_R0 = 0.58, TRUNK_R1 = 0.2;
+{
+  const sm = smoothChain(TRUNK_CTRL, [TRUNK_CTRL.map((_, i) => i / (TRUNK_CTRL.length - 1))], 5);
+  const t = sm.vals[0];
+  branches.push({ pts: sm.pts, rads: t.map(v => TRUNK_R0 + (TRUNK_R1 - TRUNK_R0) * Math.pow(v, 0.55)), flex: t.map(() => 0), depth: 0, flare: true });
+}
+const trunkPts = branches[0].pts;
+const trunkTop = trunkPts[trunkPts.length - 1].clone();
+const trunkMid = pointAt(trunkPts, 0.62);
 
-// roots, spreading over the ground
+/* ---------- roots, spreading over the ground ---------- */
 for (let i = 0; i < 11; i++) {
   const az = i * (Math.PI * 2 / 11) + rr(-0.25, 0.25);
   const len = rr(1.3, 2.3), segs = 6;
@@ -1336,9 +1312,12 @@ for (let i = 0; i < 11; i++) {
     p.y = Math.max(0.012, Math.min(p.y, 0.05 + hump));
     pts.push(p);
   }
-  branches.push({ pts: smooth(pts, 3), r0: rr(0.13, 0.2), r1: 0.012, depth: -1, len });
+  const r0 = rr(0.13, 0.2);
+  const sm = smoothChain(pts, [pts.map((_, j) => r0 + (0.012 - r0) * j / segs)], 3);
+  branches.push({ pts: sm.pts, rads: sm.vals[0], flex: sm.pts.map(() => 0), depth: -1 });
   if (rnd() < 0.6) {                                // a side root
-    const t = rr(0.3, 0.6), p = pointAt(pts, t), tg = tangentAt(pts, t);
+    const t = rr(0.3, 0.6), p = pointAt(pts, t);
+    const tg = pts[Math.min(segs - 1, Math.floor(t * segs) + 1)].clone().sub(pts[Math.floor(t * segs)]).normalize();
     const nd = tg.clone().applyAxisAngle(V3(0, 1, 0), rr(0.6, 1.1) * (rnd() < 0.5 ? 1 : -1));
     nd.y = -0.05; nd.normalize();
     const sp = [p.clone()];
@@ -1348,30 +1327,144 @@ for (let i = 0; i < 11; i++) {
       q.y = Math.max(0.012, Math.min(q.y, 0.04));
       sp.push(q);
     }
-    branches.push({ pts: smooth(sp, 3), r0: 0.06, r1: 0.01, depth: -1, len: 1 });
+    const sm2 = smoothChain(sp, [sp.map((_, j) => 0.06 + (0.01 - 0.06) * j / 4)], 3);
+    branches.push({ pts: sm2.pts, rads: sm2.vals[0], flex: sm2.pts.map(() => 0), depth: -1 });
   }
 }
 
-// limbs: five from the crown, one lower on the trunk
-const LIMBS = 5;
-for (let i = 0; i < LIMBS; i++) {
-  const az = i * (Math.PI * 2 / LIMBS) + rr(-0.3, 0.3);
-  const t = rr(0.84, 0.99);
-  const p = pointAt(trunkPts, t);
-  const elev = rr(0.9, 1.15);                        // radians from vertical: wide, old
-  const d = V3(Math.cos(az) * Math.sin(elev), Math.cos(elev), Math.sin(az) * Math.sin(elev));
-  grow(p, d, 1, rr(0.9, 1.05));
-}
+/* ---------- the crown: points in space for the branches to grow towards ---------- */
+const CROWN = { cy: 5.3, rx: 5.2, ry: 2.5, rz: 4.7 };
+const attractors = [];
 {
-  const p = pointAt(trunkPts, 0.6), az = rr(0, Math.PI * 2), elev = 1.15;
-  grow(p, V3(Math.cos(az) * Math.sin(elev), Math.cos(elev), Math.sin(az) * Math.sin(elev)), 1, 0.75);
+  srand(2024);
+  while (attractors.length < 3400) {
+    // a point in the unit ball, pushed towards the shell: flowers live on the outside of a crown
+    const u = rr(-1, 1), v = rr(-1, 1), w = rr(-1, 1);
+    const l = Math.hypot(u, v, w); if (l > 1 || l < 1e-3) continue;
+    const shell = Math.pow(rnd(), 0.3);
+    const p = V3(u / l * shell * CROWN.rx, CROWN.cy + v / l * shell * CROWN.ry, w / l * shell * CROWN.rz);
+    if (p.y < 2.6) continue;
+    const hr = Math.hypot(p.x, p.z);
+    if (p.y < 3.9 && hr < 2.4) continue;              // hollow under the crown: the trunk and limbs show
+    // lopsided, like a tree that leaned for the light: more on one side
+    if (p.x < -1 && rnd() < 0.35) continue;
+    attractors.push(p);
+  }
+  // the weeping skirt: the crown's rim hangs lower at the edges
+  while (attractors.length < 4300) {
+    const az = rnd() * Math.PI * 2, hr = rr(3.9, 5.5);
+    const p = V3(Math.cos(az) * hr, rr(2.5, 4.3), Math.sin(az) * hr * 0.92);
+    if (p.x < -1 && rnd() < 0.35) continue;
+    attractors.push(p);
+  }
 }
-// the big wood gets rounded; twigs keep their kinks
-for (const b of branches) if (b.depth >= 1 && b.depth <= 3) b.pts = smooth(b.pts, b.depth === 1 ? 3 : 2);
+
+/* ---------- growth ---------- */
+const nodes = [];  // { p, parent, kids: [], r, path, dir }
+function addNode(p, parent, path, dir) { const n = { p, parent, kids: [], r: 0, path, dir }; if (parent >= 0) nodes[parent].kids.push(nodes.length); nodes.push(n); return nodes.length - 1; }
+// seeds: three at the crown, leaning apart; one part-way up the trunk
+addNode(trunkTop.clone(), -1, 0, V3(0.3, 1, 0.1).normalize());
+addNode(trunkTop.clone().add(V3(-0.05, -0.15, 0.05)), -1, 0, V3(-0.5, 0.8, -0.3).normalize());
+addNode(trunkTop.clone().add(V3(0.05, -0.3, -0.05)), -1, 0, V3(0.2, 0.7, 0.7).normalize());
+addNode(trunkMid.clone(), -1, 0, V3(0.9, 0.5, 0.4).normalize());
+{
+  const Ri = 1.9, Dk = 0.42, D = 0.25, CELL = Ri;
+  const key = p => `${Math.floor(p.x / CELL)},${Math.floor(p.y / CELL)},${Math.floor(p.z / CELL)}`;
+  let alive = attractors.slice();
+  for (let iter = 0; iter < 120 && alive.length; iter++) {
+    // nodes into a grid, so each attractor only looks at the nodes near it
+    const grid = new Map();
+    nodes.forEach((n, i) => { const k = key(n.p); (grid.get(k) || grid.set(k, []).get(k)).push(i); });
+    const pull = new Map();
+    for (const a of alive) {
+      let best = -1, bd = Ri * Ri;
+      const cx = Math.floor(a.x / CELL), cy = Math.floor(a.y / CELL), cz = Math.floor(a.z / CELL);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+        const cell = grid.get(`${cx + dx},${cy + dy},${cz + dz}`); if (!cell) continue;
+        for (const i of cell) { const d = nodes[i].p.distanceToSquared(a); if (d < bd) { bd = d; best = i; } }
+      }
+      if (best < 0) continue;
+      const s = pull.get(best) || pull.set(best, { v: new THREE.Vector3(), n: 0 }).get(best);
+      s.v.add(a.clone().sub(nodes[best].p).normalize()); s.n++;
+    }
+    if (!pull.size) break;
+    const born = [];
+    for (const [i, s] of pull) {
+      const n = nodes[i];
+      const dir = s.v.divideScalar(s.n);
+      // a little of last step's heading (branches don't zigzag), a little chance, and a tropism:
+      // up near the trunk, down out at the rim where the branches weep
+      dir.addScaledVector(n.dir, 0.55);
+      dir.add(V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(0.25));
+      const hr = Math.hypot(n.p.x, n.p.z);
+      dir.y += hr < 1.8 ? 0.18 : -0.16 * Math.min(1, (hr - 1.8) / 2.5);
+      dir.normalize();
+      const p = n.p.clone().addScaledVector(dir, D * rr(0.85, 1.15));
+      born.push(addNode(p, i, n.path + D, dir));
+    }
+    // attractors reached are spent
+    const bg = new Map();
+    for (const i of born) { const k = key(nodes[i].p); (bg.get(k) || bg.set(k, []).get(k)).push(i); }
+    alive = alive.filter(a => {
+      const cx = Math.floor(a.x / CELL), cy = Math.floor(a.y / CELL), cz = Math.floor(a.z / CELL);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+        const cell = bg.get(`${cx + dx},${cy + dy},${cz + dz}`); if (!cell) continue;
+        for (const i of cell) if (nodes[i].p.distanceToSquared(a) < Dk * Dk) return false;
+      }
+      return true;
+    });
+  }
+}
+// radii: the pipe model, leaves first
+{
+  const LEAF_R = 0.011, N = 2.4;
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i];
+    if (!n.kids.length) { n.r = LEAF_R; continue; }
+    let s = 0, mx = 0; for (const k of n.kids) { s += Math.pow(nodes[k].r, N); mx = Math.max(mx, nodes[k].r); }
+    n.r = Math.max(Math.pow(s, 1 / N), mx * 1.03);
+  }
+  // the limbs meet the trunk at the trunk's thickness at most
+  for (const seed of [0, 1, 2, 3]) {
+    const cap = seed === 3 ? 0.16 : 0.24;
+    if (nodes[seed].r > cap) {
+      const f = cap / nodes[seed].r;
+      const stack = [seed]; while (stack.length) { const i = stack.pop(); nodes[i].r = Math.max(LEAF_R * 0.8, nodes[i].r * f); stack.push(...nodes[i].kids); }
+    }
+  }
+}
+// chains: follow the thickest child; every other child starts a branch of its own
+const MAX_PATH = nodes.reduce((m, n) => Math.max(m, n.path), 1);
+const flexOf = path => Math.pow(Math.min(1, path / MAX_PATH), 1.4);
+const twigTips = [];
+{
+  const stack = [0, 1, 2, 3].map(i => ({ start: i, from: -1 }));
+  while (stack.length) {
+    const { start, from } = stack.pop();
+    const idx = [], pts = [], rads = [], flex = [];
+    if (from >= 0) { pts.push(nodes[from].p.clone()); rads.push(nodes[start].r * 1.25); flex.push(flexOf(nodes[from].path)); }
+    else { pts.push(nodes[start].p.clone().add(V3(0, -0.12, 0))); rads.push(nodes[start].r * 1.2); flex.push(0); }
+    let cur = start;
+    for (;;) {
+      const n = nodes[cur];
+      pts.push(n.p.clone()); rads.push(n.r); flex.push(flexOf(n.path)); idx.push(cur);
+      if (!n.kids.length) break;
+      let main = n.kids[0]; for (const k of n.kids) if (nodes[k].r > nodes[main].r) main = k;
+      for (const k of n.kids) if (k !== main) stack.push({ start: k, from: cur });
+      cur = main;
+    }
+    const thick = rads[1] > 0.06;
+    const sm = smoothChain(pts, [rads, flex], thick ? 3 : 2);
+    const tip = !nodes[cur].kids.length;
+    branches.push({ pts: sm.pts, rads: sm.vals[0], flex: sm.vals[1], depth: rads[1] > 0.12 ? 1 : rads[1] > 0.05 ? 2 : rads[1] > 0.022 ? 3 : 4, tip, nodeIdx: idx });
+    if (tip && rads[rads.length - 1] < 0.03) twigTips.push(sm.pts[sm.pts.length - 1]);
+  }
+}
+// SIGNPOSTS
 
 /* ---------- tapered tubes, merged into one geometry ---------- */
-const bark = { pos: [], nor: [], uv: [], col: [], ow: [], idx: [] };
-const BARK_TRUNK = new THREE.Color(0x74685f), BARK_LIMB = new THREE.Color(0x63574f), BARK_TWIG = new THREE.Color(0x5a453c);
+const bark = { pos: [], nor: [], uv: [], col: [], ow: [], flex: [], idx: [] };
+const BARK_TRUNK = new THREE.Color(0x716459), BARK_LIMB = new THREE.Color(0x635650), BARK_TWIG = new THREE.Color(0x5c463b);
 const BARK_DARK = new THREE.Color(0x352c27), BARK_MOSS = new THREE.Color(0x6b7a52), BARK_LICHEN = new THREE.Color(0x9aa08e);
 const _c = new THREE.Color();
 function ridges(a, s) {  // cheap gnarl for the thick wood
@@ -1380,9 +1473,11 @@ function ridges(a, s) {  // cheap gnarl for the thick wood
 function fine(a, s) { return Math.sin(a * 17 + s * 11.0) * 0.6 + Math.sin(a * 29 - s * 7.0) * 0.4; }
 function addTube(b) {
   const pts = b.pts, n = pts.length;
-  const sides = b.r0 > 0.15 ? 24 : b.r0 > 0.05 ? 10 : b.r0 > 0.025 ? 6 : 4;
+  const rads = b.rads || pts.map((_, i) => b.r0 + (b.r1 - b.r0) * i / (n - 1));
+  const flex = b.flex || pts.map(() => 0);
+  const r0 = rads[0];
+  const sides = r0 > 0.15 ? 20 : r0 > 0.06 ? 9 : r0 > 0.025 ? 6 : 4;
   const base = bark.pos.length / 3;
-  // parallel-transport frame
   let tg = pts[1].clone().sub(pts[0]).normalize();
   let nrm = perpendicular(tg);
   let along = 0;
@@ -1391,32 +1486,30 @@ function addTube(b) {
   for (let i = 0; i < n; i++) {
     if (i > 0) {
       const nt = (i < n - 1 ? pts[i + 1].clone().sub(pts[i - 1]) : pts[i].clone().sub(pts[i - 1])).normalize();
-      _q.setFromUnitVectors(tg, nt); nrm.applyQuaternion(_q).normalize(); tg = nt;
+      if (nt.lengthSq() > 0) { _q.setFromUnitVectors(tg, nt); nrm.applyQuaternion(_q).normalize(); tg = nt; }
       along += pts[i].distanceTo(pts[i - 1]);
     }
     const t = total > 0 ? along / total : i / (n - 1);
-    let r = b.r0 + (b.r1 - b.r0) * (b.flare ? Math.pow(t, 0.55) : t);
+    const r = Math.max(0.004, rads[i]);
     const bin = tg.clone().cross(nrm).normalize();
-    const gnarl = b.r0 > 0.1 ? 0.07 : 0.0;
+    const gnarl = r0 > 0.1 ? 0.06 : 0.0;
     const trunkY = b.depth === 0 ? pts[i].y : 99;
-    const ow = Math.min(0.028, Math.max(0.002, r * 0.075));     // ink edge width, by thickness
+    const ow = r > 0.03 ? Math.min(0.02, Math.max(0.003, r * 0.06)) : 0;   // ink edge on the thick wood only
     for (let s = 0; s <= sides; s++) {
       const a = (s / sides) * Math.PI * 2;
-      // buttress lobes at the foot of the trunk, fading out by a third of the way up
       const lobes = b.flare ? Math.max(0, 1 - t * 3) * 0.35 * Math.pow(Math.max(0, Math.cos(a * 3 + 0.4)), 2) : 0;
-      const rs = r * (1 + gnarl * ridges(a, along * 2.3) + (b.r0 > 0.1 ? 0.012 * fine(a, along) : 0) + lobes);
+      const rs = r * (1 + gnarl * ridges(a, along * 2.3) + (r0 > 0.1 ? 0.012 * fine(a, along) : 0) + lobes);
       const ox = Math.cos(a), oy = Math.sin(a);
       const nx = nrm.x * ox + bin.x * oy, ny = nrm.y * ox + bin.y * oy, nz = nrm.z * ox + bin.z * oy;
       bark.pos.push(pts[i].x + nx * rs, pts[i].y + ny * rs, pts[i].z + nz * rs);
       bark.nor.push(nx, ny, nz);
       bark.uv.push(s / sides * (sides / 8), along / (Math.PI * 2 * Math.max(0.05, r)) * 0.35);
-      bark.ow.push(ow);
-      // colour: darker in the ridges, moss in the crevices low on the trunk, a few lichen patches
+      bark.ow.push(ow); bark.flex.push(flex[i]);
       const rg = ridges(a, along * 2.3);
       let k = 0.9 + 0.22 * ((rg + 1) / 2);
       _c.copy(tone).lerp(BARK_DARK, Math.max(0, 0.5 - k * 0.45)).multiplyScalar(k);
       if (trunkY < 2.0 && rg < 0.1) _c.lerp(BARK_MOSS, (2.0 - trunkY) / 2.0 * 0.32 * (0.5 - rg * 0.5));
-      if (b.r0 > 0.1 && fine(a * 0.3, along * 0.7) > 0.85) _c.lerp(BARK_LICHEN, 0.45);
+      if (r0 > 0.1 && fine(a * 0.3, along * 0.7) > 0.85) _c.lerp(BARK_LICHEN, 0.45);
       if (b.depth === -1) _c.lerp(BARK_DARK, 0.2);
       bark.col.push(_c.r, _c.g, _c.b);
     }
@@ -1425,10 +1518,9 @@ function addTube(b) {
     const a = base + i * (sides + 1) + s, bb = a + sides + 1;
     bark.idx.push(a, bb, a + 1, bb, bb + 1, a + 1);
   }
-  // close the tip
-  const tipI = bark.pos.length / 3, last = pts[n - 1];
-  bark.pos.push(last.x + tg.x * b.r1, last.y + tg.y * b.r1, last.z + tg.z * b.r1);
-  bark.nor.push(tg.x, tg.y, tg.z); bark.uv.push(0.5, 0); bark.col.push(_c.r, _c.g, _c.b); bark.ow.push(0.002);
+  const tipI = bark.pos.length / 3, last = pts[n - 1], rl = Math.max(0.004, rads[n - 1]);
+  bark.pos.push(last.x + tg.x * rl, last.y + tg.y * rl, last.z + tg.z * rl);
+  bark.nor.push(tg.x, tg.y, tg.z); bark.uv.push(0.5, 0); bark.col.push(_c.r, _c.g, _c.b); bark.ow.push(0); bark.flex.push(flex[n - 1]);
   const ringBase = base + (n - 1) * (sides + 1);
   for (let s = 0; s < sides; s++) bark.idx.push(ringBase + s, ringBase + s + 1, tipI);
 }
@@ -1440,13 +1532,56 @@ barkGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bark.nor, 3));
 barkGeo.setAttribute('uv', new THREE.Float32BufferAttribute(bark.uv, 2));
 barkGeo.setAttribute('color', new THREE.Float32BufferAttribute(bark.col, 3));
 barkGeo.setAttribute('ow', new THREE.Float32BufferAttribute(bark.ow, 1));
+barkGeo.setAttribute('flex', new THREE.Float32BufferAttribute(bark.flex, 1));
 barkGeo.setIndex(bark.idx);
 barkGeo.computeBoundingSphere();
 
-// bark texture: furrows running along the wood, horizontal lenticels, a little lichen.
-// Value-noise fBm, stretched along v so the grain follows the branch.
+/* ---------- wind: one field for wood and flowers, so nothing floats off its stalk ---------- */
+const windUniforms = { uTime: { value: 0 }, uGust: { value: 0 }, uMouse: { value: new THREE.Vector3(0, -99, 0) }, uMouseR: { value: 0 } };
+const WIND_GLSL = `
+uniform float uTime; uniform float uGust; uniform vec3 uMouse; uniform float uMouseR;
+float whash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float wnoise(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(whash(i), whash(i + vec3(1,0,0)), f.x), mix(whash(i + vec3(0,1,0)), whash(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(whash(i + vec3(0,0,1)), whash(i + vec3(1,0,1)), f.x), mix(whash(i + vec3(0,1,1)), whash(i + vec3(1,1,1)), f.x), f.y), f.z);
+}
+// the wind at a point of the tree, scaled by how far out that point is (fl: 0 at the trunk, 1 at a twig's end)
+vec3 windAt(vec3 p, float fl) {
+  vec3 q = p * 0.22 + vec3(uTime * 0.16, uTime * 0.04, uTime * 0.09);
+  vec3 n = vec3(wnoise(q), wnoise(q + 31.7), wnoise(q + 71.3)) - 0.5;
+  float amp = (0.09 + uGust * 0.3) * fl;
+  vec3 off = n * amp * 2.0;
+  // a slow lean the whole crown shares, so it breathes together
+  off.x += sin(uTime * 0.6) * 0.03 * fl;
+  // the pointer: branches and flowers lean away from it
+  vec3 d = p - uMouse; float dl = length(d);
+  float f = 1.0 - smoothstep(0.0, uMouseR, dl);
+  off += (d / max(dl, 0.001)) * f * f * 0.28 * (0.4 + 0.6 * fl);
+  return off;
+}`;
+function windShader(instanced) {
+  return sh => {
+    Object.assign(sh.uniforms, windUniforms);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\n' + WIND_GLSL + (instanced ? '\nattribute float flexI;' : '\nattribute float flex;'))
+      .replace('#include <project_vertex>', instanced
+        ? `vec4 mvPosition = vec4( transformed, 1.0 );
+#ifdef USE_INSTANCING
+  mvPosition = instanceMatrix * mvPosition;
+#endif
+mvPosition.xyz += windAt(mvPosition.xyz, flexI);
+mvPosition = modelViewMatrix * mvPosition;
+gl_Position = projectionMatrix * mvPosition;`
+        : `vec4 mvPosition = vec4( transformed + windAt(transformed, flex), 1.0 );
+mvPosition = modelViewMatrix * mvPosition;
+gl_Position = projectionMatrix * mvPosition;`);
+  };
+}
+
+/* ---------- bark ---------- */
 function barkTexture() {
-  const Wt = 512, Ht = 1024;
+  const Wt = 256, Ht = 512;
   const c = document.createElement('canvas'); c.width = Wt; c.height = Ht;
   const g = c.getContext('2d');
   let s = 99;
@@ -1454,7 +1589,7 @@ function barkTexture() {
   const P = new Float32Array(256 * 256); for (let i = 0; i < P.length; i++) P[i] = nz();
   const lat = (x, y) => P[((y & 255) << 8) | (x & 255)];
   const sm = t => t * t * (3 - 2 * t);
-  function vnoise(x, y) {   // tiles at 256
+  function vnoise(x, y) {
     const xi = Math.floor(x), yi = Math.floor(y), fx = sm(x - xi), fy = sm(y - yi);
     const a = lat(xi, yi), b = lat(xi + 1, yi), cc = lat(xi, yi + 1), d = lat(xi + 1, yi + 1);
     return (a + (b - a) * fx) * (1 - fy) + (cc + (d - cc) * fx) * fy;
@@ -1463,12 +1598,10 @@ function barkTexture() {
   const img = g.createImageData(Wt, Ht), d = img.data;
   for (let y = 0; y < Ht; y++) for (let x = 0; x < Wt; x++) {
     const u = x / Wt, v = y / Ht;
-    // furrows: high frequency across, low along
     const fur = fbm(u * 24, v * 5);
-    const ridge = 1 - Math.abs(fur * 2 - 1);                 // sharp creases
+    const ridge = 1 - Math.abs(fur * 2 - 1);
     const broad = fbm(u * 3 + 7, v * 2 + 3);
     let val = 0.42 + 0.5 * ridge * 0.6 + (broad - 0.5) * 0.5;
-    // horizontal lenticels
     const lent = vnoise(u * 60, v * 400);
     if (lent > 0.82 && vnoise(u * 3, v * 40) > 0.5) val += 0.28;
     val = Math.max(0, Math.min(1, val));
@@ -1481,32 +1614,27 @@ function barkTexture() {
   tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   return tex;
 }
-// three steps of light on the wood: an illustrated look, like the rest of the page
-function toonRamp(stops) {
-  const data = new Uint8Array(stops.length * 4);
-  stops.forEach((v, i) => { data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = Math.round(v * 255); data[i * 4 + 3] = 255; });
-  const t = new THREE.DataTexture(data, stops.length, 1, THREE.RGBAFormat);
-  t.minFilter = t.magFilter = THREE.NearestFilter; t.needsUpdate = true; return t;
-}
 const barkTex = barkTexture();
-const barkMat = new THREE.MeshToonMaterial({ map: barkTex, bumpMap: barkTex, bumpScale: 0.6, vertexColors: true, gradientMap: toonRamp([0.5, 0.68, 0.86, 1.0]) });
+const barkMat = new THREE.MeshStandardMaterial({ map: barkTex, bumpMap: barkTex, bumpScale: 0.5, vertexColors: true, roughness: 0.95, metalness: 0 });
+barkMat.onBeforeCompile = windShader(false);
+barkMat.customProgramCacheKey = () => 'bark-wind';
 const barkMesh = new THREE.Mesh(barkGeo, barkMat);
 barkMesh.castShadow = true;
-// ink edge: the same wood, pushed out along its normals by its own edge width, back faces only
-const inkMat = new THREE.MeshBasicMaterial({ color: 0x8c8c8c, vertexColors: true, side: THREE.BackSide });   // the wood's own colour, darkened
+// ink edge on the thick wood: the same mesh pushed out along its normals, back faces only
+const inkMat = new THREE.MeshBasicMaterial({ color: 0x8c8c8c, vertexColors: true, side: THREE.BackSide });
 inkMat.onBeforeCompile = sh => {
+  windShader(false)(sh);
   sh.vertexShader = sh.vertexShader
-    .replace('#include <common>', '#include <common>\nattribute float ow;')
+    .replace('attribute float flex;', 'attribute float flex; attribute float ow;')
     .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normal * ow;');
 };
-inkMat.customProgramCacheKey = () => 'ink-hull';
+inkMat.customProgramCacheKey = () => 'ink-hull-wind';
 const inkMesh = new THREE.Mesh(barkGeo, inkMat);
 
 /* ==================================================================
-   BLOSSOMS — a five-petal flower with proper petals, in clusters
+   BLOSSOMS — a five-petal flower, in bunches at the ends of the twigs
 ================================================================== */
 function petalGeometry(len, U, V, opts = {}) {
-  // u along the petal (0 centre, 1 tip), v across (-1..1). Notched tip, cupped, lifted.
   const pos = [], col = [], idx = [];
   const notchW = 0.45, notchD = opts.notch ?? 0.2;
   const inner = opts.inner ?? 0.12;
@@ -1521,9 +1649,8 @@ function petalGeometry(len, U, V, opts = {}) {
       const z = v * w * len;
       const y = (0.13 * v * v * u + 0.2 * u * u + (opts.lift ?? 0)) * len;
       pos.push(x, y, z);
-      // petal base is deeper pink, tips near white — multiplied by the instance colour
       const k = Math.min(1, u * 1.25);
-      const edge = 1 - 0.05 * Math.pow(Math.abs(v), 3);           // a hair darker at the rim
+      const edge = 1 - 0.05 * Math.pow(Math.abs(v), 3);
       col.push((1 - 0.08 * (1 - k)) * edge, (1 - 0.55 * (1 - k)) * edge, (1 - 0.35 * (1 - k)) * edge);
     }
   }
@@ -1559,57 +1686,55 @@ function blossomGeometry() {
   const parts = [];
   srand(77);
   for (let i = 0; i < 5; i++) {
-    const p = isMobile ? petalGeometry(1, 4, 2, { notch: 0.26, inner: 0.1 }) : petalGeometry(1, 7, 4, { notch: 0.26, inner: 0.1 });
-    // each petal a touch different so the flower isn't a gear
+    const p = isMobile ? petalGeometry(1, 3, 2, { notch: 0.26, inner: 0.1 }) : petalGeometry(1, 5, 3, { notch: 0.26, inner: 0.1 });
     p.rotateZ(rr(-0.08, 0.1));
     p.rotateX(rr(-0.12, 0.12));
     p.rotateY(i * (Math.PI * 2 / 5) + rr(-0.06, 0.06));
     parts.push(p);
   }
-  // centre: a shallow cone in a deep pink, with a ring of stamen dots
-  const centre = new THREE.ConeGeometry(0.16, 0.08, 8, 1, true);
+  const centre = new THREE.ConeGeometry(0.16, 0.08, 6, 1, true);
   centre.rotateX(Math.PI); centre.translate(0, 0.04, 0);
   const cc = []; for (let i = 0; i < centre.getAttribute('position').count; i++) cc.push(0.72, 0.22, 0.4);
   centre.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
   parts.push(centre);
-  for (let i = 0; i < (isMobile ? 0 : 6); i++) {
-    const s = new THREE.TetrahedronGeometry(0.035, 0);
-    const a = i * Math.PI / 3 + 0.3, r = 0.13;
-    s.translate(Math.cos(a) * r, 0.11 + (i % 2) * 0.03, Math.sin(a) * r);
-    const sc = []; for (let k = 0; k < s.getAttribute('position').count; k++) sc.push(0.95, 0.72, 0.25);
-    s.setAttribute('color', new THREE.Float32BufferAttribute(sc, 3));
-    parts.push(s);
-  }
   return mergeGeos(parts);
 }
 const blossomGeo = blossomGeometry();
 
-// where blossoms go: in clusters along the last two orders of branch, the way
-// cherry flowers come in bunches from one bud
+// where flowers go: bunches along the last stretch of every twig
 const sites = [];
-for (const b of branches) {
-  if (b.depth < 4) continue;
-  const pts = b.pts;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const segLen = pts[i].distanceTo(pts[i + 1]);
-    const n = Math.max(1, Math.round(segLen / 0.14));
-    for (let k = 0; k < n; k++) {
-      const t = (k + 0.5) / n;
-      const c = pts[i].clone().lerp(pts[i + 1], t);
-      const tg = pts[i + 1].clone().sub(pts[i]).normalize();
-      const count = 2 + Math.floor(rnd() * 4);                 // 2..5 flowers in the bunch
-      const spread = rr(0.05, 0.11);
-      for (let f = 0; f < count; f++) {
-        const side = perpendicular(tg).applyAxisAngle(tg, rnd() * Math.PI * 2);
-        side.lerp(V3(0, rr(-0.3, 0.8), 0), 0.35).normalize();
-        const p = c.clone().addScaledVector(side, rr(0.4, 1) * spread);
-        sites.push({ p, n: side.clone().lerp(V3(0, 1, 0), 0.35).normalize(), depth: b.depth });
+{
+  srand(4321);
+  const crown = V3(0, CROWN.cy, 0);
+  for (const b of branches) {
+    if (!(b.depth >= 3) || b.rads[0] > 0.06) continue;
+    const pts = b.pts, n = pts.length;
+    let along = 0;
+    for (let i = n - 2; i >= 0; i--) {
+      const seg = pts[i].distanceTo(pts[i + 1]);
+      along += seg;
+      if (along > 1.6 && !b.tip) break;
+      if (along > 2.4) break;
+      const per = Math.max(1, Math.round(seg / 0.12));
+      for (let k = 0; k < per; k++) {
+        const t = (k + 0.5) / per;
+        const c = pts[i].clone().lerp(pts[i + 1], t);
+        const tg = pts[i + 1].clone().sub(pts[i]).normalize();
+        const outward = c.clone().sub(crown).normalize();
+        const count = 3 + Math.floor(rnd() * 4);
+        const spread = rr(0.06, 0.13);
+        for (let f = 0; f < count; f++) {
+          const side = perpendicular(tg).applyAxisAngle(tg, rnd() * Math.PI * 2);
+          side.lerp(outward, 0.35).normalize();
+          const p = c.clone().addScaledVector(side, rr(0.35, 1) * spread);
+          const nrm = side.clone().lerp(outward, 0.5).lerp(V3(0, -0.4, 0), 0.25).normalize();
+          sites.push({ p, n: nrm, flex: b.flex[i] + (b.flex[i + 1] - b.flex[i]) * t });
+        }
       }
     }
   }
+  for (let i = sites.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [sites[i], sites[j]] = [sites[j], sites[i]]; }
 }
-// shuffle, seeded
-for (let i = sites.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [sites[i], sites[j]] = [sites[j], sites[i]]; }
 
 const canopyR = (() => { let m = 0; for (const s of sites) m = Math.max(m, Math.hypot(s.p.x, s.p.z)); return m; })();
 const canopyFitR = (() => { const r = sites.map(s => Math.hypot(s.p.x, s.p.z)).sort((a, b) => a - b); return r[Math.floor(r.length * 0.93)]; })();
@@ -1632,57 +1757,24 @@ const density = (() => {
   return out.map(n => Math.max(0, Math.min(1, (n - lo) / Math.max(1, hi - lo))));
 })();
 
-const PALE = ['#FBD0DC', '#F9C5D5', '#FDDAE3', '#F8C0CF', '#FCE0E8', '#FFF0F4'];
+const PALE = ['#FBD0DC', '#F9C5D5', '#FDDAE3', '#F8C0CF', '#FCE0E8', '#FFF0F4', '#FFF4F6'];
 const PINK = ['#F4A0BB', '#F08FAB', '#F8B5C8', '#EE95B0', '#F2A8C0'];
 const MID = ['#F0708F', '#EC628A', '#E8587E', '#F37A98'];
 const HOT = ['#E84878', '#D8406A', '#DC4870'];
 function blossomColour(i) {
   const site = sites[i], r = rnd();
-  const hex = r < 0.5 ? pick(PALE) : r < 0.86 ? pick(PINK) : r < 0.975 ? pick(MID) : pick(HOT);
+  const hex = r < 0.52 ? pick(PALE) : r < 0.87 ? pick(PINK) : r < 0.975 ? pick(MID) : pick(HOT);
   _c.set(hex);
-  // outer and upper flowers catch the light; crowded, inner ones sit in the canopy's shade
   const out = Math.hypot(site.p.x, site.p.z) / canopyR;
   const up = (site.p.y - canopyBot) / (canopyTop - canopyBot);
-  const shade = 0.66 + 0.34 * Math.min(1, out * 0.55 + up * 0.35 + (1 - density[i]) * 0.5);
+  const shade = 0.68 + 0.32 * Math.min(1, out * 0.5 + up * 0.35 + (1 - density[i]) * 0.55);
   return _c.multiplyScalar(shade);
 }
 
-const N_BLOSSOM = Math.min(sites.length, isMobile ? 3000 : 6400);
-// petals: wrap lighting so a petal lit from behind glows instead of going dark,
-// and a wind that moves through the canopy, plus the pointer parting the flowers
-const windUniforms = { uTime: { value: 0 }, uGust: { value: 0 }, uMouse: { value: new THREE.Vector3(0, -99, 0) }, uMouseR: { value: 1.7 } };
-const WIND_GLSL = `
-uniform float uTime; uniform float uGust; uniform vec3 uMouse; uniform float uMouseR;
-float whash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
-float wnoise(vec3 x) {
-  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(whash(i), whash(i + vec3(1,0,0)), f.x), mix(whash(i + vec3(0,1,0)), whash(i + vec3(1,1,0)), f.x), f.y),
-             mix(mix(whash(i + vec3(0,0,1)), whash(i + vec3(1,0,1)), f.x), mix(whash(i + vec3(0,1,1)), whash(i + vec3(1,1,1)), f.x), f.y), f.z);
-}
-vec3 windAt(vec3 p) {
-  vec3 q = p * 0.32 + vec3(uTime * 0.22, uTime * 0.05, uTime * 0.11);
-  vec3 n = vec3(wnoise(q), wnoise(q + 31.7), wnoise(q + 71.3)) - 0.5;
-  float amp = 0.05 + uGust * 0.16;
-  vec3 off = n * amp * 2.0;
-  off += vec3(sin(uTime * 4.5 + p.x * 6.0 + p.y * 4.0), 0.0, cos(uTime * 3.8 + p.z * 5.0)) * (0.006 + uGust * 0.02);
-  vec3 d = p - uMouse; float dl = length(d);
-  float f = 1.0 - smoothstep(0.0, uMouseR, dl);
-  off += (d / max(dl, 0.001)) * f * f * 0.42 + vec3(0.0, sin(uTime * 7.0 + p.x * 9.0) * 0.05 * f, 0.0);
-  return off;
-}`;
-const WIND_VERTEX = `
-vec4 mvPosition = vec4( transformed, 1.0 );
-#ifdef USE_INSTANCING
-  mvPosition = instanceMatrix * mvPosition;
-#endif
-mvPosition.xyz += windAt(mvPosition.xyz);
-mvPosition = modelViewMatrix * mvPosition;
-gl_Position = projectionMatrix * mvPosition;`;
+const N_BLOSSOM = Math.min(sites.length, isMobile ? 5200 : 12500);
 function petalShader(sh) {
-  Object.assign(sh.uniforms, windUniforms);
-  sh.vertexShader = sh.vertexShader
-    .replace('#include <common>', '#include <common>\n' + WIND_GLSL)
-    .replace('#include <project_vertex>', WIND_VERTEX);
+  windShader(true)(sh);
+  // wrap lighting: a petal lit from behind glows instead of going dark
   sh.fragmentShader = sh.fragmentShader.replaceAll(
     'float dotNL = saturate( dot( geometryNormal, directLight.direction ) );',
     'float dotNL = saturate( ( dot( geometryNormal, directLight.direction ) + 0.55 ) / 1.55 );');
@@ -1694,45 +1786,51 @@ const blossoms = new THREE.InstancedMesh(blossomGeo, blossomMat, N_BLOSSOM);
 blossoms.castShadow = true;
 {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), up = V3(0, 1, 0);
+  const flexI = new Float32Array(N_BLOSSOM);
   for (let i = 0; i < N_BLOSSOM; i++) {
     const s = sites[i];
     q.setFromUnitVectors(up, s.n);
     _q.setFromAxisAngle(up, rnd() * Math.PI * 2);
     q.multiply(_q);
-    const size = rr(0.064, 0.096);
+    const size = rr(0.05, 0.078);
     sc.set(size, size, size);
     m.compose(s.p, q, sc);
     blossoms.setMatrixAt(i, m);
     blossoms.setColorAt(i, blossomColour(i));
+    flexI[i] = s.flex;
   }
+  blossomGeo.setAttribute('flexI', new THREE.InstancedBufferAttribute(flexI, 1));
   blossoms.instanceMatrix.needsUpdate = true;
   blossoms.instanceColor.needsUpdate = true;
 }
 
 // buds: the ones that haven't opened, deeper in colour
-const N_BUD = Math.min(sites.length - N_BLOSSOM, isMobile ? 900 : 1600);
+const N_BUD = Math.min(sites.length - N_BLOSSOM, isMobile ? 1400 : 3000);
 const budGeo = new THREE.IcosahedronGeometry(1, isMobile ? 0 : 1);
-budGeo.scale(0.03, 0.042, 0.03);
+budGeo.scale(0.024, 0.034, 0.024);
 const budMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
-budMat.onBeforeCompile = petalShader;
+budMat.onBeforeCompile = windShader(true);
 budMat.customProgramCacheKey = () => 'sakura-bud';
 const buds = new THREE.InstancedMesh(budGeo, budMat, Math.max(1, N_BUD));
 buds.castShadow = true;
 {
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1), up = V3(0, 1, 0);
+  const flexI = new Float32Array(Math.max(1, N_BUD));
   for (let i = 0; i < N_BUD; i++) {
     const s = sites[N_BLOSSOM + i];
     q.setFromUnitVectors(up, s.n);
     m.compose(s.p, q, one);
     buds.setMatrixAt(i, m);
     buds.setColorAt(i, _c.set(pick(HOT)).lerp(new THREE.Color(pick(MID)), rnd()));
+    flexI[i] = s.flex;
   }
+  budGeo.setAttribute('flexI', new THREE.InstancedBufferAttribute(flexI, 1));
   buds.instanceMatrix.needsUpdate = true;
   buds.instanceColor.needsUpdate = true;
 }
 
 /* ---------- the tree's shadow on the ground, and the light that casts it ---------- */
-const catcherMat = new THREE.ShadowMaterial({ color: 0x4a3830, opacity: 0.13, transparent: true });
+const catcherMat = new THREE.ShadowMaterial({ color: 0x4a3830, opacity: 0.11, transparent: true });
 catcherMat.onBeforeCompile = sh => {   // fade the shadow out with distance from the trunk, so it pools under the canopy
   sh.uniforms.uFadeR = { value: canopyR * 1.35 }; sh.uniforms.uCentre = { value: new THREE.Vector2(0, 0) };
   sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -1744,22 +1842,20 @@ const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(36, 36), catcherMat
 shadowCatcher.rotation.x = -Math.PI / 2; shadowCatcher.position.y = -0.005; shadowCatcher.receiveShadow = true;
 function makeLights(scene) {
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.VSMShadowMap;
-  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   scene.add(new THREE.HemisphereLight(0xfff6ec, 0xd6c3b0, 1.45));
   const sun = new THREE.DirectionalLight(0xfff1e0, 3.0);
-  sun.position.set(4, 22, 7);                     // high: the shadow pools under the tree rather than sprawling
+  sun.position.set(4, 22, 7);
   sun.castShadow = true;
   sun.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048);
   const e = canopyR + 1.5;
   Object.assign(sun.shadow.camera, { left: -e, right: e, top: e, bottom: -e, near: 2, far: 45 });
-  sun.shadow.radius = 11; sun.shadow.blurSamples = 14; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  sun.shadow.radius = 4; sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.03;
   scene.add(sun, sun.target);
   const fill = new THREE.DirectionalLight(0xf6e6ff, 0.5); fill.position.set(-7, 4, -6); scene.add(fill);
   return sun;
 }
-let _shadowTick = 0;
-function tickShadows() { if (++_shadowTick % (isMobile ? 4 : 2) === 0) renderer.shadowMap.needsUpdate = true; }
+function tickShadows() { /* shadows update every frame with PCF; kept for the pages' loops */ }
 
 // when frames run slow: first the pixel ratio, then the shadow, then fewer flowers
 const fullBlossoms = N_BLOSSOM, fullBuds = Math.max(1, N_BUD);
@@ -1778,7 +1874,7 @@ const BASE_YAW = 0.3;
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 let W = 1, H = 1, camDist = 12;
 const look = V3(0, canopyMid - 0.9, 0);
-const outline = [...sites.slice(0, 900).map(s => s.p), V3(0, -0.25, 0), ...branches.filter(b => b.depth === -1).map(b => b.pts[b.pts.length - 1])];
+const outline = [...sites.slice(0, 900).map(s => s.p), V3(0, -0.25, 0), ...branches.filter(b => b.depth === -1).map(b => b.pts[b.pts.length - 1]), ...twigTips];
 const scr = { x: 0, y: 0 };
 function project(world, out) {
   _v.copy(world).project(camera);
@@ -1847,15 +1943,16 @@ function frame(now) {
   windUniforms.uGust.value = Math.min(1, Math.abs(shake) / 28);
   // the pointer, as a point in the canopy: the flowers part around it
   const pt = G.pointer();
-  if (pt.x > -1e3) {
+  const want = pt.x > -1e3;
+  if (want) {
     _v.set((pt.x / W) * 2 - 1, -(pt.y / H) * 2 + 1, 0.5).unproject(camera);
     const dir = _v.sub(camera.position).normalize();
-    const planeZ = tree.position.z;                                   // the tree's mid-plane, facing the camera
-    const k = (planeZ - camera.position.z) / dir.z;
+    const k = (tree.position.z - camera.position.z) / dir.z;
     _w.copy(camera.position).addScaledVector(dir, k);
     tree.worldToLocal(_w);
-    windUniforms.uMouse.value.lerp(_w, 0.25);
-  } else windUniforms.uMouse.value.set(0, -99, 0);
+    if (windUniforms.uMouseR.value < 0.05) windUniforms.uMouse.value.copy(_w); else windUniforms.uMouse.value.lerp(_w, 0.2);
+  }
+  windUniforms.uMouseR.value += ((want ? 1.7 : 0) - windUniforms.uMouseR.value) * Math.min(1, dt * 5);
   tickShadows();
   renderer.render(scene, camera);
   if (frames % 2 === 0) reportBlossoms();
@@ -1876,7 +1973,8 @@ function frame(now) {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
 requestAnimationFrame(frame);
-window.__tree3d = { stats: () => ({ frames, dpr: DPR, sites: sites.length, blossoms: N_BLOSSOM, box: G.box(), outline: measure(), tris: renderer.info.render.triangles, calls: renderer.info.render.calls }) };
+const genMs = Math.round(performance.now() - T0);
+window.__tree3d = { stats: () => ({ genMs, nodes: nodes.length, frames, dpr: DPR, sites: sites.length, blossoms: N_BLOSSOM, box: G.box(), outline: measure(), tris: renderer.info.render.triangles, calls: renderer.info.render.calls }) };
 </script>
 </body>
 </html>
