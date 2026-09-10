@@ -2,29 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧅</text></svg>">
-  <title>green — pranshul's cafe</title>
+  <title>shrek — pranshul's cafe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    ::selection { background: #2b3a16; color: #d9f0a8; }
+    html, body { height: 100%; }
 
     body {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      min-height: 100vh;
-      color: #2b3a16;
+      font-family: 'Unkempt', cursive;
       background: #78b43a;   /* ogre */
-      overflow-x: hidden;
+      color: #2b3a16;
+      overflow: hidden;
       position: relative;
-      line-height: 1.7;
     }
 
-    /* paper grain texture — same as the parent page */
+    /* paper grain, same as the rest of the site */
     body::after {
       content: '';
       position: fixed;
@@ -37,86 +33,63 @@
       z-index: 100;
     }
 
-    .back {
+    .back, .note {
       position: fixed;
       top: 1.5rem;
-      left: 1.5rem;
       font-size: 0.9rem;
       color: #2b3a16;
-      opacity: 0.7;
-      text-decoration: none;
       z-index: 10;
-      transition: opacity 0.3s ease;
+      text-decoration: none;
+      background: #78b43a;          /* stays readable when a photo lands under it */
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
     }
+    .back { left: 1.5rem; opacity: 0.85; transition: opacity 0.3s ease; }
     .back:hover { opacity: 1; }
+    .note { right: 1.5rem; pointer-events: none; }
+    .note em { font-style: italic; }
 
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 6rem 2rem 5rem;
-      position: relative;
-      z-index: 2;
-    }
+    /* the swamp: shrek, everywhere, never still */
+    .swamp { position: fixed; inset: 0; }
 
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 300;
-      color: #2b3a16;
-      margin-bottom: 0.2rem;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-    }
-
-    .attribution {
-      font-size: 1.05rem;
-      color: #2b3a16;
-      font-style: italic;
-      margin-bottom: 3rem;
-      opacity: 0;
-      animation: fade 1s ease 0.5s forwards;
-    }
-
-    /* the photos: pinned up crooked, one at a time */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 3rem 2.5rem;
-      align-items: start;
-    }
-
-    .polaroid {
-      background: #fbfaf3;
-      padding: 10px 10px 12px;
-      box-shadow: 0 2px 14px rgba(20, 40, 10, 0.18), 0 1px 2px rgba(20, 40, 10, 0.12);
+    .ogre {
+      position: absolute;
+      left: var(--x); top: var(--y);
+      width: var(--w);
       transform: rotate(var(--r));
-      opacity: 0;
-      animation: pin 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--d) forwards,
-                 wobble var(--w, 7s) ease-in-out calc(var(--d) + 0.9s) infinite;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
+      animation: bob var(--t) ease-in-out var(--d) infinite;
+      filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28));
     }
-    .polaroid img {
-      width: 100%;
-      height: auto;
+    .ogre img {
+      width: 100%; height: auto;
       display: block;
-      border-radius: 1px;
+      border-radius: var(--blob);   /* photos cut out roughly, like a sticker */
+      pointer-events: none;
+      -webkit-user-drag: none;
     }
-    .polaroid figcaption {
-      margin-top: 0.6rem;
-      font-size: 1.05rem;
-      color: #4a6a2a;
-      text-align: center;
+    .ogre.cutout img { border-radius: 0; }
+    .ogre.jiggle { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+    @keyframes bob {
+      0%, 100% { transform: rotate(var(--r)) translateY(0); }
+      50%      { transform: rotate(calc(var(--r) + 4deg)) translateY(-14px); }
+    }
+    @keyframes jiggle {
+      10%, 90% { transform: rotate(calc(var(--r) - 7deg)) scale(1.04); }
+      30%, 70% { transform: rotate(calc(var(--r) + 9deg)) scale(1.09); }
+      50%      { transform: rotate(calc(var(--r) - 9deg)) scale(1.12); }
+      100%     { transform: rotate(var(--r)) scale(1); }
     }
 
-    /* the lunge: click a photo and it comes at you */
+    /* the lunge: click one and it comes at you */
     .lunge {
       position: fixed;
       z-index: 200;
       overflow: hidden;
       background: #2b3a16;
-      box-shadow: 0 0 0 0 rgba(0,0,0,0);
       transition: left 0.22s cubic-bezier(0.2, 1.3, 0.3, 1), top 0.22s cubic-bezier(0.2, 1.3, 0.3, 1),
                   width 0.22s cubic-bezier(0.2, 1.3, 0.3, 1), height 0.22s cubic-bezier(0.2, 1.3, 0.3, 1);
     }
@@ -130,102 +103,89 @@
     .lunge.in img { transform: scale(1.35); }     /* keeps coming after it has filled the screen */
     .lunge.out { transition-duration: 0.35s; transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
     body.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-
-    @keyframes pin {
-      from { opacity: 0; transform: rotate(var(--r)) translateY(18px); }
-      to   { opacity: 1; transform: rotate(var(--r)) translateY(0); }
-    }
-    @keyframes wobble {
-      0%, 100% { transform: rotate(var(--r)) translateY(0); }
-      50%      { transform: rotate(calc(var(--r) + 1.6deg)) translateY(-4px); }
-    }
     @keyframes shake {
       10%, 90% { transform: translate(-2px, 1px); }
       20%, 80% { transform: translate(4px, -2px); }
       30%, 50%, 70% { transform: translate(-7px, 3px); }
       40%, 60% { transform: translate(7px, -3px); }
     }
-    @keyframes rise { to { opacity: 1; transform: translateY(0); } }
-    @keyframes fade { to { opacity: 1; } }
 
-    @media (max-width: 640px) {
-      .container { padding: 4.5rem 1.2rem 3rem; }
-      .gallery { grid-template-columns: 1fr; gap: 2.4rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .ogre, .ogre.jiggle, body.shook { animation: none; }
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
-
-<style id="enola-font-override">
-  body, body *{font-family:'Unkempt',cursive !important;}
-  body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
-</style>
 </head>
 <body>
 
 <a href="/things-i-like" class="back">← back</a>
+<p class="note">(pls do <em>not</em> click on the pics)</p>
 
-<div class="container">
-  <h1>green</h1>
-  <p class="attribution">(shrek)</p>
-
-  <div class="gallery">
-    <figure class="polaroid" style="--r:-5deg; --d:0.25s; --w:8s">
-      <img src="/images/shrek/somebody-once-told-me.png" alt="shrek, far too close to the camera" loading="eager">
-      <figcaption>somebody once told me</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:4deg; --d:0.4s; --w:10s">
-      <img src="/images/shrek/my-swamp.jpg" alt="shrek grinning with his arms out" loading="eager">
-      <figcaption>what are you doing in my swamp?!</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:3.5deg; --d:0.55s; --w:7s">
-      <img src="/images/shrek/donkey.jpg" alt="shrek, mouth open, pointing" loading="lazy">
-      <figcaption>donkey!!</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:-4.5deg; --d:0.7s; --w:9s">
-      <img src="/images/shrek/the-face.jpg" alt="shrek giving the look" loading="lazy">
-      <figcaption>ogres have layers.</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:5deg; --d:0.85s; --w:6s">
-      <img src="/images/shrek/waffles.jpg" alt="shrek and donkey in bed" loading="lazy">
-      <figcaption>in the morning, i'm making waffles!</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:-6deg; --d:1s; --w:8s">
-      <img src="/images/shrek/better-out-than-in.jpg" alt="shrek and donkey, delighted" loading="lazy">
-      <figcaption>better out than in, i always say.</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:2.5deg; --d:1.15s; --w:10s">
-      <img src="/images/shrek/yes-donkey.jpg" alt="shrek and donkey, cheek to cheek" loading="lazy">
-      <figcaption>(yes, donkey!)</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:-3deg; --d:1.3s; --w:7s">
-      <img src="/images/shrek/onions.jpg" alt="shrek, smug" loading="lazy">
-      <figcaption>ogres are like onions.</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:6deg; --d:1.45s; --w:9s">
-      <img src="/images/shrek/this-is-my-swamp.jpg" alt="shrek, pleased with himself" loading="lazy">
-      <figcaption>this is my swamp.</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:-5.5deg; --d:1.6s; --w:6s">
-      <img src="/images/shrek/the-rock.jpg" alt="a man who is somehow both the rock and shrek" loading="lazy">
-      <figcaption>the rock, allegedly.</figcaption>
-    </figure>
-    <figure class="polaroid" style="--r:4deg; --d:1.75s; --w:8s">
-      <img src="/images/shrek/green.png" alt="shrek, standing there" loading="lazy">
-      <figcaption>green.</figcaption>
-    </figure>
-  </div>
-</div>
+<div class="swamp" id="swamp"></div>
 
 <script>
-  // Click a photo and it comes at you: a copy of the picture starts exactly
-  // where the photo is, fills the screen in a fifth of a second with a
-  // little overshoot, keeps creeping closer, and the page shakes. Another
-  // click, Escape, or a moment later, it goes back where it came from.
+(() => {
+  const pics = [
+    { src: '/images/shrek/somebody-once-told-me.png', cutout: true },
+    { src: '/images/shrek/green.png', cutout: true },
+    { src: '/images/shrek/my-swamp.jpg' },
+    { src: '/images/shrek/donkey.jpg' },
+    { src: '/images/shrek/the-face.jpg' },
+    { src: '/images/shrek/waffles.jpg' },
+    { src: '/images/shrek/better-out-than-in.jpg' },
+    { src: '/images/shrek/yes-donkey.jpg' },
+    { src: '/images/shrek/onions.jpg' },
+    { src: '/images/shrek/this-is-my-swamp.jpg' },
+    { src: '/images/shrek/the-rock.jpg' },
+  ];
+  const rng = (a, b) => a + Math.random() * (b - a);
+  const swamp = document.getElementById('swamp');
+  const phone = window.innerWidth < 640;
+
+  // Scatter: a different pile every visit. Sizes are in viewport widths so
+  // the pile fills a phone and a big screen alike; positions may run off the
+  // edges on purpose.
+  for (let i = pics.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pics[i], pics[j]] = [pics[j], pics[i]]; }
+  // A jittered grid rather than pure chance, so the whole screen is shrek
+  // and no corner is left green by accident.
+  const cols = phone ? 2 : 4, rows = Math.ceil(pics.length / cols);
+  const ogres = pics.map((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'ogre' + (p.cutout ? ' cutout' : '');
+    const w = phone ? rng(44, 72) : rng(20, 36);
+    const cx = ((i % cols) + 0.5) * (100 / cols), cy = (Math.floor(i / cols) + 0.5) * (100 / rows);
+    el.style.setProperty('--w', w + 'vw');
+    el.style.setProperty('--x', (cx - w / 2 + rng(-14, 14)) + 'vw');
+    el.style.setProperty('--y', (cy - w * 0.35 + rng(-14, 14)) + 'vh');
+    el.style.setProperty('--r', rng(-18, 18).toFixed(1) + 'deg');
+    el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
+    el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
+    el.style.setProperty('--blob', `${rng(35, 60) | 0}% ${rng(40, 65) | 0}% ${rng(35, 60) | 0}% ${rng(40, 65) | 0}% / ${rng(40, 60) | 0}% ${rng(35, 60) | 0}% ${rng(40, 65) | 0}% ${rng(35, 60) | 0}%`);
+    const img = document.createElement('img');
+    img.src = p.src; img.alt = 'shrek'; img.draggable = false;
+    el.appendChild(img);
+    swamp.appendChild(el);
+    return el;
+  });
+
+  // one of them fidgets every couple of seconds, and whichever one you touch
+  function jiggle(el) { el.classList.remove('jiggle'); void el.offsetWidth; el.classList.add('jiggle'); }
+  ogres.forEach(el => {
+    el.addEventListener('animationend', e => { if (e.animationName === 'jiggle') el.classList.remove('jiggle'); });
+    el.addEventListener('mouseenter', () => { if (!lunge) jiggle(el); });
+    el.addEventListener('click', () => comeAtMe(el));
+  });
+  setInterval(() => { if (!lunge) jiggle(ogres[Math.floor(Math.random() * ogres.length)]); }, 1900);
+
+  // Click one and it comes at you: a copy of the picture starts exactly
+  // where it is, fills the screen in a fifth of a second with a little
+  // overshoot, keeps creeping closer, and the page shakes. Another click,
+  // Escape, or a moment later, it goes back where it came from.
   let lunge = null, retreatTimer = 0;
   function place(el, r) { el.style.left = r.left + 'px'; el.style.top = r.top + 'px'; el.style.width = r.width + 'px'; el.style.height = r.height + 'px'; }
-  function comeAtMe(fig) {
+  function comeAtMe(ogre) {
     if (lunge) return;
-    const img = fig.querySelector('img');
+    const img = ogre.querySelector('img');
     const r = img.getBoundingClientRect();
     lunge = document.createElement('div');
     lunge.className = 'lunge';
@@ -250,8 +210,8 @@
     retreatTimer = setTimeout(back, 1500);
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
   }
-  document.querySelectorAll('.polaroid').forEach(f => f.addEventListener('click', () => comeAtMe(f)));
   document.body.addEventListener('animationend', e => { if (e.animationName === 'shake') document.body.classList.remove('shook'); });
+})();
 </script>
 
 </body>
