@@ -26,8 +26,7 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.07;
-      mix-blend-mode: multiply;
+      opacity: 0.05;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
       background-size: 220px;
       z-index: 100;
@@ -68,7 +67,12 @@
       user-select: none;
       -webkit-user-select: none;
       animation: bob var(--t) ease-in-out var(--d) infinite;
-      filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28));
+      will-change: transform;
+    }
+    /* the blurred shadow costs a re-render of every photo every frame; only where there's a GPU to spare */
+    @media (hover: hover) and (pointer: fine) {
+      .ogre { filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28)); }
+      .ogre.held { filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38)); }
     }
     .ogre img {
       width: 100%; height: auto;
@@ -85,7 +89,6 @@
       animation: none;
       transform: rotate(var(--r)) scale(1.06);
       cursor: grabbing;
-      filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38));
     }
 
     @keyframes bob {
@@ -102,11 +105,13 @@
     /* the lunge: click one and it comes at you */
     .lunge {
       position: fixed;
+      inset: 0;
       z-index: 200;
       overflow: hidden;
       background: #2b3a16;
-      transition: left 0.22s cubic-bezier(0.2, 1.3, 0.3, 1), top 0.22s cubic-bezier(0.2, 1.3, 0.3, 1),
-                  width 0.22s cubic-bezier(0.2, 1.3, 0.3, 1), height 0.22s cubic-bezier(0.2, 1.3, 0.3, 1);
+      transform-origin: center;
+      will-change: transform;
+      transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.3, 1);
     }
     .lunge img {
       width: 100%; height: 100%;
@@ -116,7 +121,7 @@
       transition: transform 0.9s cubic-bezier(0.1, 0.8, 0.2, 1);
     }
     .lunge.in img { transform: scale(1.35); }     /* keeps coming after it has filled the screen */
-    .lunge.out { transition-duration: 0.35s; transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+    .lunge.out { transition: transform 0.35s cubic-bezier(0.4, 0, 0.6, 1); }
     .swamp.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
     @keyframes shake {
       10%, 90% { transform: translate(-2px, 1px); }
@@ -189,7 +194,10 @@
 
   // The pile: every picture once, and half of them a second time, on a
   // jittered grid so the whole screen is shrek. A different pile every visit.
-  const list = shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
+  // Phones get each photo once, from a set sized for a phone; a big screen
+  // gets every photo plus half of them again, full size.
+  const list = phone ? shuffle(files.slice()) : shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
+  const dir = phone ? '/images/shrek/small/' : '/images/shrek/';
   const cols = phone ? 3 : 6, rows = Math.ceil(list.length / cols);
   let zTop = list.length;
   const ogres = list.map((f, i) => {
@@ -210,7 +218,7 @@
     }
     el.style.zIndex = i + 1;
     const img = document.createElement('img');
-    img.src = '/images/shrek/' + f; img.alt = 'shrek'; img.draggable = false;
+    img.src = dir + f; img.alt = 'shrek'; img.draggable = false;
     el.appendChild(img);
     swamp.appendChild(el);
     return el;
@@ -334,7 +342,11 @@
   // closer, and the page shakes. Another click, Escape, or a moment later,
   // it goes back where it came from.
   let lunge = null, retreatTimer = 0;
-  function place(el, r) { el.style.left = r.left + 'px'; el.style.top = r.top + 'px'; el.style.width = r.width + 'px'; el.style.height = r.height + 'px'; }
+  // the transform that shrinks a full-screen box onto a photo's rectangle
+  function onto(r) {
+    const W = window.innerWidth, H = window.innerHeight;
+    return `translate(${r.left + r.width / 2 - W / 2}px, ${r.top + r.height / 2 - H / 2}px) scale(${r.width / W}, ${r.height / H})`;
+  }
   function comeAtMe(ogre) {
     if (lunge) return;
     const img = ogre.querySelector('img');
@@ -344,10 +356,10 @@
     const copy = document.createElement('img');
     copy.src = img.src; copy.alt = '';
     lunge.appendChild(copy);
-    place(lunge, r);
+    lunge.style.transform = onto(r);
     document.body.appendChild(lunge);
     void lunge.offsetWidth;
-    place(lunge, { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight });
+    lunge.style.transform = 'translate(0px, 0px) scale(1, 1)';
     lunge.classList.add('in');
     play('roar');
     swamp.classList.remove('shook'); void swamp.offsetWidth; swamp.classList.add('shook');
@@ -358,7 +370,7 @@
       const el = lunge; lunge = null;
       dbg('lunge close');
       el.classList.remove('in'); el.classList.add('out');
-      place(el, img.getBoundingClientRect());
+      el.style.transform = onto(img.getBoundingClientRect());
       setTimeout(() => el.remove(), 380);
     };
     // Phones deliver the opening tap's click late and to whatever is under
