@@ -225,15 +225,20 @@ test('map: an empty store shows the seed, and the footer carries the other lists
   const roving = (id) => ({ id, name: id, area: '', tags: ['community'], note: '', url: '', when: '', lat: null, lng: null, needsCoords: true });
   SEED.push(
     pinned('seed-a', 'Peckham', 51.47, -0.07), pinned('seed-b', 'Soho', 51.51, -0.13), pinned('seed-c', 'Hackney', 51.54, -0.05),
+    // the same address as seed-a: a night held at the place
+    pinned('seed-g', 'Peckham', 51.47, -0.07),
     roving('seed-d'), roving('seed-e'), roving('seed-f'),
   );
   const p = await page();
   await p.goto(BASE + '/community');
   await p.waitForSelector('.place');
   await p.waitForTimeout(600);
-  assert.equal((await p.$$('.place')).length, 6);
-  assert.equal((await p.$$('.ink-dot-marker')).length, 3);
-  assert.match(await p.textContent('#tally'), /6 places · 3 corners/);
+  assert.equal((await p.$$('.place')).length, 7);
+  assert.equal((await p.$$('.ink-dot-marker')).length, 4);
+  assert.match(await p.textContent('#tally'), /7 places · 3 corners/);
+  // two things at one address are two dots, fanned apart, not one on top of the other
+  const spots = await p.$$eval('.ink-dot-marker', (els) => els.map((e) => { const r = e.getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top); }));
+  assert.equal(new Set(spots).size, 4, 'stacked dots: ' + spots.join(' | '));
   const links = await p.$$eval('#other-lists a', (els) => els.map((a) => a.href));
   assert.equal(links.length, 5);
   assert.ok(links.every((h) => /^https:\/\//.test(h)), links.join(' '));
@@ -241,7 +246,7 @@ test('map: an empty store shows the seed, and the footer carries the other lists
   // corners — even though it is the biggest group
   await p.click('#sort-area');
   await p.waitForTimeout(400);
-  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Hackney', 'Peckham', 'Soho', 'elsewhere']);
+  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Peckham', 'Hackney', 'Soho', 'elsewhere']);
   await p.screenshot({ path: SHOTS + 'map-seeded.png', fullPage: true });
   assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
   await p.context().close();

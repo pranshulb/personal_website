@@ -206,12 +206,24 @@ Built up over several passes; don't loosen it casually.
 ### The map itself
 
 MapLibre GL (5.x, the UMD build from unpkg) over **OpenFreeMap** vector
-tiles, drawn in the page's own palette by `paperStyle()` in
-`community/index.html`: paper ground, ink-line roads, muted water and parks,
-and low 3D building extrusions under a 52° camera on desktop (flat on
-phones). No labels come from the tiles — the "corners of london" are drawn
-from the entries' own areas as HTML markers, in EB Garamond, once you're
-zoomed in enough. No key, no quota to watch.
+tiles, drawn by `paperStyle()` in `community/index.html` the way a comic
+panel is: ink outlines on everything (every road drawn twice, ink under
+colour; the ink lightens towards the overview and the smallest streets wait
+for zoom 12.5), halftone dot screens for water and parks, and buildings as
+low hatched-paper slabs — heights at 40%, capped — with an ink edge, under a
+52° camera on desktop (flat on phones). The edge is an ink copy of each slab
+offset a pixel or two beneath the paper one, because MapLibre can only draw
+lines on the ground. The screens and hatching are canvas-drawn images
+supplied on `styleimagemissing`. Over the whole canvas sits an SVG
+displacement filter (`#ink-wobble`) that puts a hand's tremor into every
+line; it is CPU-side, so it applies only while the map is still
+(`.map-wrap.settled`, toggled on `idle`/`movestart`). Slabs fade in over
+half a zoom level rather than growing. No labels come from the tiles — the
+"corners of london" are drawn from the entries' own areas as HTML markers,
+in EB Garamond, once you're zoomed in enough. Dots that share an address
+fan out around it. No key, no quota to watch. The earlier plain-paper
+version with full-height extrusions read as beige boxes; the comic
+treatment was chosen from side-by-side renders.
 
 The page fetches OpenFreeMap's published `positron` style only to take its
 `sources` (so the tile URL is theirs to keep right), then swaps in our own

@@ -130,6 +130,8 @@
       transition: opacity var(--dur-slow) var(--ease-soft);
     }
     .map-wrap.map-ground .maplibregl-canvas-container canvas { opacity: 1; }
+    /* the hand-drawn tremor, on while the map is still (see 'settled') */
+    .map-wrap.settled .maplibregl-canvas { filter: url(#ink-wobble); }
 
     /* warm zoom controls, as before */
     .maplibregl-ctrl-top-left .maplibregl-ctrl { margin: 10px 0 0 10px; }
@@ -205,7 +207,9 @@
     }
     .ink-dot-marker svg path {
       fill: var(--c);
-      opacity: 0.78;
+      stroke: #55412f;
+      stroke-width: 1.3;
+      opacity: 0.85;
       transition: opacity var(--dur-fast) var(--ease-soft);
     }
     .ink-dot-marker:hover svg,
@@ -265,7 +269,7 @@
       padding: 10px 14px;
       border-radius: 2px;
       box-shadow: 2px 3px 8px rgba(58, 47, 47, 0.12);
-      border: 1.5px solid rgba(196, 122, 122, 0.25);
+      border: 1.5px solid rgba(85, 65, 47, 0.45);
       transform: rotate(-0.5deg);
     }
     .note-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
@@ -626,6 +630,15 @@
 </head>
 <body>
 
+<!-- the tremor: a little noise displaces the map's canvas by a few pixels,
+     so every straight line wobbles like a hand drew it -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="ink-wobble" x="-2%" y="-2%" width="104%" height="104%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
 <div class="page">
 
   <header class="masthead">
@@ -972,57 +985,109 @@
   var FIT_PADDING = { top: 70, right: 50, bottom: 50, left: 50 };
   var mapWrap = document.getElementById('map-wrap');
 
-  // The page's palette as a map style. `source` is { id, def } for the one
-  // vector source (OpenMapTiles schema). With none it is paper and nothing
-  // else — what shows until the tiles are known to be reachable.
+  // The page's palette as a map style, drawn the way a comic panel is: ink
+  // outlines on everything (each road twice, ink under colour), halftone dot
+  // screens for water and parks, and buildings as low hatched-paper slabs
+  // with an ink edge — an ink copy of each slab, offset a pixel or two under
+  // the paper one, is what draws the edge, since a line can only be drawn on
+  // the ground. The screens and the hatching are images painted on a canvas
+  // when MapLibre first asks for them (see styleimagemissing below).
+  // `source` is { id, def } for the one vector source (OpenMapTiles schema).
+  // With none it is paper and nothing else — what shows until the tiles are
+  // known to be reachable.
+  var INK = '#55412f';
   function paperStyle(source) {
     var style = {
       version: 8,
       sources: {},
-      light: { anchor: 'viewport', color: '#fff9f0', intensity: 0.38, position: [1.15, 215, 32] },
-      layers: [{ id: 'paper', type: 'background', paint: { 'background-color': '#f4ede2' } }]
+      light: { anchor: 'viewport', color: '#fff9f0', intensity: 0.25, position: [1.15, 215, 32] },
+      layers: [{ id: 'paper', type: 'background', paint: { 'background-color': '#f6eee1' } }]
     };
     if (!source) return style;
     var s = source.id;
     style.sources[s] = source.def;
-    // Tunnels are left out: a line for something you cannot see is noise.
-    function road(id, classes, colour, widths) {
-      return {
-        id: id, type: 'line', source: s, 'source-layer': 'transportation',
-        filter: ['all', ['match', ['get', 'class'], classes, true, false], ['!=', ['get', 'brunnel'], 'tunnel']],
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': colour, 'line-width': ['interpolate', ['exponential', 1.4], ['zoom']].concat(widths) }
-      };
+    function curve(stops) { return ['interpolate', ['exponential', 1.4], ['zoom']].concat(stops); }
+    // A cased road: the ink first and wider, the colour on top. A zoom curve
+    // has to be the top of a width expression, so the casing is its own curve
+    // (each width plus the ink) rather than "width + ink". Tunnels are left
+    // out: a line for something you cannot see is noise.
+    // From the overview London is a mesh of streets, and full-weight ink on
+    // every one of them would read as a thicket — so the ink comes up with
+    // the zoom, and the smallest streets wait until you are close.
+    function road(id, classes, colour, stops, ink, minzoom) {
+      var filter = ['all', ['match', ['get', 'class'], classes, true, false], ['!=', ['get', 'brunnel'], 'tunnel']];
+      var layout = { 'line-cap': 'round', 'line-join': 'round' };
+      return [
+        { id: id + '-ink', type: 'line', source: s, 'source-layer': 'transportation', filter: filter, layout: layout, minzoom: minzoom || 0,
+          paint: { 'line-color': INK, 'line-opacity': ['interpolate', ['linear'], ['zoom'], 11, 0.4, 14, 0.85],
+                   'line-width': curve(stops.map(function(v, i) { return i % 2 ? v + ink : v; })) } },
+        { id: id, type: 'line', source: s, 'source-layer': 'transportation', filter: filter, layout: layout, minzoom: minzoom || 0,
+          paint: { 'line-color': colour, 'line-width': curve(stops) } }
+      ];
     }
-    style.layers.push(
+    // The slabs: real heights at 40%, capped, so nothing towers over the
+    // dots; and they fade in over half a zoom level rather than growing out
+    // of the ground, which was the jarring part.
+    var slab = ['min', ['*', ['number', ['get', 'render_height'], 8], 0.4], 18];
+    var slabInk = ['max', ['-', slab, 0.3], 0.3];
+    var solid = ['!=', ['get', 'hide_3d'], true];
+    function fadeTo(v) { return ['interpolate', ['linear'], ['zoom'], 13, 0, 13.6, v]; }
+    function inkCopy(id, dx, dy) {
+      return { id: id, type: 'fill-extrusion', source: s, 'source-layer': 'building', minzoom: 13, filter: solid,
+        paint: { 'fill-extrusion-color': INK, 'fill-extrusion-height': slabInk, 'fill-extrusion-base': 0,
+                 'fill-extrusion-opacity': fadeTo(0.85), 'fill-extrusion-translate': [dx, dy],
+                 'fill-extrusion-translate-anchor': 'viewport', 'fill-extrusion-vertical-gradient': false } };
+    }
+    style.layers = style.layers.concat([
       { id: 'green', type: 'fill', source: s, 'source-layer': 'landcover',
         filter: ['match', ['get', 'class'], ['grass', 'wood', 'farmland', 'wetland'], true, false],
-        paint: { 'fill-color': '#e8e6d3', 'fill-opacity': 0.55 } },
-      { id: 'park', type: 'fill', source: s, 'source-layer': 'park',
-        paint: { 'fill-color': '#e6e5d0', 'fill-opacity': 0.75 } },
-      { id: 'water', type: 'fill', source: s, 'source-layer': 'water',
-        paint: { 'fill-color': '#d9dbd4' } },
+        paint: { 'fill-pattern': 'park-tone', 'fill-opacity': 0.6 } },
+      { id: 'park', type: 'fill', source: s, 'source-layer': 'park', paint: { 'fill-pattern': 'park-tone' } },
+      { id: 'park-ink', type: 'line', source: s, 'source-layer': 'park', paint: { 'line-color': INK, 'line-width': 1, 'line-opacity': 0.5 } },
+      { id: 'water', type: 'fill', source: s, 'source-layer': 'water', paint: { 'fill-pattern': 'water-tone' } },
+      { id: 'water-ink', type: 'line', source: s, 'source-layer': 'water', paint: { 'line-color': INK, 'line-width': 1.4, 'line-opacity': 0.75 } },
       { id: 'waterway', type: 'line', source: s, 'source-layer': 'waterway',
-        paint: { 'line-color': '#d9dbd4', 'line-width': ['interpolate', ['exponential', 1.4], ['zoom'], 10, 0.6, 16, 3] } },
+        paint: { 'line-color': '#a9bbb5', 'line-width': curve([10, 0.8, 16, 3.5]) } },
       { id: 'rail', type: 'line', source: s, 'source-layer': 'transportation',
         filter: ['all', ['==', ['get', 'class'], 'rail'], ['!=', ['get', 'brunnel'], 'tunnel']],
-        paint: { 'line-color': '#e2d7c8', 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 0.4, 16, 1.4], 'line-dasharray': [3, 3] } },
-      road('road-minor', ['minor', 'service'], '#ebe0d1', [12, 0.3, 14, 0.9, 17, 3.2]),
-      road('road-mid', ['secondary', 'tertiary'], '#e1d3c1', [11, 0.5, 14, 1.3, 17, 4.6]),
-      road('road-major', ['motorway', 'trunk', 'primary'], '#d6c1a9', [10, 0.7, 14, 1.9, 17, 6.5]),
-      // The paper model. Heights rise from nothing over a zoom level and a
-      // half, so the city grows out of the page rather than popping in.
-      { id: 'buildings', type: 'fill-extrusion', source: s, 'source-layer': 'building', minzoom: 13,
-        filter: ['!=', ['get', 'hide_3d'], true],
-        paint: {
-          'fill-extrusion-color': '#efe5d7',
-          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.6, ['number', ['get', 'render_height'], 8]],
-          'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 13, 0, 14.6, ['number', ['get', 'render_min_height'], 0]],
-          'fill-extrusion-opacity': 0.92,
-          'fill-extrusion-vertical-gradient': true
-        } }
-    );
+        paint: { 'line-color': INK, 'line-opacity': 0.35, 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 0.4, 16, 1.4], 'line-dasharray': [3, 3] } }
+    ], road('road-minor', ['minor', 'service'], '#f7efe2', [12, 0.5, 14, 1.5, 17, 5], 1.6, 12.5),
+       road('road-mid', ['secondary', 'tertiary'], '#f4e4c9', [11, 0.7, 14, 2.2, 17, 7], 2.0),
+       road('road-major', ['motorway', 'trunk', 'primary'], '#eed3a8', [10, 1.0, 14, 3.2, 17, 10], 2.4),
+    [
+      { id: 'building-ink', type: 'line', source: s, 'source-layer': 'building', minzoom: 13,
+        paint: { 'line-color': INK, 'line-width': 1.3, 'line-opacity': fadeTo(0.85) } },
+      inkCopy('building-ink-far', 2, 2),
+      inkCopy('building-ink-near', -1.6, -1.6),
+      { id: 'buildings', type: 'fill-extrusion', source: s, 'source-layer': 'building', minzoom: 13, filter: solid,
+        paint: { 'fill-extrusion-pattern': 'shade', 'fill-extrusion-height': slab, 'fill-extrusion-base': 0,
+                 'fill-extrusion-opacity': fadeTo(1), 'fill-extrusion-vertical-gradient': true } }
+    ]);
     return style;
+  }
+
+  // The halftone screens and the pencil hatching, drawn on a canvas the first
+  // time a layer asks for them. Registered before the style that needs them.
+  function comicPattern(name) {
+    var c = document.createElement('canvas');
+    var g = c.getContext('2d');
+    function dots(bg, dot, size, r) {
+      c.width = size; c.height = size;
+      g.fillStyle = bg; g.fillRect(0, 0, size, size);
+      g.fillStyle = dot;
+      [[size / 4, size / 4], [3 * size / 4, 3 * size / 4]].forEach(function(pt) {
+        g.beginPath(); g.arc(pt[0], pt[1], r, 0, Math.PI * 2); g.fill();
+      });
+    }
+    if (name === 'water-tone') dots('#cbd6d2', '#a9bbb5', 16, 2.2);
+    else if (name === 'park-tone') dots('#dde4c4', '#bcc79a', 16, 2);
+    else if (name === 'shade') {
+      c.width = 24; c.height = 24;
+      g.fillStyle = '#e9dcc8'; g.fillRect(0, 0, 24, 24);
+      g.strokeStyle = 'rgba(85, 65, 47, 0.22)'; g.lineWidth = 1.4;
+      for (var i = -24; i < 48; i += 6) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 24, 24); g.stroke(); }
+    } else return null;
+    return g.getImageData(0, 0, c.width, c.height);
   }
 
   var map = null;
@@ -1057,6 +1122,16 @@
     // enable scroll zoom after first interaction
     map.once('click', function() { map.scrollZoom.enable(); });
     map.once('load', function() { mapWrap.classList.add('map-ready'); });
+    map.on('styleimagemissing', function(e) {
+      var img = comicPattern(e.id);
+      if (img && !map.hasImage(e.id)) map.addImage(e.id, img, { pixelRatio: 2 });
+    });
+    // The hand-drawn tremor is a displacement filter over the whole canvas,
+    // which the browser runs on the CPU — fine on a still picture, a stutter
+    // on a moving one. So the drawing settles when the map does, and the
+    // lines go straight again while it flies.
+    map.on('movestart', function() { mapWrap.classList.remove('settled'); });
+    map.on('idle', function() { mapWrap.classList.add('settled'); });
 
     // The ground. The tile source is taken from OpenFreeMap's own published
     // style, so its URL is theirs to keep right rather than ours to get
@@ -1112,8 +1187,26 @@
     }, 3500);
   }
 
+  // Several things at one address (Newspeak House hosts two nights and is a
+  // place itself) would sit one dot on top of another, and only the top one
+  // could ever be clicked. Dots that share a spot fan out around it instead,
+  // a small cluster you can read as "three things here".
+  var stacks = {};
+  PINNED.forEach(function(p) {
+    var key = p.lat.toFixed(5) + ',' + p.lng.toFixed(5);
+    (stacks[key] = stacks[key] || []).push(p._idx);
+  });
+  function fanOffset(place) {
+    var group = stacks[place.lat.toFixed(5) + ',' + place.lng.toFixed(5)];
+    if (!group || group.length < 2) return [0, 0];
+    var k = group.indexOf(place._idx);
+    var a = -Math.PI / 2 + (k * 2 * Math.PI) / group.length;
+    return [Math.round(9 * Math.cos(a)), Math.round(9 * Math.sin(a))];
+  }
+
   PINNED.forEach(function(place) {
     if (!map) return;
+    var fan = fanOffset(place);
     // Built as nodes, not concatenated HTML. The API strips angle brackets on
     // the way in, but this is the one place a name reaches the DOM as markup,
     // and it shouldn't depend on that staying true of every future write path.
@@ -1132,9 +1225,9 @@
     var el = makeInkDotEl(placeColour(place));
     var popup = new maplibregl.Popup({
       closeButton: false, closeOnClick: true, className: 'note-popup',
-      offset: 12, maxWidth: '220px', focusAfterOpen: false
+      offset: [fan[0], fan[1] - 12], maxWidth: '220px', focusAfterOpen: false
     }).setDOMContent(popupEl);
-    var marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+    var marker = new maplibregl.Marker({ element: el, anchor: 'center', offset: fan })
       .setLngLat([place.lng, place.lat])
       .setPopup(popup)
       .addTo(map);
