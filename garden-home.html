@@ -440,6 +440,50 @@
     // Ground — soft watercolor mound + cool water reflection (matches the reference)
     const trunkBaseY = H * 0.90;
 
+    // Ground everywhere else, too: a low watercolour band along the bottom,
+    // heaviest at the left where there was only paper, so petals resting at
+    // the ground line sit on something rather than in mid-air.
+    {
+      const band = c.createLinearGradient(0, trunkBaseY - 60, 0, H);
+      band.addColorStop(0,    'rgba(138, 144, 134, 0)');
+      band.addColorStop(0.3,  'rgba(138, 144, 134, 0.14)');
+      band.addColorStop(0.65, 'rgba(126, 130, 122, 0.20)');
+      band.addColorStop(1,    'rgba(118, 122, 116, 0.26)');
+      c.fillStyle = band;
+      c.fillRect(0, trunkBaseY - 60, W, H - trunkBaseY + 60);
+      // a few soft rises so the band isn't a ruler line
+      srand(47);
+      const rises = isMobile ? 3 : 4;
+      for (let i = 0; i < rises; i++) {
+        const rx = W * sRngR(0.16, 0.30), ry = rx * 0.18;
+        const cx = W * (isMobile ? sRngR(-0.1, 1.1) : sRngR(-0.05, 0.62));
+        const cy = trunkBaseY + sRngR(2, 14);
+        const g = c.createRadialGradient(cx, cy, 0, cx, cy, rx);
+        g.addColorStop(0,   'rgba(112, 116, 108, 0.20)');
+        g.addColorStop(0.6, 'rgba(126, 130, 122, 0.10)');
+        g.addColorStop(1,   'rgba(140, 144, 138, 0)');
+        c.fillStyle = g;
+        c.beginPath();
+        c.ellipse(cx, cy, rx, ry, 0, 0, PI2);
+        c.fill();
+      }
+      // faint grass along it
+      c.lineCap = 'round';
+      const n = Math.floor(W / 14);
+      for (let i = 0; i < n; i++) {
+        const bx = sRngR(0, W);
+        if (!isMobile && Math.abs(bx - TREE_X) < W * 0.2) continue;   // the mound has its own
+        const by = trunkBaseY + sRngR(-2, 10);
+        const bh = sRngR(3, 9), lean = sRngR(-3, 3);
+        c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.22)' : 'rgba(122, 118, 124, 0.18)';
+        c.lineWidth = sRngR(0.5, 1);
+        c.beginPath();
+        c.moveTo(bx, by);
+        c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
+        c.stroke();
+      }
+    }
+
     // Cool blue-grey water wash beneath the mound — the reflection pool
     const waterR = isMobile ? W * 0.44 : W * 0.30;
     const water = c.createRadialGradient(treeX, trunkBaseY + 26, 0, treeX, trunkBaseY + 26, waterR);
