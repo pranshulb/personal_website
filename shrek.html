@@ -254,7 +254,7 @@
     el.addEventListener('pointermove', e => {
       if (dragEl !== el) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!dragged && Math.hypot(dx, dy) > 5) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
+      if (!dragged && Math.hypot(dx, dy) > (e.pointerType === 'touch' ? 12 : 5)) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
       if (dragged) { el.style.left = (ox + dx) + 'px'; el.style.top = (oy + dy) + 'px'; }
     });
     const letGo = e => {
@@ -297,7 +297,11 @@
       place(el, img.getBoundingClientRect());
       setTimeout(() => el.remove(), 380);
     };
-    lunge.addEventListener('click', back);
+    // On a touch screen the tap that opened this is followed ~50ms later by
+    // a click, delivered to whatever is under the finger — which is now this.
+    // Ignore clicks in its first moments so that click can't close it.
+    const born = performance.now();
+    lunge.addEventListener('click', () => { if (performance.now() - born > 350) back(); });
     retreatTimer = setTimeout(back, 1500);
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
   }

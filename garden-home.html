@@ -481,6 +481,27 @@
       c.stroke();
     }
 
+    // A small pool right at the foot of the trunk — rain that gathered at the
+    // roots — so the water is where the tree is, not only out at the edges
+    {
+      const q = { r: moundR * 0.5, y: trunkBaseY + 16 };
+      const pool = c.createRadialGradient(treeX, q.y, 0, treeX, q.y, q.r);
+      pool.addColorStop(0,    'rgba(140, 156, 190, 0.42)');
+      pool.addColorStop(0.55, 'rgba(150, 164, 196, 0.30)');
+      pool.addColorStop(0.85, 'rgba(160, 172, 200, 0.12)');
+      pool.addColorStop(1,    'rgba(170, 180, 206, 0)');
+      c.fillStyle = pool;
+      c.beginPath();
+      c.ellipse(treeX, q.y, q.r, q.r * 0.22, 0, 0, PI2);
+      c.fill();
+      // a thin lighter rim along the far edge, like light catching the surface
+      c.strokeStyle = 'rgba(230, 236, 246, 0.35)';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.ellipse(treeX, q.y - 1, q.r * 0.86, q.r * 0.86 * 0.22, 0, Math.PI * 1.1, Math.PI * 1.9);
+      c.stroke();
+    }
+
     // Scattered fallen-petal specks pooling at the base — subtle pink
     srand(99);
     for (let i = 0; i < 22; i++) {
@@ -616,16 +637,22 @@
   ================================================================ */
   function puddle() {
     const rx = isMobile ? W * 0.44 : W * 0.30;
-    return { cx: TREE_X, cy: H * 0.90 + 26, rx, ry: rx * 0.22, land: (isMobile ? W * 0.36 : W * 0.24) * 0.8 };
+    const moundR = isMobile ? W * 0.36 : W * 0.24;
+    return { cx: TREE_X, cy: H * 0.90 + 26, rx, ry: rx * 0.22, land: moundR * 0.8,
+             footR: moundR * 0.5, footY: H * 0.90 + 16 };
   }
+  // Water is the wide pool (the reflection wash) and the small pool right at
+  // the foot of the trunk, painted in drawBg. Rings happen on either.
   function onWater(x, y) {
     const q = puddle();
     const nx = (x - q.cx) / q.rx, ny = (y - q.cy) / q.ry;
-    return nx * nx + ny * ny < 1 && Math.abs(x - q.cx) > q.land;
+    if (nx * nx + ny * ny < 1) return true;
+    const px2 = (x - q.cx) / q.footR, py2 = (y - q.footY) / (q.footR * 0.22);
+    return px2 * px2 + py2 * py2 < 1;
   }
   function ripple(x, y, maxR, life, a) {
     if (rings.length > 80) rings.shift();
-    rings.push({ x, y, r: 2, maxR, age: 0, life, a });
+    rings.push({ x, y, r: 2, maxR, age: 0, life, a, ph: Math.random() * PI2 });
   }
   function tapWater(x, y) {
     ripple(x, y, 64, 110, 0.5);
@@ -771,17 +798,22 @@
         // retire the oldest resting petal instead of silently dropping the new one
         // (previously: new petals vanished at the ground line once 90 were resting).
         if (groundPetals.length >= 220) groundPetals.shift();
-        if (onWater(p.x, puddle().cy)) ripple(p.x, gy + rng(2, 8), 18 + p.r * 1.6, 90, 0.55);
-        groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.6, 0.85),
-          rot: p.rot, color: p.color, alpha: p.alpha * 0.22, age: 0 });
+        if (onWater(p.x, gy + 3)) ripple(p.x, gy + rng(2, 8), 18 + p.r * 1.6, 90, 0.55);
+        // It used to drop to a fifth of its strength the instant it touched
+        // down, which read as vanishing. Now it keeps its colour and settles
+        // to a resting strength over a second and a half, then fades slowly.
+        groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.75, 0.95),
+          rot: p.rot, color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0 });
         airPetals.splice(i, 1); continue;
       }
       if (p.x < -100 || p.x > W + 100 || p.y < -150) airPetals.splice(i, 1);
     }
 
     for (let i = groundPetals.length - 1; i >= 0; i--) {
-      groundPetals[i].age += 0.0001;
-      if (groundPetals[i].age > 1) groundPetals.splice(i, 1);
+      const g = groundPetals[i];
+      if (g.settle !== undefined && g.settle < 1) g.settle += 1 / 90;
+      g.age += 0.00006;   // ~4.5 minutes on the ground
+      if (g.age > 1) groundPetals.splice(i, 1);
     }
     for (let i = perched.length - 1; i >= 0; i--) {
       perched[i].age += 0.0001;
@@ -851,22 +883,21 @@
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
     // Rings on the water: they run out fast, then slow, and fade as they go.
-    c.lineWidth = 1;
+    // Drawn with a hand's wobble rather than a compass, like the rest of the page.
     for (const g of rings) {
       const t = g.age / g.life;
       const r = 2 + (g.maxR - 2) * (1 - Math.pow(1 - t, 2));
       const a = g.a * Math.pow(1 - t, 1.6);
       if (a < 0.01) continue;
-      c.strokeStyle = `rgba(112, 128, 160, ${a})`;
-      c.beginPath(); c.ellipse(g.x, g.y, r, r * 0.26, 0, 0, PI2); c.stroke();
-      if (r > 8) {
-        c.strokeStyle = `rgba(112, 128, 160, ${a * 0.5})`;
-        c.beginPath(); c.ellipse(g.x, g.y, r * 0.62, r * 0.62 * 0.26, 0, 0, PI2); c.stroke();
-      }
+      c.lineWidth = 1.4 - t * 0.8;
+      wobblyRing(c, g.x, g.y, r, g.ph, `rgba(96, 112, 148, ${a})`);
+      if (r > 8) { c.lineWidth = 0.9; wobblyRing(c, g.x, g.y, r * 0.6, g.ph + 1.7, `rgba(96, 112, 148, ${a * 0.45})`); }
     }
     // Resting petals on the ground (moved here so the tree scene stays static)
     for (const p of groundPetals) {
-      const a = p.alpha * Math.max(0, 1 - p.age);
+      const k = p.settle === undefined ? 1 : Math.min(1, p.settle);
+      const base = p.rest === undefined ? p.alpha : p.alpha + (p.rest - p.alpha) * k;
+      const a = base * Math.max(0, 1 - p.age);
       if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
     }
     // Petals resting on the words. The overlay sits above the text, so these
@@ -883,6 +914,19 @@
   /* ================================================================
      HELPERS — soft blossom blob + heart petal
   ================================================================ */
+  function wobblyRing(c, x, y, r, ph, color) {
+    c.strokeStyle = color;
+    c.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const a = i / 40 * PI2;
+      const rr = r * (1 + 0.05 * Math.sin(3 * a + ph) + 0.035 * Math.sin(5 * a - ph * 1.3));
+      const X = x + Math.cos(a) * rr, Y = y + Math.sin(a) * rr * 0.26;
+      i ? c.lineTo(X, Y) : c.moveTo(X, Y);
+    }
+    c.closePath();
+    c.stroke();
+  }
+
   function drawBlossomBlob(c, x, y, r, color, alpha, ph) {
     // soft feathered watercolor wash — full colour in the core, fading to nothing at the edge
     const g = c.createRadialGradient(x, y, 0, x, y, r);
