@@ -221,12 +221,12 @@ test('map: empty list and failed load say different things', async () => {
 
 test('map: an empty store shows the seed, and the footer carries the other lists', async () => {
   T.reset();
-  const pinned = (id, area, lat, lng) => ({ id, name: id, area, tags: ['books'], note: '', url: '', when: '', lat, lng });
-  const roving = (id) => ({ id, name: id, area: '', tags: ['community'], note: '', url: '', when: '', lat: null, lng: null, needsCoords: true });
+  const pinned = (id, area, lat, lng, extra) => ({ id, name: id, kind: 'place', area, tags: ['books'], note: '', url: '', when: '', lat, lng, ...extra });
+  const roving = (id) => ({ id, name: id, kind: 'community', area: '', tags: ['community'], note: '', url: '', when: '', lat: null, lng: null, needsCoords: true });
   SEED.push(
     pinned('seed-a', 'Peckham', 51.47, -0.07), pinned('seed-b', 'Soho', 51.51, -0.13), pinned('seed-c', 'Hackney', 51.54, -0.05),
     // the same address as seed-a: a night held at the place
-    pinned('seed-g', 'Peckham', 51.47, -0.07),
+    pinned('seed-g', 'Peckham', 51.47, -0.07, { kind: 'community', venue: 'seed-a' }),
     roving('seed-d'), roving('seed-e'), roving('seed-f'),
   );
   const p = await page();
@@ -235,7 +235,18 @@ test('map: an empty store shows the seed, and the footer carries the other lists
   await p.waitForTimeout(600);
   assert.equal((await p.$$('.place')).length, 7);
   assert.equal((await p.$$('.ink-dot-marker')).length, 4);
-  assert.match(await p.textContent('#tally'), /7 places · 3 corners/);
+  assert.match(await p.textContent('#tally'), /3 places and 4 communities · 3 corners/);
+  // a community is a ring, a place a solid dot, on the map and on the card
+  assert.equal((await p.$$('.ink-dot-marker.kind-community')).length, 1);
+  assert.equal((await p.$$('.place-kind.kind-community')).length, 4);
+  assert.ok((await p.textContent('#places-container')).includes('at seed-a'));
+  assert.ok((await p.textContent('#places-container')).includes('no fixed address'));
+  // the switch: communities only, then back
+  await p.click('.kind-link[data-kind="community"]');
+  await p.waitForTimeout(700);
+  assert.equal(await p.$$eval('.place', (els) => els.filter((e) => !e.classList.contains('hidden')).length), 4);
+  await p.click('.kind-link[data-kind="all"]');
+  await p.waitForTimeout(500);
   // two things at one address are two dots, fanned apart, not one on top of the other
   const spots = await p.$$eval('.ink-dot-marker', (els) => els.map((e) => { const r = e.getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top); }));
   assert.equal(new Set(spots).size, 4, 'stacked dots: ' + spots.join(' | '));
@@ -246,7 +257,7 @@ test('map: an empty store shows the seed, and the footer carries the other lists
   // corners — even though it is the biggest group
   await p.click('#sort-area');
   await p.waitForTimeout(400);
-  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Peckham', 'Hackney', 'Soho', 'elsewhere']);
+  assert.deepEqual(await p.$$eval('.area-head', (els) => els.map((e) => e.dataset.area)), ['Peckham', 'Hackney', 'Soho', 'moving around']);
   await p.screenshot({ path: SHOTS + 'map-seeded.png', fullPage: true });
   assert.deepEqual(p._errors.filter((e) => !/favicon|analytics|umami/.test(e)), []);
   await p.context().close();

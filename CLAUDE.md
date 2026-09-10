@@ -123,10 +123,18 @@ what makes approval idempotent (see §4). Entries written before ids existed
 get a stable `legacy-…` id derived from their content on read, persisted on
 the next write.
 
-Place: `id, name, area, tags[], note, url, when, lat, lng` and `needsCoords:
-true` when the geocoder found nothing. Pending item: the same minus
-`when/lat/lng` (optional — bulk-add can supply them so approval skips the
-geocoder), plus `city, submitted_by, submitted_at, source`.
+Place: `id, kind, name, area, tags[], note, url, when, lat, lng`, plus
+`needsCoords: true` when the geocoder found nothing and `venue` when a
+community has a regular home. `kind` is `place` (somewhere with a door) or
+`community` (a group, a night, a thing that happens); anything unmarked
+reads as `place`, which is what every entry was before the field existed
+(`cleanKind`). The map draws places as solid dots and communities as rings,
+has a places / communities switch above the subject chips, and groups
+pinless communities under "moving around" rather than "elsewhere". Pending
+item: the same minus `when/lat/lng` (optional — bulk-add can supply them so
+approval skips the geocoder), plus `city, submitted_by, submitted_at,
+source`. The bulk-add line format takes "a community" and "at Somewhere"
+as parts after the tags.
 
 ### The note is Pranshul's, or it is empty
 
@@ -413,9 +421,9 @@ Two things that cost time writing these:
 ## 6. Current state
 
 - The map is **live and seeded** with Pranshul's first list (September 2026,
-  39 entries in `_seed.js`): 21 places with a door, 5 things that happen at a
-  regular home (pinned at the venue — two of them at Newspeak House), 12
-  things without a fixed address (pinless on purpose), 1 under `living`.
+  39 entries in `_seed.js`): 21 places and 18 communities, of which 5 have a
+  regular home (`venue`, pinned there — two at Newspeak House) and 13 move
+  around (pinless on purpose).
   Notes are all empty — his to write. Tags are a first sort he asked for.
   Every address and link was verified by web search in September 2026; pins
   were placed from the verified street address (two from published

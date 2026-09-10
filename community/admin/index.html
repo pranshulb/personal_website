@@ -413,6 +413,7 @@
       margin-top: 0.55rem;
     }
     .live-edit input,
+    .live-edit select,
     .live-edit textarea {
       width: 100%;
       font-family: 'Unkempt', cursive;
@@ -719,7 +720,7 @@
     <div class="bulk-section">
       <h2>bulk add</h2>
       <p class="aside">one per line: Name — Area — tags (comma sep) — note. a link or a "month year" can go anywhere after the tags. or paste a JSON array with name, area, tags, note, url, when, lat, lng.</p>
-      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough — goodbakery.com — june 2024&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays"></textarea>
+      <textarea id="bulk-text" placeholder="The Good Bakery — Peckham — food, workshop — incredible sourdough — goodbakery.com — june 2024&#10;Some Cinema — Hackney — film — arthouse double features on wednesdays&#10;Demo Night — Bethnal Green — tech — a community — at Newspeak House — feelingof.com"></textarea>
       <div class="bulk-actions">
         <a class="text-link" id="btn-parse">parse this</a>
         <a class="text-link muted" id="btn-queue" style="display:none;">queue these up</a>
@@ -945,9 +946,10 @@
       left.appendChild(name);
 
       var bits = [];
+      if (place.kind === 'community') bits.push(place.venue ? 'community · at ' + place.venue : 'community');
       if (place.area) bits.push(place.area);
       if (place.when) bits.push(place.when);
-      if (place.needsCoords || typeof place.lat !== 'number') bits.push('no pin');
+      if (place.needsCoords || typeof place.lat !== 'number') bits.push(place.kind === 'community' ? 'no fixed address' : 'no pin');
       if (bits.length) {
         var area = document.createElement('span');
         area.className = 'live-area';
@@ -1046,6 +1048,21 @@
     }
 
     box.appendChild(field('name', 'name', place.name));
+    var kindWrap = document.createElement('div');
+    var kindLab = document.createElement('label');
+    kindLab.textContent = 'kind';
+    kindWrap.appendChild(kindLab);
+    var kindSel = document.createElement('select');
+    kindSel.dataset.key = 'kind';
+    [['place', 'a place — somewhere with a door'], ['community', 'a community — a group, a night, a thing that happens']].forEach(function (o) {
+      var op = document.createElement('option');
+      op.value = o[0]; op.textContent = o[1];
+      kindSel.appendChild(op);
+    });
+    kindSel.value = place.kind === 'community' ? 'community' : 'place';
+    kindWrap.appendChild(kindSel);
+    box.appendChild(kindWrap);
+    box.appendChild(field('usually at — for a community with a regular home', 'venue', place.venue || '', { placeholder: 'Newspeak House' }));
     box.appendChild(field('area', 'area', place.area));
     box.appendChild(field('tags, comma separated — the first one sets the colour', 'tags', (place.tags || []).join(', ')));
     box.appendChild(field('note', 'note', place.note, { multiline: true }));
@@ -1092,7 +1109,7 @@
 
     function submit(geocode) {
       var v = values();
-      var patch = { name: v.name, area: v.area, tags: v.tags, note: v.note, url: v.url, when: v.when };
+      var patch = { name: v.name, kind: v.kind, venue: v.venue, area: v.area, tags: v.tags, note: v.note, url: v.url, when: v.when };
       if (!patch.name) { liveStatus.textContent = 'it needs a name.'; return; }
       if (geocode) {
         patch.geocode = true;
@@ -1340,7 +1357,8 @@
     name.textContent = item.name;
     card.appendChild(name);
 
-    var where = [];
+    var where = [item.kind === 'community' ? 'a community' : 'a place'];
+    if (item.venue) where.push('at ' + item.venue);
     if (item.area) where.push(item.area);
     if (item.city && item.city !== item.area) where.push(item.city);
     if (typeof item.lat === 'number' && typeof item.lng === 'number') where.push('pin known');
@@ -1634,7 +1652,9 @@
             tags: splitTags(item.tags),
             note: String(item.note || '').trim(),
             url: String(item.url || '').trim(),
-            when: String(item.when || '').trim()
+            when: String(item.when || '').trim(),
+            kind: String(item.kind || '').trim(),
+            venue: String(item.venue || '').trim()
           };
           if (item.lat !== undefined && item.lng !== undefined && item.lat !== '' && item.lng !== '') {
             out.lat = Number(item.lat); out.lng = Number(item.lng);
@@ -1644,8 +1664,9 @@
       }
     } catch (_) {
       // line format: Name — Area — tags — note. After the tags, a part that
-      // looks like a link or like "june 2024" is taken as such; the rest is
-      // the note (dashes inside it are put back).
+      // looks like a link or like "june 2024" is taken as such, "a community"
+      // (or "a place") sets the kind, "at Somewhere" names a community's
+      // regular home; the rest is the note (dashes inside it are put back).
       var lines = raw.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
       lines.forEach(function (line) {
         // support both em-dash and en-dash with spaces
@@ -1655,14 +1676,18 @@
         if (!name) return;
         var area = parts.length > 1 ? (parts[1] || '').trim() : '';
         var tags = parts.length > 2 ? splitTags(parts[2]) : [];
-        var url = '', when = '', noteParts = [];
+        var url = '', when = '', kind = '', venue = '', noteParts = [];
         parts.slice(3).forEach(function (p) {
           p = p.trim();
+          var k = /^(?:a |an )?(place|community)$/i.exec(p);
+          var at = /^at (.+)$/i.exec(p);
           if (!url && looksLikeUrl(p)) url = p;
           else if (!when && looksLikeWhen(p)) when = p.toLowerCase();
+          else if (!kind && k) kind = k[1].toLowerCase();
+          else if (!venue && at) venue = at[1].trim();
           else if (p) noteParts.push(p);
         });
-        parsedBulk.push({ name: name, area: area, tags: tags, note: noteParts.join(' — '), url: url, when: when });
+        parsedBulk.push({ name: name, area: area, tags: tags, note: noteParts.join(' — '), url: url, when: when, kind: kind, venue: venue });
       });
     }
 
@@ -1690,6 +1715,7 @@
         html += '</span>';
       }
       var extra = [];
+      if (item.kind === 'community') extra.push(item.venue ? 'community · at ' + item.venue : 'community');
       if (item.when) extra.push(item.when);
       if (item.url) extra.push(item.url);
       if (typeof item.lat === 'number') extra.push('pin ' + item.lat + ', ' + item.lng);
