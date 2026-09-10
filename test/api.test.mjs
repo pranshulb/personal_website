@@ -576,13 +576,45 @@ test('seed: a seed entry without a pin can be edited and looked up like any othe
   assert.equal(SEED[0].lat, null);
 });
 
+test('kind: a thing is a place unless it says community; the venue rides through approve and edit', async () => {
+  assert.equal(store.cleanKind('community'), 'community');
+  assert.equal(store.cleanKind('COMMUNITY'), 'place');
+  assert.equal(store.cleanKind(undefined), 'place');
+  const s1 = await suggestOne({ name: 'A night', city: 'London', kind: 'community' });
+  const s2 = await suggestOne({ name: 'A shop', city: 'London' });
+  const q = await getPending();
+  assert.equal(q.find((p) => p.id === s1.body.id).kind, 'community');
+  assert.equal(q.find((p) => p.id === s2.body.id).kind, 'place');
+
+  const b = await post(bulkAdd, [{ name: 'Demo night', area: 'Peckham', kind: 'community', venue: ' SET Social ', lat: 51.47, lng: -0.07 }]);
+  assert.equal(b.statusCode, 200, JSON.stringify(b.body));
+  const item = b.body.items[0];
+  assert.equal(item.kind, 'community');
+  assert.equal(item.venue, 'SET Social');
+  let res = await post(approve, {}, { id: item.id });
+  assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+  assert.equal(res.body.place.kind, 'community');
+  assert.equal(res.body.place.venue, 'SET Social');
+
+  res = await post(edit, { kind: 'place', venue: '' }, { id: item.id });
+  assert.equal(res.statusCode, 200);
+  const p = (await getPlaces()).find((x) => x.id === item.id);
+  assert.equal(p.kind, 'place');
+  assert.equal(p.venue, '');
+});
+
 test('seed: the real list is well-formed, and carries no notes', async () => {
   // Absolute specifier, so the hook leaves it alone and this is the real file.
   const real = (await import(REPO + 'api/community/_seed.js')).default;
   assert.ok(Array.isArray(real) && real.length > 0);
   const ids = new Set();
   for (const p of real) {
-    assert.deepEqual(Object.keys(p).sort(), [...new Set(['id', 'name', 'area', 'tags', 'note', 'url', 'when', 'lat', 'lng', ...(p.needsCoords !== undefined ? ['needsCoords'] : [])])].sort(), p.id);
+    assert.deepEqual(Object.keys(p).sort(), [...new Set(['id', 'kind', 'name', 'area', 'tags', 'note', 'url', 'when', 'lat', 'lng', ...(p.needsCoords !== undefined ? ['needsCoords'] : []), ...(p.venue !== undefined ? ['venue'] : [])])].sort(), p.id);
+    assert.ok(store.KINDS.includes(p.kind), p.id + ' has no kind');
+    if (p.venue !== undefined) {
+      assert.equal(store.clean(p.venue, 80), p.venue, p.id);
+      assert.equal(p.kind, 'community', p.id + ': only a community has a venue');
+    }
     assert.match(p.id, /^seed-[a-z0-9-]+$/, p.id);
     assert.ok(!ids.has(p.id), 'duplicate id ' + p.id);
     ids.add(p.id);
