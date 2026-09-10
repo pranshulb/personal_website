@@ -341,14 +341,16 @@
   // screen in a fifth of a second with a little overshoot, keeps creeping
   // closer, and the page shakes. Another click, Escape, or a moment later,
   // it goes back where it came from.
-  let lunge = null, retreatTimer = 0;
+  let lunge = null, retreatTimer = 0, closedAt = -1e9;
   // the transform that shrinks a full-screen box onto a photo's rectangle
   function onto(r) {
     const W = window.innerWidth, H = window.innerHeight;
     return `translate(${r.left + r.width / 2 - W / 2}px, ${r.top + r.height / 2 - H / 2}px) scale(${r.width / W}, ${r.height / H})`;
   }
   function comeAtMe(ogre) {
-    if (lunge) return;
+    // A tap that closes one is followed, on a phone, by a late click that
+    // lands on whatever is underneath. Nothing opens for a moment after a close.
+    if (lunge || performance.now() - closedAt < 700) return;
     const img = ogre.querySelector('img');
     const r = img.getBoundingClientRect();
     lunge = document.createElement('div');
@@ -368,16 +370,21 @@
       if (!lunge) return;
       clearTimeout(retreatTimer);
       const el = lunge; lunge = null;
+      closedAt = performance.now();
       dbg('lunge close');
       el.classList.remove('in'); el.classList.add('out');
       el.style.transform = onto(img.getBoundingClientRect());
-      setTimeout(() => el.remove(), 380);
+      // stays (invisible once retreated) long enough to catch the phone's late click
+      setTimeout(() => { el.style.opacity = '0'; }, 380);
+      setTimeout(() => el.remove(), 800);
     };
     // Phones deliver the opening tap's click late and to whatever is under
     // the finger — by then, this. So this never closes on a click: only on a
     // fresh touch after it has settled, Escape, or the timer.
     const born = performance.now();
-    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (performance.now() - born > 300) back(); });
+    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(); });
+    lunge.addEventListener('click', e => e.stopPropagation());   // the late click ends here, not on a photo
+    const thisLunge = lunge;
     retreatTimer = setTimeout(back, 1500);
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
   }
