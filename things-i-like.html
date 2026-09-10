@@ -346,19 +346,19 @@
       el, x, y, vx: 0, vy: 0, w, h, rot, lean: 0, lift: 0, hot: false,
       born: performance.now() + 250 + idx * 170,
       bob: 0, bobV: 0,
-      f1: 0.7 + Math.random() * 0.4, f2: 0.2 + Math.random() * 0.15,
+      f1: 0.3 + Math.random() * 0.2, f2: 0.12 + Math.random() * 0.1,
       p1: Math.random() * Math.PI * 2, p2: Math.random() * Math.PI * 2,
-      amp: (isMobile ? 8 : 12) + Math.random() * 6
+      amp: (isMobile ? 3 : 4.5) + Math.random() * 2
     };
     el._word = word;
     words.push(word);
     place(word, 0);
     el.addEventListener('mouseenter', () => {
       word.hot = true;
-      word.bobV -= 2.2;
+      word.bobV -= 0.7;
       const cx = word.x + word.w / 2, cy = word.y + word.h / 2;
-      ripple(cx, cy, word.w * 0.6 + 50, 100, 0.5);
-      setTimeout(() => ripple(cx, cy, word.w * 0.45 + 34, 85, 0.32), 140);
+      ripple(cx, cy, word.w * 0.6 + 50, 170, 0.22);
+      setTimeout(() => ripple(cx, cy, word.w * 0.45 + 34, 150, 0.14), 220);
     });
     el.addEventListener('mouseleave', () => { word.hot = false; });
   });
@@ -369,7 +369,7 @@
     const rise = (1 - easeOut(age)) * 14;
     const fx = Math.sin(t * q.f1 + q.p1) * q.amp + Math.sin(t * q.f2 + q.p2) * q.amp * 0.5;
     const fy = Math.cos(t * q.f1 * 0.8 + q.p2) * q.amp * 0.7 + Math.sin(t * q.f2 * 1.3 + q.p1) * q.amp * 0.3 + q.bob;
-    const wob = Math.sin(t * q.f1 * 0.9 + q.p1) * 1.1 + Math.sin(t * q.f2 + q.p2) * 0.5;
+    const wob = Math.sin(t * q.f1 * 0.9 + q.p1) * 0.4 + Math.sin(t * q.f2 + q.p2) * 0.2;
     const sc = 1 + q.lift * 0.035;
     q.el.style.transform = `translate3d(${(q.x + fx).toFixed(2)}px, ${(q.y + fy + rise).toFixed(2)}px, 0) rotate(${(q.rot + wob + q.lean).toFixed(2)}deg) scale(${sc.toFixed(3)})`;
   }
@@ -425,7 +425,7 @@
       for (const q of words) {
         if (g.hit.has(q) || (dragEl && dragEl._word === q)) continue;
         const d = Math.hypot(q.x + q.w / 2 - g.x, (q.y + q.h / 2 - g.y) / 0.55);
-        if (Math.abs(d - g.r) < 14) { g.hit.add(q); q.bobV -= 1.6 * g.a * (1 - k * 0.6); }
+        if (Math.abs(d - g.r) < 14) { g.hit.add(q); q.bobV -= 2.2 * g.a * (1 - k * 0.6); }
       }
     }
     const c = waterC;
@@ -436,9 +436,9 @@
       const k = g.age / g.life;
       const a = g.a * Math.pow(1 - k, 1.6);
       if (a < 0.01) continue;
-      c.lineWidth = 1.4 - k * 0.8;
+      c.lineWidth = 1.0 - k * 0.5;
       wobblyRing(c, g.x, g.y, g.r, g.ph, `rgba(96, 112, 148, ${a})`);
-      if (g.r > 10) { c.lineWidth = 0.9; wobblyRing(c, g.x, g.y, g.r * 0.6, g.ph + 1.7, `rgba(96, 112, 148, ${a * 0.45})`); }
+      if (g.r > 10) { c.lineWidth = 0.7; wobblyRing(c, g.x, g.y, g.r * 0.6, g.ph + 1.7, `rgba(96, 112, 148, ${a * 0.45})`); }
     }
   }
 
@@ -460,9 +460,9 @@
         // a wake: small rings every so often along the way
         const sp = Math.hypot(q.vx, q.vy);
         wakeDist += sp;
-        if (sp > 0.6 && wakeDist > 26) {
+        if (sp > 0.8 && wakeDist > 44) {
           wakeDist = 0;
-          ripple(q.x + q.w / 2 + (Math.random() - 0.5) * q.w * 0.5, q.y + q.h / 2, 12 + Math.min(sp, 14) * 1.6, 60, 0.32);
+          ripple(q.x + q.w / 2 + (Math.random() - 0.5) * q.w * 0.5, q.y + q.h / 2, 12 + Math.min(sp, 14) * 1.4, 100, 0.13);
         }
       } else {
         q.x += q.vx; q.y += q.vy;
@@ -479,12 +479,12 @@
           if (Math.hypot(q.vx, q.vy) > 0.4) inkAlong(q.x, q.y); else { glideInk = null; stamp = null; }
         }
       }
-      const leanTo = clamp(q.vx * 1.4, -7, 7);
+      const leanTo = clamp(q.vx * 1.0, -4, 4);
       q.lean += (leanTo - q.lean) * (dragging ? 0.18 : 0.10);
       const liftTo = (dragging || q.hot) ? 1 : 0;
       q.lift += (liftTo - q.lift) * 0.12;
       // the bob: a spring back to level, so a ring or a hover rocks the word
-      q.bobV += -q.bob * 0.06; q.bobV *= 0.9; q.bob += q.bobV;
+      q.bobV += -q.bob * 0.04; q.bobV *= 0.92; q.bob += q.bobV;
       place(q, t);
     }
     updateWater();
@@ -599,8 +599,8 @@
     lastStampX = q.x;
     lastStampY = q.y;
     wakeDist = 0;
-    q.bobV -= 1.5;
-    ripple(q.x + q.w / 2, q.y + q.h / 2, q.w * 0.5 + 30, 80, 0.4);
+    q.bobV -= 0.5;
+    ripple(q.x + q.w / 2, q.y + q.h / 2, q.w * 0.5 + 30, 130, 0.18);
   }
 
   function moveDrag(clientX, clientY) {
@@ -624,12 +624,21 @@
       // the splash: bigger the faster it was going
       const sp = Math.hypot(q.vx, q.vy);
       const cx = q.x + q.w / 2, cy = q.y + q.h / 2;
-      ripple(cx, cy, q.w * 0.7 + 60 + sp * 6, 120, 0.55);
-      setTimeout(() => ripple(cx, cy, q.w * 0.5 + 40 + sp * 4, 100, 0.35), 150);
-      q.bobV += 2.5;
+      ripple(cx, cy, q.w * 0.7 + 60 + sp * 5, 190, 0.26);
+      setTimeout(() => ripple(cx, cy, q.w * 0.5 + 40 + sp * 3, 160, 0.16), 220);
+      q.bobV += 0.9;
     }
     dragEl = null;
   }
+
+  // a finger or a click on the water itself: a ring where it touched
+  field.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.thing')) return;
+    const r = field.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    ripple(x, y, 64, 160, 0.2);
+    setTimeout(() => ripple(x, y, 44, 140, 0.12), 220);
+  });
 
   // prevent native <a> clicks — we handle navigation manually
   field.addEventListener('click', (e) => {

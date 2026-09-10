@@ -64,6 +64,7 @@
     .copy-hint-mobile { display: none; font-size: 0.85rem; color: #b09080; margin-top: 1.2rem; cursor: pointer; }
     .copy-hint-mobile:active { color: #c47a7a; }
 
+    .scroll-hint { display: none; }
     .epigraph {
       position: fixed; top: 1.5rem; right: 1.5rem;
       font-size: 0.85rem; color: rgba(160,120,80,0.5);
@@ -97,8 +98,8 @@
            near the text-dense top, fades toward the bottom where there's less
            to read and more canopy to see. */
         background: rgba(255,248,240, var(--card-a, 0.6));
-        backdrop-filter: blur(3px);
-        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(var(--card-blur, 3px));
+        -webkit-backdrop-filter: blur(var(--card-blur, 3px));
         border-radius: 0;
         transition: background 0.15s linear;
       }
@@ -108,6 +109,22 @@
          card + tree back at near-full strength keeps text readable without
          hiding the tree. */
       #scene { opacity: 0.88; }
+      /* The tree is on the second screen. The words fill the first; below
+         them is a viewport's worth of room, so scrolling carries the words
+         away and leaves the tree standing on its own. The card, the blur
+         and the tree's own strength follow the scroll (see applyScrollFade). */
+      .content-wrap::after { content: ''; display: block; height: 100vh; }
+      /* the bg canvas slides down with the tree; what shows above it must
+         match its top edge, which is white */
+      body { background: #FFFFFF; }
+      #bg, #scene { will-change: transform, opacity; }
+      .scroll-hint {
+        display: block; text-align: center; margin-top: 2.6rem;
+        font-size: 0.85rem; color: rgba(160,120,80,0.55);
+        opacity: var(--hint-a, 1); transition: opacity 0.2s linear;
+      }
+      .scroll-hint span { display: inline-block; animation: nudge 1.8s ease-in-out infinite; }
+      @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
       h1 { font-size: 1.6rem; margin-bottom: 2rem; }
       li { font-size: 1.05rem; margin: 0.8rem 0; }
       li a { padding: 0.15rem 0; }
@@ -163,6 +180,7 @@
       <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
       <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
     </div>
+    <p class="scroll-hint" aria-hidden="true">the tree is below <span>&#8595;</span></p>
   </div>
 </div>
 
@@ -202,6 +220,12 @@
   let wakeDist = 0;
   let shakeX = 0, shakeV = 0;
   let t = 0;
+  // On phones the tree starts a little lower and fainter and rises into
+  // place as the words scroll away. The bg and scene canvases are
+  // translated by this many pixels; everything on the ground (resting
+  // petals, rings, the water) lives in ground coordinates and is drawn
+  // this much lower too, so it stays with the tree.
+  let sceneShift = 0;
 
   let sortedBranches = [], blossoms = [], flowers = [];
   let airPetals = [], groundPetals = [];
@@ -335,7 +359,8 @@
     const bboxW = Math.max(1, maxX - minX), bboxH = Math.max(1, maxY - minY);
     const treeX = TREE_X;
     const baseY = H * 0.90;
-    const targetH = (isMobile ? 0.58 : 0.72) * H;
+    // on phones the tree has a screen of its own (see applyScrollFade), so it can stand taller
+    const targetH = (isMobile ? 0.68 : 0.72) * H;
     let scale = targetH / bboxH;
     // don't let the canopy overflow horizontally
     const maxW = (isMobile ? 0.92 : 0.60) * W;
@@ -753,9 +778,9 @@
       });
     }
     // stirring the water leaves a wake
-    if (speed > 2 && onWater(px, py)) {
+    if (speed > 2 && onWater(px, py - sceneShift)) {
       wakeDist += speed;
-      if (wakeDist > 14) { wakeDist = 0; ripple(px, py, 10 + Math.min(speed, 20) * 1.2, 55, 0.35); }
+      if (wakeDist > 14) { wakeDist = 0; ripple(px, py - sceneShift, 10 + Math.min(speed, 20) * 1.2, 55, 0.35); }
     }
   }
 
@@ -843,19 +868,19 @@
       // Near the trunk the mound rises, so petals there rest a little higher.
       const moundR = isMobile ? W * 0.36 : W * 0.24;
       const lift = Math.max(0, 1 - Math.pow((p.x - TREE_X) / moundR, 2)) * 22;
-      const gy = (p.landY || H * 0.90) - lift;
+      const gy = (p.landY || H * 0.90) - lift + sceneShift;   // screen y of the ground here
       if (p.y > gy) {
         // Every petal that lands should actually be seen — if we're at the cap,
         // retire the oldest resting petal instead of silently dropping the new one
         // (previously: new petals vanished at the ground line once 90 were resting).
         if (groundPetals.length >= 220) groundPetals.shift();
-        if (onWater(p.x, gy + 3)) ripple(p.x, gy + rng(2, 8), 18 + p.r * 1.6, 90, 0.55);
+        if (onWater(p.x, gy + 3 - sceneShift)) ripple(p.x, gy - sceneShift + rng(2, 8), 18 + p.r * 1.6, 90, 0.55);
         // It used to drop to a fifth of its strength the instant it touched
         // down, which read as vanishing. Now it keeps its colour and settles
         // to a resting strength over a second and a half, then fades slowly.
         // It doesn't stop dead: it skids a little the way it was going, and
         // turns to lie flatter, over the next second or so.
-        groundPetals.push({ x: p.x, y: gy + rng(-1, 2), r: p.r * rng(0.75, 0.95),
+        groundPetals.push({ x: p.x, y: gy - sceneShift + rng(-1, 2), r: p.r * rng(0.75, 0.95),
           rot: p.rot, rotT: rng(-1.3, 1.3), sx: p.vx * 1.6 + windX * 0.25 + rng(-0.15, 0.15), slide: 45,
           color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0 });
         airPetals.splice(i, 1); continue;
@@ -945,15 +970,15 @@
       const a = g.a * Math.pow(1 - t, 1.6);
       if (a < 0.01) continue;
       c.lineWidth = 1.4 - t * 0.8;
-      wobblyRing(c, g.x, g.y, r, g.ph, `rgba(96, 112, 148, ${a})`);
-      if (r > 8) { c.lineWidth = 0.9; wobblyRing(c, g.x, g.y, r * 0.6, g.ph + 1.7, `rgba(96, 112, 148, ${a * 0.45})`); }
+      wobblyRing(c, g.x, g.y + sceneShift, r, g.ph, `rgba(96, 112, 148, ${a})`);
+      if (r > 8) { c.lineWidth = 0.9; wobblyRing(c, g.x, g.y + sceneShift, r * 0.6, g.ph + 1.7, `rgba(96, 112, 148, ${a * 0.45})`); }
     }
     // Resting petals on the ground (moved here so the tree scene stays static)
     for (const p of groundPetals) {
       const k = p.settle === undefined ? 1 : Math.min(1, p.settle);
       const base = p.rest === undefined ? p.alpha : p.alpha + (p.rest - p.alpha) * k;
       const a = base * Math.max(0, 1 - p.age);
-      if (a > 0.015) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, a);
+      if (a > 0.015) drawPetalShape(c, p.x, p.y + sceneShift, p.r, p.rot, p.color, a);
     }
     // Petals resting on the words. The overlay sits above the text, so these
     // draw on top of the letters they landed on.
@@ -1075,13 +1100,28 @@
   function applyScrollFade() {
     scrollTicking = false;
     layoutLedges();
-    if (!isMobile) { containerEl.style.removeProperty('--card-a'); return; }
+    if (!isMobile) {
+      containerEl.style.removeProperty('--card-a');
+      containerEl.style.removeProperty('--card-blur');
+      containerEl.style.removeProperty('--hint-a');
+      bgEl.style.transform = ''; scEl.style.transform = ''; scEl.style.opacity = '';
+      sceneShift = 0;
+      return;
+    }
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
     const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
-    // 0.62 near the top (crisp text over the title/list) -> 0.22 near the
-    // bottom (mostly canopy + footer, let the tree read through).
-    const a = 0.62 - progress * 0.40;
-    containerEl.style.setProperty('--card-a', a.toFixed(3));
+    // The words' card and its blur are gone by 60% of the way; the tree,
+    // which starts a tenth of the screen low and at half strength, has
+    // risen into place and come up to full strength by 75%.
+    const card = Math.max(0, 1 - progress / 0.6);
+    containerEl.style.setProperty('--card-a', (0.62 * card).toFixed(3));
+    containerEl.style.setProperty('--card-blur', (3 * card).toFixed(2) + 'px');
+    containerEl.style.setProperty('--hint-a', Math.max(0, 1 - progress * 5).toFixed(2));
+    const k = 1 - Math.pow(1 - Math.min(1, progress / 0.75), 3);
+    sceneShift = (1 - k) * H * 0.10;
+    const tf = `translateY(${sceneShift.toFixed(1)}px)`;
+    bgEl.style.transform = tf; scEl.style.transform = tf;
+    scEl.style.opacity = (0.5 + 0.5 * k).toFixed(3);
   }
   contentWrapEl.addEventListener('scroll', () => {
     if (scrollTicking) return;
@@ -1117,7 +1157,7 @@
   document.addEventListener('click', e => {
     if (held.length) { releaseHeld(false); return; }             // a click lets go; it doesn't also shake
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
-    if (onWater(e.clientX, e.clientY)) { tapWater(e.clientX, e.clientY); return; }
+    if (onWater(e.clientX, e.clientY - sceneShift)) { tapWater(e.clientX, e.clientY - sceneShift); return; }
     shakeAndBurst();
   });
   document.addEventListener('touchmove', e => {
@@ -1128,7 +1168,7 @@
     const tc = e.touches[0];
     px = ppx = tc.clientX; py = ppy = tc.clientY;   // a finger arrives with no speed
     if (e.target.closest('.container, .epigraph, .copy-toast')) return;
-    if (onWater(tc.clientX, tc.clientY)) { tapWater(tc.clientX, tc.clientY); return; }
+    if (onWater(tc.clientX, tc.clientY - sceneShift)) { tapWater(tc.clientX, tc.clientY - sceneShift); return; }
     shakeAndBurst();
   }, { passive: true });
   document.addEventListener('touchend', () => {
