@@ -2,14 +2,14 @@
 // the map. Before this the only way to fix a typo was remove-and-re-add,
 // which also lost the entry's place in the order and its "when".
 //
-// Body: any of name, area, tags, note, url, when, lat, lng. Fields not sent
+// Body: any of name, kind, venue, area, tags, note, url, when, lat, lng. Fields not sent
 // are left alone. Send lat and lng together to move the pin, `null` for both
 // to clear it, or `"geocode": true` to look the pin up again from the
 // (possibly just corrected) name and area.
 
 import {
   readPlaces, replacePlace, requireAdmin, adminCors, checkRate, clientIp, fail,
-  clean, cleanTags, cleanUrl, cleanWhen, cleanCoord, geocode,
+  clean, cleanTags, cleanUrl, cleanWhen, cleanCoord, cleanKind, geocode,
 } from '../_store.js';
 
 export default async function handler(req, res) {
@@ -39,6 +39,8 @@ export default async function handler(req, res) {
       if (!name) return res.status(400).json({ error: 'name cannot be empty' });
       next.name = name;
     }
+    if (has('kind')) next.kind = cleanKind(body.kind);
+    if (has('venue')) next.venue = clean(body.venue, 80);
     if (has('area')) next.area = clean(body.area, 80);
     if (has('tags')) next.tags = cleanTags(body.tags);
     if (has('note')) next.note = clean(body.note, 500);

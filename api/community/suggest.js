@@ -1,7 +1,7 @@
 // POST /api/community/suggest — public. Lands in the pending queue, never live.
 
 import {
-  appendPending, checkRate, clientIp, clean, cleanTags, cleanUrl, newId, fail,
+  appendPending, checkRate, clientIp, clean, cleanTags, cleanUrl, cleanKind, newId, fail,
 } from './_store.js';
 
 export default async function handler(req, res) {
@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     const item = {
       id: newId(),
       name,
+      kind: cleanKind(data.kind),
       // The map groups by area; the city is kept so a non-London suggestion
       // is still legible in the queue rather than quietly mislabelled.
       area: clean(data.area || data.city, 80),

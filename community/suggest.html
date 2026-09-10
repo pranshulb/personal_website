@@ -368,6 +368,14 @@
       </div>
 
       <div class="line">
+        <span class="prompt-text">and it's</span>
+        <div class="tag-words">
+          <label class="tag-word kind-word picked" style="--c:#55412f"><input type="radio" name="kind" value="place" checked>a place</label>
+          <label class="tag-word kind-word" style="--c:#7f9350"><input type="radio" name="kind" value="community">a community — a group, a night, a thing that happens</label>
+        </div>
+      </div>
+
+      <div class="line">
         <span class="prompt-text">i'd call it</span>
         <span class="aside">pick as many as feel right</span>
         <div class="tag-words" id="tag-words">
@@ -436,8 +444,19 @@
   const submitLink = document.getElementById('submit-link');
   const anotherLink = document.getElementById('another-link');
 
+  // place or community: one of the two, never both
+  document.querySelectorAll('.kind-word').forEach(function (label) {
+    label.addEventListener('click', function (e) {
+      e.preventDefault();
+      label.querySelector('input').checked = true;
+      document.querySelectorAll('.kind-word').forEach(function (l) {
+        l.classList.toggle('picked', l.querySelector('input').checked);
+      });
+    });
+  });
+
   // tag toggling
-  document.querySelectorAll('.tag-word').forEach(function (label) {
+  document.querySelectorAll('.tag-word:not(.kind-word)').forEach(function (label) {
     label.addEventListener('click', function (e) {
       e.preventDefault();
       var cb = label.querySelector('input[type="checkbox"]');
@@ -479,6 +498,7 @@
       name: form.name.value.trim(),
       city: form.city.value.trim(),
       area: form.area.value.trim(),
+      kind: (form.querySelector('input[name="kind"]:checked') || { value: 'place' }).value,
       tags: [].slice.call(form.querySelectorAll('input[name="tags"]:checked')).map(function (c) { return c.value; }),
       url: form.url.value.trim(),
       note: form.note.value.trim(),

@@ -2,7 +2,7 @@
 
 import {
   appendPending, requireAdmin, adminCors, checkRate, clientIp, fail,
-  clean, cleanTags, cleanUrl, cleanWhen, cleanCoord, newId,
+  clean, cleanTags, cleanUrl, cleanWhen, cleanCoord, cleanKind, newId,
 } from './_store.js';
 
 const MAX_BATCH = 200;
@@ -37,6 +37,7 @@ export default async function handler(req, res) {
       const item = {
         id: newId(),
         name,
+        kind: cleanKind(entry.kind),
         area: clean(entry.area, 80),
         tags: cleanTags(entry.tags),
         note: clean(entry.note, 500),
@@ -49,6 +50,8 @@ export default async function handler(req, res) {
       // and known coordinates skip the geocode on approval.
       const when = cleanWhen(entry.when);
       if (when) item.when = when;
+      const venue = clean(entry.venue, 80);
+      if (venue) item.venue = venue;
       const lat = cleanCoord(entry.lat, 90);
       const lng = cleanCoord(entry.lng, 180);
       if (lat !== null && lng !== null) { item.lat = lat; item.lng = lng; }

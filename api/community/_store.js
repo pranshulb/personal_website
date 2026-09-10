@@ -559,6 +559,13 @@ export function cleanTags(tags) {
 // "june 2024", free text. Lowercased to match the rest of the site's voice.
 export const cleanWhen = (s) => clean(s, 40).toLowerCase();
 
+// A thing on the map is a place (somewhere with a door) or a community (a
+// group, a night, a thing that happens — with or without a regular home,
+// which is `venue`). Anything else, including nothing, is a place: that is
+// what every entry was before the field existed.
+export const KINDS = ['place', 'community'];
+export const cleanKind = (v) => (v === 'community' ? 'community' : 'place');
+
 // A coordinate is a finite number inside the range, or nothing. Strings from a
 // form ("51.5") are accepted; anything else is null rather than NaN or 0.
 export function cleanCoord(v, limit) {

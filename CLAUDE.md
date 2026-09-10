@@ -123,10 +123,18 @@ what makes approval idempotent (see §4). Entries written before ids existed
 get a stable `legacy-…` id derived from their content on read, persisted on
 the next write.
 
-Place: `id, name, area, tags[], note, url, when, lat, lng` and `needsCoords:
-true` when the geocoder found nothing. Pending item: the same minus
-`when/lat/lng` (optional — bulk-add can supply them so approval skips the
-geocoder), plus `city, submitted_by, submitted_at, source`.
+Place: `id, kind, name, area, tags[], note, url, when, lat, lng`, plus
+`needsCoords: true` when the geocoder found nothing and `venue` when a
+community has a regular home. `kind` is `place` (somewhere with a door) or
+`community` (a group, a night, a thing that happens); anything unmarked
+reads as `place`, which is what every entry was before the field existed
+(`cleanKind`). The map draws places as solid dots and communities as rings,
+has a places / communities switch above the subject chips, and groups
+pinless communities under "moving around" rather than "elsewhere". Pending
+item: the same minus `when/lat/lng` (optional — bulk-add can supply them so
+approval skips the geocoder), plus `city, submitted_by, submitted_at,
+source`. The bulk-add line format takes "a community" and "at Somewhere"
+as parts after the tags.
 
 ### The note is Pranshul's, or it is empty
 
@@ -206,12 +214,24 @@ Built up over several passes; don't loosen it casually.
 ### The map itself
 
 MapLibre GL (5.x, the UMD build from unpkg) over **OpenFreeMap** vector
-tiles, drawn in the page's own palette by `paperStyle()` in
-`community/index.html`: paper ground, ink-line roads, muted water and parks,
-and low 3D building extrusions under a 52° camera on desktop (flat on
-phones). No labels come from the tiles — the "corners of london" are drawn
-from the entries' own areas as HTML markers, in EB Garamond, once you're
-zoomed in enough. No key, no quota to watch.
+tiles, drawn by `paperStyle()` in `community/index.html` the way a comic
+panel is: ink outlines on everything (every road drawn twice, ink under
+colour; the ink lightens towards the overview and the smallest streets wait
+for zoom 12.5), halftone dot screens for water and parks, and buildings as
+low hatched-paper slabs — heights at 40%, capped — with an ink edge, under a
+52° camera on desktop (flat on phones). The edge is an ink copy of each slab
+offset a pixel or two beneath the paper one, because MapLibre can only draw
+lines on the ground. The screens and hatching are canvas-drawn images
+supplied on `styleimagemissing`. Over the whole canvas sits an SVG
+displacement filter (`#ink-wobble`) that puts a hand's tremor into every
+line; it is CPU-side, so it applies only while the map is still
+(`.map-wrap.settled`, toggled on `idle`/`movestart`). Slabs fade in over
+half a zoom level rather than growing. No labels come from the tiles — the
+"corners of london" are drawn from the entries' own areas as HTML markers,
+in EB Garamond, once you're zoomed in enough. Dots that share an address
+fan out around it. No key, no quota to watch. The earlier plain-paper
+version with full-height extrusions read as beige boxes; the comic
+treatment was chosen from side-by-side renders.
 
 The page fetches OpenFreeMap's published `positron` style only to take its
 `sources` (so the tile URL is theirs to keep right), then swaps in our own
@@ -401,9 +421,9 @@ Two things that cost time writing these:
 ## 6. Current state
 
 - The map is **live and seeded** with Pranshul's first list (September 2026,
-  39 entries in `_seed.js`): 21 places with a door, 5 things that happen at a
-  regular home (pinned at the venue — two of them at Newspeak House), 12
-  things without a fixed address (pinless on purpose), 1 under `living`.
+  39 entries in `_seed.js`): 21 places and 18 communities, of which 5 have a
+  regular home (`venue`, pinned there — two at Newspeak House) and 13 move
+  around (pinless on purpose).
   Notes are all empty — his to write. Tags are a first sort he asked for.
   Every address and link was verified by web search in September 2026; pins
   were placed from the verified street address (two from published

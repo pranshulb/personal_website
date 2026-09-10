@@ -2,7 +2,7 @@
 
 import {
   readPending, removePending, appendPlace,
-  requireAdmin, adminCors, checkRate, clientIp, geocode, cleanCoord, cleanWhen, fail,
+  requireAdmin, adminCors, checkRate, clientIp, geocode, cleanCoord, cleanWhen, cleanKind, clean, fail,
 } from '../_store.js';
 
 export default async function handler(req, res) {
@@ -37,6 +37,8 @@ export default async function handler(req, res) {
       // a second approve of the same item finds it already on the map.
       id: item.id,
       name: item.name,
+      kind: cleanKind(item.kind),
+      venue: clean(item.venue, 80),
       area: item.area || '',
       tags: item.tags || [],
       note: item.note || '',
