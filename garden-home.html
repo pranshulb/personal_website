@@ -756,10 +756,10 @@
     if (fromTree && blossoms.length) {
       const b = blossoms[Math.floor(Math.random() * blossoms.length)];
       px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
-      vx = rng(-0.5, 0.5); vy = rng(-0.06, 0.14);
+      vx = rng(-0.5, 0.5); vy = rng(-0.06, 0.12);
     } else {
       px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
-      vx = rng(-0.1, 0.1); vy = rng(0.03, 0.07);
+      vx = rng(-0.1, 0.1); vy = rng(0.03, 0.06);
     }
     airPetals.push(newAirPetal(px, py, vx, vy));
   }
@@ -770,7 +770,7 @@
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
-      p.vy += 0.00065;   // was 0.0009 — he found the fall a little quick
+      p.vy += 0.00055;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
       p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;
