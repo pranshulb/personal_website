@@ -1369,7 +1369,10 @@ addNode(trunkTop.clone().add(V3(0.05, -0.3, -0.05)), -1, 0, V3(0.2, 0.7, 0.7).no
 addNode(trunkMid.clone(), -1, 0, V3(0.9, 0.5, 0.4).normalize());
 {
   const Ri = 1.9, Dk = 0.42, D = 0.25, CELL = Ri;
-  const key = p => `${Math.floor(p.x / CELL)},${Math.floor(p.y / CELL)},${Math.floor(p.z / CELL)}`;
+  // integer cell keys: (x, y, z) cells packed into one number, offset so they stay positive
+  const K = 64, OFF = 32;
+  const cellKey = (cx, cy, cz) => ((cx + OFF) * K + (cy + OFF)) * K + (cz + OFF);
+  const key = p => cellKey(Math.floor(p.x / CELL), Math.floor(p.y / CELL), Math.floor(p.z / CELL));
   let alive = attractors.slice();
   for (let iter = 0; iter < 120 && alive.length; iter++) {
     // nodes into a grid, so each attractor only looks at the nodes near it
@@ -1380,7 +1383,7 @@ addNode(trunkMid.clone(), -1, 0, V3(0.9, 0.5, 0.4).normalize());
       let best = -1, bd = Ri * Ri;
       const cx = Math.floor(a.x / CELL), cy = Math.floor(a.y / CELL), cz = Math.floor(a.z / CELL);
       for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
-        const cell = grid.get(`${cx + dx},${cy + dy},${cz + dz}`); if (!cell) continue;
+        const cell = grid.get(cellKey(cx + dx, cy + dy, cz + dz)); if (!cell) continue;
         for (const i of cell) { const d = nodes[i].p.distanceToSquared(a); if (d < bd) { bd = d; best = i; } }
       }
       if (best < 0) continue;
@@ -1408,7 +1411,7 @@ addNode(trunkMid.clone(), -1, 0, V3(0.9, 0.5, 0.4).normalize());
     alive = alive.filter(a => {
       const cx = Math.floor(a.x / CELL), cy = Math.floor(a.y / CELL), cz = Math.floor(a.z / CELL);
       for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
-        const cell = bg.get(`${cx + dx},${cy + dy},${cz + dz}`); if (!cell) continue;
+        const cell = bg.get(cellKey(cx + dx, cy + dy, cz + dz)); if (!cell) continue;
         for (const i of cell) if (nodes[i].p.distanceToSquared(a) < Dk * Dk) return false;
       }
       return true;
@@ -1744,13 +1747,14 @@ const canopyMid = (canopyTop + canopyBot) / 2;
 
 // how crowded each site is: flowers deep in a thick part of the canopy sit in shade
 const density = (() => {
-  const cell = 0.5, map = new Map();
-  const key = p => `${Math.floor(p.x / cell)},${Math.floor(p.y / cell)},${Math.floor(p.z / cell)}`;
+  const cell = 0.5, map = new Map(), K = 128, OFF = 64;
+  const ck = (cx, cy, cz) => ((cx + OFF) * K + (cy + OFF)) * K + (cz + OFF);
+  const key = p => ck(Math.floor(p.x / cell), Math.floor(p.y / cell), Math.floor(p.z / cell));
   for (const s of sites) { const k = key(s.p); map.set(k, (map.get(k) || 0) + 1); }
   const out = sites.map(s => {
     const cx = Math.floor(s.p.x / cell), cy = Math.floor(s.p.y / cell), cz = Math.floor(s.p.z / cell);
     let n = 0;
-    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) n += map.get(`${cx + dx},${cy + dy},${cz + dz}`) || 0;
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) n += map.get(ck(cx + dx, cy + dy, cz + dz)) || 0;
     return n;
   });
   const sorted = [...out].sort((a, b) => a - b), lo = sorted[Math.floor(sorted.length * 0.1)], hi = sorted[Math.floor(sorted.length * 0.9)];
