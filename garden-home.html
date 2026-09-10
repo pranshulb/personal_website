@@ -195,7 +195,8 @@
   // The pointer, for catching petals and stirring the water. Off-screen
   // until the first move; its speed is measured once per frame.
   let px = -1e4, py = -1e4, ppx = -1e4, ppy = -1e4, pvx = 0, pvy = 0;
-  let held = [];        // petals riding on the pointer: { p, ox, oy, tx, ty }
+  let held = [];        // petals in the halo round the pointer: { p, ox, oy, wob }
+  let haloPhase = 0;    // where the halo has revolved to
   let rings = [];       // rings on the water: { x, y, r, maxR, age, life, a }
   let wakeDist = 0;
   let shakeX = 0, shakeV = 0;
@@ -639,36 +640,45 @@
   /* ================================================================
      POINTER — catching petals
 
-     Come at a petal slowly and it settles on the pointer; up to three
-     will. They ride a little behind it and turn to point the way it is
-     moving. A flick lets them go at a share of the hand's speed, with
-     extra drag for a while so they tumble down nearby rather than
-     crossing the screen; a click, or the pointer leaving the page, just
-     lets them drop. A finger works the same way on a phone.
+     Come at a petal slowly and it is caught. Caught petals don't hide
+     behind the pointer: they form a ring round it, evenly spaced, and
+     the ring revolves — faster the more petals are in it, and a little
+     wider too. A flick lets them all go at a share of the hand's speed
+     plus the spin they already had, so they spray out in a spiral, with
+     extra drag for a while so they come down nearby; a click, or the
+     pointer leaving the page, lets them spin out gently. A finger works
+     the same way on a phone.
   ================================================================ */
+  const HALO_MAX = 60;
+  function haloSpin(n) { return Math.min(0.24, 0.02 + 0.009 * n); }   // radians per frame
+  function haloRadius(n) { return Math.min(64, 15 + 2.4 * n); }
   function updatePointer() {
     pvx = px - ppx; pvy = py - ppy; ppx = px; ppy = py;
     if (px < -5000) { pvx = 0; pvy = 0; return; }
     const speed = Math.hypot(pvx, pvy);
     if (held.length && speed > 22) releaseHeld(true);
-    if (held.length < 3 && speed < 6) {
-      for (let i = airPetals.length - 1; i >= 0 && held.length < 3; i--) {
+    if (held.length < HALO_MAX && speed < 6) {
+      for (let i = airPetals.length - 1; i >= 0 && held.length < HALO_MAX; i--) {
         const p = airPetals[i];
         if (Math.hypot(p.x - px, p.y - py) < 14 + p.r) {
           airPetals.splice(i, 1);
-          held.push({ p, ox: p.x - px, oy: p.y - py, tx: 6 + held.length * 7, ty: 9 + held.length * 5 });
+          held.push({ p, ox: p.x - px, oy: p.y - py, wob: Math.random() * PI2 });
         }
       }
     }
-    for (const h of held) {
-      h.ox += (h.tx - h.ox) * 0.12; h.oy += (h.ty - h.oy) * 0.12;
-      h.p.x = px + h.ox; h.p.y = py + h.oy;
-      if (speed > 1.5) {
-        let d = Math.atan2(pvy, pvx) + Math.PI / 2 - h.p.rot;
-        d = Math.atan2(Math.sin(d), Math.cos(d));
-        h.p.rot += d * 0.15;
-      }
-      h.p.tumble += 0.01;
+    const n = held.length;
+    if (n) {
+      haloPhase += haloSpin(n);
+      const R = haloRadius(n);
+      held.forEach((h, i) => {
+        const a = haloPhase + i * PI2 / n;
+        const wob = Math.sin(t * 2 + h.wob) * 3;               // each petal breathes in and out a little
+        const tx = Math.cos(a) * (R + wob), ty = Math.sin(a) * (R + wob) * 0.85;   // a slightly flattened ring
+        h.ox += (tx - h.ox) * 0.14; h.oy += (ty - h.oy) * 0.14;   // a new petal slides into its place
+        h.p.x = px + h.ox; h.p.y = py + h.oy;
+        h.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + h.wob) * 0.25;   // side-on to the ring, like a wheel
+        h.p.tumble += 0.02;
+      });
     }
     // stirring the water leaves a wake
     if (speed > 2 && onWater(px, py)) {
@@ -679,14 +689,19 @@
 
   function releaseHeld(flick) {
     const speed = Math.hypot(pvx, pvy);
-    for (const h of held) {
+    const n = held.length, w = haloSpin(n), R = haloRadius(n);
+    held.forEach((h, i) => {
       const p = h.p;
+      const a = haloPhase + i * PI2 / n;
+      // the spin it already had, along the ring's tangent
+      const sx = -Math.sin(a) * w * R, sy = Math.cos(a) * w * R * 0.85;
       const k = flick ? Math.min(0.32, 7 / Math.max(speed, 1)) : 0;
-      p.vx = pvx * k + rng(-0.3, 0.3); p.vy = pvy * k + rng(-0.15, 0.1);
-      p.drag = flick ? 90 : 0; p.noLand = 20;
+      p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
+      p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
+      p.drag = flick ? 90 : 40; p.noLand = 20;
       p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.004, 0.01);
       airPetals.push(p);
-    }
+    });
     held = [];
   }
 
@@ -714,10 +729,10 @@
     if (fromTree && blossoms.length) {
       const b = blossoms[Math.floor(Math.random() * blossoms.length)];
       px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
-      vx = rng(-0.5, 0.5); vy = rng(-0.08, 0.18);
+      vx = rng(-0.5, 0.5); vy = rng(-0.06, 0.14);
     } else {
       px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
-      vx = rng(-0.1, 0.1); vy = rng(0.04, 0.09);
+      vx = rng(-0.1, 0.1); vy = rng(0.03, 0.07);
     }
     airPetals.push(newAirPetal(px, py, vx, vy));
   }
@@ -728,7 +743,7 @@
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
-      p.vy += 0.0009;
+      p.vy += 0.00065;   // was 0.0009 — he found the fall a little quick
       p.swp += p.swSpd;
       p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;

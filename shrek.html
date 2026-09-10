@@ -38,7 +38,7 @@
       top: 1.5rem;
       font-size: 0.9rem;
       color: #2b3a16;
-      z-index: 10;
+      z-index: 20;
       text-decoration: none;
       background: #78b43a;          /* stays readable when a photo lands under it */
       padding: 0.15rem 0.5rem;
@@ -50,7 +50,7 @@
     .note em { font-style: italic; }
 
     /* the swamp: shrek, everywhere, never still */
-    .swamp { position: fixed; inset: 0; }
+    .swamp { position: fixed; inset: 0; z-index: 1; }
 
     .ogre {
       position: absolute;
@@ -156,7 +156,7 @@
     const cx = ((i % cols) + 0.5) * (100 / cols), cy = (Math.floor(i / cols) + 0.5) * (100 / rows);
     el.style.setProperty('--w', w + 'vw');
     el.style.setProperty('--x', (cx - w / 2 + rng(-14, 14)) + 'vw');
-    el.style.setProperty('--y', (cy - w * 0.35 + rng(-14, 14)) + 'vh');
+    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.35) + rng(-14, 14)) + 'vh');
     el.style.setProperty('--r', rng(-18, 18).toFixed(1) + 'deg');
     el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
     el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
