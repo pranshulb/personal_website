@@ -466,3 +466,9 @@ Two things that cost time writing these:
   out. Worth continuing; the history has been genuinely useful for debugging.
 - Do not create pull requests unless asked. Pranshul works directly on `main`
   or on a `claude/*` branch merged in.
+- **`garden-home.html` goes straight to `main`, every time** (his standing
+  instruction, September 2026): it is the sandbox for tree and canvas
+  changes and he wants to see each one live at `/garden-home`, not on a
+  preview. Resync it from `index.html` before starting an experiment so it
+  differs only by the experiment. The home page itself still waits for his
+  word.
