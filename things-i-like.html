@@ -94,6 +94,17 @@
       min-height: 100vh;
     }
 
+    /* the page remembers being rearranged: every word leaves a faint print
+       of itself wherever it has been dragged, on a canvas under the words */
+    #ink {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: multiply;
+    }
+
     .thing {
       position: absolute;
       cursor: grab;
@@ -192,7 +203,7 @@
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <div class="vignette"></div>
 
-<div class="field" id="field"></div>
+<div class="field" id="field"><canvas id="ink"></canvas></div>
 
 <script>
   const things = [
@@ -345,6 +356,92 @@
     }, 200 + idx * 180);
   });
 
+  // --- INK ---
+  // The words are HTML and the browser paints them; we can't smudge them
+  // directly. Instead, when a drag starts, the word is painted once more —
+  // same text, same font, same colour, wrapped the way the browser wrapped
+  // it — into a small scratch canvas: a rubber stamp of the word. While it
+  // is dragged, that stamp is pressed onto the ink canvas every few pixels
+  // along the path at a very low opacity, so slow or repeated moves darken
+  // and a quick flick leaves only a breath. The ink stays for the visit.
+  const inkEl = document.getElementById('ink');
+  const inkC = inkEl.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let inkW = 0, inkH = 0;
+  const STAMP_EVERY = 22;  // px of travel between prints: far enough apart that each echo of the word stays readable
+  const STAMP_ALPHA = 0.07;
+
+  function sizeInk() {
+    const w = field.clientWidth, h = field.clientHeight;
+    if (w === inkW && h === inkH) return;
+    // keep what has been drawn: copy the old ink onto the new size
+    let old = null;
+    if (inkW && inkH) {
+      old = document.createElement('canvas');
+      old.width = inkEl.width; old.height = inkEl.height;
+      old.getContext('2d').drawImage(inkEl, 0, 0);
+    }
+    inkW = w; inkH = h;
+    inkEl.width = Math.ceil(w * dpr); inkEl.height = Math.ceil(h * dpr);
+    inkEl.style.width = w + 'px'; inkEl.style.height = h + 'px';
+    if (old) inkC.drawImage(old, 0, 0);
+  }
+  sizeInk();
+  window.addEventListener('resize', sizeInk);
+
+  let stamp = null, lastStampX = 0, lastStampY = 0;
+
+  function buildStamp(el) {
+    const cs = getComputedStyle(el);
+    const w = el.offsetWidth, h = el.offsetHeight;   // the box before its rotation
+    if (!w || !h) return null;
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(w * dpr); c.height = Math.ceil(h * dpr);
+    const x = c.getContext('2d');
+    x.scale(dpr, dpr);
+    x.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing;
+    x.fillStyle = cs.color;
+    x.textBaseline = 'alphabetic';
+    // wrap the way the browser did: greedily at spaces, against the box width
+    const lines = []; let cur = '';
+    for (const wd of el.textContent.split(' ')) {
+      const t = cur ? cur + ' ' + wd : wd;
+      if (cur && x.measureText(t).width > w + 0.5) { lines.push(cur); cur = wd; } else cur = t;
+    }
+    if (cur) lines.push(cur);
+    const m = x.measureText('Hg');
+    const fs = parseFloat(cs.fontSize);
+    const asc = m.fontBoundingBoxAscent || fs * 0.8;
+    const desc = m.fontBoundingBoxDescent || fs * 0.2;
+    const padL = parseFloat(cs.paddingLeft) || 0, padT = parseFloat(cs.paddingTop) || 0;
+    const lineH = (h - padT - (parseFloat(cs.paddingBottom) || 0)) / lines.length;
+    lines.forEach((ln, i) => x.fillText(ln, padL, padT + i * lineH + (lineH - asc - desc) / 2 + asc));
+    return { c, w, h, rot: (parseFloat(el.dataset.rot) || 0) * Math.PI / 180 };
+  }
+
+  function pressStamp(x, y) {
+    if (!stamp) return;
+    inkC.save();
+    inkC.setTransform(dpr, 0, 0, dpr, 0, 0);
+    inkC.globalAlpha = STAMP_ALPHA;
+    inkC.translate(x + stamp.w / 2, y + stamp.h / 2);
+    inkC.rotate(stamp.rot);
+    inkC.drawImage(stamp.c, -stamp.w / 2, -stamp.h / 2, stamp.w, stamp.h);
+    inkC.restore();
+  }
+
+  // Press along the whole segment since the last print, so a fast drag
+  // leaves a continuous (if faint) trail rather than dashes.
+  function inkAlong(x, y) {
+    const dx = x - lastStampX, dy = y - lastStampY;
+    const dist = Math.hypot(dx, dy);
+    if (dist < STAMP_EVERY) return;
+    const n = Math.min(60, Math.floor(dist / STAMP_EVERY));
+    for (let i = 1; i <= n; i++) pressStamp(lastStampX + dx * i / n, lastStampY + dy * i / n);
+    lastStampX = x; lastStampY = y;
+  }
+
   // --- DRAG ---
   let dragEl = null, dragOffX = 0, dragOffY = 0, hasDragged = false;
   let startX = 0, startY = 0;
@@ -361,6 +458,10 @@
     el.classList.add('dragging');
     el.style.animation = 'none';
     el.style.transition = 'none';
+    stamp = null;
+    try { stamp = buildStamp(el); } catch (err) { stamp = null; }
+    lastStampX = parseFloat(el.style.left) || 0;
+    lastStampY = parseFloat(el.style.top) || 0;
   }
 
   function moveDrag(clientX, clientY) {
@@ -375,6 +476,7 @@
     dragEl.style.left = x + 'px';
     dragEl.style.top = y + 'px';
     dragEl.style.transform = `rotate(${rot}deg)`;
+    inkAlong(x, y);
   }
 
   function endDrag() {
@@ -383,6 +485,7 @@
     // don't restart drift — let it stay where placed
     dragEl.style.transition = 'filter 300ms ease';
     dragEl = null;
+    stamp = null;
   }
 
   // prevent native <a> clicks — we handle navigation manually
