@@ -199,6 +199,55 @@
 <script>
 (() => {
   /* ================================================================
+     TUNING — the phone scroll reveal
+
+     progress is 0 at the top of the page and 1 once the words have
+     scrolled fully away. Each part has an `until` (the progress at
+     which it is finished) and an `ease` (a CSS cubic-bezier: four
+     numbers, or one of the EASE names below). Change these and reload;
+     nothing else needs touching.
+  ================================================================ */
+  const REVEAL = {
+    // the words' card and its blur: from alphaFrom / blurFrom to nothing
+    card: { until: 0.60, ease: 'inOut',    alphaFrom: 0.62, blurFrom: 3 },
+    // the tree: starts dropFrom of the screen low and at alphaFrom, ends
+    // in place at full strength
+    tree: { until: 0.75, ease: 'outCubic', dropFrom: 0.10, alphaFrom: 0.5 },
+    // the "the tree is below" hint fades
+    hint: { until: 0.20, ease: 'linear' },
+    // how tall the tree stands on phones, as a share of the screen
+    treeHeight: 0.68,
+  };
+
+  // A CSS cubic-bezier as a function: four numbers, the same ones
+  // cubic-bezier.com or the browser's easing editor gives you, and the
+  // result maps 0..1 to 0..1 the way the CSS transition would.
+  function bezier(x1, y1, x2, y2) {
+    const A = (a, b) => 1 - 3 * b + 3 * a, B = (a, b) => 3 * b - 6 * a, C = (a) => 3 * a;
+    const at = (t, a, b) => ((A(a, b) * t + B(a, b)) * t + C(a)) * t;
+    const slope = (t, a, b) => 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a);
+    return (x) => {
+      x = Math.max(0, Math.min(1, x));
+      let t = x;
+      for (let i = 0; i < 6; i++) { const s = slope(t, x1, x2); if (Math.abs(s) < 1e-6) break; t -= (at(t, x1, x2) - x) / s; }
+      return at(Math.max(0, Math.min(1, t)), y1, y2);
+    };
+  }
+  const EASE = {
+    linear:     [0, 0, 1, 1],
+    ease:       [0.25, 0.1, 0.25, 1],
+    inOut:      [0.42, 0, 0.58, 1],
+    outQuad:    [0.25, 0.46, 0.45, 0.94],
+    outCubic:   [0.33, 1, 0.68, 1],
+    outQuint:   [0.22, 1, 0.36, 1],
+    outExpo:    [0.16, 1, 0.3, 1],
+    inQuad:     [0.55, 0.085, 0.68, 0.53],
+  };
+
+  const curve = (e) => { const c = Array.isArray(e) ? e : EASE[e]; return bezier(c[0], c[1], c[2], c[3]); };
+  const prog = (p, part) => curve(part.ease)(Math.min(1, p / part.until));
+
+  /* ================================================================
      GARDEN HOME — hand-drawn cherry blossom, illustrated warm aesthetic
      Angular ink branches, 5-petal blossoms, warm paper background
   ================================================================ */
@@ -360,7 +409,7 @@
     const treeX = TREE_X;
     const baseY = H * 0.90;
     // on phones the tree has a screen of its own (see applyScrollFade), so it can stand taller
-    const targetH = (isMobile ? 0.68 : 0.72) * H;
+    const targetH = (isMobile ? REVEAL.treeHeight : 0.72) * H;
     let scale = targetH / bboxH;
     // don't let the canopy overflow horizontally
     const maxW = (isMobile ? 0.92 : 0.60) * W;
@@ -1110,18 +1159,16 @@
     }
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
     const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
-    // The words' card and its blur are gone by 60% of the way; the tree,
-    // which starts a tenth of the screen low and at half strength, has
-    // risen into place and come up to full strength by 75%.
-    const card = Math.max(0, 1 - progress / 0.6);
-    containerEl.style.setProperty('--card-a', (0.62 * card).toFixed(3));
-    containerEl.style.setProperty('--card-blur', (3 * card).toFixed(2) + 'px');
-    containerEl.style.setProperty('--hint-a', Math.max(0, 1 - progress * 5).toFixed(2));
-    const k = 1 - Math.pow(1 - Math.min(1, progress / 0.75), 3);
-    sceneShift = (1 - k) * H * 0.10;
+    // Everything here is driven by REVEAL at the top of the script.
+    const card = 1 - prog(progress, REVEAL.card);
+    containerEl.style.setProperty('--card-a', (REVEAL.card.alphaFrom * card).toFixed(3));
+    containerEl.style.setProperty('--card-blur', (REVEAL.card.blurFrom * card).toFixed(2) + 'px');
+    containerEl.style.setProperty('--hint-a', (1 - prog(progress, REVEAL.hint)).toFixed(2));
+    const k = prog(progress, REVEAL.tree);
+    sceneShift = (1 - k) * H * REVEAL.tree.dropFrom;
     const tf = `translateY(${sceneShift.toFixed(1)}px)`;
     bgEl.style.transform = tf; scEl.style.transform = tf;
-    scEl.style.opacity = (0.5 + 0.5 * k).toFixed(3);
+    scEl.style.opacity = (REVEAL.tree.alphaFrom + (1 - REVEAL.tree.alphaFrom) * k).toFixed(3);
   }
   contentWrapEl.addEventListener('scroll', () => {
     if (scrollTicking) return;
