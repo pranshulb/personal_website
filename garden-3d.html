@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>pranshul's cafe!</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&family=EB+Garamond:ital@0;1&display=block" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      font-family: 'EB Garamond', Georgia, serif;
+      color: #3a2f2f; line-height: 1.6;
+      background: #FFF5EB;
+      -webkit-tap-highlight-color: transparent;
+    }
+    ::selection { background: rgba(240, 166, 35, 0.3); color: #4a2f1a; }
+
+    #scene {
+      position: fixed; inset: 0; display: block; z-index: 1;
+      touch-action: none; cursor: grab;
+    }
+    #scene.dragging { cursor: grabbing; }
+
+    .grain {
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      pointer-events: none; z-index: 8; opacity: 0.10;
+    }
+
+    /* ---- fixed chrome: title, epigraph, footer ---- */
+    .title {
+      position: fixed; top: 1.6rem; left: max(2rem, 4vw); z-index: 10;
+      font-size: 1.8rem; font-weight: 400; letter-spacing: 0.02em;
+    }
+    .title a { color: #4a3020; text-decoration: none; }
+    .title a:hover { color: #c47a7a; }
+    .epigraph {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      font-size: 0.85rem; color: rgba(160,120,80,0.55);
+      letter-spacing: 0.03em; margin: 0; z-index: 10;
+    }
+    .foot {
+      position: fixed; right: 1.5rem; bottom: 1.2rem; z-index: 10;
+      text-align: right; pointer-events: none; max-width: 40vw;
+    }
+    .foot p { pointer-events: auto; display: inline-block; }
+    .foot .reach { font-size: 1.05rem; color: #c47a7a; font-style: italic; }
+    .copy-hint { font-size: 0.85rem; color: #b09080; margin-top: 0.2rem; display: block; }
+    .copy-hint kbd {
+      display: inline-block; padding: 0.05em 0.4em;
+      border: 1px solid #d4b4a0; border-radius: 3px; font-size: 0.9em;
+    }
+    .copy-hint-mobile { display: none; cursor: pointer; }
+    .copy-hint-mobile:active { color: #c47a7a; }
+    .drag-hint {
+      position: fixed; left: 1.5rem; bottom: 1.2rem; z-index: 10;
+      font-size: 0.8rem; color: rgba(160,120,80,0.55); letter-spacing: 0.02em;
+      transition: opacity 1.2s ease;
+    }
+    .drag-hint.gone { opacity: 0; }
+
+    /* ---- the links: paper tags hanging from the branches ---- */
+    .threads { position: fixed; inset: 0; z-index: 4; pointer-events: none; width: 100%; height: 100%; }
+    .threads line { stroke: #c47a7a; stroke-width: 1.2; }
+    .tags { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+    .tag {
+      position: absolute; left: 0; top: 0;
+      transform-origin: 50% 0;
+      will-change: transform, opacity;
+      visibility: hidden;
+      pointer-events: auto;
+      text-decoration: none; color: #3a2f2f;
+      display: block;
+    }
+    .tag .paper {
+      display: block; position: relative;
+      margin-top: 9px;
+      padding: 0.35rem 0.9rem 0.4rem;
+      background: #fffaf3;
+      border: 1px solid rgba(74,48,32,0.18);
+      border-radius: 3px;
+      box-shadow: 0 2px 6px rgba(74,48,32,0.10), 0 8px 18px rgba(74,48,32,0.06);
+      font-size: 1.12rem; white-space: nowrap; line-height: 1.4;
+      transition: color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .tag .paper::before {            /* the pinhole the thread goes through */
+      content: ''; position: absolute; top: -5px; left: 50%;
+      width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%;
+      background: #c47a7a; box-shadow: 0 0 0 2px #fffaf3;
+    }
+    .tag:hover .paper, .tag:focus-visible .paper {
+      color: #c47a7a; background: #fff;
+      box-shadow: 0 3px 8px rgba(74,48,32,0.14), 0 12px 24px rgba(74,48,32,0.08);
+    }
+    .tag:focus-visible { outline: none; }
+    .tag:focus-visible .paper { outline: 2px solid #c47a7a; outline-offset: 2px; }
+    .tag .paper small { font-size: 0.78em; color: #9a7a60; }
+    .tag.far { pointer-events: none; }
+
+    /* socials: little signs stuck in the ground round the trunk */
+    .signs { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+    .sign .paper {
+      margin-top: 0; padding: 0.15rem 0.6rem 0.2rem;
+      font-size: 0.86rem; color: #7a5a48;
+      background: #fdf6ed; border-radius: 2px;
+      transform: translateY(-100%);
+    }
+    .sign .paper::before { display: none; }
+    /* on a phone the signs are a row above the footer instead */
+    body.mobile .signs {
+      inset: auto 0 4.4rem 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 0.4rem 0.7rem;
+      padding: 0 1rem;
+    }
+    body.mobile .sign { position: static; transform: none !important; opacity: 1 !important; visibility: visible; }
+    body.mobile .sign .paper { transform: none; }
+
+    /* no WebGL: a plain list, still his voice */
+    .fallback { display: none; position: fixed; inset: 0; z-index: 6; }
+    body.no-gl .fallback { display: block; }
+    body.no-gl .tags, body.no-gl .signs, body.no-gl .threads, body.no-gl #scene, body.no-gl .drag-hint { display: none; }
+    .fallback .box { max-width: 520px; margin: 0 0 0 max(2rem, 5vw); padding: 6rem 2rem 3rem; }
+    .fallback ul { list-style: none; margin-bottom: 2rem; }
+    .fallback li { margin: 0.6rem 0; font-size: 1.05rem; }
+    .fallback li::before { content: '\2192 '; color: #d4a080; opacity: 0.7; }
+    .fallback a { color: #4a3020; text-decoration: none; border-bottom: 1px solid #d4a080; }
+    .fallback a:hover { color: #c47a7a; border-bottom-color: #c47a7a; }
+    .fallback .row { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+    .fallback .row a { border-bottom: none; color: #9a7a60; font-size: 0.9rem; }
+
+    .copy-toast {
+      position: fixed; bottom: 5.5rem; left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      background: rgba(196,122,122,0.12); color: #c47a7a;
+      padding: 0.6rem 1.4rem; border-radius: 20px;
+      font-size: 0.85rem;
+      backdrop-filter: blur(10px); border: 1px solid rgba(196,122,122,0.2);
+      opacity: 0; transition: all 0.4s ease;
+      pointer-events: none; z-index: 999;
+    }
+    .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 900px) {
+      .title { font-size: 1.5rem; top: 1.1rem; left: 1.2rem; }
+      .epigraph { display: none; }
+      .tag .paper { font-size: 0.9rem; padding: 0.25rem 0.65rem 0.3rem; }
+      .sign .paper { font-size: 0.78rem; padding: 0.1rem 0.5rem 0.15rem; }
+      .foot { bottom: 0.9rem; left: 0; right: 0; text-align: center; max-width: none; }
+      .foot .reach { font-size: 0.92rem; }
+      .copy-hint-desktop { display: none; }
+      .copy-hint-mobile { display: block; }
+      .drag-hint { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tag .paper { transition: none; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+
+<style id="enola-font-override">
+  body, body *{font-family:'Unkempt',cursive !important;}
+  body h1, body h1 *, body .title, body .title *{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.9rem !important;}
+  body .epigraph, body .epigraph *{font-family:'EB Garamond',Georgia,serif !important;}
+  @media (max-width: 900px) { body h1, body h1 *, body .title, body .title *{font-size:2rem !important;} }
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<h1 class="title"><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<svg class="threads" aria-hidden="true"></svg>
+<nav class="tags" aria-label="pages">
+  <a class="tag" href="/who-am-i"><span class="paper">who am i?</span></a>
+  <a class="tag" href="/questions"><span class="paper">questions i am thinking about</span></a>
+  <a class="tag" href="/writings"><span class="paper">writings</span></a>
+  <a class="tag" href="/things-i-like"><span class="paper">things i like</span></a>
+  <a class="tag" href="/things-ive-watched"><span class="paper">things i've watched</span></a>
+  <a class="tag" href="/books"><span class="paper">books i've read</span></a>
+  <a class="tag" href="/examined"><span class="paper">examined. <small>(philosophy personality test)</small></span></a>
+</nav>
+<nav class="signs" aria-label="elsewhere">
+  <a class="tag sign" href="mailto:pranshulbohra@gmail.com"><span class="paper">email</span></a>
+  <a class="tag sign" href="https://pranshulbohra.substack.com/"><span class="paper">substack</span></a>
+  <a class="tag sign" href="http://goodreads.com/pranshulb"><span class="paper">goodreads</span></a>
+  <a class="tag sign" href="https://curius.app/pranshul-bohra"><span class="paper">curius</span></a>
+  <a class="tag sign" href="https://www.instagram.com/pranshul.bohra/"><span class="paper">instagram</span></a>
+</nav>
+
+<div class="fallback">
+  <div class="box">
+    <ul>
+      <li><a href="/who-am-i">who am i?</a></li>
+      <li><a href="/questions">questions i am thinking about</a></li>
+      <li><a href="/writings">writings</a></li>
+      <li><a href="/things-i-like">things i like</a></li>
+      <li><a href="/things-ive-watched">things i've watched</a></li>
+      <li><a href="/books">books i've read</a></li>
+      <li><a href="/examined">examined.</a> (philosophy personality test)</li>
+    </ul>
+    <div class="row">
+      <a href="mailto:pranshulbohra@gmail.com">email</a>
+      <a href="https://pranshulbohra.substack.com/">substack</a>
+      <a href="http://goodreads.com/pranshulb">goodreads</a>
+      <a href="https://curius.app/pranshul-bohra">curius</a>
+      <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <p class="reach">please reach out if you think it'd be fun to chat:)</p>
+  <span class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</span>
+  <span class="copy-hint copy-hint-mobile" id="mobileCopy">tap here to copy my email!</span>
+</div>
+<p class="drag-hint">drag to walk round the tree · click the tree to shake it</p>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<div class="copy-toast" id="copyToast">email copied!</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.170.0/build/three.module.min.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ==================================================================
+   GARDEN 3D — an old sakura, rebuilt in geometry.
+   Trunk, roots, limbs and twigs are one merged mesh. Every blossom is
+   an instance of a five-petal flower whose petals are real curved,
+   notched surfaces, not texture cards. Falling and fallen petals are
+   instances too. Five draw calls for the whole tree.
+   The links are ordinary <a> elements; the scene hands each a point on
+   a branch every frame and CSS transforms put them there.
+================================================================== */
+
+const canvas = document.getElementById('scene');
+const PAPER = 0xfff5eb;
+const isMobile = Math.min(innerWidth, innerHeight) < 700 || /Mobi|Android/i.test(navigator.userAgent);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (isMobile) document.body.classList.add('mobile');
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
+} catch (e) {
+  document.body.classList.add('no-gl');
+  throw e;
+}
+let DPR = Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2);
+renderer.setPixelRatio(DPR);
+renderer.setClearColor(PAPER, 1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(PAPER, 30, 60);
+
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+
+/* ---------- seeded random so the tree is the same tree every visit ---------- */
+let _s = 7;
+function srand(s) { _s = s | 0; }
+function rnd() { _s |= 0; _s = _s + 0x6D2B79F5 | 0; let t = Math.imul(_s ^ _s >>> 15, 1 | _s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+const rr = (a, b) => a + rnd() * (b - a);
+const pick = a => a[Math.floor(rnd() * a.length)];
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+
+/* ==================================================================
+   TREE GENERATION — polylines with radii, then tapered tubes
+================================================================== */
+const branches = [];   // { pts: Vector3[], r0, r1, depth, len }
+const RULES = {
+  //         len   r0     r1     segs  droop  spread(min,max)  children t positions
+  1: { len: 3.4, r0: 0.23, r1: 0.13, segs: 9, droop: 0.075, ang: [0.55, 0.85], kids: [0.38, 0.6, 0.8, 1.0] },
+  2: { len: 2.1, r0: 0.12, r1: 0.065, segs: 6, droop: 0.11, ang: [0.5, 0.85], kids: [0.45, 0.75, 1.0] },
+  3: { len: 1.35, r0: 0.06, r1: 0.032, segs: 5, droop: 0.15, ang: [0.5, 0.9], kids: [0.4, 0.72, 1.0] },
+  4: { len: 0.85, r0: 0.031, r1: 0.016, segs: 4, droop: 0.2, ang: [0.5, 1.0], kids: [0.3, 0.55, 0.8, 1.0] },
+  5: { len: 0.48, r0: 0.015, r1: 0.007, segs: 3, droop: 0.26, ang: [0.5, 1.1], kids: [] },
+};
+const MAX_DEPTH = 5;
+const _tmpA = new THREE.Vector3(), _tmpB = new THREE.Vector3(), _q = new THREE.Quaternion();
+
+function perpendicular(dir) {
+  const a = Math.abs(dir.y) < 0.9 ? V3(0, 1, 0) : V3(1, 0, 0);
+  return a.cross(dir).normalize();
+}
+function pointAt(pts, t) {
+  const f = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(f)), k = f - i;
+  return pts[i].clone().lerp(pts[i + 1], k);
+}
+function tangentAt(pts, t) {
+  const f = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(f));
+  return pts[i + 1].clone().sub(pts[i]).normalize();
+}
+
+function grow(start, dir, depth, scale) {
+  const R = RULES[depth];
+  const len = R.len * scale * rr(0.8, 1.15);
+  const pts = [start.clone()];
+  const d = dir.clone().normalize();
+  const wobble = depth <= 2 ? 0.16 : 0.32;
+  for (let i = 1; i <= R.segs; i++) {
+    d.add(V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(wobble)).normalize();
+    d.y -= R.droop * (i / R.segs);
+    if (pts[i - 1].y < 2.3 && d.y < 0) d.y *= 0.25;      // the skirt stays clear of the ground
+    d.normalize();
+    pts.push(pts[i - 1].clone().addScaledVector(d, len / R.segs));
+  }
+  const b = { pts, r0: R.r0 * scale, r1: R.r1 * scale, depth, len };
+  branches.push(b);
+  if (depth >= MAX_DEPTH) return;
+  const kids = R.kids;
+  let baseAz = rnd() * Math.PI * 2;
+  kids.forEach((t, k) => {
+    const p = pointAt(pts, t), tg = tangentAt(pts, t);
+    const isTip = t >= 0.999;
+    const n = isTip ? 2 : 1;                       // a fork at the tip
+    for (let j = 0; j < n; j++) {
+      const az = baseAz + (k + j * 0.5) * 2.4 + rr(-0.5, 0.5);
+      const ang = isTip ? rr(0.35, 0.6) : rr(R.ang[0], R.ang[1]);
+      const axis = perpendicular(tg).applyAxisAngle(tg, az);
+      const nd = tg.clone().applyAxisAngle(axis, ang);
+      if (nd.y < -0.2 && depth < 3) nd.y = -0.2;    // keep the big limbs off the floor
+      grow(p, nd, depth + 1, scale * rr(0.85, 1.0));
+    }
+  });
+}
+
+srand(1013);
+// trunk: an S, leaning, flared at the foot
+const trunkPts = [V3(0, -0.25, 0), V3(0.05, 0.55, 0), V3(0.42, 1.35, 0.12), V3(0.66, 2.15, 0.22), V3(0.42, 2.95, 0.18), V3(-0.05, 3.65, 0.05), V3(-0.18, 4.15, 0)];
+branches.push({ pts: trunkPts, r0: 0.6, r1: 0.25, depth: 0, len: 4.4, flare: true });
+
+// roots, spreading over the ground
+for (let i = 0; i < 11; i++) {
+  const az = i * (Math.PI * 2 / 11) + rr(-0.25, 0.25);
+  const len = rr(1.3, 2.3), segs = 6;
+  const pts = [V3(0, 0.12, 0)];
+  const d = V3(Math.cos(az), -0.15, Math.sin(az)).normalize();
+  for (let s = 1; s <= segs; s++) {
+    d.add(V3(rr(-0.3, 0.3), rr(-0.15, 0.15), rr(-0.3, 0.3))).normalize();
+    const p = pts[s - 1].clone().addScaledVector(d, len / segs);
+    const hump = 0.08 * Math.sin(Math.PI * s / segs);
+    p.y = Math.max(0.012, Math.min(p.y, 0.05 + hump));
+    pts.push(p);
+  }
+  branches.push({ pts, r0: rr(0.13, 0.2), r1: 0.012, depth: -1, len });
+  if (rnd() < 0.6) {                                // a side root
+    const t = rr(0.3, 0.6), p = pointAt(pts, t), tg = tangentAt(pts, t);
+    const nd = tg.clone().applyAxisAngle(V3(0, 1, 0), rr(0.6, 1.1) * (rnd() < 0.5 ? 1 : -1));
+    nd.y = -0.05; nd.normalize();
+    const sp = [p.clone()];
+    for (let s = 1; s <= 4; s++) {
+      nd.add(V3(rr(-0.3, 0.3), 0, rr(-0.3, 0.3))).normalize();
+      const q = sp[s - 1].clone().addScaledVector(nd, rr(0.2, 0.32));
+      q.y = Math.max(0.012, Math.min(q.y, 0.04));
+      sp.push(q);
+    }
+    branches.push({ pts: sp, r0: 0.06, r1: 0.01, depth: -1, len: 1 });
+  }
+}
+
+// limbs: five from the crown, one lower on the trunk
+const LIMBS = 5;
+for (let i = 0; i < LIMBS; i++) {
+  const az = i * (Math.PI * 2 / LIMBS) + rr(-0.3, 0.3);
+  const t = rr(0.84, 0.99);
+  const p = pointAt(trunkPts, t);
+  const elev = rr(0.9, 1.15);                        // radians from vertical: wide, old
+  const d = V3(Math.cos(az) * Math.sin(elev), Math.cos(elev), Math.sin(az) * Math.sin(elev));
+  grow(p, d, 1, rr(0.9, 1.05));
+}
+{
+  const p = pointAt(trunkPts, 0.6), az = rr(0, Math.PI * 2), elev = 1.15;
+  grow(p, V3(Math.cos(az) * Math.sin(elev), Math.cos(elev), Math.sin(az) * Math.sin(elev)), 1, 0.75);
+}
+
+// signposts for the socials: short sticks in the ground round the trunk
+const BASE_YAW = 0.3;
+const SIGN_N = 5, signAnchors = [];
+const SIGN_VIEW_AZ = [-0.85, -0.42, 0, 0.42, 0.85];      // round the front, left to right
+for (let i = 0; i < SIGN_N; i++) {
+  if (isMobile) break;
+  const az = Math.PI / 2 + SIGN_VIEW_AZ[i] + BASE_YAW + rr(-0.06, 0.06), rad = i === 2 ? 3.9 : rr(2.9, 3.3);
+  const x = Math.cos(az) * rad, z = Math.sin(az) * rad;
+  const lean = V3(rr(-0.06, 0.06), 1, rr(-0.06, 0.06)).normalize();
+  const top = V3(x, 0, z).addScaledVector(lean, 0.55);
+  branches.push({ pts: [V3(x, -0.05, z), V3(x, 0, z).addScaledVector(lean, 0.28), top], r0: 0.028, r1: 0.02, depth: -2, len: 0.55 });
+  signAnchors.push(top);
+}
+
+/* ---------- tapered tubes, merged into one geometry ---------- */
+const bark = { pos: [], nor: [], uv: [], col: [], idx: [] };
+const BARK_BASE = new THREE.Color(0x665b52), BARK_DARK = new THREE.Color(0x3a322c), BARK_MOSS = new THREE.Color(0x66704c);
+const _c = new THREE.Color();
+function ridges(a, s) {  // cheap gnarl for the thick wood
+  return Math.sin(a * 5 + s * 3.1) * 0.5 + Math.sin(a * 9 - s * 5.3) * 0.3 + Math.sin(a * 2 + s * 1.7) * 0.2;
+}
+function addTube(b) {
+  const pts = b.pts, n = pts.length;
+  const sides = b.r0 > 0.15 ? 18 : b.r0 > 0.05 ? 8 : b.r0 > 0.025 ? 6 : 4;
+  const base = bark.pos.length / 3;
+  // parallel-transport frame
+  let tg = pts[1].clone().sub(pts[0]).normalize();
+  let nrm = perpendicular(tg);
+  let along = 0;
+  for (let i = 0; i < n; i++) {
+    if (i > 0) {
+      const nt = (i < n - 1 ? pts[i + 1].clone().sub(pts[i - 1]) : pts[i].clone().sub(pts[i - 1])).normalize();
+      _q.setFromUnitVectors(tg, nt); nrm.applyQuaternion(_q).normalize(); tg = nt;
+      along += pts[i].distanceTo(pts[i - 1]);
+    }
+    const t = i / (n - 1);
+    let r = b.r0 + (b.r1 - b.r0) * (b.flare ? Math.pow(t, 0.6) : t);
+    if (b.flare && i === 0) r *= 1.25;
+    const bin = tg.clone().cross(nrm).normalize();
+    const gnarl = b.r0 > 0.1 ? 0.09 : 0.0;
+    const trunkY = b.depth === 0 ? pts[i].y : 99;
+    for (let s = 0; s <= sides; s++) {
+      const a = (s / sides) * Math.PI * 2;
+      const rs = r * (1 + gnarl * ridges(a, along * 2.3));
+      const ox = Math.cos(a), oy = Math.sin(a);
+      const nx = nrm.x * ox + bin.x * oy, ny = nrm.y * ox + bin.y * oy, nz = nrm.z * ox + bin.z * oy;
+      bark.pos.push(pts[i].x + nx * rs, pts[i].y + ny * rs, pts[i].z + nz * rs);
+      bark.nor.push(nx, ny, nz);
+      bark.uv.push(s / sides * (sides / 8), along / (Math.PI * 2 * Math.max(0.05, r)) * 0.35);
+      // colour: darker in the ridges, a hint of moss low on the trunk, roots earthy
+      let k = 0.86 + 0.28 * ((ridges(a, along * 2.3) + 1) / 2);
+      _c.copy(BARK_BASE).lerp(BARK_DARK, 1 - Math.min(1, k)).multiplyScalar(k);
+      if (trunkY < 1.8) _c.lerp(BARK_MOSS, (1.8 - trunkY) / 1.8 * 0.45);
+      if (b.depth === -1) _c.lerp(BARK_DARK, 0.25);
+      if (b.depth >= 4) _c.lerp(BARK_DARK, 0.35);
+      bark.col.push(_c.r, _c.g, _c.b);
+    }
+  }
+  for (let i = 0; i < n - 1; i++) for (let s = 0; s < sides; s++) {
+    const a = base + i * (sides + 1) + s, bb = a + sides + 1;
+    bark.idx.push(a, bb, a + 1, bb, bb + 1, a + 1);
+  }
+  // close the tip
+  const tipI = bark.pos.length / 3, last = pts[n - 1];
+  bark.pos.push(last.x + tg.x * b.r1, last.y + tg.y * b.r1, last.z + tg.z * b.r1);
+  bark.nor.push(tg.x, tg.y, tg.z); bark.uv.push(0.5, 0); bark.col.push(_c.r, _c.g, _c.b);
+  const ringBase = base + (n - 1) * (sides + 1);
+  for (let s = 0; s < sides; s++) bark.idx.push(ringBase + s, ringBase + s + 1, tipI);
+}
+for (const b of branches) addTube(b);
+
+const barkGeo = new THREE.BufferGeometry();
+barkGeo.setAttribute('position', new THREE.Float32BufferAttribute(bark.pos, 3));
+barkGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bark.nor, 3));
+barkGeo.setAttribute('uv', new THREE.Float32BufferAttribute(bark.uv, 2));
+barkGeo.setAttribute('color', new THREE.Float32BufferAttribute(bark.col, 3));
+barkGeo.setIndex(bark.idx);
+barkGeo.computeBoundingSphere();
+
+// bark texture: sakura bark is banded with horizontal lenticels
+function barkTexture() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#8a8078'; g.fillRect(0, 0, 256, 512);
+  const img = g.getImageData(0, 0, 256, 512), d = img.data;
+  let s = 99;
+  const nz = () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  for (let y = 0; y < 512; y++) for (let x = 0; x < 256; x++) {
+    const i = (y * 256 + x) * 4;
+    const band = Math.sin(y * 0.09) * 0.5 + Math.sin(y * 0.31 + x * 0.02) * 0.25;
+    let v = 128 + band * 34 + (nz() - 0.5) * 46;
+    d[i] = v * 0.95; d[i + 1] = v * 0.9; d[i + 2] = v * 0.86; d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  // lenticels: short pale horizontal dashes
+  g.fillStyle = 'rgba(210,200,190,0.55)';
+  for (let i = 0; i < 90; i++) { const w = 8 + nz() * 26; g.fillRect(nz() * 256, nz() * 512, w, 1 + (nz() < 0.3 ? 1 : 0)); }
+  g.fillStyle = 'rgba(40,32,28,0.5)';
+  for (let i = 0; i < 70; i++) { const w = 6 + nz() * 20; g.fillRect(nz() * 256, nz() * 512, w, 1); }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+  return tex;
+}
+const barkMat = new THREE.MeshStandardMaterial({ map: barkTexture(), vertexColors: true, roughness: 0.96, metalness: 0 });
+const barkMesh = new THREE.Mesh(barkGeo, barkMat);
+
+/* ==================================================================
+   BLOSSOMS — a five-petal flower with proper petals
+================================================================== */
+function petalGeometry(len, U, V, opts = {}) {
+  // u along the petal (0 centre, 1 tip), v across (-1..1). Notched tip, cupped, lifted.
+  const pos = [], col = [], idx = [];
+  const notchW = 0.45, notchD = opts.notch ?? 0.2;
+  const inner = opts.inner ?? 0.12;
+  for (let i = 0; i <= U; i++) {
+    const u = i / U;
+    for (let j = 0; j <= V; j++) {
+      const v = (j / V) * 2 - 1;
+      const notch = Math.max(0, 1 - Math.abs(v) / notchW);
+      const L = 1 - notchD * notch * notch * (u > 0.5 ? 1 : 0) * ((u - 0.5) * 2);
+      const w = 0.62 * Math.pow(Math.sin(Math.PI * Math.min(1, u * 0.92 + 0.08)), 0.75);
+      const x = (inner + u * L * (1 - inner)) * len;
+      const z = v * w * len;
+      const y = (0.22 * v * v * u + 0.28 * u * u + (opts.lift ?? 0)) * len;
+      pos.push(x, y, z);
+      // petal base is deeper pink, tips pale — multiplied by the instance colour
+      const k = Math.min(1, u * 1.4);
+      col.push(1 - 0.12 * (1 - k), 1 - 0.42 * (1 - k), 1 - 0.28 * (1 - k));
+    }
+  }
+  for (let i = 0; i < U; i++) for (let j = 0; j < V; j++) {
+    const a = i * (V + 1) + j, b = a + V + 1;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  return g;
+}
+function mergeGeos(list) {
+  const pos = [], col = [], idx = [];
+  let off = 0;
+  for (const g of list) {
+    const p = g.getAttribute('position').array, c = g.getAttribute('color').array;
+    const ix = g.getIndex() ? g.getIndex().array : Array.from({ length: p.length / 3 }, (_, k) => k);
+    for (let i = 0; i < p.length; i++) pos.push(p[i]);
+    for (let i = 0; i < c.length; i++) col.push(c[i]);
+    for (let i = 0; i < ix.length; i++) idx.push(ix[i] + off);
+    off += p.length / 3;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+function blossomGeometry() {
+  const parts = [];
+  srand(77);
+  for (let i = 0; i < 5; i++) {
+    const p = isMobile ? petalGeometry(1, 4, 2, { notch: 0.22, inner: 0.1 }) : petalGeometry(1, 7, 4, { notch: 0.22, inner: 0.1 });
+    // each petal a touch different so the flower isn't a gear
+    p.rotateZ(rr(-0.08, 0.1));
+    p.rotateX(rr(-0.12, 0.12));
+    p.rotateY(i * (Math.PI * 2 / 5) + rr(-0.06, 0.06));
+    parts.push(p);
+  }
+  // centre: a shallow cone in a deep pink, with a ring of stamen dots
+  const centre = new THREE.ConeGeometry(0.16, 0.08, 8, 1, true);
+  centre.rotateX(Math.PI); centre.translate(0, 0.04, 0);
+  const cc = []; for (let i = 0; i < centre.getAttribute('position').count; i++) cc.push(0.78, 0.32, 0.46);
+  centre.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
+  parts.push(centre);
+  for (let i = 0; i < (isMobile ? 0 : 6); i++) {
+    const s = new THREE.TetrahedronGeometry(0.035, 0);
+    const a = i * Math.PI / 3 + 0.3, r = 0.13;
+    s.translate(Math.cos(a) * r, 0.11 + (i % 2) * 0.03, Math.sin(a) * r);
+    const sc = []; for (let k = 0; k < s.getAttribute('position').count; k++) sc.push(0.95, 0.72, 0.25);
+    s.setAttribute('color', new THREE.Float32BufferAttribute(sc, 3));
+    parts.push(s);
+  }
+  return mergeGeos(parts);
+}
+const blossomGeo = blossomGeometry();
+
+// where blossoms go: along the last two orders of branch
+const sites = [];
+for (const b of branches) {
+  if (b.depth < 4) continue;
+  const pts = b.pts;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const segLen = pts[i].distanceTo(pts[i + 1]);
+    const n = Math.max(1, Math.round(segLen / 0.075));
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n;
+      const p = pts[i].clone().lerp(pts[i + 1], t);
+      const tg = pts[i + 1].clone().sub(pts[i]).normalize();
+      const side = perpendicular(tg).applyAxisAngle(tg, rnd() * Math.PI * 2);
+      const off = rr(0.03, 0.1);
+      sites.push({ p: p.addScaledVector(side, off), n: side.clone().lerp(V3(0, 1, 0), 0.5).normalize(), depth: b.depth });
+    }
+  }
+}
+// shuffle, seeded
+for (let i = sites.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [sites[i], sites[j]] = [sites[j], sites[i]]; }
+
+const canopyR = (() => { let m = 0; for (const s of sites) m = Math.max(m, Math.hypot(s.p.x, s.p.z)); return m; })();
+const canopyFitR = (() => { const r = sites.map(s => Math.hypot(s.p.x, s.p.z)).sort((a, b) => a - b); return r[Math.floor(r.length * 0.93)]; })();
+const canopyTop = (() => { let m = 0; for (const s of sites) m = Math.max(m, s.p.y); return m; })();
+const canopyBot = (() => { let m = 99; for (const s of sites) m = Math.min(m, s.p.y); return m; })();
+const canopyMid = (canopyTop + canopyBot) / 2;
+
+const PALE = ['#FBD0DC', '#F9C5D5', '#FDDAE3', '#F8C0CF', '#FCE0E8'];
+const PINK = ['#F4A0BB', '#F08FAB', '#F8B5C8', '#EE95B0', '#F2A8C0'];
+const MID = ['#F0708F', '#EC628A', '#E8587E', '#F37A98'];
+const HOT = ['#E84878', '#D8406A', '#DC4870'];
+function blossomColour(site) {
+  const r = rnd();
+  const hex = r < 0.5 ? pick(PALE) : r < 0.86 ? pick(PINK) : r < 0.975 ? pick(MID) : pick(HOT);
+  _c.set(hex);
+  // deeper in the canopy, a little darker: cheap occlusion
+  const out = Math.hypot(site.p.x, site.p.z) / canopyR;
+  const up = (site.p.y - canopyBot) / (canopyTop - canopyBot);
+  const shade = 0.72 + 0.28 * Math.min(1, out * 0.7 + up * 0.5);
+  return _c.multiplyScalar(shade);
+}
+
+const N_BLOSSOM = Math.min(sites.length, isMobile ? 2400 : 4300);
+const blossomMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide, emissive: 0xff9db5, emissiveIntensity: 0.1 });
+const blossoms = new THREE.InstancedMesh(blossomGeo, blossomMat, N_BLOSSOM);
+{
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), up = V3(0, 1, 0);
+  for (let i = 0; i < N_BLOSSOM; i++) {
+    const s = sites[i];
+    q.setFromUnitVectors(up, s.n);
+    _q.setFromAxisAngle(up, rnd() * Math.PI * 2);
+    q.multiply(_q);
+    const size = rr(0.068, 0.098);
+    sc.set(size, size, size);
+    m.compose(s.p, q, sc);
+    blossoms.setMatrixAt(i, m);
+    blossoms.setColorAt(i, blossomColour(s));
+  }
+  blossoms.instanceMatrix.needsUpdate = true;
+  blossoms.instanceColor.needsUpdate = true;
+}
+
+// buds: the ones that haven't opened, deeper in colour
+const N_BUD = Math.min(sites.length - N_BLOSSOM, isMobile ? 800 : 1300);
+const budGeo = new THREE.IcosahedronGeometry(1, isMobile ? 0 : 1);
+budGeo.scale(0.032, 0.045, 0.032);
+const budMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+const buds = new THREE.InstancedMesh(budGeo, budMat, Math.max(1, N_BUD));
+{
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1), up = V3(0, 1, 0);
+  for (let i = 0; i < N_BUD; i++) {
+    const s = sites[N_BLOSSOM + i];
+    q.setFromUnitVectors(up, s.n);
+    m.compose(s.p, q, one);
+    buds.setMatrixAt(i, m);
+    buds.setColorAt(i, _c.set(pick(HOT)).lerp(new THREE.Color(pick(MID)), rnd()));
+  }
+  buds.instanceMatrix.needsUpdate = true;
+  buds.instanceColor.needsUpdate = true;
+}
+
+/* ==================================================================
+   PETALS — falling, and fallen
+================================================================== */
+const petalGeo = petalGeometry(1, 5, 3, { notch: 0.2, inner: 0 });
+petalGeo.translate(-0.5, 0, 0); petalGeo.scale(0.09, 0.09, 0.09);
+petalGeo.computeVertexNormals();
+const petalMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide });
+
+const N_FALL = isMobile ? 90 : 220;      // steady drift
+const N_FALL_MAX = N_FALL * 2;           // room for a gust
+const falling = new THREE.InstancedMesh(petalGeo, petalMat, N_FALL_MAX);
+falling.frustumCulled = false;
+const fp = new Float32Array(N_FALL_MAX * 3), fv = new Float32Array(N_FALL_MAX * 3);
+const frot = new Float32Array(N_FALL_MAX * 3), fspin = new Float32Array(N_FALL_MAX * 3);
+const fphase = new Float32Array(N_FALL_MAX), fsize = new Float32Array(N_FALL_MAX);
+const falive = new Uint8Array(N_FALL_MAX);
+let activeFall = reduceMotion ? 0 : N_FALL;
+function spawnPetal(i, anywhere) {
+  const s = sites[Math.floor(Math.random() * sites.length)];
+  fp[i * 3] = s.p.x; fp[i * 3 + 1] = anywhere ? Math.random() * canopyTop : s.p.y; fp[i * 3 + 2] = s.p.z;
+  fv[i * 3] = (Math.random() - 0.5) * 0.3; fv[i * 3 + 1] = -(0.35 + Math.random() * 0.4); fv[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
+  frot[i * 3] = Math.random() * 6.28; frot[i * 3 + 1] = Math.random() * 6.28; frot[i * 3 + 2] = Math.random() * 6.28;
+  fspin[i * 3] = (Math.random() - 0.5) * 4; fspin[i * 3 + 1] = (Math.random() - 0.5) * 3; fspin[i * 3 + 2] = (Math.random() - 0.5) * 4;
+  fphase[i] = Math.random() * 6.28; fsize[i] = 0.8 + Math.random() * 0.6;
+  falive[i] = 1;
+  falling.setColorAt(i, _c.set(Math.random() < 0.6 ? PALE[Math.floor(Math.random() * PALE.length)] : PINK[Math.floor(Math.random() * PINK.length)]));
+}
+{
+  const m = new THREE.Matrix4(); m.makeScale(0, 0, 0);
+  for (let i = 0; i < N_FALL_MAX; i++) { falling.setMatrixAt(i, m); falling.setColorAt(i, _c.set(PALE[0])); }
+  for (let i = 0; i < activeFall; i++) spawnPetal(i, true);
+  falling.instanceColor.needsUpdate = true;
+}
+let gust = 0, gustDir = 1;
+
+// fallen: static, lying under the canopy
+const N_GROUND = isMobile ? 260 : 520;
+const ground = new THREE.InstancedMesh(petalGeo, petalMat, N_GROUND);
+{
+  srand(4242);
+  const m = new THREE.Matrix4(), e = new THREE.Euler(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+  for (let i = 0; i < N_GROUND; i++) {
+    const a = rnd() * Math.PI * 2, r = Math.pow(rnd(), 0.6) * canopyR * 1.15 + 0.3;
+    p.set(Math.cos(a) * r, 0.01 + rnd() * 0.01, Math.sin(a) * r);
+    e.set(rr(-0.25, 0.25), rnd() * Math.PI * 2, rr(-0.25, 0.25)); q.setFromEuler(e);
+    const k = rr(0.8, 1.3); sc.set(k, k, k);
+    m.compose(p, q, sc); ground.setMatrixAt(i, m);
+    ground.setColorAt(i, _c.set(rnd() < 0.6 ? pick(PALE) : pick(PINK)));
+  }
+  ground.instanceMatrix.needsUpdate = true; ground.instanceColor.needsUpdate = true;
+}
+
+/* ---------- the floor: paper, with a soft shadow under the tree ---------- */
+function floorTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(256, 256, 20, 256, 256, 256);
+  grad.addColorStop(0, '#d9c6b6'); grad.addColorStop(0.35, '#eddccd'); grad.addColorStop(0.7, '#faf0e5'); grad.addColorStop(1, '#fff5eb');
+  g.fillStyle = grad; g.fillRect(0, 0, 512, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const floor = new THREE.Mesh(new THREE.CircleGeometry(canopyR * 3.2, 48), new THREE.MeshBasicMaterial({ map: floorTexture(), fog: true }));
+floor.rotation.x = -Math.PI / 2; floor.position.y = -0.02;
+
+/* ---------- assemble ---------- */
+const tree = new THREE.Group();
+tree.add(barkMesh, blossoms, buds, falling, ground, floor);
+scene.add(tree);
+
+scene.add(new THREE.HemisphereLight(0xfff6ec, 0xd8c6b4, 1.7));
+const sun = new THREE.DirectionalLight(0xfff1e0, 2.4); sun.position.set(6, 10, 5); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xf6e6ff, 0.7); fill.position.set(-7, 4, -6); scene.add(fill);
+
+/* ==================================================================
+   THE LINKS — tags on the outer branch tips, signs round the trunk
+================================================================== */
+const tagEls = [...document.querySelectorAll('.tag:not(.sign)')];
+const signEls = [...document.querySelectorAll('.tag.sign')];
+
+// pick a tip for each tag. Landscape: slots round the silhouette, four down the
+// left, three down the right. Portrait: seven low tips across the front, so the
+// tags hang in a row under the canopy. Always from the front half, as far out as
+// the canopy goes, at the resting angle.
+const tips = branches.filter(b => b.depth === 4).map(b => b.pts[b.pts.length - 1]);
+const SLOTS_WIDE = [
+  { x: -1, h: 0.82 }, { x: 1, h: 0.76 },
+  { x: -1, h: 0.56 }, { x: 1, h: 0.46 },
+  { x: -1, h: 0.32 }, { x: 1, h: 0.18 },
+  { x: -1, h: 0.08 },
+];
+const SLOTS_TALL = [-0.9, -0.6, -0.3, 0, 0.3, 0.6, 0.9].map((x, i) => ({ x, h: 0.12 + (i % 2) * 0.12, tall: true }));
+let SLOTS = SLOTS_WIDE, tagAnchors = [], threadLen = [];
+function chooseAnchors(slots) {
+  SLOTS = slots; tagAnchors = []; threadLen = [];
+  const up = V3(0, 1, 0), used = new Set();
+  for (const slot of slots) {
+    let best = null, bestScore = -1e9;
+    for (const p of tips) {
+      if (used.has(p)) continue;
+      const v = p.clone().applyAxisAngle(up, BASE_YAW);          // where it sits in view at rest
+      if (v.z < 0) continue;                                        // the front half only
+      const hy = (p.y - canopyBot) / (canopyTop - canopyBot);
+      let score;
+      if (slot.tall) {
+        score = -Math.abs(v.x / canopyR - slot.x) * 4 - Math.abs(hy - slot.h) * 2.5 + v.z / canopyR * 1.2;
+      } else {
+        const out = (v.x * slot.x) / canopyR;                       // how far out on that side
+        if (out < 0.3) continue;
+        score = out * 2.2 - Math.abs(hy - slot.h) * 3.2 + v.z / canopyR * 1.0;
+      }
+      if (score > bestScore) { bestScore = score; best = p; }
+    }
+    if (!best) best = V3(slot.x * canopyR, canopyBot + slot.h * (canopyTop - canopyBot), canopyR * 0.5).applyAxisAngle(up, -BASE_YAW);
+    used.add(best);
+    tagAnchors.push(best.clone());
+    threadLen.push(slot.tall ? 0.8 + (slot.h - 0.12) * 3 : 0.7 + slot.h * 0.7);
+  }
+}
+chooseAnchors(SLOTS_WIDE);
+const swingA = new Float32Array(tagEls.length), swingV = new Float32Array(tagEls.length), swingPh = tagEls.map((_, i) => i * 1.7);
+
+// a rough silhouette of the canopy on screen, refreshed each frame from a sample
+// of blossoms: how far out it reaches per row, and how far down per column
+const SIL_ROWS = 48, SIL_COLS = 32;
+const silL = new Float32Array(SIL_ROWS), silR = new Float32Array(SIL_ROWS), silB = new Float32Array(SIL_COLS);
+const silSample = sites.slice(0, 900).map(s => s.p);
+
+// threads: drawn in 2D, from the projected tip to the tag's pinhole
+const threadSvg = document.querySelector('.threads');
+const threadLines = tagEls.map(() => { const l = document.createElementNS('http://www.w3.org/2000/svg', 'line'); threadSvg.appendChild(l); return l; });
+
+/* ==================================================================
+   CAMERA, INPUT, LOOP
+================================================================== */
+let W = 1, H = 1, camDist = 10, portrait = false;
+const look = V3(0, canopyMid - 0.9, 0);
+let tagWidths = [], tagHeights = [];
+function fitCamera() {
+  W = innerWidth; H = innerHeight;
+  const wasPortrait = portrait;
+  portrait = W < H;
+  if (portrait !== wasPortrait || !tagAnchors.length) chooseAnchors(portrait ? SLOTS_TALL : SLOTS_WIDE);
+  camera.aspect = W / H;
+  camera.fov = portrait ? 58 : 36;
+  const vf = camera.fov * Math.PI / 360;
+  const hf = Math.atan(Math.tan(vf) * camera.aspect);
+  const R = canopyFitR + (portrait ? 0.15 : 1.2);                // room for the tags at the sides
+  const dist = Math.max(R * (portrait ? 1.0 : 1.08) / Math.tan(hf), (canopyTop - (canopyMid - 0.9) + 0.8) * 1.15 / Math.tan(vf));
+  camDist = dist;
+  const treeMid = canopyMid - 0.9;
+  if (portrait) {
+    // the tree sits in the top part of the screen; the tags hang in the space below it
+    const halfH = dist * Math.tan(vf);
+    look.y = treeMid - (0.5 - 0.34) * 2 * halfH;
+  } else look.y = treeMid;
+  camera.position.set(0, look.y + dist * 0.13, dist);
+  camera.lookAt(look);
+  camera.updateProjectionMatrix();
+  scene.fog.near = dist + canopyR * 1.2; scene.fog.far = dist + canopyR * 1.2 + 34;
+  renderer.setSize(W, H, false);
+  threadSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  tagWidths = tagEls.map(el => el.firstElementChild.offsetWidth);
+  tagHeights = tagEls.map(el => el.firstElementChild.offsetHeight + 9);
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitCamera);
+fitCamera();
+addEventListener('resize', fitCamera);
+
+let yawOff = 0, yawVel = 0;
+let mouseX = 0, dragging = false, dragX = 0, dragMoved = 0, lastDragT = 0, pointerId = null;
+canvas.addEventListener('pointerdown', e => {
+  dragging = true; dragX = e.clientX; dragMoved = 0; pointerId = e.pointerId;
+  canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging');
+  lastDragT = performance.now();
+});
+canvas.addEventListener('pointermove', e => {
+  if (!dragging) { mouseX = (e.clientX / W - 0.5) * 2; return; }
+  const dx = e.clientX - dragX; dragX = e.clientX; dragMoved += Math.abs(dx);
+  yawOff += dx * 0.006; yawVel = dx * 0.006 * 60 / Math.max(1, (performance.now() - lastDragT) * 0.06);
+  lastDragT = performance.now();
+  for (let i = 0; i < swingV.length; i++) swingV[i] -= dx * 0.01;
+  document.querySelector('.drag-hint').classList.add('gone');
+});
+function endDrag(e) {
+  if (!dragging) return;
+  dragging = false; canvas.classList.remove('dragging');
+  yawOff = Math.atan2(Math.sin(yawOff), Math.cos(yawOff));     // come home the short way
+  if (dragMoved < 6) shake();
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+function shake() {
+  gust = 1; gustDir = Math.random() < 0.5 ? -1 : 1;
+  for (let i = 0; i < swingV.length; i++) swingV[i] += gustDir * (1.6 + Math.random() * 0.8);
+  // a burst of petals: wake the reserve
+  let room = N_FALL_MAX - activeFall;
+  for (let i = activeFall; i < N_FALL_MAX && room-- > 0; i++) spawnPetal(i, false);
+  activeFall = N_FALL_MAX;
+  falling.instanceColor.needsUpdate = true;
+}
+
+/* ---------- per-frame ---------- */
+const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _e = new THREE.Euler(), _qq = new THREE.Quaternion(), _sc = new THREE.Vector3();
+const _right = new THREE.Vector3();
+let last = performance.now(), t = 0, frames = 0, slowFrames = 0, quality = 2;
+const stats = { frames: 0, ms: [], js: [] };
+window.__stats = stats;
+
+function project(world, out) {
+  _v.copy(world).project(camera);
+  out.x = (_v.x * 0.5 + 0.5) * W; out.y = (-_v.y * 0.5 + 0.5) * H; out.z = _v.z;
+}
+const scr = { x: 0, y: 0, z: 0 };
+
+function placeLabel(el, sx, sy, worldPos, angleDeg, depthFade) {
+  // perspective scale: things at the back a touch smaller
+  const dist = camera.position.distanceTo(worldPos);
+  const sc = Math.max(0.88, Math.min(1.08, camera.position.distanceTo(look) / dist));
+  el.style.transform = `translate3d(${sx.toFixed(1)}px,${sy.toFixed(1)}px,0) translateX(-50%) rotate(${angleDeg.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+  el.style.opacity = depthFade.toFixed(2);
+  el.classList.toggle('far', depthFade < 0.5);
+  el.style.visibility = 'visible';
+}
+const tipScr = { x: 0, y: 0, z: 0 }, lowScr = { x: 0, y: 0, z: 0 };
+function depthFadeOf(worldPos) {
+  // how far behind the trunk is it, in view space?
+  _w.copy(worldPos).applyMatrix4(camera.matrixWorldInverse);
+  const zc = _v.copy(look).applyMatrix4(camera.matrixWorldInverse).z;
+  const behind = zc - _w.z;                  // positive = farther than the trunk
+  return behind > 0.8 ? Math.max(0.28, 1 - (behind - 0.8) * 0.4) : 1;
+}
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+  const js0 = performance.now();
+
+  // turning: a slow sway at rest; drag to walk round, and it drifts back
+  if (!dragging) {
+    yawOff += yawVel * dt; yawVel *= Math.pow(0.05, dt);
+    if (Math.abs(yawVel) < 0.2) yawOff -= yawOff * Math.min(1, dt * 0.7);
+  }
+  const sway = reduceMotion ? 0 : Math.sin(t * 0.22) * 0.09;
+  const parallax = isMobile ? 0 : mouseX * 0.1;
+  tree.rotation.y = BASE_YAW + sway + parallax + yawOff;
+  tree.updateMatrixWorld();
+  camera.updateMatrixWorld();
+  _right.setFromMatrixColumn(camera.matrixWorld, 0);
+
+  // wind
+  gust = Math.max(0, gust - dt * 0.6);
+  const wind = Math.sin(t * 0.7) * 0.25 + Math.sin(t * 1.9) * 0.1 + gust * gustDir * 1.2;
+
+  // falling petals
+  if (activeFall) {
+    for (let i = 0; i < activeFall; i++) {
+      if (!falive[i]) continue;
+      const i3 = i * 3;
+      fp[i3] += (fv[i3] + wind * 0.8 + Math.sin(t * 2.1 + fphase[i]) * 0.35) * dt;
+      fp[i3 + 1] += fv[i3 + 1] * dt * (0.85 + 0.3 * Math.sin(t * 3 + fphase[i]));
+      fp[i3 + 2] += (fv[i3 + 2] + Math.cos(t * 1.7 + fphase[i]) * 0.3) * dt;
+      frot[i3] += fspin[i3] * dt; frot[i3 + 1] += fspin[i3 + 1] * dt; frot[i3 + 2] += fspin[i3 + 2] * dt;
+      if (fp[i3 + 1] < 0.02) {
+        if (i < N_FALL) spawnPetal(i, false); else { falive[i] = 0; _m.makeScale(0, 0, 0); falling.setMatrixAt(i, _m); continue; }
+      }
+      _e.set(frot[i3], frot[i3 + 1], frot[i3 + 2]); _qq.setFromEuler(_e);
+      _sc.setScalar(fsize[i]);
+      _m.compose(_v.set(fp[i3], fp[i3 + 1], fp[i3 + 2]), _qq, _sc);
+      falling.setMatrixAt(i, _m);
+    }
+    falling.instanceMatrix.needsUpdate = true;
+    if (activeFall > N_FALL && gust <= 0) {       // the gust has landed: shrink the loop again
+      let any = false; for (let i = N_FALL; i < activeFall; i++) if (falive[i]) { any = true; break; }
+      if (!any) activeFall = N_FALL;
+    }
+  }
+
+  // the canopy's outline on screen this frame
+  silL.fill(1e9); silR.fill(-1e9); silB.fill(-1e9);
+  for (const p of silSample) {
+    tree.localToWorld(_w.copy(p)); project(_w, tipScr);
+    const r = (tipScr.y / H * SIL_ROWS) | 0, c = (tipScr.x / W * SIL_COLS) | 0;
+    if (r >= 0 && r < SIL_ROWS) { if (tipScr.x < silL[r]) silL[r] = tipScr.x; if (tipScr.x > silR[r]) silR[r] = tipScr.x; }
+    if (c >= 0 && c < SIL_COLS && tipScr.y > silB[c]) silB[c] = tipScr.y;
+  }
+
+  // tags: pendulums hung from the tips, kept clear of the blossoms and of each other
+  const placed = [];
+  for (let i = 0; i < tagEls.length; i++) {
+    const L = threadLen[i], slot = SLOTS[i];
+    const breeze = reduceMotion ? 0 : (wind * 0.5 + Math.sin(t * 1.3 + swingPh[i]) * 0.12);
+    swingV[i] += (-(9.8 / L) * Math.sin(swingA[i]) - 1.1 * swingV[i] + breeze) * dt;
+    swingA[i] += swingV[i] * dt;
+    const a = swingA[i];
+    tree.localToWorld(_w.copy(tagAnchors[i]));                 // the tip, in world
+    project(_w, tipScr);
+    _v2.copy(_w); _v2.y -= L; project(_v2, lowScr);
+    const Lpx = Math.max(24, lowScr.y - tipScr.y);             // the thread, in pixels at that depth
+    let ex = tipScr.x + Math.sin(a) * Lpx, ey = tipScr.y + Math.cos(a) * Lpx;
+    const half = (tagWidths[i] || 80) / 2 + 6, th = tagHeights[i] || 40;
+    if (slot.tall) {
+      // under the canopy: below the lowest blossom in the tag's columns
+      const c0 = Math.max(0, ((ex - half) / W * SIL_COLS) | 0), c1 = Math.min(SIL_COLS - 1, ((ex + half) / W * SIL_COLS) | 0);
+      let bottom = -1e9; for (let c = c0; c <= c1; c++) if (silB[c] > bottom) bottom = silB[c];
+      if (bottom > -1e8) ey = Math.max(ey, bottom + 4);
+    } else {
+      // beside the canopy: outside the widest blossom in the tag's rows
+      const r0 = Math.max(0, ((ey - 4) / H * SIL_ROWS) | 0), r1 = Math.min(SIL_ROWS - 1, ((ey + th) / H * SIL_ROWS) | 0);
+      if (slot.x > 0) { let edge = -1e9; for (let r = r0; r <= r1; r++) if (silR[r] > edge) edge = silR[r]; if (edge > -1e8) ex = Math.max(ex, edge + half + 2); }
+      else { let edge = 1e9; for (let r = r0; r <= r1; r++) if (silL[r] < edge) edge = silL[r]; if (edge < 1e8) ex = Math.min(ex, edge - half - 2); }
+    }
+    ex = Math.max(half + 4, Math.min(W - half - 4, ex));       // and on the page
+    for (let pass = 0; pass < 8; pass++) {                        // and not on another tag
+      let moved = false;
+      for (const q of placed) if (ex + half > q.x0 && ex - half < q.x1 && ey < q.y1 && ey + th > q.y0) { ey = q.y1 + 6; moved = true; }
+      if (!moved) break;
+    }
+    ey = Math.min(ey, H - th - (isMobile ? 96 : 70));            // never into the footer
+    placed.push({ x0: ex - half, x1: ex + half, y0: ey, y1: ey + th });
+    const dx = ex - tipScr.x, dy = Math.max(1, ey - tipScr.y);
+    const maxTilt = slot.tall ? 4 : 14;
+    const angle = Math.max(-maxTilt, Math.min(maxTilt, -Math.atan2(dx, dy) * 180 / Math.PI));
+    const fade = depthFadeOf(_w);
+    const stretch = Math.hypot(dx, dy) / Math.max(W, H);          // a thread dragged across the tree fades out
+    const threadFade = fade * Math.max(0, Math.min(1, 1 - (stretch - 0.28) / 0.14));
+    placeLabel(tagEls[i], ex, ey, _w, angle, fade);
+    const ln = threadLines[i];
+    ln.setAttribute('x1', tipScr.x.toFixed(1)); ln.setAttribute('y1', tipScr.y.toFixed(1));
+    ln.setAttribute('x2', ex.toFixed(1)); ln.setAttribute('y2', ey.toFixed(1));
+    ln.style.opacity = threadFade.toFixed(2);
+  }
+  if (!isMobile) for (let i = 0; i < signEls.length; i++) {
+    tree.localToWorld(_w.copy(signAnchors[i]));
+    project(_w, tipScr);
+    placeLabel(signEls[i], tipScr.x, tipScr.y, _w, 0, depthFadeOf(_w));
+  }
+
+  if (frames > 10 && frames < 400) stats.js.push(performance.now() - js0);
+  renderer.render(scene, camera);
+
+  // keep it smooth: if frames are slow, drop the pixel ratio, then the drift
+  frames++;
+  if (frames > 30 && frames < 400) {
+    const ms = now - (frame._prev || now);
+    stats.ms.push(ms);
+    if (ms > 28) slowFrames++; else slowFrames = Math.max(0, slowFrames - 1);
+    if (slowFrames > 25) {
+      slowFrames = 0;
+      if (quality === 2 && DPR > 1) { DPR = Math.max(1, DPR - 0.5); renderer.setPixelRatio(DPR); quality = 1; }
+      else if (quality === 1) { activeFall = Math.min(activeFall, Math.floor(N_FALL / 2)); quality = 0; }
+    }
+  }
+  frame._prev = now;
+  stats.frames = frames; stats.dpr = DPR; stats.quality = quality;
+  if (frames === 2) document.body.classList.add('ready');
+  if (!document.hidden) requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
+requestAnimationFrame(frame);
+
+stats.info = renderer.info; stats.renderer = renderer;
+stats.counts = { branches: branches.length, blossoms: N_BLOSSOM, buds: N_BUD, sites: sites.length, barkVerts: barkGeo.attributes.position.count, blossomTris: blossomGeo.index.count / 3 };
+
+/* ---------- copy email ---------- */
+function copyEmail() {
+  navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
+    const toast = document.getElementById('copyToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  });
+}
+document.addEventListener('keydown', e => {
+  if ((e.key === 'c' || e.key === 'C') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.metaKey && !e.ctrlKey) copyEmail();
+});
+document.getElementById('mobileCopy').addEventListener('click', copyEmail);
+</script>
+</body>
+</html>
