@@ -791,7 +791,10 @@
       color: keep ? keep.color : (Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT)),
       alpha: keep ? keep.alpha : rng(0.55, 0.90),
       noLand: keep ? 45 : 0,
-      drag: 0
+      drag: 0,
+      // its own landing depth: the ground is a band, not a line. Most come
+      // down near the front edge, some further back.
+      landY: H * 0.90 - 8 + Math.pow(Math.random(), 1.6) * H * 0.07
     };
   }
 
@@ -836,7 +839,10 @@
         }
         if (landed) { airPetals.splice(i, 1); continue; }
       }
-      const gy = H * 0.90;
+      // Near the trunk the mound rises, so petals there rest a little higher.
+      const moundR = isMobile ? W * 0.36 : W * 0.24;
+      const lift = Math.max(0, 1 - Math.pow((p.x - TREE_X) / moundR, 2)) * 22;
+      const gy = (p.landY || H * 0.90) - lift;
       if (p.y > gy) {
         // Every petal that lands should actually be seen — if we're at the cap,
         // retire the oldest resting petal instead of silently dropping the new one
@@ -846,8 +852,11 @@
         // It used to drop to a fifth of its strength the instant it touched
         // down, which read as vanishing. Now it keeps its colour and settles
         // to a resting strength over a second and a half, then fades slowly.
-        groundPetals.push({ x: p.x, y: gy + rng(0, 5), r: p.r * rng(0.75, 0.95),
-          rot: p.rot, color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0 });
+        // It doesn't stop dead: it skids a little the way it was going, and
+        // turns to lie flatter, over the next second or so.
+        groundPetals.push({ x: p.x, y: gy + rng(-1, 2), r: p.r * rng(0.75, 0.95),
+          rot: p.rot, rotT: rng(-1.3, 1.3), sx: p.vx * 1.6 + windX * 0.25 + rng(-0.15, 0.15), slide: 45,
+          color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0 });
         airPetals.splice(i, 1); continue;
       }
       if (p.x < -100 || p.x > W + 100 || p.y < -150) airPetals.splice(i, 1);
@@ -855,6 +864,7 @@
 
     for (let i = groundPetals.length - 1; i >= 0; i--) {
       const g = groundPetals[i];
+      if (g.slide > 0) { g.x += g.sx; g.sx *= 0.93; g.rot += (g.rotT - g.rot) * 0.08; g.slide--; }
       if (g.settle !== undefined && g.settle < 1) g.settle += 1 / 90;
       g.age += 0.00006;   // ~4.5 minutes on the ground
       if (g.age > 1) groundPetals.splice(i, 1);

@@ -117,7 +117,7 @@
     }
     .lunge.in img { transform: scale(1.35); }     /* keeps coming after it has filled the screen */
     .lunge.out { transition-duration: 0.35s; transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-    body.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .swamp.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
     @keyframes shake {
       10%, 90% { transform: translate(-2px, 1px); }
       20%, 80% { transform: translate(4px, -2px); }
@@ -126,7 +126,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .ogre, .ogre.jiggle, body.shook { animation: none; }
+      .ogre, .ogre.jiggle, .swamp.shook { animation: none; }
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
@@ -149,6 +149,21 @@
   ];
   const cutouts = new Set(['somebody-once-told-me.png', 'green.png', 'pinocchio.png']);
   const rng = (a, b) => a + Math.random() * (b - a);
+
+  // /shrek?debug — a small readout of what the device fires, for when a
+  // phone misbehaves and I can't hold it
+  const DEBUG = /[?&]debug/.test(location.search);
+  let dbgEl = null;
+  function dbg(msg) {
+    if (!DEBUG) return;
+    if (!dbgEl) { dbgEl = document.createElement('pre'); dbgEl.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;font:12px/1.3 monospace;color:#fff;background:rgba(0,0,0,.7);padding:6px 8px;max-width:80vw;white-space:pre-wrap;pointer-events:none'; document.body.appendChild(dbgEl); }
+    dbgEl.textContent = (dbgEl.textContent + '\n' + ((performance.now() | 0) + ' ' + msg)).split('\n').slice(-9).join('\n');
+  }
+  if (DEBUG) {
+    dbg(navigator.userAgent.slice(0, 70));
+    for (const n of ['pointerdown', 'pointerup', 'pointercancel', 'click', 'touchstart', 'touchend']) document.addEventListener(n, e => dbg(n + ' ' + (e.target.className || e.target.tagName)), true);
+    window.addEventListener('error', e => dbg('ERROR ' + e.message));
+  }
 
   // ---- the shapes. Each is a polygon in percentages, so it fits any size.
   // `square` ones crop the photo square first so the shape isn't stretched.
@@ -301,6 +316,17 @@
       if (dragged || dragEl || performance.now() - lastLunge < 700) return;
       lastLunge = performance.now(); comeAtMe(el);
     });
+    // And the oldest path of all, which every iPhone has had since 2007:
+    // a finger lifted where it landed is a tap.
+    let tx = 0, ty = 0, tMoved = false;
+    el.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; tMoved = false; }, { passive: true });
+    el.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.hypot(t.clientX - tx, t.clientY - ty) > 12) tMoved = true; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      dbg('touchend moved=' + tMoved + ' dragged=' + dragged);
+      if (tMoved || dragged || performance.now() - lastLunge < 700) return;
+      if (dragEl === el) dragEl = null;
+      lastLunge = performance.now(); comeAtMe(el);
+    }, { passive: true });
   });
 
   // The lunge: a copy of the picture starts exactly where it is, fills the
@@ -324,24 +350,26 @@
     place(lunge, { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight });
     lunge.classList.add('in');
     play('roar');
-    document.body.classList.remove('shook'); void document.body.offsetWidth; document.body.classList.add('shook');
+    swamp.classList.remove('shook'); void swamp.offsetWidth; swamp.classList.add('shook');
+    dbg('lunge open');
     const back = () => {
       if (!lunge) return;
       clearTimeout(retreatTimer);
       const el = lunge; lunge = null;
+      dbg('lunge close');
       el.classList.remove('in'); el.classList.add('out');
       place(el, img.getBoundingClientRect());
       setTimeout(() => el.remove(), 380);
     };
-    // On a touch screen the tap that opened this is followed ~50ms later by
-    // a click, delivered to whatever is under the finger — which is now this.
-    // Ignore clicks in its first moments so that click can't close it.
+    // Phones deliver the opening tap's click late and to whatever is under
+    // the finger — by then, this. So this never closes on a click: only on a
+    // fresh touch after it has settled, Escape, or the timer.
     const born = performance.now();
-    lunge.addEventListener('click', () => { if (performance.now() - born > 350) back(); });
+    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (performance.now() - born > 300) back(); });
     retreatTimer = setTimeout(back, 1500);
     document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
   }
-  document.body.addEventListener('animationend', e => { if (e.animationName === 'shake') document.body.classList.remove('shook'); });
+  swamp.addEventListener('animationend', e => { if (e.animationName === 'shake') swamp.classList.remove('shook'); });
 })();
 </script>
 
