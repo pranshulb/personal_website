@@ -84,7 +84,8 @@ const server = http.createServer(async (req, res) => {
   let rel = REWRITES[url.pathname] || url.pathname.replace(/^\//, '');
   if (rel === '') rel = 'index.html';
   let file = path.join(REPO, rel);
-  if (!fs.existsSync(file) && fs.existsSync(file + '.html')) file = file + '.html';
+  // cleanUrls: /foo serves foo.html, even when a foo/ directory exists beside it
+  if ((!fs.existsSync(file) || fs.statSync(file).isDirectory()) && fs.existsSync(file + '.html')) file = file + '.html';
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.statusCode = 404; return res.end('not found'); }
   res.setHeader('content-type', MIME[path.extname(file)] || 'application/octet-stream');
   fs.createReadStream(file).pipe(res);

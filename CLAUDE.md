@@ -29,6 +29,7 @@ examined/, examinedv2/      philosophy personality test
 community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
+petals.js                   the home page's falling petals, shared by the subpages
 middleware.js               edge auth gate for private pages
 vercel.json                 routing, headers, proxies
 ```
@@ -47,6 +48,24 @@ vercel.json                 routing, headers, proxies
 - **Typewriter variants**: several pages have a `-typed.html` twin routed at
   `/typewriter/<page>`. If you add an entry to a list page, check whether its
   twin needs the same entry.
+- **Petals and grain come from the home page.** `index.html` draws its
+  petals on a canvas (heart-shaped, the tree's pinks, tumbling, leaning
+  with the pointer, catchable, settling on the title's letters).
+  `petals.js` is that engine on its own, minus the tree and the ground; the
+  six content subpages load it with `<script defer src="/petals.js">` and
+  carry the same `<svg class="grain">` overlay as the home page. They used
+  to each have their own CSS-keyframe petals, which drifted apart over a
+  year. If you change how a petal looks or moves, change it in both
+  `index.html` and `petals.js`; a new page gets the script tag and the
+  grain, not a copy. `data-ledges` on the script tag names the elements
+  petals may settle on (default `h1`; writings adds its list links).
+  The typewriter twins and `writings2.html` (unlinked) were left as they
+  were.
+- **things i like** is a field of draggable words moved by one animation
+  loop (a resting place plus two slow sine waves, a spring-eased drag with
+  a lean and a glide on release, neighbours nudged aside). Position is a
+  `transform`, never `left`/`top` after layout. The ink canvas under the
+  words is stamped along the eased path.
 
 ### Routing and hosting
 
