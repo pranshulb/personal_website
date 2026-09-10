@@ -92,9 +92,10 @@ moderation panel.
 | `/community/suggest` | public suggestion form |
 | `/community/admin` | private moderation panel |
 
-All three carry `noindex, nofollow` and **nothing on the site links to them** —
-this is intentional while the feature is WIP. Remove the meta tag and add a nav
-link in `index.html` when it ships.
+All three still carry `noindex, nofollow` while the feature is WIP. The home
+page (and its twin `garden-home.html`) links to `/community` as "places i've
+liked (a map of london, WIP)" since September 2026; drop the meta tag and the
+"WIP" when it ships.
 
 ### API (`api/community/`)
 
@@ -436,8 +437,8 @@ Two things that cost time writing these:
   palette, with low 3D buildings (September 2026 — see "The map itself").
   It could only be checked with stubbed tiles from the sandbox; the real
   ground was first seen on the Vercel preview.
-- Nothing links to `/community` from `index.html` — Pranshul asked for it to
-  stay unlisted while WIP.
+- `index.html` and `garden-home.html` link to `/community`, marked WIP;
+  the pages stay `noindex` until it ships.
 - There may be leftover test entries in the pending queue (names containing
   `PROBE` or `AUDIT`); they are safe to reject.
 
@@ -448,8 +449,8 @@ Two things that cost time writing these:
    name and area if it looks off.
 2. **Death Cafe** is still the generic London search: pin whichever one he
    actually goes to (Bonnington Centre, Jamyang, 430 On the Go…).
-3. **Ship it**: drop the `noindex` meta from the three community pages and add
-   a nav link in `index.html`.
+3. **Ship it**: drop the `noindex` meta from the three community pages and the
+   "WIP" from the home-page link.
 4. More entries go through `bulk-add` in the admin (the line format takes a
    link and a "month year" after the tags; the JSON form takes `when`, `lat`,
    `lng` too), or through the seed if they should arrive with a deploy.
