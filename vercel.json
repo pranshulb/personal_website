@@ -64,6 +64,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/3d", "destination": "/garden-3d" },
     { "source": "/typewriter/who-am-i", "destination": "/who-am-i-typed" },
     { "source": "/typewriter/questions", "destination": "/questions-typed" },
     { "source": "/typewriter/writings", "destination": "/writings-typed" },
