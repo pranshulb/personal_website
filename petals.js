@@ -201,9 +201,9 @@
     return {
       x, y, vx, vy,
       r: keep ? keep.r : rng(5, 11), rot: keep ? keep.rot : rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
-      // flips every second or two, swings on a slow pendulum (see index.html)
-      tumble: Math.random() * PI2, tumSpd: rng(0.035, 0.075) * (Math.random() < 0.5 ? -1 : 1),
-      swp: Math.random() * PI2, swSpd: rng(0.018, 0.032), swAmp: rng(0.2, 0.55),
+      // turns over every few seconds, drifts a few px side to side (see index.html)
+      tumble: Math.random() * PI2, tumSpd: rng(0.015, 0.04) * (Math.random() < 0.5 ? -1 : 1),
+      swp: Math.random() * PI2, swSpd: rng(0.016, 0.026), swAmp: rng(0.05, 0.13),
       windK: rng(0.7, 1.3),
       color: keep ? keep.color : (Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT)),
       alpha: keep ? keep.alpha : rng(0.55, 0.90),
@@ -221,7 +221,7 @@
   // the home page's gusts: a slow uneven breeze sweeping left to right
   function gustAt(x) {
     const u = t - x / W * 2.2;
-    return 0.32 * (0.5 * Math.sin(u * 0.21) + 0.3 * Math.sin(u * 0.53 + 1.3) + 0.2 * Math.sin(u * 1.1 + 2.4));
+    return 0.2 * (0.5 * Math.sin(u * 0.21) + 0.3 * Math.sin(u * 0.53 + 1.3) + 0.2 * Math.sin(u * 1.1 + 2.4));
   }
 
   function updatePetals() {
@@ -236,8 +236,8 @@
       const foot0 = p.y + p.r * 0.5;
       const cs = Math.cos(p.swp);
       p.x += p.vx + cs * p.swAmp + gustAt(p.x) * p.windK;
-      p.y += p.vy * (0.55 + 0.9 * cs * cs);
-      p.rot += p.rotV + cs * p.swSpd * 0.45;
+      p.y += p.vy * (0.82 + 0.36 * cs * cs);
+      p.rot += p.rotV + cs * p.swSpd * 0.2;
       p.tumble += p.tumSpd;
 
       if (p.noLand > 0) p.noLand--;
