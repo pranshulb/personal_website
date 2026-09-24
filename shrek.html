@@ -10,7 +10,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
+    /* nothing on this page scrolls or zooms: no rubber-banding when a swipe
+       misses a photo, no double-tap zoom, no long-press menu or text
+       selection, no grey flash on a tap */
+    html, body { height: 100%; overscroll-behavior: none; touch-action: none; }
 
     body {
       font-family: 'Unkempt', cursive;
@@ -18,6 +21,10 @@
       color: #2b3a16;
       overflow: hidden;
       position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* paper grain, same as the rest of the site */
@@ -190,14 +197,19 @@
   const SHAPE_NAMES = ['heart', 'star', 'onion', 'cloud', 'splat', 'flower', 'scrap', 'bolt', 'bubble', 'wonky', 'wobble', 'heart', 'star', 'splat'];
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const swamp = document.getElementById('swamp');
+  // `phone` shapes the pile (narrow screen: three columns of big photos);
+  // `light` picks the photos. A phone held sideways is wider than 640 but is
+  // still a phone, and forty full-size photos are what made iPhones stop
+  // drawing them — so anything without a mouse gets the light set.
   const phone = window.innerWidth < 640;
+  const light = phone || !(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
 
   // The pile: every picture once, and half of them a second time, on a
   // jittered grid so the whole screen is shrek. A different pile every visit.
   // Phones get each photo once, from a set sized for a phone; a big screen
   // gets every photo plus half of them again, full size.
-  const list = phone ? shuffle(files.slice()) : shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
-  const dir = phone ? '/images/shrek/small/' : '/images/shrek/';
+  const list = light ? shuffle(files.slice()) : shuffle(files.slice().concat(shuffle(files.slice()).slice(0, Math.floor(files.length / 2))));
+  const dir = light ? '/images/shrek/small/' : '/images/shrek/';
   const cols = phone ? 3 : 6, rows = Math.ceil(list.length / cols);
   let zTop = list.length;
   const ogres = list.map((f, i) => {
@@ -207,7 +219,9 @@
     const cx = ((i % cols) + 0.5) * (100 / cols), cy = (Math.floor(i / cols) + 0.5) * (100 / rows);
     el.style.setProperty('--w', w + 'vw');
     el.style.setProperty('--x', (cx - w / 2 + rng(-12, 12)) + 'vw');
-    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.3) + rng(-10, 10)) + 'vh');
+    // % of the swamp, which is the screen you can see: on a phone 100vh is
+    // the screen with the toolbars hidden, so the bottom row sat under them
+    el.style.setProperty('--y', (cy - w * (phone ? 0.18 : 0.3) + rng(-10, 10)) + '%');
     el.style.setProperty('--r', rng(-22, 22).toFixed(1) + 'deg');
     el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
     el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
@@ -227,17 +241,34 @@
   /* ---- sounds: made on the spot with the Web Audio API. No files, nothing
      borrowed, and they are goofier this way. The browser only lets a page
      make noise after a tap or click, so the first sound is on the first
-     interaction, and the switch bottom-right turns them off. */
+     interaction, and the switch bottom-right turns them off.
+
+     iPhones need two more things, or the first roar is the only one:
+     - iOS files a page that only makes Web Audio under "ambient" sound,
+       which the silent switch mutes. The most likely reading of "the first
+       one plays and then nothing" on a phone in silent mode is that the
+       switch-over lands after the first sound has started. Asking for
+       "playback" (navigator.audioSession, Safari 16.4+) plays through the
+       switch, like a video would. /shrek?debug shows which one it got.
+     - iOS pauses the sound ("interrupted", not "suspended") when the phone
+       locks, another app plays, or the tab goes to the background, and only
+       a tap may start it again. So every tap wakes it, not just the first. */
   let ac = null, master = null;
   let muted = false;
   try { muted = localStorage.getItem('shrek-sound') === 'off'; } catch (e) {}
+  function session(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) {} }
   function audio() {
-    if (!ac) {
+    session('playback');
+    if (!ac || ac.state === 'closed') {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       master = ac.createGain(); master.gain.value = muted ? 0 : 1; master.connect(ac.destination);
     }
-    if (ac.state === 'suspended') ac.resume();
+    if (ac.state !== 'running') { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); }
     return ac;
+  }
+  // every kind of event a browser counts as a tap, before anything else sees it
+  for (const n of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
+    document.addEventListener(n, () => { if (!muted) try { audio(); } catch (e) {} }, true);
   }
   function tone(type, f0, f1, dur, vol) {
     const c = audio(), o = c.createOscillator(), g = c.createGain(), now = c.currentTime;
@@ -268,7 +299,19 @@
       tone('sawtooth', 120, 36, 0.75, 0.33); tone('sawtooth', 128, 40, 0.75, 0.33); tone('square', 1500, 700, 0.12, 0.07);
     },
   };
-  function play(name) { if (muted) return; try { sfx[name](); } catch (e) {} }
+  // A sound asked for while the context is still waking waits for it, rather
+  // than being scheduled on a clock that isn't running — unless waking takes
+  // so long that the sound would come after the thing it goes with.
+  function play(name) {
+    if (muted) return;
+    try {
+      const c = audio();
+      dbg('sound ' + name + ' ' + c.state + (navigator.audioSession ? ' ' + navigator.audioSession.type : ' no-session'));
+      if (c.state === 'running') return sfx[name]();
+      const asked = performance.now();
+      c.resume().then(() => { if (performance.now() - asked < 400) sfx[name](); }).catch(() => {});
+    } catch (e) { dbg('sound error ' + e.message); }
+  }
 
   const btn = document.getElementById('sound');
   const showSound = () => { btn.textContent = muted ? 'sound: off' : 'sound: on'; };
@@ -277,6 +320,7 @@
     muted = !muted;
     try { localStorage.setItem('shrek-sound', muted ? 'off' : 'on'); } catch (e) {}
     if (master) master.gain.value = muted ? 0 : 1;
+    if (muted) session('auto');   // give the phone's music back
     showSound();
     play('blip');
   });
@@ -307,7 +351,13 @@
       if (dragEl !== el) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
       if (!dragged && Math.hypot(dx, dy) > (e.pointerType === 'touch' ? 12 : 5)) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
-      if (dragged) { el.style.left = (ox + dx) + 'px'; el.style.top = (oy + dy) + 'px'; }
+      // held by its middle inside the window: a mouse keeps the photo after it
+      // leaves the window, and one dropped out there was gone for good
+      if (dragged) {
+        const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2;
+        el.style.left = Math.min(Math.max(ox + dx, -hw), window.innerWidth - hw) + 'px';
+        el.style.top = Math.min(Math.max(oy + dy, -hh), window.innerHeight - hh) + 'px';
+      }
     });
     const letGo = e => {
       if (dragEl !== el) return;
@@ -325,13 +375,20 @@
       lastLunge = performance.now(); comeAtMe(el);
     });
     // And the oldest path of all, which every iPhone has had since 2007:
-    // a finger lifted where it landed is a tap.
-    let tx = 0, ty = 0, tMoved = false;
-    el.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; tMoved = false; }, { passive: true });
-    el.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.hypot(t.clientX - tx, t.clientY - ty) > 12) tMoved = true; }, { passive: true });
+    // a finger lifted where it landed is a tap. Followed by its own
+    // identifier: `touches[0]` is whichever finger went down first, anywhere,
+    // so a second finger used to be judged by the first one's movement.
+    let tid = null, tx = 0, ty = 0, tMoved = false;
+    const own = list => { for (const t of list) if (t.identifier === tid) return t; return null; };
+    el.addEventListener('touchstart', e => { if (tid !== null && e.touches.length > 1) return; const t = e.changedTouches[0]; tid = t.identifier; tx = t.clientX; ty = t.clientY; tMoved = false; }, { passive: true });
+    el.addEventListener('touchmove', e => { const t = own(e.changedTouches); if (t && Math.hypot(t.clientX - tx, t.clientY - ty) > 12) tMoved = true; }, { passive: true });
+    el.addEventListener('touchcancel', e => { if (own(e.changedTouches)) tid = null; }, { passive: true });
     el.addEventListener('touchend', e => {
+      if (!own(e.changedTouches)) return;
+      tid = null;
       dbg('touchend moved=' + tMoved + ' dragged=' + dragged);
-      if (tMoved || dragged || performance.now() - lastLunge < 700) return;
+      // a second finger lifted from another photo while one is being carried is not a tap
+      if (tMoved || dragged || (dragEl && dragEl !== el) || performance.now() - lastLunge < 700) return;
       if (dragEl === el) dragEl = null;
       lastLunge = performance.now(); comeAtMe(el);
     }, { passive: true });
@@ -341,7 +398,11 @@
   // screen in a fifth of a second with a little overshoot, keeps creeping
   // closer, and the page shakes. Another click, Escape, or a moment later,
   // it goes back where it came from.
-  let lunge = null, retreatTimer = 0, closedAt = -1e9;
+  let lunge = null, retreatTimer = 0, closedAt = -1e9, closeLunge = () => {};
+  // one Escape listener for the page. Each lunge used to add its own and only
+  // remove it on Escape, so they piled up, and the stale ones closed whichever
+  // lunge was open — shrinking it back onto the wrong photo.
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLunge(); });
   // the transform that shrinks a full-screen box onto a photo's rectangle
   function onto(r) {
     const W = window.innerWidth, H = window.innerHeight;
@@ -366,8 +427,9 @@
     play('roar');
     swamp.classList.remove('shook'); void swamp.offsetWidth; swamp.classList.add('shook');
     dbg('lunge open');
+    const thisLunge = lunge;
     const back = () => {
-      if (!lunge) return;
+      if (lunge !== thisLunge) return;
       clearTimeout(retreatTimer);
       const el = lunge; lunge = null;
       closedAt = performance.now();
@@ -384,9 +446,8 @@
     const born = performance.now();
     lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(); });
     lunge.addEventListener('click', e => e.stopPropagation());   // the late click ends here, not on a photo
-    const thisLunge = lunge;
+    closeLunge = back;
     retreatTimer = setTimeout(back, 1500);
-    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { back(); document.removeEventListener('keydown', esc); } });
   }
   swamp.addEventListener('animationend', e => { if (e.animationName === 'shake') swamp.classList.remove('shook'); });
 })();
