@@ -1717,6 +1717,9 @@ h1, h2, h3 { font-weight: 400; }
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 main:focus { outline: none; }
+/* headings get focus from the script so screen readers announce them; they aren't controls,
+   so no focus box (Chrome draws one when the page opens straight onto a finished result) */
+.results-name:focus, .scenario-title:focus { outline: none; }
 [hidden] { display: none !important; }
 button { font: inherit; color: inherit; }
 .btn:focus-visible, .btn-small:focus-visible, .btn-link:focus-visible, .path-card:focus-visible,
@@ -3550,7 +3553,7 @@ function renderWall(entries, selfName) {
   const shown = [...entries].reverse().slice(0, 50);
   list.innerHTML = `<p class="wall-count">${entries.length} ${entries.length === 1 ? 'name' : 'names'} so far</p>
     <ol class="wall-names">${shown.map(e => `
-      <li${selfName && e.name === selfName ? ' class="self"' : ''}${e.date ? ` title="${escapeHtml(e.date)}"` : ''}>
+      <li${selfName && e.name === selfName ? ' class="self"' : ''}${e.date ? ` title="${escapeHtml(e.date).replace(/"/g, '&quot;')}"` : ''}>
         <span class="wall-name">${escapeHtml(e.name)}</span>
         <span class="wall-dots" aria-hidden="true"></span>
         <span class="wall-arch">${escapeHtml(String(e.archetype || '').replace(/^The /, ''))}</span>
@@ -3904,7 +3907,8 @@ function calculateArchetypeRarity(entries, archetypeName) {
 }
 function renderRarityBadge(percentage) {
   if (percentage === null) return '';
-  const text = percentage < 10 ? `a rare one: only ${percentage}% of the wall share it`
+  const text = percentage === 0 ? `no one on the wall has had this one yet`
+    : percentage < 10 ? `a rare one: only ${percentage}% of the wall share it`
     : percentage < 25 ? `${percentage}% of the wall share it`
     : `${percentage}% of the wall share it, so you're in company`;
   return `<p class="rarity">${text}</p>`;
@@ -4018,7 +4022,9 @@ let _contradictionOnContinue = null;
 
 // The answer as it was actually worded: its opening sentences, enough to recognise it.
 function choiceQuote(scenarioIdx, choiceIdx) {
-  const sentences = SCENARIOS[scenarioIdx].choices[choiceIdx].text.split(/(?<=[.!?])\s+/);
+  // no regex lookbehind here: iPhones before iOS 16.4 can't parse it, and a parse error stops the whole script
+  const text = SCENARIOS[scenarioIdx].choices[choiceIdx].text;
+  const sentences = (text.match(/[^.!?]+[.!?]+["”’)]*/g) || [text]).map(s => s.trim());
   let out = '';
   for (const s of sentences) { out += (out ? ' ' : '') + s; if (out.length >= 60) break; }
   return out;
