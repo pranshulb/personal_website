@@ -62,6 +62,20 @@ vercel.json                 routing, headers, proxies
   petals may settle on (default `h1`; writings adds its list links).
   The typewriter twins and `writings2.html` (unlinked) were left as they
   were.
+  A petal falls like a leaf (September 2026): it flips over every second
+  or two (`tumble`), swings on a slow pendulum (`swp`) — dropping fastest
+  through the middle of the swing, by a factor that averages 1 so the
+  tuned fall speed holds — and rides gusts that sweep left to right
+  (`gustAt`). Before, the flip and the sway took 20–50 seconds and petals
+  slid down like stickers. Both files step the physics at a fixed 60 per
+  second whatever the screen's refresh rate; one step per frame made every
+  petal twice as fast on 120Hz screens. The home page's `?tune` panel has
+  sliders for flutter, sway and wind (`REVEAL.petals`).
+- **The home page's ground is water** along the whole bottom (September
+  2026), with the tree's mound an island in it; `onWater` is "below the
+  water's top edge and off the island", so a tap, a stir or a landing petal
+  makes rings anywhere along the bottom, and petals that land on water
+  float, bob and drift instead of stopping.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, neighbours nudged aside, rings on a

@@ -205,7 +205,7 @@
 <script>
 (() => {
   /* ================================================================
-     TUNING — the phone scroll reveal
+     TUNING — the phone scroll reveal, and the petals
 
      progress is 0 at the top of the page and 1 once the words have
      scrolled fully away. Each part has an `until` (the progress at
@@ -223,6 +223,10 @@
     hint: { until: 0.20, ease: 'linear' },
     // how tall the tree stands on phones, as a share of the screen
     treeHeight: 0.68,
+    // the falling petals, everywhere: 1 is as set, 0 is none of it.
+    // flutter: how fast they flip over; sway: how far they swing side to
+    // side as they fall; wind: how strong the passing gusts are
+    petals: { flutter: 1, sway: 1, wind: 1 },
   };
   const VALUES = REVEAL;
 
@@ -285,6 +289,10 @@
       { path: 'treeHeight',     label: 'how tall it stands', kind: 'number', min: 0.3, max: 0.95, step: 0.01 },
       { section: 'the hint' },
       { path: 'hint.until',     label: '"the tree is below" is gone by', kind: 'number', min: 0.02, max: 1, step: 0.01 },
+      { section: 'the petals' },
+      { path: 'petals.flutter', label: 'how fast they flip over', kind: 'number', min: 0, max: 3, step: 0.05 },
+      { path: 'petals.sway',    label: 'how far they swing side to side', kind: 'number', min: 0, max: 3, step: 0.05 },
+      { path: 'petals.wind',    label: 'how strong the gusts are', kind: 'number', min: 0, max: 3, step: 0.05 },
     ],
   };
 
@@ -556,55 +564,57 @@
     // Ground — soft watercolor mound + cool water reflection (matches the reference)
     const trunkBaseY = H * 0.90;
 
-    // Ground everywhere else, too: a low watercolour band along the bottom,
-    // heaviest at the left where there was only paper, so petals resting at
-    // the ground line sit on something rather than in mid-air.
+    // Water along the whole bottom of the page, the tree's mound an island
+    // in it. It used to be a pool under the tree alone, with grey land
+    // everywhere else; now the petals come down on water wherever they fall.
+    // The top edge is a soft fade, not a ruler line.
+    const waterTop = trunkBaseY - 14;
     {
-      const band = c.createLinearGradient(0, trunkBaseY - 60, 0, H);
-      band.addColorStop(0,    'rgba(138, 144, 134, 0)');
-      band.addColorStop(0.3,  'rgba(138, 144, 134, 0.14)');
-      band.addColorStop(0.65, 'rgba(126, 130, 122, 0.20)');
-      band.addColorStop(1,    'rgba(118, 122, 116, 0.26)');
-      c.fillStyle = band;
-      c.fillRect(0, trunkBaseY - 60, W, H - trunkBaseY + 60);
-      // a few soft rises so the band isn't a ruler line
+      const wg = c.createLinearGradient(0, waterTop - 26, 0, H);
+      wg.addColorStop(0,    'rgba(160, 174, 200, 0)');
+      wg.addColorStop(0.22, 'rgba(160, 174, 200, 0.16)');
+      wg.addColorStop(0.6,  'rgba(152, 166, 194, 0.24)');
+      wg.addColorStop(1,    'rgba(146, 160, 190, 0.32)');
+      c.fillStyle = wg;
+      c.fillRect(0, waterTop - 26, W, H - waterTop + 26);
+
+      // the tree in the water: a blush of the canopy and a smear of the
+      // trunk, below the island
+      const rY = trunkBaseY + (H - trunkBaseY) * 0.7;
+      const blush = c.createRadialGradient(treeX, rY, 0, treeX, rY, W * (isMobile ? 0.34 : 0.2));
+      blush.addColorStop(0,   'rgba(236, 140, 168, 0.13)');
+      blush.addColorStop(0.6, 'rgba(236, 150, 176, 0.06)');
+      blush.addColorStop(1,   'rgba(236, 160, 184, 0)');
+      c.fillStyle = blush;
+      c.beginPath();
+      c.ellipse(treeX, rY, W * (isMobile ? 0.34 : 0.2), (H - trunkBaseY) * 0.5, 0, 0, PI2);
+      c.fill();
+
+      // light lying on the surface: short level strokes, closer together
+      // towards the far edge, the way water recedes
       srand(47);
-      const rises = isMobile ? 3 : 4;
-      for (let i = 0; i < rises; i++) {
-        const rx = W * sRngR(0.16, 0.30), ry = rx * 0.18;
-        const cx = W * (isMobile ? sRngR(-0.1, 1.1) : sRngR(-0.05, 0.62));
-        const cy = trunkBaseY + sRngR(2, 14);
-        const g = c.createRadialGradient(cx, cy, 0, cx, cy, rx);
-        g.addColorStop(0,   'rgba(112, 116, 108, 0.20)');
-        g.addColorStop(0.6, 'rgba(126, 130, 122, 0.10)');
-        g.addColorStop(1,   'rgba(140, 144, 138, 0)');
-        c.fillStyle = g;
-        c.beginPath();
-        c.ellipse(cx, cy, rx, ry, 0, 0, PI2);
-        c.fill();
-      }
-      // faint grass along it
       c.lineCap = 'round';
-      const n = Math.floor(W / 14);
+      const n = Math.floor(W / 22);
       for (let i = 0; i < n; i++) {
-        const bx = sRngR(0, W);
-        if (!isMobile && Math.abs(bx - TREE_X) < W * 0.2) continue;   // the mound has its own
-        const by = trunkBaseY + sRngR(-2, 10);
-        const bh = sRngR(3, 9), lean = sRngR(-3, 3);
-        c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.22)' : 'rgba(122, 118, 124, 0.18)';
-        c.lineWidth = sRngR(0.5, 1);
+        const k = Math.pow(sRng(), 1.7);                  // most near the far edge
+        const y = waterTop + 6 + k * (H - waterTop - 6);
+        const x = sRngR(-20, W + 20);
+        const len = sRngR(14, 70) * (0.6 + k);
+        const light = sRng() < 0.6;
+        c.strokeStyle = light ? `rgba(246, 248, 252, ${sRngR(0.35, 0.7)})` : `rgba(112, 128, 162, ${sRngR(0.08, 0.16)})`;
+        c.lineWidth = sRngR(0.6, 1.3);
         c.beginPath();
-        c.moveTo(bx, by);
-        c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
+        c.moveTo(x, y);
+        c.lineTo(x + len, y + sRngR(-0.6, 0.6));
         c.stroke();
       }
     }
 
-    // Cool blue-grey water wash beneath the mound — the reflection pool
+    // Deeper water close round the island
     const waterR = isMobile ? W * 0.44 : W * 0.30;
     const water = c.createRadialGradient(treeX, trunkBaseY + 26, 0, treeX, trunkBaseY + 26, waterR);
-    water.addColorStop(0,   'rgba(148, 162, 190, 0.34)');
-    water.addColorStop(0.5, 'rgba(166, 178, 202, 0.18)');
+    water.addColorStop(0,   'rgba(148, 162, 190, 0.24)');
+    water.addColorStop(0.5, 'rgba(166, 178, 202, 0.12)');
     water.addColorStop(1,   'rgba(184, 194, 214, 0)');
     c.fillStyle = water;
     c.beginPath();
@@ -638,27 +648,6 @@
       c.beginPath();
       c.moveTo(bx, by);
       c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh);
-      c.stroke();
-    }
-
-    // A small pool right at the foot of the trunk — rain that gathered at the
-    // roots — so the water is where the tree is, not only out at the edges
-    {
-      const q = { r: moundR * 0.5, y: trunkBaseY + 16 };
-      const pool = c.createRadialGradient(treeX, q.y, 0, treeX, q.y, q.r);
-      pool.addColorStop(0,    'rgba(140, 156, 190, 0.42)');
-      pool.addColorStop(0.55, 'rgba(150, 164, 196, 0.30)');
-      pool.addColorStop(0.85, 'rgba(160, 172, 200, 0.12)');
-      pool.addColorStop(1,    'rgba(170, 180, 206, 0)');
-      c.fillStyle = pool;
-      c.beginPath();
-      c.ellipse(treeX, q.y, q.r, q.r * 0.22, 0, 0, PI2);
-      c.fill();
-      // a thin lighter rim along the far edge, like light catching the surface
-      c.strokeStyle = 'rgba(230, 236, 246, 0.35)';
-      c.lineWidth = 1;
-      c.beginPath();
-      c.ellipse(treeX, q.y - 1, q.r * 0.86, q.r * 0.86 * 0.22, 0, Math.PI * 1.1, Math.PI * 1.9);
       c.stroke();
     }
 
@@ -790,25 +779,18 @@
   }
 
   /* ================================================================
-     WATER — the reflection pool under the tree can be stirred
+     WATER — the whole bottom of the page can be stirred
 
-     The pool is painted once in drawBg; these know where it is. Visible
-     water is the ellipse minus the mound sitting in the middle of it.
+     The water is painted once in drawBg: everything below its soft top
+     edge, except the island the tree stands on.
   ================================================================ */
-  function puddle() {
-    const rx = isMobile ? W * 0.44 : W * 0.30;
-    const moundR = isMobile ? W * 0.36 : W * 0.24;
-    return { cx: TREE_X, cy: H * 0.90 + 26, rx, ry: rx * 0.22, land: moundR * 0.8,
-             footR: moundR * 0.5, footY: H * 0.90 + 16 };
-  }
-  // Water is the wide pool (the reflection wash) and the small pool right at
-  // the foot of the trunk, painted in drawBg. Rings happen on either.
   function onWater(x, y) {
-    const q = puddle();
-    const nx = (x - q.cx) / q.rx, ny = (y - q.cy) / q.ry;
-    if (nx * nx + ny * ny < 1) return true;
-    const px2 = (x - q.cx) / q.footR, py2 = (y - q.footY) / (q.footR * 0.22);
-    return px2 * px2 + py2 * py2 < 1;
+    const top = H * 0.90 - 14;
+    if (y < top) return false;
+    const moundR = isMobile ? W * 0.36 : W * 0.24;
+    const rx = moundR * 0.75, ry = moundR * 0.30 * 0.75;
+    const nx = (x - TREE_X) / rx, ny = (y - (H * 0.90 + 8)) / ry;
+    return nx * nx + ny * ny >= 1;
   }
   function ripple(x, y, maxR, life, a) {
     if (rings.length > 80) rings.shift();
@@ -886,7 +868,7 @@
       p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
       p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
       p.drag = flick ? 90 : 40; p.noLand = 20;
-      p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.004, 0.01);
+      p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.06, 0.11);
       airPetals.push(p);
     });
     held = [];
@@ -902,8 +884,14 @@
     return {
       x: px, y: py, vx, vy,
       r: keep ? keep.r : rng(5, 11), rot: keep ? keep.rot : rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
-      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
-      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
+      // A petal falls the way a leaf does: it flips over every second or
+      // two (tumble), and swings side to side on a slow pendulum (swp),
+      // dropping fastest through the middle of the swing and hanging at
+      // the ends. Both used to take 20 to 50 seconds, so petals slid down
+      // like flat stickers.
+      tumble: Math.random() * PI2, tumSpd: rng(0.035, 0.075) * (Math.random() < 0.5 ? -1 : 1),
+      swp: Math.random() * PI2, swSpd: rng(0.018, 0.032), swAmp: rng(0.2, 0.55),
+      windK: rng(0.7, 1.3),   // how much the gusts take it: some catch more air
       color: keep ? keep.color : (Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT)),
       alpha: keep ? keep.alpha : rng(0.55, 0.90),
       noLand: keep ? 45 : 0,
@@ -927,19 +915,36 @@
     airPetals.push(newAirPetal(px, py, vx, vy));
   }
 
+  // Gusts: a slow, uneven breeze that sweeps across the screen from left to
+  // right, so neighbouring petals lean together and then settle. Averages to
+  // nothing, so petals don't all drift off one side.
+  function gustAt(x) {
+    const u = t - x / W * 2.2;
+    return REVEAL.petals.wind * 0.32 *
+      (0.5 * Math.sin(u * 0.21) + 0.3 * Math.sin(u * 0.53 + 1.3) + 0.2 * Math.sin(u * 1.1 + 2.4));
+  }
+
   function updatePetals() {
     windX += (mx * 0.7 - windX) * 0.006;
+    const P = REVEAL.petals;
 
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
-      p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;
       if (p.drag > 0) { p.drag--; p.vx *= 0.96; p.vy *= 0.96; }   // a flicked petal loses its speed nearby
       const foot0 = p.y + p.r * 0.5;   // where the petal's lower edge was before this step
-      p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
+      // the pendulum: side to side with the swing, faster down through the
+      // middle of it than at the ends (the factor averages 1, so the fall
+      // speed tuned above is unchanged), tilting as it goes
+      const cs = Math.cos(p.swp), sway = P.sway;
+      const fallK = 1 + (0.9 * cs * cs - 0.45) * Math.min(1, sway);
+      p.x += p.vx + cs * p.swAmp * sway + gustAt(p.x) * p.windK;
+      p.y += p.vy * fallK;
+      p.rot += p.rotV + cs * p.swSpd * 0.45 * sway;
+      p.tumble += p.tumSpd * P.flutter;
 
       // Settling on a word: the foot crossed a letter's skyline while falling.
       if (p.noLand > 0) p.noLand--;
@@ -972,7 +977,8 @@
         // turns to lie flatter, over the next second or so.
         groundPetals.push({ x: p.x, y: gy - sceneShift + rng(-1, 2), r: p.r * rng(0.75, 0.95),
           rot: p.rot, rotT: rng(-1.3, 1.3), sx: p.vx * 1.6 + windX * 0.25 + rng(-0.15, 0.15), slide: 45,
-          color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0 });
+          color: p.color, alpha: p.alpha, rest: p.alpha * 0.4, settle: 0, age: 0,
+          float: onWater(p.x, gy + 3 - sceneShift), bob: Math.random() * PI2, drift: rng(-0.04, 0.04) });
         airPetals.splice(i, 1); continue;
       }
       if (p.x < -100 || p.x > W + 100 || p.y < -150) airPetals.splice(i, 1);
@@ -981,6 +987,14 @@
     for (let i = groundPetals.length - 1; i >= 0; i--) {
       const g = groundPetals[i];
       if (g.slide > 0) { g.x += g.sx; g.sx *= 0.93; g.rot += (g.rotT - g.rot) * 0.08; g.slide--; }
+      else if (g.float) {
+        // on the water a petal doesn't stop: it rides the breeze a little,
+        // bobs, and turns slowly
+        g.bob += 0.025;
+        g.x += g.drift + gustAt(g.x) * 0.2;
+        g.rot += Math.sin(g.bob * 0.5) * 0.0015;
+        if (g.x < -30 || g.x > W + 30) { groundPetals.splice(i, 1); continue; }
+      }
       if (g.settle !== undefined && g.settle < 1) g.settle += 1 / 90;
       g.age += 0.00006;   // ~4.5 minutes on the ground
       if (g.age > 1) groundPetals.splice(i, 1);
@@ -1068,7 +1082,8 @@
       const k = p.settle === undefined ? 1 : Math.min(1, p.settle);
       const base = p.rest === undefined ? p.alpha : p.alpha + (p.rest - p.alpha) * k;
       const a = base * Math.max(0, 1 - p.age);
-      if (a > 0.015) drawPetalShape(c, p.x, p.y + sceneShift, p.r, p.rot, p.color, a);
+      const bob = p.float ? Math.sin(p.bob) * 0.7 : 0;
+      if (a > 0.015) drawPetalShape(c, p.x, p.y + sceneShift + bob, p.r, p.rot, p.color, a);
     }
     // Petals resting on the words. The overlay sits above the text, so these
     // draw on top of the letters they landed on.
@@ -1116,7 +1131,8 @@
     c.save();
     c.translate(x, y);
     c.rotate(rot);
-    if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
+    // turning edge-on it narrows and pales a little, the way light slides off it
+    if (tumble !== undefined) { const f = Math.cos(tumble); c.scale(f || 0.01, 1); alpha *= 0.72 + 0.28 * Math.abs(f); }
     c.globalAlpha = alpha;
     c.fillStyle = color;
     c.beginPath();
@@ -1170,13 +1186,26 @@
   /* ================================================================
      ANIMATION LOOP
   ================================================================ */
-  function frame() {
-    t += 0.016;
-    updatePointer();
-    updatePetals();
-    updateShake();
-    updateRings();
-    drawOverlay();
+  // Everything moves in steps of a 60th of a second, however often the
+  // screen refreshes. It used to take one step per refresh, so on a 120Hz
+  // screen (recent iPhones, most MacBooks) every petal fell, swayed and
+  // spun twice as fast as it was tuned to.
+  const STEP = 1000 / 60;
+  let lastNow = performance.now(), acc = 0;
+  function frame(now) {
+    if (now === undefined) now = performance.now();
+    acc += Math.min(now - lastNow, 100); lastNow = now;
+    let steps = 0;
+    while (acc >= STEP - 2 && steps < 4) {   // a little slack: rAF times jitter round 16.7ms
+      acc -= STEP; steps++;
+      t += 0.016;
+      updatePointer();
+      updatePetals();
+      updateShake();
+      updateRings();
+    }
+    if (steps === 4) acc = 0;                // after a stall, don't race to catch up
+    if (steps) drawOverlay();
     requestAnimationFrame(frame);
   }
 
@@ -1328,6 +1357,8 @@
       color: Math.random() < 0.45 ? pick(PETAL_DEEP) : pick(PETAL_SOFT),
       alpha: rng(0.35, 0.65), age: rng(0, 0.25)
     });
+    const g = groundPetals[groundPetals.length - 1];
+    g.float = onWater(g.x, g.y); g.bob = Math.random() * PI2; g.drift = rng(-0.04, 0.04);
   }
   frame();
 })();

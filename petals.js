@@ -190,7 +190,7 @@
       p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
       p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
       p.drag = flick ? 90 : 40; p.noLand = 20;
-      p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.004, 0.01);
+      p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.06, 0.11);
       airPetals.push(p);
     });
     held = [];
@@ -201,8 +201,10 @@
     return {
       x, y, vx, vy,
       r: keep ? keep.r : rng(5, 11), rot: keep ? keep.rot : rng(-0.6, 0.6), rotV: rng(-0.005, 0.005),
-      tumble: Math.random() * PI2, tumSpd: rng(0.002, 0.007),
-      swp: Math.random() * PI2, swSpd: rng(0.002, 0.005), swAmp: rng(0.12, 0.42),
+      // flips every second or two, swings on a slow pendulum (see index.html)
+      tumble: Math.random() * PI2, tumSpd: rng(0.035, 0.075) * (Math.random() < 0.5 ? -1 : 1),
+      swp: Math.random() * PI2, swSpd: rng(0.018, 0.032), swAmp: rng(0.2, 0.55),
+      windK: rng(0.7, 1.3),
       color: keep ? keep.color : (Math.random() < 0.40 ? pick(PETAL_DEEP) : pick(PETAL_SOFT)),
       alpha: keep ? keep.alpha : rng(0.55, 0.90),
       noLand: keep ? 45 : 0,
@@ -216,6 +218,12 @@
     airPetals.push(newAirPetal(rng(-W * 0.1, W * 1.1), rng(-60, -10), rng(-0.1, 0.1), rng(0.03, 0.06)));
   }
 
+  // the home page's gusts: a slow uneven breeze sweeping left to right
+  function gustAt(x) {
+    const u = t - x / W * 2.2;
+    return 0.32 * (0.5 * Math.sin(u * 0.21) + 0.3 * Math.sin(u * 0.53 + 1.3) + 0.2 * Math.sin(u * 1.1 + 2.4));
+  }
+
   function updatePetals() {
     windX += (mx * 0.7 - windX) * 0.006;
     for (let i = airPetals.length - 1; i >= 0; i--) {
@@ -223,11 +231,14 @@
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055;
       p.swp += p.swSpd;
-      p.vx += Math.sin(p.swp) * p.swAmp * 0.0016;
       p.vx *= 0.998; p.vy *= 0.999;
       if (p.drag > 0) { p.drag--; p.vx *= 0.96; p.vy *= 0.96; }
       const foot0 = p.y + p.r * 0.5;
-      p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.tumble += p.tumSpd;
+      const cs = Math.cos(p.swp);
+      p.x += p.vx + cs * p.swAmp + gustAt(p.x) * p.windK;
+      p.y += p.vy * (0.55 + 0.9 * cs * cs);
+      p.rot += p.rotV + cs * p.swSpd * 0.45;
+      p.tumble += p.tumSpd;
 
       if (p.noLand > 0) p.noLand--;
       else if (p.vy > 0 && ledges.length) {
@@ -257,7 +268,7 @@
     c.save();
     c.translate(x, y);
     c.rotate(rot);
-    if (tumble !== undefined) c.scale(Math.cos(tumble) || 0.01, 1);
+    if (tumble !== undefined) { const f = Math.cos(tumble); c.scale(f || 0.01, 1); alpha *= 0.72 + 0.28 * Math.abs(f); }
     c.globalAlpha = alpha;
     c.fillStyle = color;
     c.beginPath();
@@ -280,11 +291,22 @@
     for (const h of held) drawPetalShape(h.p.x, h.p.y, h.p.r, h.p.rot, h.p.color, h.p.alpha, h.p.tumble);
   }
 
-  function frame() {
-    t += 0.016;
-    updatePointer();
-    updatePetals();
-    draw();
+  // steps of a 60th of a second, however fast the screen refreshes
+  // (one step per refresh ran everything twice as fast at 120Hz)
+  const STEP = 1000 / 60;
+  let lastNow = performance.now(), acc = 0;
+  function frame(now) {
+    if (now === undefined) now = performance.now();
+    acc += Math.min(now - lastNow, 100); lastNow = now;
+    let steps = 0;
+    while (acc >= STEP - 2 && steps < 4) {
+      acc -= STEP; steps++;
+      t += 0.016;
+      updatePointer();
+      updatePetals();
+    }
+    if (steps === 4) acc = 0;
+    if (steps) draw();
     requestAnimationFrame(frame);
   }
 
