@@ -1843,6 +1843,22 @@ button { font: inherit; color: inherit; }
 .text-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .text-link:disabled { cursor: default; text-decoration: none; opacity: 0.7; }
 
+/* where you lean: the graph (hairlines, both poles named) */
+.lean-rose { display: block; width: 100%; height: auto; margin: 0.2rem auto 0; overflow: visible; }
+.rose-ring { fill: none; stroke: var(--text-faint); stroke-width: 1; opacity: 0.55; }
+.rose-half { stroke-dasharray: 1.5 4; opacity: 0.7; }
+.rose-axis { stroke: var(--text-faint); stroke-width: 0.8; opacity: 0.4; }
+.rose-shape { fill: var(--accent); fill-opacity: 0.07; stroke: var(--accent); stroke-width: 1; stroke-opacity: 0.45; stroke-linejoin: round; }
+.rose-needle { stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+.rose-dot { fill: var(--accent); }
+.rose-centre { fill: var(--text-faint); }
+.rose-pole { font-family: var(--font-label); font-size: 17px; letter-spacing: 0.04em; fill: var(--text-faint); }
+.rose-pole.lean { fill: var(--text); }
+.lean-rose .rose-lean, .lean-rose .rose-shape { opacity: 0; transition: opacity 1.2s ease 0.3s; }
+.lean-rose.drawn .rose-lean, .lean-rose.drawn .rose-shape { opacity: 1; }
+.rose-note { margin: 0.6rem 0 2rem; }
+@media (prefers-reduced-motion: reduce) { .lean-rose .rose-lean, .lean-rose .rose-shape { transition: none; } }
+
 /* where you lean: one printed scale per axis */
 .scales { display: grid; gap: 1.15rem; margin-top: 0.3rem; }
 .scale { display: grid; grid-template-columns: 1fr 1.5fr 1fr; align-items: center; column-gap: 1rem; }
@@ -2000,6 +2016,8 @@ a.ref-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 
     <section class="page-section">
       <h3 class="page-label">where you lean</h3>
+      <svg class="lean-rose" id="lean-rose" viewBox="-300 -172 600 344"></svg>
+      <p class="page-note rose-note">each line runs between two opposite views. the needle points toward the one you lean to, and the longer it is, the stronger the lean.</p>
       <div class="scales" id="axes-grid"></div>
       <p class="page-note">the middle of each line is no lean either way. the dot is where your answers put you, measured against answering at random.</p>
     </section>
@@ -3024,6 +3042,44 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+// The graph above the scales. Each axis is a full line through the centre with a pole at
+// each end (the right-hand poles down the right, the left-hand ones down the left), so both
+// views are named. A needle runs from the centre toward the pole you lean to; its length is
+// how strong the lean is, and the centre is no lean at all. A faint shape joins the tips.
+function drawLeanRose(normalized) {
+  const svg = document.getElementById('lean-rose');
+  const keys = Object.keys(AXES), n = keys.length, R = 118, labelR = R + 18;
+  const tips = [];
+  let axes = '', poles = '', needles = '';
+  keys.forEach((k, i) => {
+    const a = (-90 + (i + 0.5) * 180 / n) * Math.PI / 180;   // right-hand pole's direction
+    const cx = Math.cos(a), cy = Math.sin(a), v = normalized[k], lean = (v - 0.5) * 2;
+    axes += `<line class="rose-axis" x1="${-R * cx}" y1="${-R * cy}" x2="${R * cx}" y2="${R * cy}"/>`;
+    const pole = (x, y, text, on) => {
+      const anchor = x > 8 ? 'start' : x < -8 ? 'end' : 'middle';
+      return `<text class="rose-pole${on ? ' lean' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle">${text}</text>`;
+    };
+    poles += pole(labelR * cx, labelR * cy, AXES[k].right, v > 0.55) + pole(-labelR * cx, -labelR * cy, AXES[k].left, v < 0.45);
+    const tx = lean * R * cx, ty = lean * R * cy;
+    tips.push([tx, ty]);
+    needles += `<line class="rose-needle" x1="0" y1="0" x2="${tx}" y2="${ty}"/><circle class="rose-dot" cx="${tx}" cy="${ty}" r="4.5"/>`;
+  });
+  const shape = tips.slice().sort((p, q) => Math.atan2(p[1], p[0]) - Math.atan2(q[1], q[0])).map(p => p.join(',')).join(' ');
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'where you lean: ' + keys.map(k => {
+    const v = normalized[k];
+    return v > 0.55 ? AXES[k].right : v < 0.45 ? AXES[k].left : `between ${AXES[k].left} and ${AXES[k].right}`;
+  }).join(', '));
+  svg.innerHTML = `
+    <circle class="rose-ring" r="${R}"/><circle class="rose-ring rose-half" r="${R / 2}"/>
+    ${axes}
+    <polygon class="rose-shape" points="${shape}"/>
+    <g class="rose-lean">${needles}</g>
+    <circle class="rose-centre" r="2.5"/>
+    ${poles}`;
+  requestAnimationFrame(() => svg.classList.add('drawn'));
+}
+
 function listWithAnd(items) {
   return items.length < 2 ? items.join('') : items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1];
 }
@@ -3320,6 +3376,8 @@ function showResults() {
         <span class="scale-pole scale-right${val > 0.55 ? ' lean' : ''}">${axis.right}</span>
       </div>`;
   }).join('');
+
+  drawLeanRose(normalized);
 
   // the dots start in the middle and settle where the answers put them
   const prefersReduced = prefersReducedMotion();
