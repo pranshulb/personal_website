@@ -102,11 +102,10 @@
       z-index: 1;
     }
 
-    /* Each thing is a scrap of paper floating on the water — the same paper
-       as the tags on /3d — so it reads as something you can pick up and
-       move. The rule under the words, in the home page's link colour, says
-       it opens something. Bare words floating gave no hint of either, and on
-       a phone, where nothing hovers, no hint at all. */
+    /* The words are bare words on the water, as they always were. Pointing
+       at one brings up a clear glass bubble around it, so it reads as
+       something to press and pick up; every word is a link. On a phone,
+       where nothing hovers, the bubble is always there, faintly. */
     .thing {
       position: absolute;
       left: 0; top: 0;
@@ -116,62 +115,79 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;   /* no link preview on a long press: a long press is a pick-up */
-      touch-action: none;            /* a finger on a scrap moves the scrap, not the page */
+      touch-action: none;            /* a finger on a word moves the word, not the page */
       text-decoration: none;
+      /* room for the bubble inside the word's own box, so placement and
+         the nudging of neighbours leave space for it, and the whole bubble
+         is something to grab */
+      padding: 0.42em 0.78em 0.5em;
       opacity: 0;
-      padding: 0.28em 0.72em 0.42em;
-      background: #fffaf3;
-      border: 1px solid rgba(74,48,32,0.15);
-      border-radius: 3px;
-      /* resting on the water: close and soft */
-      box-shadow: 0 1px 2px rgba(74,48,32,0.08), 0 4px 12px rgba(74,48,32,0.07);
-      /* the opacity part is set from MOTION.entrance when each scrap is made */
-      transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, background 0.35s ease;
+      /* the opacity part is set from MOTION.entrance when each word is made */
+      transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .thing.in { opacity: 1; }
     /* each letter is its own box, so a ring passing under the word can lift
        the letters one after another */
     .thing .ch { display: inline-block; will-change: transform; }
 
-    /* the rule under the words: drawn, not a border, so it adds nothing to
-       the box and nothing jumps when it changes */
-    a.thing::after {
+    /* the bubble: drawn behind the letters, filling the padding, so the
+       word never moves when it appears. A cool tint and a white rim,
+       light pooled at the top like a drop of water, and a soft shadow on
+       the paper below. No backdrop-filter: nine of them moving over two
+       canvases would cost the frame rate the ink work bought back. */
+    .thing::before {
       content: '';
       position: absolute;
-      left: 0.72em; right: 0.72em; bottom: 0.3em;
-      height: 1px;
-      background: #d4a080;
-      opacity: 0.6;
-      transition: opacity 0.3s ease, background 0.3s ease;
+      inset: 0;
+      border-radius: 999px;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse 70% 60% at 32% 18%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%),
+        radial-gradient(ellipse 60% 40% at 70% 92%, rgba(255,255,255,0.45), rgba(255,255,255,0) 70%),
+        linear-gradient(180deg, rgba(205,226,232,0.26), rgba(186,212,220,0.16));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.9),
+        inset 0 -3px 8px rgba(110,150,165,0.18),
+        0 0 0 1px rgba(100,135,148,0.28),
+        0 6px 18px rgba(58,47,47,0.1);
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.2, 1.5, 0.4, 1), box-shadow 0.35s ease;
     }
 
-    /* touched: the paper lifts off the water a little. Only where there
-       is a real hover; on a phone :hover sticks after a tap. */
+    /* a real hover only: on a phone :hover sticks after a tap */
     @media (hover: hover) {
-      .thing:hover {
-        background: #fff;
-        box-shadow: 0 2px 5px rgba(74,48,32,0.11), 0 10px 22px rgba(74,48,32,0.09);
-      }
-      a.thing:hover::after { opacity: 1; background: #c47a7a; }
+      .thing:hover::before { opacity: 1; transform: scale(1); }
     }
-    a.thing:focus-visible::after { opacity: 1; background: #c47a7a; }
+    /* phones: always there, faintly, so a word looks touchable */
+    @media (hover: none) {
+      .thing { padding: 0.3em 0.6em 0.38em; }
+      .thing::before { opacity: 0.32; transform: scale(1); }
+    }
+    .thing:focus-visible::before { opacity: 1; transform: scale(1); }
 
-    /* pressed: pushed down into the water, like a button */
-    .thing.pressed {
-      box-shadow: 0 0 1px rgba(74,48,32,0.14), 0 1px 4px rgba(74,48,32,0.08);
+    /* pressed: the bubble gives a little, like a button */
+    .thing.pressed::before {
+      opacity: 1;
+      transform: scale(0.96);
       transition-duration: 0.12s;
     }
 
-    /* carried: held well above the water */
-    .thing.dragging {
-      z-index: 50;
-      cursor: grabbing;
-      background: #fff;
-      box-shadow: 0 6px 12px rgba(74,48,32,0.12), 0 22px 40px rgba(74,48,32,0.12);
+    /* carried: lifted out of the water, the bubble brighter and its
+       shadow further below */
+    .thing.dragging { z-index: 50; cursor: grabbing; }
+    .thing.dragging::before {
+      opacity: 1;
+      transform: scale(1.04);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,1),
+        inset 0 -3px 8px rgba(110,150,165,0.2),
+        0 0 0 1px rgba(100,135,148,0.26),
+        0 14px 30px rgba(58,47,47,0.13);
     }
 
-    .thing:focus-visible { outline: 2px solid #c47a7a; outline-offset: 3px; }
-    .thing:focus:not(:focus-visible) { outline: none; }
+    .thing:focus-visible { outline: none; }
+    .thing:focus-visible::before { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), 0 0 0 2px #c47a7a; }
 
     /* vignette edges */
     .vignette {
@@ -558,7 +574,7 @@
     el._word = word;
     words.push(word);
     place(word, 0);
-    // hover is a mouse's: on a phone a tap would otherwise leave the scrap
+    // hover is a mouse's: on a phone a tap would otherwise leave the word
     // "hovered", lifted, until the next tap somewhere else
     el.addEventListener('pointerenter', (e) => {
       if (e.pointerType !== 'mouse') return;
@@ -853,7 +869,7 @@
     if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing;
     x.fillStyle = cs.color;
     x.textBaseline = 'alphabetic';
-    // the text sits inside the paper's border and padding
+    // the text sits inside the word's padding, the room kept for its bubble
     const px = (k) => parseFloat(cs[k]) || 0;
     const padL = px('paddingLeft') + px('borderLeftWidth'), padR = px('paddingRight') + px('borderRightWidth');
     const padT = px('paddingTop') + px('borderTopWidth'), padB = px('paddingBottom') + px('borderBottomWidth');
@@ -941,7 +957,7 @@
     dragEl = el;
     hasDragged = false;
     dragThreshold = pointerType === 'mouse' ? 4 : 9;
-    // pressed: the paper goes into the water, like a button, until it moves
+    // pressed: the bubble gives, like a button, until it moves
     q.pressed = true;
     el.classList.add('pressed');
     startX = clientX;
@@ -1029,16 +1045,16 @@
   // which also cancelled the one the Enter key makes: from the keyboard,
   // nothing opened at all.
   //
-  // Now nothing opens a link by script. A scrap that was only pressed lets
+  // Now nothing opens a link by script. A word that was only pressed lets
   // the browser's own click through, which opens it the way any link
-  // opens — once, from a tap, a click, Enter, or ⌘-click. A scrap that was
+  // opens — once, from a tap, a click, Enter, or ⌘-click. A word that was
   // carried has that click cancelled, so letting go of it isn't a visit.
   let dragPointer = null, suppressClickUntil = 0;
   field.addEventListener('pointerdown', (e) => {
     const el = e.target.closest('.thing');
     if (!el || dragEl) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;   // middle and right clicks stay the browser's
-    e.preventDefault();       // no text selection starting under the paper
+    e.preventDefault();       // no text selection starting under the word
     suppressClickUntil = 0;
     dragPointer = e.pointerId;
     try { el.setPointerCapture(e.pointerId); } catch (err) {}

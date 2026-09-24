@@ -66,14 +66,17 @@ vercel.json                 routing, headers, proxies
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, neighbours nudged aside, rings on a
   water canvas under the words). Position is a `transform`, never
-  `left`/`top` after layout. Each word sits on a scrap of paper (the same
-  paper as the `/3d` tags) with a rule under it in the home page's link
-  colour, so it reads as something to pick up and as a link; a press
-  pushes the paper into the water, a carry lifts it. Hover styles are
+  `left`/`top` after layout. The words are bare at rest (he tried them
+  on paper scraps, September 2026, and didn't like it). Every word is a
+  link, and pointing at one brings up a clear glass bubble (`.thing::before`,
+  filling the word's padding, so placement leaves room for it); a press
+  squeezes it, a carry lifts it brighter. On phones, where nothing hovers,
+  the bubble is always there, faintly. No `backdrop-filter` on it: nine
+  moving over two canvases would cost the frame rate. Hover styles are
   inside `@media (hover: hover)` and hover is `pointerenter` from a mouse
-  only, or a tap leaves the scrap stuck "hovered" on a phone.
+  only, or a tap leaves the word stuck "hovered" on a phone.
   Input is **pointer events only**, and **nothing opens a link by
-  script**: a scrap that was only pressed lets the browser's own click
+  script**: a word that was only pressed lets the browser's own click
   through; one that was carried has that click cancelled. It used to open
   links with `window.open` from separate mouse and touch handlers, and a
   phone tap fired both, opening the link twice — while cancelling every
