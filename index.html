@@ -1015,6 +1015,18 @@
     }
   }
 
+  // The tree is drawn once and never redrawn, so a shake is shown by bending
+  // the whole scene canvas from the foot of the trunk — on top of the phone
+  // reveal's lift (sceneShift). A hard shake peaks at about 1.5 degrees.
+  let leaning = false;
+  function placeScene() {
+    const lean = shakeX * 0.06;
+    leaning = lean !== 0;
+    scEl.style.transformOrigin = `${TREE_X}px ${H * 0.90}px`;
+    scEl.style.transform = sceneShift || leaning
+      ? `translateY(${sceneShift.toFixed(1)}px) skewX(${lean.toFixed(3)}deg)` : '';
+  }
+
   /* ================================================================
      DRAW SCENE — ink branches + illustrated 5-petal blossoms
   ================================================================ */
@@ -1208,6 +1220,7 @@
     }
     if (steps === 4) acc = 0;                // after a stall, don't race to catch up
     if (steps) drawOverlay();
+    if (shakeX !== 0 || leaning) placeScene();
     requestAnimationFrame(frame);
   }
 
@@ -1225,8 +1238,9 @@
       containerEl.style.removeProperty('--card-a');
       containerEl.style.removeProperty('--card-blur');
       containerEl.style.removeProperty('--hint-a');
-      bgEl.style.transform = ''; scEl.style.transform = ''; scEl.style.opacity = '';
+      bgEl.style.transform = ''; scEl.style.opacity = '';
       sceneShift = 0;
+      placeScene();
       return;
     }
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
@@ -1239,7 +1253,7 @@
     const k = prog(progress, REVEAL.tree);
     sceneShift = (1 - k) * H * REVEAL.tree.dropFrom;
     const tf = `translateY(${sceneShift.toFixed(1)}px)`;
-    bgEl.style.transform = tf; scEl.style.transform = tf;
+    bgEl.style.transform = tf; placeScene();
     scEl.style.opacity = (REVEAL.tree.alphaFrom + (1 - REVEAL.tree.alphaFrom) * k).toFixed(3);
   }
   contentWrapEl.addEventListener('scroll', () => {
@@ -1297,6 +1311,9 @@
   document.addEventListener('touchend', e => {
     if (held.length) releaseHeld(true);
     px = -1e4; py = -1e4;
+    // Finger lifted: the wind settles back to calm instead of blowing toward
+    // wherever the last swipe ended, for as long as the page stays open.
+    if (e.touches.length === 0) mx = 0;
     const tc = e.changedTouches && e.changedTouches[0];
     if (touchStart && tc && Math.hypot(tc.clientX - touchStart.x, tc.clientY - touchStart.y) < 12
         && performance.now() - touchStart.at < 500) {
@@ -1306,6 +1323,8 @@
     }
     touchStart = null;
   }, { passive: true });
+  // An interrupted touch (the browser taking over a gesture) lifts no finger.
+  document.addEventListener('touchcancel', () => { mx = 0; }, { passive: true });
 
   function copyEmail() {
     navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {

@@ -335,10 +335,15 @@
     const tc = e.touches[0];
     px = ppx = tc.clientX; py = ppy = tc.clientY;
   }, { passive: true });
-  document.addEventListener('touchend', () => {
+  document.addEventListener('touchend', e => {
     if (held.length) releaseHeld(true);
     px = -1e4; py = -1e4;
+    // Finger lifted: the wind settles back to calm instead of blowing toward
+    // wherever the last swipe ended, for as long as the page stays open.
+    if (e.touches.length === 0) mx = 0;
   }, { passive: true });
+  // An interrupted touch (the browser taking over a gesture) lifts no finger.
+  document.addEventListener('touchcancel', () => { mx = 0; }, { passive: true });
 
   /* ---------------- init ---------------- */
   resize();
