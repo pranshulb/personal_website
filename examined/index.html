@@ -3684,108 +3684,114 @@ function resumeIfSaved() {
 }
 
 // ===== SHARE IMAGE =====
-// A 1080×1350 card (portrait, good for stories and feeds) in the colours of whichever theme is on.
+// A 1080×1350 card (portrait, good for stories and feeds), set like the results page:
+// small-caps heading, the archetype large, seven printed scales, the nearest philosopher.
+// Colours follow whichever theme is on.
 async function generateShareImage(archetypeName, archetypeSub, normalizedScores, axesObj) {
   const pink = document.documentElement.getAttribute('data-theme') === 'pink';
-  const serifFont = "'Libre Caslon Text', Georgia, serif", displayFont = "'IM Fell English', Georgia, serif", labelFont = "'IM Fell English SC', Georgia, serif";
+  const serif = "'Libre Caslon Text', Georgia, serif", display = "'IM Fell English', Georgia, serif", label = "'IM Fell English SC', Georgia, serif";
   try {
     await Promise.all([
-      document.fonts.load(`52px ${displayFont}`), document.fonts.load(`italic 26px ${displayFont}`),
-      document.fonts.load(`16px ${labelFont}`), document.fonts.load(`20px ${serifFont}`)
+      document.fonts.load('84px ' + display), document.fonts.load('italic 34px ' + display),
+      document.fonts.load('26px ' + label), document.fonts.load('30px ' + serif)
     ]);
   } catch (e) {}
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1080; canvas.height = 1350;
-    const ctx = canvas.getContext('2d');
-    const bg = pink ? '#fff0f3' : '#0a0a0c', accent = pink ? '#c4447a' : '#c9a84c', txt = pink ? '#2a1f24' : '#e8e4dc',
-      txtDim = pink ? '#6b4f58' : '#8a8680', txtFaint = pink ? '#8d6873' : '#6e6a63';
 
-    // Background
-    ctx.fillStyle=bg; ctx.fillRect(0,0,1080,1350);
-    if (pink) { const g = ctx.createLinearGradient(0,0,1080,1350); g.addColorStop(0,'#fff0f3'); g.addColorStop(0.5,'#fce4ec'); g.addColorStop(1,'#f8e8ff'); ctx.fillStyle=g; ctx.fillRect(0,0,1080,1350); }
+  const W = 1080, H = 1350, M = 110;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const accent = pink ? '#c4447a' : '#c9a84c', ink = pink ? '#2a1f24' : '#e8e4dc',
+    dim = pink ? '#6b4f58' : '#8a8680', faint = pink ? '#8d6873' : '#6e6a63';
 
-    // Header
-    ctx.textAlign='center';
-    ctx.font=`44px ${displayFont}`; ctx.fillStyle=accent;
-    ctx.fillText('examined.',540,86);
+  // paper
+  if (pink) {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#fff0f3'); g.addColorStop(0.5, '#fce4ec'); g.addColorStop(1, '#f8e8ff');
+    ctx.fillStyle = g;
+  } else ctx.fillStyle = '#0a0a0c';
+  ctx.fillRect(0, 0, W, H);
 
-    // Thin line
-    ctx.strokeStyle=accent; ctx.globalAlpha=0.3; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(340,110); ctx.lineTo(740,110); ctx.stroke();
-    ctx.globalAlpha=1;
+  const spaced = (px) => { try { ctx.letterSpacing = px + 'px'; } catch (e) {} };
+  const wrap = (text, max) => {
+    const lines = []; let line = '';
+    for (const w of text.split(' ')) {
+      const t = line ? line + ' ' + w : w;
+      if (ctx.measureText(t).width > max && line) { lines.push(line); line = w; } else line = t;
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
 
-    // Archetype name
-    ctx.font=`60px ${displayFont}`; ctx.fillStyle=txt;
-    const nameWords=archetypeName.split(' ');
-    let nL1='',nL2='';
-    for(let w of nameWords){const t=nL1?nL1+' '+w:w;if(ctx.measureText(t).width>900&&nL1!=='')nL2=nL2?nL2+' '+w:w;else nL1=t;}
-    if(nL2){ctx.fillText(nL1,540,180);ctx.fillText(nL2,540,244);}else ctx.fillText(nL1,540,198);
+  // measure the wrapped name and subtitle first, so shorter results sit centred rather than top-heavy
+  ctx.font = '84px ' + display; const nameLines = wrap(archetypeName, W - 2 * M);
+  ctx.font = 'italic 36px ' + display; const subLines = wrap(archetypeSub, W - 2 * M - 40);
+  const slack = (nameLines.length < 2 ? 92 : 0) + (subLines.length < 2 ? 46 : 0);
 
-    // Subtitle
-    ctx.font=`italic 30px ${displayFont}`; ctx.fillStyle=txtDim;
-    const subY=nL2?300:266;
-    const subWords=archetypeSub.split(' ');let sL1='',sL2='';
-    for(let w of subWords){const t=sL1?sL1+' '+w:w;if(ctx.measureText(t).width>850&&sL1!=='')sL2=sL2?sL2+' '+w:w;else sL1=t;}
-    ctx.fillText(sL1,540,subY);if(sL2)ctx.fillText(sL2,540,subY+38);
+  // heading
+  let y = 128 + slack / 2;
+  ctx.font = '26px ' + label; ctx.fillStyle = accent; spaced(4);
+  ctx.fillText('your philosophical portrait', W / 2, y);
+  spaced(0);
 
-    // Radar — bigger, centered
-    const rCX=540, rCY=nL2?570:540, rR=190;
-    const ax=Object.keys(axesObj),n=ax.length;
+  // the archetype, set large
+  ctx.font = '84px ' + display; ctx.fillStyle = ink;
+  y += 112;
+  nameLines.forEach((l, i) => ctx.fillText(l, W / 2, y + i * 92));
+  y += (nameLines.length - 1) * 92;
 
-    // Grid circles
-    ctx.strokeStyle=txtFaint;ctx.lineWidth=1;ctx.globalAlpha=pink?0.4:0.25;
-    for(let i=1;i<=4;i++){const r=(rR/4)*i;ctx.beginPath();ctx.arc(rCX,rCY,r,0,Math.PI*2);ctx.stroke();}
+  // subtitle
+  ctx.font = 'italic 36px ' + display; ctx.fillStyle = dim;
+  y += 70;
+  subLines.forEach((l, i) => ctx.fillText(l, W / 2, y + i * 46));
+  y += (subLines.length - 1) * 46;
 
-    // Grid lines
-    ctx.globalAlpha=pink?0.3:0.15;
-    ax.forEach((_,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.moveTo(rCX,rCY);ctx.lineTo(rCX+rR*Math.cos(a),rCY+rR*Math.sin(a));ctx.stroke();});
+  // fleuron
+  const fleuron = (at) => { ctx.font = '40px ' + display; ctx.fillStyle = accent; ctx.globalAlpha = 0.55; ctx.fillText('❦', W / 2, at); ctx.globalAlpha = 1; };
+  y += 92; fleuron(y);
 
-    // Radar fill
-    ctx.globalAlpha=0.2;ctx.fillStyle=accent;ctx.beginPath();
-    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.closePath();ctx.fill();
-
-    // Radar stroke
-    ctx.globalAlpha=1;ctx.strokeStyle=accent;ctx.lineWidth=2.5;ctx.beginPath();
-    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2,x=rCX+rR*v*Math.cos(a),y=rCY+rR*v*Math.sin(a);j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.closePath();ctx.stroke();
-
-    // Radar dots
-    ctx.fillStyle=accent;
-    ax.forEach((axis,j)=>{const v=normalizedScores[axis],a=(Math.PI*2*j/n)-Math.PI/2;ctx.beginPath();ctx.arc(rCX+rR*v*Math.cos(a),rCY+rR*v*Math.sin(a),5,0,Math.PI*2);ctx.fill();});
-
-    // Radar labels
-    ctx.font=`20px ${labelFont}`;ctx.fillStyle=txtDim;ctx.textAlign='center';ctx.textBaseline='middle';
-    ax.forEach((axis,j)=>{const a=(Math.PI*2*j/n)-Math.PI/2,lR=rR+34,x=rCX+lR*Math.cos(a),y=rCY+lR*Math.sin(a);ctx.save();ctx.translate(x,y);ctx.textAlign=x<rCX-10?'right':x>rCX+10?'left':'center';ctx.fillText(axesObj[axis].right,0,0);ctx.restore();});
-    ctx.textBaseline='alphabetic';
-
-    // Axis bars section
-    const sStartY=rCY+268, barW=500, barH=8, sLH=52;
-    ctx.textAlign='left';
-    ax.forEach((axis,i)=>{
-      const ad=axesObj[axis], v=normalizedScores[axis], y=sStartY+(i*sLH);
-      ctx.font=`18px ${labelFont}`; ctx.fillStyle=txtDim;
-      ctx.textAlign='left'; ctx.fillText(ad.left,140,y-12);
-      ctx.textAlign='right'; ctx.fillText(ad.right,940,y-12);
-      // Track
-      ctx.textAlign='left';
-      ctx.fillStyle=txtFaint; ctx.globalAlpha=0.25;
-      ctx.fillRect(290,y-4,barW,barH);
-      // Fill
-      ctx.globalAlpha=1; ctx.fillStyle=accent;
-      ctx.fillRect(290,y-4,barW*v,barH);
-    });
-
-    // Footer
-    ctx.textAlign='center';
-    ctx.font=`italic 24px ${displayFont}`;ctx.fillStyle=txtDim;
-    ctx.fillText('“the unexamined life is not worth living.”',540,1266);
-    ctx.font=`20px ${labelFont}`;ctx.fillStyle=accent;
-    ctx.fillText('pranshul.cafe/examined',540,1308);
-
-    resolve(canvas.toDataURL('image/png'));
+  // seven printed scales: pole · hairline with a middle tick and a dot · pole
+  const keys = Object.keys(axesObj);
+  let fs = 27;
+  ctx.font = fs + 'px ' + label;
+  spaced(1.5);
+  const widest = Math.max(...keys.flatMap(k => [ctx.measureText(axesObj[k].left).width, ctx.measureText(axesObj[k].right).width]));
+  if (widest > 250) { fs = Math.floor(fs * 250 / widest); ctx.font = fs + 'px ' + label; }
+  const lineL = 400, lineR = 680, rowH = 70;
+  y += 86;
+  keys.forEach((k, i) => {
+    const v = normalizedScores[k], ry = y + i * rowH;
+    ctx.font = fs + 'px ' + label; spaced(1.5);
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'right'; ctx.fillStyle = v < 0.45 ? ink : faint; ctx.fillText(axesObj[k].left, lineL - 26, ry);
+    ctx.textAlign = 'left'; ctx.fillStyle = v > 0.55 ? ink : faint; ctx.fillText(axesObj[k].right, lineR + 26, ry);
+    spaced(0);
+    ctx.strokeStyle = faint; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(lineL, ry); ctx.lineTo(lineR, ry); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo((lineL + lineR) / 2, ry - 8); ctx.lineTo((lineL + lineR) / 2, ry + 8); ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.beginPath(); ctx.arc(lineL + (lineR - lineL) * v, ry, 10, 0, Math.PI * 2); ctx.fill();
   });
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+  y += (keys.length - 1) * rowH;
+
+  // the nearest philosopher
+  const nearest = findClosestPhilosophers(normalizedScores)[0];
+  if (nearest) {
+    y += 104;
+    ctx.font = 'italic 32px ' + display; ctx.fillStyle = dim;
+    ctx.fillText('answered most like', W / 2, y);
+    ctx.font = '46px ' + display; ctx.fillStyle = ink;
+    ctx.fillText(nearest.philosopher.name, W / 2, y + 56);
+  }
+
+  // address
+  ctx.font = '26px ' + label; ctx.fillStyle = accent; spaced(3);
+  ctx.fillText('pranshul.cafe/examined', W / 2, H - 78);
+  spaced(0);
+
+  return canvas.toDataURL('image/png');
 }
 
 async function shareResult(btn) {
