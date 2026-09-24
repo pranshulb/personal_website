@@ -62,12 +62,14 @@ vercel.json                 routing, headers, proxies
   petals may settle on (default `h1`; writings adds its list links).
   The typewriter twins and `writings2.html` (unlinked) were left as they
   were.
-  A petal falls like a leaf (September 2026): it flips over every second
-  or two (`tumble`), swings on a slow pendulum (`swp`) — dropping fastest
-  through the middle of the swing, by a factor that averages 1 so the
-  tuned fall speed holds — and rides gusts that sweep left to right
-  (`gustAt`). Before, the flip and the sway took 20–50 seconds and petals
-  slid down like stickers. Both files step the physics at a fixed 60 per
+  A petal turns over every few seconds (`tumble`), drifts a few px side to
+  side on a slow swing (`swp`) — a little faster down through the middle
+  of it, by a factor that averages 1 so the tuned fall speed holds — and
+  rides gentle gusts that sweep left to right (`gustAt`). Before, the flip
+  and the sway took 20–50 seconds and petals slid down like stickers; the
+  first fix swung them sideways three times faster than they fall, which
+  he saw at once as a zigzag. Keep the sideways speed (`swAmp`, gusts)
+  well under the fall speed (~10 px/s). Both files step the physics at a fixed 60 per
   second whatever the screen's refresh rate; one step per frame made every
   petal twice as fast on 120Hz screens. The home page's `?tune` panel has
   sliders for flutter, sway and wind (`REVEAL.petals`).
@@ -80,13 +82,23 @@ vercel.json                 routing, headers, proxies
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, neighbours nudged aside, rings on a
   water canvas under the words). Position is a `transform`, never
-  `left`/`top` after layout. The words are bare at rest (he tried them
-  on paper scraps, September 2026, and didn't like it). Every word is a
-  link, and pointing at one brings up a clear glass bubble (`.thing::before`,
-  filling the word's padding, so placement leaves room for it); a press
-  squeezes it, a carry lifts it brighter. On phones, where nothing hovers,
-  the bubble is always there, faintly. No `backdrop-filter` on it: nine
-  moving over two canvases would cost the frame rate. Hover styles are
+  `left`/`top` after layout. Every word is a link and sits in a bubble,
+  always (September 2026: paper scraps, then a hover-only glass pill, were
+  both turned down; "more transparent, thinner, more natural"). The body
+  (`::before`) is all but clear with two small patches of light; the rim
+  (`::after`) is one masked 1px line shading white → blue → pink like a
+  soap film. Both fill the word's padding, so placement leaves room for
+  them; states only fade and scale them. No `backdrop-filter`: nine moving
+  over two canvases would cost the frame rate.
+  The words are built once Unkempt has loaded (or after 2.5s): built at
+  once they were measured in the stand-in font, ~10px narrow, so on small
+  phones two could overlap and a finger on one picked up the other.
+  `relax()` then pushes any overlapping pair apart; it runs again when a
+  late font lands and when the screen changes shape (a phone turned on its
+  side), after the words are spread to the new shape. `.field` is
+  `overflow: hidden` and the canvases are sized by CSS: a word or canvas
+  left past the edge after turning a phone made the page wider than the
+  screen, and turning back the phone zoomed out to fit it. Hover styles are
   inside `@media (hover: hover)` and hover is `pointerenter` from a mouse
   only, or a tap leaves the word stuck "hovered" on a phone.
   Input is **pointer events only**, and **nothing opens a link by

@@ -80,6 +80,10 @@
       position: relative;
       width: 100%;
       min-height: 100vh;
+      /* nothing in here may widen the page: a word or a canvas left past
+         the edge when a phone turned on its side made the page wider than
+         the screen, and turning back, the phone zoomed out to fit it */
+      overflow: hidden;
     }
 
     /* the page remembers being rearranged: every word leaves a faint print
@@ -102,10 +106,10 @@
       z-index: 1;
     }
 
-    /* The words are bare words on the water, as they always were. Pointing
-       at one brings up a clear glass bubble around it, so it reads as
-       something to press and pick up; every word is a link. On a phone,
-       where nothing hovers, the bubble is always there, faintly. */
+    /* Every word sits in a bubble on the water, always: nearly clear, with
+       a thin rim, so it reads as something to press and pick up without
+       being a button. Every word is a link. Pointing at one, pressing it,
+       carrying it: the bubble brightens a little, squeezes, lifts. */
     .thing {
       position: absolute;
       left: 0; top: 0;
@@ -115,12 +119,13 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;   /* no link preview on a long press: a long press is a pick-up */
+      -webkit-tap-highlight-color: transparent;   /* no grey box flashing over the bubble on a tap */
       touch-action: none;            /* a finger on a word moves the word, not the page */
       text-decoration: none;
       /* room for the bubble inside the word's own box, so placement and
          the nudging of neighbours leave space for it, and the whole bubble
          is something to grab */
-      padding: 0.42em 0.78em 0.5em;
+      padding: 0.26em 0.62em 0.34em;
       opacity: 0;
       /* the opacity part is set from MOTION.entrance when each word is made */
       transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -130,64 +135,70 @@
        the letters one after another */
     .thing .ch { display: inline-block; will-change: transform; }
 
-    /* the bubble: drawn behind the letters, filling the padding, so the
-       word never moves when it appears. A cool tint and a white rim,
-       light pooled at the top like a drop of water, and a soft shadow on
-       the paper below. No backdrop-filter: nine of them moving over two
-       canvases would cost the frame rate the ink work bought back. */
-    .thing::before {
+    /* The bubble is two layers behind the letters, both filling the
+       padding so nothing moves when they change:
+       ::before, the body: all but clear, a small patch of light at the top
+         left and a fainter one at the bottom right, a shadow barely there;
+       ::after, the rim: one thin line whose colour drifts from white to a
+         cool blue to a warm pink round the edge, the way a soap film
+         catches light, cut out of a filled box with a mask.
+       Changing state only fades their opacity and scales them, which the
+       compositor does cheaply. No backdrop-filter: nine of them moving over
+       two canvases would cost the frame rate the ink work bought back. */
+    .thing::before, .thing::after {
       content: '';
       position: absolute;
       inset: 0;
       border-radius: 999px;
       z-index: -1;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), box-shadow 0.4s ease;
+    }
+    .thing::before {
       background:
-        radial-gradient(ellipse 70% 60% at 32% 18%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%),
-        radial-gradient(ellipse 60% 40% at 70% 92%, rgba(255,255,255,0.45), rgba(255,255,255,0) 70%),
-        linear-gradient(180deg, rgba(205,226,232,0.26), rgba(186,212,220,0.16));
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.9),
-        inset 0 -3px 8px rgba(110,150,165,0.18),
-        0 0 0 1px rgba(100,135,148,0.28),
-        0 6px 18px rgba(58,47,47,0.1);
-      opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.2, 1.5, 0.4, 1), box-shadow 0.35s ease;
+        radial-gradient(ellipse 34% 42% at 20% 26%, rgba(255,255,255,0.7), rgba(255,255,255,0) 100%),
+        radial-gradient(ellipse 26% 30% at 84% 80%, rgba(255,255,255,0.35), rgba(255,255,255,0) 100%),
+        linear-gradient(180deg, rgba(214,230,236,0.10), rgba(214,230,236,0.04));
+      box-shadow: 0 3px 10px rgba(58,47,47,0.05);
+      opacity: 0.42;
+    }
+    .thing::after {
+      padding: 1px;
+      background: linear-gradient(125deg,
+        rgba(255,255,255,0.95) 0%, rgba(170,200,214,0.75) 30%,
+        rgba(236,190,206,0.6) 58%, rgba(170,200,214,0.7) 80%, rgba(255,255,255,0.9) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+      opacity: 0.45;
     }
 
-    /* a real hover only: on a phone :hover sticks after a tap */
+    /* pointed at: a little brighter. A real hover only: on a phone :hover
+       sticks after a tap. */
     @media (hover: hover) {
-      .thing:hover::before { opacity: 1; transform: scale(1); }
+      .thing:hover::before { opacity: 1; }
+      .thing:hover::after  { opacity: 0.85; }
     }
-    /* phones: always there, faintly, so a word looks touchable */
-    @media (hover: none) {
-      .thing { padding: 0.3em 0.6em 0.38em; }
-      .thing::before { opacity: 0.32; transform: scale(1); }
-    }
-    .thing:focus-visible::before { opacity: 1; transform: scale(1); }
+    .thing:focus-visible { outline: none; }
+    .thing:focus-visible::before { opacity: 1; }
+    .thing:focus-visible::after  { opacity: 1; background: #c47a7a; }
 
     /* pressed: the bubble gives a little, like a button */
-    .thing.pressed::before {
+    .thing.pressed::before, .thing.pressed::after {
       opacity: 1;
       transform: scale(0.96);
       transition-duration: 0.12s;
     }
 
-    /* carried: lifted out of the water, the bubble brighter and its
-       shadow further below */
+    /* carried: lifted out of the water, a touch larger, its shadow
+       further below */
     .thing.dragging { z-index: 50; cursor: grabbing; }
     .thing.dragging::before {
       opacity: 1;
-      transform: scale(1.04);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,1),
-        inset 0 -3px 8px rgba(110,150,165,0.2),
-        0 0 0 1px rgba(100,135,148,0.26),
-        0 14px 30px rgba(58,47,47,0.13);
+      transform: scale(1.03);
+      box-shadow: 0 10px 24px rgba(58,47,47,0.1);
     }
-
-    .thing:focus-visible { outline: none; }
-    .thing:focus-visible::before { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), 0 0 0 2px #c47a7a; }
+    .thing.dragging::after { opacity: 0.95; transform: scale(1.03); }
 
     /* vignette edges */
     .vignette {
@@ -502,6 +513,13 @@
   const placed = [];
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
+  // The words are made once the handwriting has arrived. Made straight
+  // away, they were measured in the stand-in font the browser holds while
+  // it waits (display=block), about 10px narrower per word: on a small
+  // phone the spacing was worked out for words smaller than the ones
+  // drawn, two could land on top of each other, and a finger on one picked
+  // up the other.
+  function buildWords() {
   things.forEach((item, idx) => {
     const el = document.createElement(item.url ? 'a' : 'span');
     el.className = 'thing';
@@ -522,7 +540,7 @@
     el.addEventListener('dragstart', (e) => e.preventDefault());
     styles[item.style](el);
     { const c = Array.isArray(MOTION.entrance.ease) ? MOTION.entrance.ease : EASE[MOTION.entrance.ease];
-      el.style.transition = `opacity ${MOTION.entrance.seconds}s cubic-bezier(${c.join(', ')}), box-shadow 0.35s ease, background 0.35s ease`; }
+      el.style.transition = `opacity ${MOTION.entrance.seconds}s cubic-bezier(${c.join(', ')})`; }
     field.appendChild(el);
 
     // on mobile, constrain width so long titles wrap within screen
@@ -584,6 +602,89 @@
     });
     el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') word.hot = false; });
   });
+  relax();
+  }
+
+  // Random placement gives up after 150 tries and takes the last one, which
+  // on a small phone can sit on another word. Afterwards, any two that
+  // overlap are pushed apart, half each, along the shorter way out, and
+  // kept on the screen, until nothing overlaps.
+  function relax() {
+    const fw = field.clientWidth, fh = Math.max(field.clientHeight, window.innerHeight);
+    const top = isMobile ? 110 : 100, bottom = isMobile ? 40 : 60, m = isMobile ? 6 : 12;
+    for (let it = 0; it < 160; it++) {
+      let moved = false;
+      for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
+        const a = words[i], b = words[j];
+        const ax = a.x + a.w / 2, ay = a.y + a.h / 2, bx = b.x + b.w / 2, by = b.y + b.h / 2;
+        const ox = (a.w + b.w) / 2 + m - Math.abs(ax - bx), oy = (a.h + b.h) / 2 + m - Math.abs(ay - by);
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        // the shorter way out, except for a spell in the middle when only
+        // sideways is tried: on a short screen (a phone on its side) the
+        // way up or down is often a wall, and they would push forever
+        if (ox < oy || (it >= 40 && it < 80)) { const k = Math.sign(bx - ax) || 1; a.x -= k * ox / 2; b.x += k * ox / 2; }
+        else         { const k = Math.sign(by - ay) || 1; a.y -= k * oy / 2; b.y += k * oy / 2; }
+      }
+      for (const q of words) {
+        q.x = clamp(q.x, 8, Math.max(8, fw - q.w - 8));
+        q.y = clamp(q.y, top, Math.max(top, fh - q.h - bottom));
+      }
+      if (!moved) break;
+    }
+  }
+
+  // Turning a phone on its side kept every word where it was, so they sat
+  // piled in the left third of the wider screen, some over the title. On a
+  // real change of shape the words are spread out to the new one, keeping
+  // their places relative to each other, and pushed apart again. A change in
+  // height alone (a phone's address bar sliding away) doesn't count.
+  let fieldW = 0, fieldH = 0;
+  function fieldSize() { return [field.clientWidth, Math.max(field.clientHeight, window.innerHeight)]; }
+  window.addEventListener('resize', () => {
+    const [w, h] = fieldSize();
+    if (!words.length || !fieldW) return;
+    if (w === fieldW && Math.abs(h - fieldH) < 120) return;
+    for (const q of words) {
+      q.x = (q.x + q.w / 2) * w / fieldW - q.w / 2;
+      q.y = (q.y + q.h / 2) * h / fieldH - q.h / 2;
+      q.vx = 0; q.vy = 0;
+    }
+    fieldW = w; fieldH = h;
+    relax();
+  });
+
+  // If the font is slower than the wait below, the words are made in the
+  // stand-in and measured, and spaced, again when it lands.
+  function remeasure() {
+    for (const q of words) {
+      const tf = q.el.style.transform;
+      q.el.style.transform = 'none';
+      q.w = q.el.offsetWidth; q.h = q.el.offsetHeight;
+      const wr = q.el.getBoundingClientRect();
+      for (const l of q.letters) {
+        const r = l.el.getBoundingClientRect();
+        l.dx = r.left + r.width / 2 - (wr.left + wr.width / 2);
+        l.dy = r.top + r.height / 2 - (wr.top + wr.height / 2) - l.y;
+      }
+      q.el.style.transform = tf;
+    }
+    relax();   // grown words may now touch; the letters only just became visible, so a nudge goes unseen
+  }
+  {
+    let built = false;
+    const build = () => {
+      if (built) return;
+      built = true;
+      buildWords();
+      [fieldW, fieldH] = fieldSize();
+      if (document.fonts) document.fonts.addEventListener('loadingdone', remeasure);
+    };
+    const fontsIn = document.fonts
+      ? Promise.all(['400 1em Unkempt', '700 1em Unkempt'].map((f) => document.fonts.load(f)))
+      : Promise.resolve();
+    Promise.race([fontsIn, new Promise((r) => setTimeout(r, 2500))]).then(build, build);
+  }
 
   function place(q, dt) {
     const age = clamp((performance.now() - q.born) / (MOTION.entrance.seconds * 1000), 0, 1);
@@ -805,10 +906,10 @@
     const w = field.clientWidth, h = field.clientHeight;
     if (w === inkW && h === inkH) return;
     inkW = w; inkH = h;
+    // only the pixels behind them: their size on the page is the CSS 100%,
+    // so they can never be left bigger than the field after it shrinks
     inkEl.width = Math.ceil(w * INK_SCALE); inkEl.height = Math.ceil(h * INK_SCALE);
-    inkEl.style.width = w + 'px'; inkEl.style.height = h + 'px';
     waterEl.width = Math.ceil(w * dpr); waterEl.height = Math.ceil(h * dpr);
-    waterEl.style.width = w + 'px'; waterEl.style.height = h + 'px';
     inkDirty = true;   // resizing wiped it; the next frame redraws the prints from the list
   }
   sizeInk();
