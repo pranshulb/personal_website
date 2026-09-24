@@ -76,10 +76,18 @@
       animation: bob var(--t) ease-in-out var(--d) infinite;
       will-change: transform;
     }
-    /* the blurred shadow costs a re-render of every photo every frame; only where there's a GPU to spare */
+    /* .ogre bobs, .shade (inside it) jiggles and swells when held, the img is
+       cut to shape. Three layers so no animation ever interrupts another: the
+       jiggle and the pick-up used to replace the bob, and the photo snapped
+       up to 20px when the bob restarted.
+       The blurred shadow sits on .shade, not on .ogre: on the element that
+       bobs, the blur was redone for all forty photos every frame (11fps in
+       a test browser; here it is drawn once and carried, 33fps). Still only
+       where there's a mouse, since iPhones stop drawing filtered photos. */
+    .shade { transition: transform 0.15s ease; }
     @media (hover: hover) and (pointer: fine) {
-      .ogre { filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28)); }
-      .ogre.held { filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38)); }
+      .shade { filter: drop-shadow(0 10px 12px rgba(20, 40, 10, 0.28)); }
+      .ogre.held .shade { filter: drop-shadow(0 24px 18px rgba(20, 40, 10, 0.38)); }
     }
     .ogre img {
       width: 100%; height: auto;
@@ -91,22 +99,19 @@
       -webkit-user-drag: none;
     }
     .ogre.cutout img { clip-path: none; aspect-ratio: auto; }
-    .ogre.jiggle { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-    .ogre.held {
-      animation: none;
-      transform: rotate(var(--r)) scale(1.06);
-      cursor: grabbing;
-    }
+    .ogre.jiggle .shade { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .ogre.held { cursor: grabbing; }
+    .ogre.held .shade { transform: scale(1.06); }
 
     @keyframes bob {
       0%, 100% { transform: rotate(var(--r)) translateY(0); }
       50%      { transform: rotate(calc(var(--r) + 4deg)) translateY(-14px); }
     }
-    @keyframes jiggle {
-      10%, 90% { transform: rotate(calc(var(--r) - 7deg)) scale(1.04); }
-      30%, 70% { transform: rotate(calc(var(--r) + 9deg)) scale(1.09); }
-      50%      { transform: rotate(calc(var(--r) - 9deg)) scale(1.12); }
-      100%     { transform: rotate(var(--r)) scale(1); }
+    @keyframes jiggle {                /* on top of the tilt and the bob, not instead of them */
+      10%, 90% { transform: rotate(-7deg) scale(1.04); }
+      30%, 70% { transform: rotate(9deg) scale(1.09); }
+      50%      { transform: rotate(-9deg) scale(1.12); }
+      100%     { transform: none; }
     }
 
     /* the lunge: click one and it comes at you */
@@ -138,7 +143,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .ogre, .ogre.jiggle, .swamp.shook { animation: none; }
+      .ogre, .ogre.jiggle .shade, .swamp.shook { animation: none; }
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
@@ -233,10 +238,26 @@
     el.style.zIndex = i + 1;
     const img = document.createElement('img');
     img.src = dir + f; img.alt = 'shrek'; img.draggable = false;
-    el.appendChild(img);
+    const shade = document.createElement('div');
+    shade.className = 'shade';
+    shade.appendChild(img);
+    el.appendChild(shade);
     swamp.appendChild(el);
+    if (img.complete) keepOnScreen(el); else img.addEventListener('load', () => keepOnScreen(el), { once: true });
     return el;
   });
+
+  // The jittered grid pushes some photos mostly off an edge (about one in
+  // ten on a desktop), where they can't be picked up. Once a photo has its
+  // size, pull it in until at most a quarter of it hangs off.
+  function keepOnScreen(el) {
+    const r = el.getBoundingClientRect(), W = window.innerWidth, H = swamp.clientHeight;
+    const mx = r.width / 4, my = r.height / 4;
+    const dx = r.left < -mx ? -mx - r.left : r.right > W + mx ? W + mx - r.right : 0;
+    const dy = r.top < -my ? -my - r.top : r.bottom > H + my ? H + my - r.bottom : 0;
+    if (dx) el.style.setProperty('--x', parseFloat(el.style.getPropertyValue('--x')) + dx / W * 100 + 'vw');
+    if (dy) el.style.setProperty('--y', parseFloat(el.style.getPropertyValue('--y')) + dy / H * 100 + '%');
+  }
 
   /* ---- sounds: made on the spot with the Web Audio API. No files, nothing
      borrowed, and they are goofier this way. The browser only lets a page
@@ -256,6 +277,10 @@
   let ac = null, master = null;
   let muted = false;
   try { muted = localStorage.getItem('shrek-sound') === 'off'; } catch (e) {}
+  // Before the first click a browser refuses to start sound, and every photo
+  // the mouse crossed on the way in made a new refusal (a console warning
+  // each). Nothing is attempted until the page has been clicked or tapped.
+  const allowed = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
   function session(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) {} }
   function audio() {
     session('playback');
@@ -268,7 +293,7 @@
   }
   // every kind of event a browser counts as a tap, before anything else sees it
   for (const n of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
-    document.addEventListener(n, () => { if (!muted) try { audio(); } catch (e) {} }, true);
+    document.addEventListener(n, () => { if (!muted && allowed()) try { audio(); } catch (e) {} }, true);
   }
   function tone(type, f0, f1, dur, vol) {
     const c = audio(), o = c.createOscillator(), g = c.createGain(), now = c.currentTime;
@@ -303,7 +328,7 @@
   // than being scheduled on a clock that isn't running — unless waking takes
   // so long that the sound would come after the thing it goes with.
   function play(name) {
-    if (muted) return;
+    if (muted || !allowed()) return;
     try {
       const c = audio();
       dbg('sound ' + name + ' ' + c.state + (navigator.audioSession ? ' ' + navigator.audioSession.type : ' no-session'));
@@ -332,6 +357,13 @@
 
   // ---- pick one up and move it; let go of one without moving it and it comes at you
   let dragEl = null, dragged = false, sx = 0, sy = 0, ox = 0, oy = 0, lastLunge = 0;
+  function putDown() {
+    if (!dragEl) return;
+    dragEl.classList.remove('held');
+    if (dragged) play('boing');
+    dragEl = null;
+  }
+  window.addEventListener('blur', putDown);
   // iPhones treat a first tap on anything with a hover listener as a hover,
   // not a tap. So the fidget-under-the-pointer only exists where there is a
   // real pointer to hover with.
@@ -340,7 +372,10 @@
     el.addEventListener('animationend', e => { if (e.animationName === 'jiggle') el.classList.remove('jiggle'); });
     if (canHover) el.addEventListener('pointerenter', () => { if (!lunge && !dragEl) { jiggle(el); play('blip'); } });
     el.addEventListener('pointerdown', e => {
-      if (lunge || dragEl) return;
+      // only the main button: a right-click (or ctrl-click on a Mac) opened the
+      // lunge, and where the menu swallows the button's release the photo
+      // stayed "held" and every later click on the page was ignored
+      if (lunge || dragEl || e.button !== 0 || e.ctrlKey) return;
       e.preventDefault();
       dragEl = el; dragged = false;
       sx = e.clientX; sy = e.clientY; ox = el.offsetLeft; oy = el.offsetTop;
@@ -367,6 +402,10 @@
     };
     el.addEventListener('pointerup', letGo);
     el.addEventListener('pointercancel', letGo);
+    // the capture went without a release (switching windows mid-drag, a menu):
+    // put it down where it is, no lunge. After a normal release dragEl is
+    // already cleared and this does nothing.
+    el.addEventListener('lostpointercapture', () => { if (dragEl === el) putDown(); });
     // Belt and braces: whatever a phone does with pointer events, a tap
     // always ends in a click. If that click arrives and nothing lunged for
     // it, lunge now.
@@ -402,7 +441,7 @@
   // one Escape listener for the page. Each lunge used to add its own and only
   // remove it on Escape, so they piled up, and the stale ones closed whichever
   // lunge was open — shrinking it back onto the wrong photo.
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLunge(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLunge(false); });
   // the transform that shrinks a full-screen box onto a photo's rectangle
   function onto(r) {
     const W = window.innerWidth, H = window.innerHeight;
@@ -428,26 +467,30 @@
     swamp.classList.remove('shook'); void swamp.offsetWidth; swamp.classList.add('shook');
     dbg('lunge open');
     const thisLunge = lunge;
-    const back = () => {
+    const back = byFinger => {
       if (lunge !== thisLunge) return;
       clearTimeout(retreatTimer);
       const el = lunge; lunge = null;
-      closedAt = performance.now();
       dbg('lunge close');
       el.classList.remove('in'); el.classList.add('out');
       el.style.transform = onto(img.getBoundingClientRect());
-      // stays (invisible once retreated) long enough to catch the phone's late click
       setTimeout(() => { el.style.opacity = '0'; }, 380);
       setTimeout(() => el.remove(), 800);
+      // A finger's close is followed by the phone's late click: the copy stays
+      // (invisible once retreated) to catch it, and nothing opens for a
+      // moment. A mouse, Escape or the timer leave no late click behind, and
+      // holding them to that made the next click on a photo do nothing.
+      if (byFinger) closedAt = performance.now();
+      else el.style.pointerEvents = 'none';
     };
     // Phones deliver the opening tap's click late and to whatever is under
     // the finger — by then, this. So this never closes on a click: only on a
     // fresh touch after it has settled, Escape, or the timer.
     const born = performance.now();
-    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(); });
+    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(e.pointerType !== 'mouse'); });
     lunge.addEventListener('click', e => e.stopPropagation());   // the late click ends here, not on a photo
     closeLunge = back;
-    retreatTimer = setTimeout(back, 1500);
+    retreatTimer = setTimeout(() => back(false), 1500);
   }
   swamp.addEventListener('animationend', e => { if (e.animationName === 'shake') swamp.classList.remove('shook'); });
 })();
