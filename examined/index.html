@@ -3030,22 +3030,48 @@ function selectChoice(idx) {
   });
 }
 
+// What the ← says instead of going back. The first press always gets the first line; after
+// that they come in a random order, no repeats, and once they run out it's "nice try." for good.
+// Every quote is checked against its source; proverbs are credited to a language, not a person.
 let goBackAttempts = 0;
-const goBackMessages = [
-  "philosophy does not permit do-overs. neither does this.",
-  "you chose. it's yours now. sit with it.",
-  "Kierkegaard wrote that life can only be understood backwards, but must be lived forwards.",
-  "Heraclitus would remind you: you cannot step into the same river twice.",
-  "the unexamined choice is not worth revisiting. the examined one doesn't need to be.",
+const GOBACK_FIRST = "philosophy does not permit do-overs. neither does this.";
+const GOBACK_POOL = [
+  "\"this alone is denied even to God: to make undone what has been done.\" (the poet Agathon, quoted by Aristotle)",
+  "factum est illud: fieri infectum non potest. it's done, and it can't be undone. (Plautus, about 2,200 years ago)",
+  "the moving finger writes, and having writ, moves on. (Omar Khayyám, in FitzGerald's version)",
+  "spilled water doesn't go back in the tray. a Japanese proverb, and a Chinese one, and in Swahili: maji yakimwagika hayazoleki.",
+  "ab pachhtaye hot kya, jab chidiya chug gayi khet. what's the use of regret now? the birds have eaten the field.",
+  "\"things that are done, it is needless to speak about. things that are past, it is needless to blame.\" (Confucius, Analects 3.21) he'd have let it go. so will the button.",
+  "Confucius, standing by a river: \"it passes on just like this, not ceasing day or night.\"",
+  "\"the flowing river never stops, and yet the water never stays the same.\" Kamo no Chōmei wrote that in a ten-foot hut in 1212.",
+  "you can't step into the same river twice. (Heraclitus) or the same question.",
+  "Lot's wife looked back. it didn't go well.",
+  "Orpheus looked back once. ask Eurydice how that went.",
+  "life can only be understood backwards, but it must be lived forwards. (Kierkegaard) this is the forwards part.",
+  "\"you shouldn't chase after the past or place expectations on the future. what is past is left behind.\" (the Buddha, Bhaddekaratta Sutta)",
+  "\"think, and then dare the deed.\" (Thiruvalluvar, Thirukkural 467) the thinking was meant to happen before the click.",
+  "kaal kare so aaj kar, aaj kare so ab. do tomorrow's work today, and today's now. (Kabir) the next question is now.",
+  "of the three parts of life, the present is short, the future is doubtful, and the past is certain. (Seneca) yours now includes that answer.",
+  "Hannah Arendt thought the only remedy for being unable to undo what you've done is forgiveness. forgive yourself and carry on.",
+  "\"I have already lost touch with a couple of people I used to be.\" (Joan Didion) give it a few questions and the one who picked that answer will be one of them.",
+  "the Akan idea of sankofa says it isn't wrong to go back for what you've forgotten. it's a lovely idea. it isn't available here.",
+  "in most stories, Borges noticed, a person faced with alternatives chooses one and eliminates the others. this is one of those stories.",
   "Sartre said we are condemned to be free. that includes being stuck with what you chose.",
-  "the Stoics trained for this. what is done belongs to fate. what comes next belongs to you.",
-  "Simone Weil called attention the rarest and purest form of generosity. spend yours on the next question.",
-  "the moving finger writes, and having writ, moves on. (Omar Khayyám, via FitzGerald.)",
+  "you have a right to your actions, but never to their fruits. (Bhagavad Gita 2.47) you acted.",
   "Montaigne revised his essays for the rest of his life. you get one draft.",
-  "the Bhagavad Gita says: you have a right to your actions, but never to their fruits. you acted.",
   "Sisyphus doesn't get to roll the boulder back down either.",
-  "nice try."
+  "\"knowing how way leads on to way, I doubted if I should ever come back.\" (Robert Frost)",
+  "non, je ne regrette rien. Piaf managed it.",
+  "there's no undo. this isn't a google doc.",
+  "the arrow is mostly decorative.",
 ];
+const goBackMessages = [GOBACK_FIRST, ...shuffled(GOBACK_POOL), "nice try."];
+
+function shuffled(list) {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
 
 function tryGoBack() {
   const msg = goBackMessages[Math.min(goBackAttempts, goBackMessages.length - 1)];
@@ -3069,7 +3095,8 @@ function tryGoBack() {
   document.addEventListener('keydown', onKey, true);
   document.body.appendChild(overlay);
   overlay.focus();
-  setTimeout(close, 4000);
+  // long enough to read the longer quotes; any key or click closes it sooner
+  setTimeout(close, Math.max(4000, msg.length * 55));
 }
 
 function nextScenario() {
