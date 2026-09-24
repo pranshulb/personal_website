@@ -331,9 +331,15 @@
     // bumping: words are round-ended bubbles that knock into each other
     // and off the edges of the screen, the bigger one shoving the smaller
     bump: {
-      bounce:   0.3,    // speed a knock gives back between two words (0 = a dead thud, 1 = a rubber ball)
+      bounce:   0.4,    // speed a knock gives back between two words (0 = a dead thud, 1 = a rubber ball)
       edge:     0.3,    // the same, off the edges of the screen
-      gap:      isMobile ? 4 : 8,   // px of clear water kept between two bubbles
+      gap:      isMobile ? 4 : 8,   // px of clear water always kept between two bubbles
+      // personal space: closer than this, two words slowly drift apart
+      // again. Without it, words that had touched stayed touching for good
+      // and a tilted pile never came apart. A strong tilt can still press
+      // them closer, down to `gap`
+      room:     isMobile ? 16 : 24,   // px
+      drift:    0.004,  // how quickly they drift apart (speed gained per frame, per px too close)
     },
     // tilting a phone tips the water: the words drift downhill, bump into
     // each other and gather against the low edge. However the phone is
@@ -341,10 +347,14 @@
     // leave every word stuck in one corner. Not too soon: at 4 seconds,
     // tipping the phone left for a few seconds and back made "back" a tip
     // to the right, and the words slid back across
+    // First tuned at 3° ignored and full strength: holding the phone a
+    // little off level slid the words (8° moved them 27px in a second and a
+    // half), which read as twitchy
     tilt: {
-      strength: 1.0,    // how fast words slide downhill (px per frame gained per frame, at a full tilt)
+      strength: 0.6,    // how fast words slide downhill (px per frame gained per frame, at a full tilt)
       settle:   20,     // seconds a held tilt takes to count as level again
-      ignore:   3,      // degrees of hand wobble that move nothing
+      ignore:   8,      // degrees of tilt that move nothing: a hand holding a phone is never quite still
+      smooth:   0.2,    // seconds the tilt reading is smoothed over, so sensor jitter doesn't nudge them
     },
     // the bob: a spring back to level after a dip
     bob: { spring: 0.04, damping: 0.92, hoverDip: 0.7, lifted: 1.2 },
@@ -451,12 +461,14 @@
       { section: 'bumping' },
       { path: 'bump.bounce', label: 'how bouncy two words are (0 = thud)', kind: 'number', min: 0, max: 1, step: 0.05 },
       { path: 'bump.edge',   label: 'how bouncy the edges are',            kind: 'number', min: 0, max: 1, step: 0.05 },
-      { path: 'bump.gap',    label: 'clear water kept between words',      kind: 'number', min: 0, max: 30, step: 1, unit: 'px' },
+      { path: 'bump.gap',    label: 'clear water always kept between words', kind: 'number', min: 0, max: 30, step: 1, unit: 'px' },
+      { path: 'bump.room',   label: 'personal space they drift back out to', kind: 'number', min: 0, max: 60, step: 1, unit: 'px' },
+      { path: 'bump.drift',  label: 'how quickly they drift apart',          kind: 'number', min: 0, max: 0.02, step: 0.001 },
       { path: 'rings.bump.alpha', label: 'the ring a knock makes',         kind: 'number', min: 0, max: 0.5, step: 0.01 },
       { section: 'tilting the phone' },
       { path: 'tilt.strength', label: 'how fast words slide downhill',     kind: 'number', min: 0, max: 4, step: 0.1 },
       { path: 'tilt.settle',   label: 'seconds until a held tilt is level again', kind: 'number', min: 2, max: 60, step: 1, unit: 's' },
-      { path: 'tilt.ignore',   label: 'hand wobble ignored',               kind: 'number', min: 0, max: 10, step: 0.5, unit: '°' },
+      { path: 'tilt.ignore',   label: 'tilt ignored (hand wobble)',        kind: 'number', min: 0, max: 20, step: 0.5, unit: '°' },
       { section: 'the water' },
       { path: 'rings.strength', label: 'how dark the rings are', kind: 'number', min: 0, max: 3, step: 0.05, unit: '×' },
       { path: 'rings.size',     label: 'how far they spread',   kind: 'number', min: 0.2, max: 3, step: 0.05, unit: '×' },
@@ -695,7 +707,8 @@
   function relax() {
     // the same water the words are kept on while they move, with a little
     // more room left at the bottom when they are first laid out
-    const B = pond(), extra = isMobile ? 28 : 36, m = isMobile ? 6 : 12;
+    // spaced by the words' personal space, so they don't drift apart on arrival
+    const B = pond(), extra = isMobile ? 28 : 36, m = MOTION.bump.room;
     for (let it = 0; it < 160; it++) {
       let moved = false;
       for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
@@ -877,9 +890,10 @@
   // Two words that touch are pushed apart; on the first pass of a frame
   // their speeds along the push are exchanged too. Returns whether they
   // touched.
-  function knock(a, b, first, pair, now) {
+  function knock(a, b, first, pair, now, k) {
     const A = a.P, Bp = b.P, G = MOTION.bump;
-    if (Math.abs(A.cx - Bp.cx) > A.ex + Bp.ex + G.gap || Math.abs(A.cy - Bp.cy) > A.ey + Bp.ey + G.gap) return false;
+    const reach = first ? Math.max(G.gap, G.room) : G.gap;
+    if (Math.abs(A.cx - Bp.cx) > A.ex + Bp.ex + reach || Math.abs(A.cy - Bp.cy) > A.ey + Bp.ey + reach) return false;
     nearest(A, Bp);
     let nx = near.x2 - near.x1, ny = near.y2 - near.y1, d = Math.hypot(nx, ny);
     if (d > 1e-6) { nx /= d; ny /= d; }
@@ -891,6 +905,18 @@
       if (c > 1e-6) { nx /= c; ny /= c; } else { nx = 0; ny = 1; }
       d = 0;
     }
+    // personal space: closer than `room`, the two drift apart, the lighter
+    // one more, a word under a finger not at all. A push, not a jump, so a
+    // pile loosens over a second or two and a tilt can still press it
+    if (first) {
+      const close = A.r + Bp.r + G.room - d;
+      const ia = held(a) ? 0 : heft(a), ib = held(b) ? 0 : heft(b);
+      if (close > 0 && ia + ib > 0) {
+        const push = G.drift * close * k / (ia + ib);
+        a.vx -= nx * push * ia; a.vy -= ny * push * ia;
+        b.vx += nx * push * ib; b.vy += ny * push * ib;
+      }
+    }
     const pen = A.r + Bp.r + G.gap - d;
     if (pen <= 0) return false;
 
@@ -898,9 +924,9 @@
     // neither will move: a held word gives way to one backed against an
     // edge, and two backed against edges share it
     if (!wa && !wb) { wa = held(b) ? 0 : heft(a); wb = held(a) ? 0 : heft(b); }
-    const k = pen / (wa + wb);
-    shift(a, -nx * k * wa, -ny * k * wa);
-    shift(b, nx * k * wb, ny * k * wb);
+    const apart = pen / (wa + wb);
+    shift(a, -nx * apart * wa, -ny * apart * wa);
+    shift(b, nx * apart * wb, ny * apart * wb);
     // pressed against one that can't move, it can't move that way either
     if (a.pin && !held(b)) b.pin = true;
     else if (b.pin && !held(a)) a.pin = true;
@@ -939,12 +965,12 @@
     if (o.y && q.vy * o.y < 0) q.vy = Math.abs(q.vy) > SLOW ? -q.vy * E : 0;
   }
 
-  function bumpAll(B, now) {
+  function bumpAll(B, now, k) {
     for (const q of words) { q.P = pillOf(q); q.pin = false; }
     for (let pass = 0; pass < PASSES; pass++) {
       let touching = false;
       for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
-        if (knock(words[i], words[j], pass === 0, i * 64 + j, now)) touching = true;
+        if (knock(words[i], words[j], pass === 0, i * 64 + j, now, k)) touching = true;
       }
       // one already well past an edge is being eased back in (see step)
       for (const q of words) if (!q.stray) edges(q, B);
@@ -1110,8 +1136,11 @@
         if (q.stray) { q.vx += o.x * 0.08 * k; q.vy += o.y * 0.08 * k; }
         q.x += q.vx * k; q.y += q.vy * k;
         q.vx *= glide; q.vy *= glide;
-        if (Math.abs(q.vx) < 0.01) q.vx = 0;
-        if (Math.abs(q.vy) < 0.01) q.vy = 0;
+        // stopped when it has all but stopped. Kept far below what one frame
+        // of a gentle tilt or drift adds: at 0.01, a 120Hz phone (half a
+        // frame's worth each time) zeroed those every frame and they never moved
+        if (Math.abs(q.vx) < 0.001) q.vx = 0;
+        if (Math.abs(q.vy) < 0.001) q.vy = 0;
         if (glideInk === q) {
           if (Math.hypot(q.vx, q.vy) > 0.4) inkAlong(q.x, q.y); else { glideInk = null; stamp = null; }
         }
@@ -1125,7 +1154,7 @@
       // the bob: a spring back to level, so a ring or a hover rocks the word
       q.bobV += -q.bob * MOTION.bob.spring * k; q.bobV *= Math.pow(MOTION.bob.damping, k); q.bob += q.bobV * k;
     }
-    bumpAll(B, now);
+    bumpAll(B, now, k);
   }
 
   /* ---------------- TILT ----------------
@@ -1148,16 +1177,19 @@
     const turn = (so && typeof so.angle === 'number' ? so.angle : (window.orientation || 0)) * Math.PI / 180;
     const gx = ux * Math.cos(turn) + uy * Math.sin(turn), gy = uy * Math.cos(turn) - ux * Math.sin(turn);
     const now = performance.now();
+    const since = levelX === null ? 0 : Math.min(0.5, (now - tiltAt) / 1000);   // s since the last reading
     if (levelX === null) { levelX = gx; levelY = gy; }
     else {
-      const u = 1 - Math.exp(-Math.min(0.5, (now - tiltAt) / 1000) / Math.max(0.1, MOTION.tilt.settle));
+      const u = 1 - Math.exp(-since / Math.max(0.1, MOTION.tilt.settle));
       levelX += (gx - levelX) * u; levelY += (gy - levelY) * u;
     }
     tiltAt = now;
     const sx = gx - levelX, sy = gy - levelY, m = Math.hypot(sx, sy);
     const still = Math.sin(MOTION.tilt.ignore * Math.PI / 180);
     const f = m > still ? (m - still) / m : 0;
-    slopeX = sx * f; slopeY = sy * f;
+    // eased toward the new reading rather than jumping to it
+    const s = since ? 1 - Math.exp(-since / Math.max(0.01, MOTION.tilt.smooth)) : 1;
+    slopeX += (sx * f - slopeX) * s; slopeY += (sy * f - slopeY) * s;
   }
   // iPhones only report tilt once the visitor allows it, and Safari only
   // shows its "allow motion" question in answer to a tap. It is asked when

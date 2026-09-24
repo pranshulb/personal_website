@@ -100,7 +100,12 @@ vercel.json                 routing, headers, proxies
   cleared). The edges are hard with a little bounce, and the water's bottom
   is the *visible* height (`pond()`), so nothing slides past the screen
   edge or under a phone's browser bar. Every per-frame number is scaled by
-  the frame's length (`k` in `tick`), so 60 and 120Hz screens match.
+  the frame's length (`k` in `tick`), so 60 and 120Hz screens match —
+  including the "has stopped" cutoff on speed: at 0.01 px/frame a 120Hz
+  phone zeroed every gentle drift, one half-frame at a time. Words also
+  keep personal space (`bump.room`): closer than that they drift apart
+  slowly. Without it, words that touched stayed glued for good ("the words
+  stick together too much") and a tilted pile never came apart.
   Tilting a phone tips the water (`onTilt`). iPhones only report tilt after
   `DeviceOrientationEvent.requestPermission()`, which Safari only honours
   from a tap; it is tried at the end of a carry or a touch on the water,
@@ -112,7 +117,10 @@ vercel.json                 routing, headers, proxies
   centred lines on phones (`fitTwoLines`); "two men contemplating the moon"
   lay right across the screen on one. How the phone is held becomes level over
   `tilt.settle` seconds — keep it long: at 4s, tipping left and back read
-  "back" as a tip to the right and the words slid across again. Every word is a link and sits in a bubble,
+  "back" as a tip to the right and the words slid across again. The first
+  8° of tilt move nothing (`tilt.ignore`): at 3° a hand just holding the
+  phone slid the words, and he found it "too sensitive". There is no way
+  to get tilt on an iPhone without a tap: Apple requires one for every site. Every word is a link and sits in a bubble,
   always (September 2026: paper scraps, then a hover-only glass pill, were
   both turned down; "more transparent, thinner, more natural"). The body
   (`::before`) is all but clear with two small patches of light; the rim
