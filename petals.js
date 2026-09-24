@@ -157,7 +157,12 @@
     if (held.length < HALO_MAX && speed < 6) {
       for (let i = airPetals.length - 1; i >= 0 && held.length < HALO_MAX; i--) {
         const p = airPetals[i];
-        if (Math.hypot(p.x - px, p.y - py) < 14 + p.r) {
+        const d = Math.hypot(p.x - px, p.y - py);
+        // a petal just let go isn't caught again until it has left the
+        // pointer's reach — let go beside a still pointer, it used to be
+        // caught straight back, so letting go did nothing you could see
+        if (p.letGo) { if (d > 14 + p.r + 8) p.letGo = false; continue; }
+        if (d < 14 + p.r) {
           airPetals.splice(i, 1);
           held.push({ p, ox: p.x - px, oy: p.y - py, wob: Math.random() * PI2 });
         }
@@ -189,7 +194,7 @@
       const k = flick ? Math.min(0.32, 7 / Math.max(speed, 1)) : 0;
       p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
       p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
-      p.drag = flick ? 90 : 40; p.noLand = 20;
+      p.drag = flick ? 90 : 40; p.noLand = 20; p.letGo = true;
       p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.06, 0.11);
       airPetals.push(p);
     });
