@@ -25,7 +25,7 @@ things-ive-watched
 *-typed.html                "typewriter" variants of the above
 typewriter.html             index of the typed variants
 garden.html, garden-home.html
-examined/, examinedv2/      philosophy personality test
+examined/                   philosophy personality test (old versions in _archive/, not deployed)
 community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
