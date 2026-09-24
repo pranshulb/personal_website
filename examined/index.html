@@ -1829,8 +1829,7 @@ button { font: inherit; color: inherit; }
     <p class="intro-quote">“The unexamined life is not worth living.”</p>
     <p class="intro-attr">— Socrates, via Plato's Apology</p>
     <p class="intro-desc">
-      thought experiments drawn from traditions across the world.<br>
-      no right answers. just a mirror.
+      thought experiments drawn from traditions across the world.
     </p>
     <div class="intro-axes">
       <div class="intro-axis"><span>ethics</span> — deontological ↔ consequentialist</div>
@@ -2658,15 +2657,15 @@ const SCENARIOS = [
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Report it through official channels and let the investigation run, whatever it costs you. Bringing the truth into the open is how balance gets restored.',
-        scores: {consequence:-2, individual:-1, stoic:1, pragmatist:-2, agency:2, transcendent:2},
+        scores: {consequence:-1, pragmatist:-1, agency:1, transcendent:1},
         reflection:'In the Book of the Dead, the soul recites the 42 negative confessions (I have not lied, I have not stolen, I have not caused pain) before its heart is weighed. You\'ve chosen truth over convenience. The weighing asks whether your heart is light enough to match the feather.',
         philosopher:'Book of the Dead, The 42 Negative Confessions' },
       { label:'b', text:'Document everything and secure the evidence, then resign. Find a role where you can push for tougher regulation across the industry, without going after this company in particular.',
-        scores: {pragmatist:2, rationalist:2, agency:1, consequence:1},
+        scores: {pragmatist:1, rationalist:1, agency:1, consequence:1},
         reflection:'Ptahhotep\'s maxims prize patience, discretion and knowing when to speak. There\'s something of that here: the long view, change that works over years. It\'s fair to ask, though, whether stepping away fixes the imbalance or only makes it easier to carry.',
         philosopher:'Ptahhotep, The Maxims' },
       { label:'c', text:'Take the evidence to the executives yourself and give them a chance to fix it privately before anything goes public. Putting it right matters more than punishing anyone.',
-        scores: {consequence:0, individual:-1, stoic:2, pragmatist:0, agency:0, rationalist:1, transcendent:2},
+        scores: {individual:-1, stoic:1, rationalist:1, transcendent:1},
         reflection:'In Egyptian thought, Maat was about restoring balance more than punishing. The Teaching for King Merykara tells a ruler to do justice and to comfort those who weep. You\'re giving the people who caused the problem a chance to put it right themselves.',
         philosopher:'The Teaching for King Merykara' }
     ]
@@ -2742,15 +2741,15 @@ const SCENARIOS = [
     question: 'You sit down to write your report. What do you say?',
     choices: [
       { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
-        scores: {rationalist:2, pragmatist:1, consequence:1, transcendent:-2, individual:0, agency:1},
+        scores: {rationalist:1, pragmatist:1, consequence:1, transcendent:-1},
         reflection:'Bacon wanted knowledge built on careful observation and measurement, free of what he called the idols of the mind. Your report stands on that. Dadirri would ask whether your instruments were asking the right questions, and whether "sustainable clearing" only makes sense if land is a resource rather than kin.',
         philosopher:'Francis Bacon, Novum Organum' },
       { label:'b', text:'Recommend against clearing. Something in the forest doesn\'t fit your categories, and honesty means admitting what your method can\'t capture.',
-        scores: {transcendent:2, rationalist:-2, agency:-1, individual:-1, consequence:-1, stoic:1},
+        scores: {transcendent:1, rationalist:-1, individual:-1, consequence:-1},
         reflection:'You let the morning change your conclusion, which is different from rejecting science: some knowledge comes through presence rather than measurement. Miriam-Rose Ungunmerr-Baumann describes dadirri as "inner, deep listening and quiet, still awareness".',
         philosopher:'Miriam-Rose Ungunmerr-Baumann, "Dadirri: Inner Deep Listening and Quiet Still Awareness"' },
       { label:'c', text:'Report the data, but add a section on Indigenous ecological knowledge and recommend that the traditional custodians share control over any decision to develop.',
-        scores: {pragmatist:1, transcendent:1, consequence:0, agency:1, rationalist:0, individual:-1},
+        scores: {pragmatist:1, transcendent:1, agency:1, individual:-1},
         reflection:'Kimmerer, a botanist and a member of the Potawatomi Nation, writes about holding science and Indigenous knowledge side by side, braided like sweetgrass. Your report tries to do that in one document. Whether the people reading it can hear both is out of your hands.',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
