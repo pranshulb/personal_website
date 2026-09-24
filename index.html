@@ -328,7 +328,7 @@
   // this much lower too, so it stays with the tree.
   let sceneShift = 0;
 
-  let sortedBranches = [], blossoms = [], flowers = [];
+  let sortedBranches = [], blossoms = [], flowers = [], splatter = [];
   let airPetals = [], groundPetals = [];
 
   /* ================================================================
@@ -381,7 +381,9 @@
     // Mobile browsers fire `resize` when the address bar shows/hides on scroll
     // (a height-only change). Regenerating the tree then makes it jump around.
     // Ignore those: only rebuild on a real width change or a big height change.
-    if (sortedBranches.length && nw === lastW && Math.abs(nh - lastH) < 140) return;
+    // Phones only — on a laptop a small height change (full screen, the
+    // bookmarks bar) is real, and skipping it left the painting short.
+    if (sortedBranches.length && isMobile && nw === lastW && Math.abs(nh - lastH) < 140) return;
     lastW = nw; lastH = nh;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = nw; H = nh;
@@ -486,7 +488,7 @@
     sortedBranches = branches;
 
     // 5) canopy blossoms + HD flowers grow from the leaf nodes
-    blossoms = []; flowers = [];
+    blossoms = []; flowers = []; splatter = [];
     const bScale = Math.max(0.8, scale * 0.9);
     for (const l of leaves) {
       const lx = tx(l.x), ly = ty(l.y);
@@ -519,7 +521,10 @@
       });
     }
 
-    // 6) watercolor splatter — faint droplets sprayed around the canopy (like the reference)
+    // 6) watercolor splatter — faint droplets sprayed around the canopy (like the reference).
+    // Painted on the background, not with the tree: they are paint on the
+    // paper, so they stay put when the tree leans, and no petal starts from
+    // one of them out in the empty air.
     if (leaves.length) {
       const lp = leaves.map(l => [tx(l.x), ty(l.y)]);
       let ccx = 0, ccy = 0;
@@ -531,7 +536,7 @@
       for (let i = 0; i < nSpl; i++) {
         const a = sRng() * PI2;
         const dist = spread * (0.55 + sRng() * 0.75);   // reaches beyond the main mass
-        blossoms.push({
+        splatter.push({
           x: ccx + Math.cos(a) * dist,
           y: ccy + Math.sin(a) * dist * 0.9,
           r: sRngR(1.5, 5.5) * bScale * 0.6,
@@ -563,6 +568,8 @@
     glow.addColorStop(0.5, 'rgba(250, 205, 195, 0.035)');
     glow.addColorStop(1,   'rgba(255, 200, 190, 0)');
     c.fillStyle = glow; c.fillRect(0, 0, W, H);
+
+    for (const b of splatter) drawBlossomBlob(c, b.x, b.y, b.r, b.color, b.alpha, b.ph);
 
     // Ground — soft watercolor mound + cool water reflection (matches the reference)
     const trunkBaseY = H * 0.90;
@@ -908,7 +915,9 @@
       drag: 0,
       // its own landing depth: the ground is a band, not a line. Most come
       // down near the front edge, some further back.
-      landY: H * 0.90 - 8 + Math.pow(Math.random(), 1.6) * H * 0.07
+      // Kept as a share of the band, not a pixel height: a pixel height
+      // outlived a window resize, and petals then came to rest mid-screen.
+      landK: Math.pow(Math.random(), 1.6)
     };
   }
 
@@ -973,7 +982,8 @@
       // Near the trunk the mound rises, so petals there rest a little higher.
       const moundR = isMobile ? W * 0.36 : W * 0.24;
       const lift = Math.max(0, 1 - Math.pow((p.x - TREE_X) / moundR, 2)) * 22;
-      const gy = (p.landY || H * 0.90) - lift + sceneShift;   // screen y of the ground here
+      const landY = H * 0.90 - 8 + (p.landK || 0) * H * 0.07;
+      const gy = landY - lift + sceneShift;   // screen y of the ground here
       if (p.y > gy) {
         // Every petal that lands should actually be seen — if we're at the cap,
         // retire the oldest resting petal instead of silently dropping the new one
@@ -1013,7 +1023,12 @@
       perched[i].age += 0.0001;
       if (perched[i].age > 1) perched.splice(i, 1);
     }
-    if (airPetals.length < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
+    // The cap counts the steady fall only. A click's burst (35 at once) used
+    // to fill it, and nothing new fell — from the tree or from above the
+    // screen — until the whole burst had come down.
+    let steady = 0;
+    for (const p of airPetals) if (!p.burst) steady++;
+    if (steady < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
   }
 
   function updateShake() {
@@ -1293,7 +1308,7 @@
     releaseAll(Math.sign(shakeV) * 0.6);
     // cap total petals so rapid repeated taps can't grow this unbounded
     const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true);
+    for (let i = 0; i < Math.min(35, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
   }
   // The words' column is wider than its words, and on desktop its right edge
   // runs into the tree's left-hand blossoms. A click there shakes the tree
