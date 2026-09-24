@@ -127,6 +127,20 @@ vercel.json                 routing, headers, proxies
   tell a tap from a swipe. It was tried at `/garden-home2` first
   (September 2026), which now redirects home.
 
+- **examined** (`/examined`, the philosophy quiz) keeps its own look on
+  purpose: pink by default with a dark toggle, set in an old-printed-book
+  type (IM Fell English for titles and small-caps labels, Libre Caslon
+  for reading) since September 2026 — not the site's Princess Sofia /
+  Unkempt, and not the Space Mono / Garamond / Caveat it had before.
+  Its wall of names is `api/wall.js`, stored in Vercel Blob by the same
+  rules as the community map (suffixed writes, a failed read is an error
+  and never an empty wall, 30 versions kept); the older version read a
+  failure as `[]` and the next signature would have replaced everyone.
+  The quiz's scoring has a quirk in `getArchetype`
+  (`n[axis] || 0.5` turns the lowest axis into 0.5) that the archetype
+  ideals were tuned around; there's a comment there — don't "fix" it
+  without retuning, it changes about half of all results.
+
 ### Routing and hosting
 
 - `vercel.json` holds 33 rewrites. `cleanUrls: true`, so `/foo.html` serves at
