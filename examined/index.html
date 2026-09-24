@@ -6,13 +6,13 @@
   
   <!-- SEO & Social Meta Tags -->
   <title>examined. — a philosophical mirror</title>
-  <meta name="description" content="Thought experiments drawn from traditions across the world. No right answers. Just a mirror. Discover your philosophical portrait.">
+  <meta name="description" content="Thought experiments drawn from traditions across the world. No right answers. Just a mirror.">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://pranshul.cafe/examined">
   <meta property="og:title" content="examined. — a philosophical mirror">
-  <meta property="og:description" content="Thought experiments drawn from traditions across the world. No right answers. Just a mirror. Discover your philosophical portrait.">
+  <meta property="og:description" content="Thought experiments drawn from traditions across the world. No right answers. Just a mirror.">
   <meta property="og:image" content="https://pranshul.cafe/examined/og-image.png">
   
   <!-- Twitter -->
@@ -839,6 +839,7 @@ body {
 [data-theme="pink"] .theme-toggle {
   background: rgba(255,208,218,0.7);
   border-color: var(--accent-dim);
+  color: var(--accent);
 }
 
 /* ===== RARITY BADGE ===== */
@@ -977,7 +978,7 @@ body {
   .contradiction-commentary { font-size: 0.98rem; padding: 1.2rem 0.2rem; margin-bottom: 2rem; }
   .contradiction-continue { width: 100%; }
 }
-  /* ===== AGENT 4: VISUAL POLISH & PINK MODE ===== */
+/* ===== MOTION & PINK MODE EXTRAS ===== */
 
 /* ===== INTRO SCREEN ANIMATIONS ===== */
 
@@ -1832,12 +1833,12 @@ button { font: inherit; color: inherit; }
       no right answers. just a mirror.
     </p>
     <div class="intro-axes">
-      <div class="intro-axis"><span>ethics</span> — consequentialist ↔ deontological</div>
-      <div class="intro-axis"><span>self</span> — individual ↔ communal</div>
-      <div class="intro-axis"><span>endurance</span> — stoic ↔ epicurean</div>
-      <div class="intro-axis"><span>method</span> — pragmatist ↔ idealist</div>
-      <div class="intro-axis"><span>freedom</span> — libertarian ↔ determinist</div>
-      <div class="intro-axis"><span>knowledge</span> — rationalist ↔ empiricist</div>
+      <div class="intro-axis"><span>ethics</span> — deontological ↔ consequentialist</div>
+      <div class="intro-axis"><span>self</span> — communal ↔ individual</div>
+      <div class="intro-axis"><span>endurance</span> — epicurean ↔ stoic</div>
+      <div class="intro-axis"><span>method</span> — idealist ↔ pragmatist</div>
+      <div class="intro-axis"><span>freedom</span> — determinist ↔ libertarian</div>
+      <div class="intro-axis"><span>knowledge</span> — empiricist ↔ rationalist</div>
       <div class="intro-axis"><span>reality</span> — materialist ↔ transcendent</div>
     </div>
 
@@ -1859,14 +1860,14 @@ button { font: inherit; color: inherit; }
     <div class="paths">
       <button type="button" class="path-card" onclick="selectPath('essential')" id="path-essential" aria-pressed="false">
         <span class="path-card-icon" aria-hidden="true">◯</span>
-        <span class="path-card-name">THE ESSENTIAL</span>
-        <span class="path-card-desc">Ten core dilemmas. Ethics, freedom, meaning, identity. The greatest hits.</span>
+        <span class="path-card-name">the essential</span>
+        <span class="path-card-desc">Ten dilemmas about duty, freedom, meaning and identity.</span>
         <span class="path-card-count">10 scenarios · ~15 min</span>
       </button>
       <button type="button" class="path-card" onclick="selectPath('examined')" id="path-examined" aria-pressed="false">
         <span class="path-card-icon" aria-hidden="true">◎</span>
-        <span class="path-card-name">THE EXAMINED</span>
-        <span class="path-card-desc">Sixteen carefully chosen dilemmas spanning ethics, identity, knowledge, and belonging. The sweet spot.</span>
+        <span class="path-card-name">the examined</span>
+        <span class="path-card-desc">The same ten, plus six more on grief, belonging, mortality, care and ways of knowing.</span>
         <span class="path-card-count">16 scenarios · ~25 min</span>
       </button>
     </div>
@@ -1920,7 +1921,7 @@ button { font: inherit; color: inherit; }
     <div class="readings-section" id="readings-section"></div>
     <div id="deliberation-slot"></div>
     <div class="community-section" id="community-section">
-      <h3 class="community-title">THE WALL</h3>
+      <h3 class="community-title">the wall</h3>
       <div class="community-subtitle">others who've examined themselves</div>
       <form class="community-add" id="wall-form" onsubmit="addToWall(event)">
         <label class="visually-hidden" for="name-input">your name</label>
@@ -1992,147 +1993,147 @@ const WALL_API = '/api/wall';
 
 const READINGS = {
   'The Examined Stoic': [
-    { title:'Meditations', author:'Marcus Aurelius', why:'The original field manual for maintaining inner calm while the world burns around you.', type:'book', url:'https://www.goodreads.com/book/show/1168191.Meditations' },
-    { title:'Courage Under Fire', author:'James Stockdale', why:'A POW who survived seven years in Hanoi using Epictetus. Stoicism tested to its absolute limit.', type:'book', url:'https://www.goodreads.com/book/show/196158.Courage_Under_Fire' },
-    { title:'Stoic Warriors', author:'Nancy Sherman', why:'How modern military culture accidentally rediscovered ancient Stoic philosophy. Surprisingly moving.', type:'book', url:'https://www.goodreads.com/book/show/612998.Stoic_Warriors' },
-    { title:'Gravity and Grace', author:'Simone Weil', why:'A mystic\'s Stoicism — attention as the highest form of generosity, suffering as a path to clarity.', type:'book', url:'https://www.goodreads.com/book/show/730139.Gravity_and_Grace' },
-    { title:'The Book of Five Rings', author:'Miyamoto Musashi', why:'Japanese bushido meets Stoic discipline. Written by an undefeated swordsman in his final years, a meditation on strategy as a way of life.', type:'book', url:'https://www.goodreads.com/book/show/276389.The_Book_of_Five_Rings' },
-    { title:'The Heart of the Buddha\'s Teaching', author:'Thích Nhất Hạnh', why:'Vietnamese Zen master transforms suffering into mindfulness through the Four Noble Truths. Where Stoicism builds resilience through reason, Thích Nhất Hạnh teaches equanimity through compassion and present-moment awareness—accepting what is while actively transforming it.', type:'book', url:'https://www.goodreads.com/book/show/209574.The_Heart_of_the_Buddha_s_Teaching' },
-    { title:'My Grandmother\'s Hands: Racialized Trauma and the Pathway to Mending Our Hearts and Bodies', author:'Resmaa Menakem', why:'Black trauma therapist reframes stoic endurance through the body. Where classical Stoicism mastered emotions through mind, Menakem teaches resilience through somatic practice—healing racialized trauma by settling the nervous system, not just disciplining thought.', type:'book', url:'https://www.goodreads.com/book/show/34146782-my-grandmother-s-hands' },
-    { title:'Gladiator', author:'Ridley Scott (2000)', why:'Maximus endures the unendurable with grace—loss, slavery, death—without self-pity or complaint. The arena becomes his meditation hall, each fight a practice in presence, each breath a choice to remain unbroken.', type:'film', url:'https://letterboxd.com/film/gladiator-2000/' },
-    { title:'Master and Commander: The Far Side of the World', author:'Peter Weir (2003)', why:'Captain Aubrey commands with Stoic virtue incarnate: duty over desire, discipline over impulse, the mission above the man. A floating Republic where reason governs the passions and every decision carries the weight of lives.', type:'film', url:'https://letterboxd.com/film/master-and-commander-the-far-side-of-the-world/' },
-    { title:'The Daily Stoic Podcast', author:'Ryan Holiday', why:'Daily doses of ancient wisdom filtered through modern chaos—like Marcus Aurelius whispering in your ear during your commute. Less philosophy lecture, more emergency kit for the soul.', type:'podcast', url:'https://dailystoic.com/podcast/' },
-    { title:'Epictetus: The Enchiridion', author:'Epictetus', why:'A former slave\'s field manual for inner freedom, distilled into bite-sized maxims that hit harder than most modern self-help. Your ancestors read this before battle; you can read it before Monday.', type:'essay', url:'https://www.gutenberg.org/ebooks/45109' },
+    { title:'Meditations', author:'Marcus Aurelius', why:'Private notes a Roman emperor wrote to himself about staying steady while things went wrong around him. They were never meant to be published, which is why they read so honestly.', type:'book', url:'https://www.goodreads.com/book/show/1168191.Meditations' },
+    { title:'Courage Under Fire', author:'James Stockdale', why:'A US Navy pilot held as a prisoner of war in Hanoi for over seven years, on how Epictetus got him through. Stoicism tested about as hard as it can be.', type:'book', url:'https://www.goodreads.com/book/show/196158.Courage_Under_Fire' },
+    { title:'Stoic Warriors', author:'Nancy Sherman', why:'A philosopher who taught at the US Naval Academy on how military culture rediscovered Stoic ideas, and where those ideas fall short. More moving than you\'d expect.', type:'book', url:'https://www.goodreads.com/book/show/612998.Stoic_Warriors' },
+    { title:'Gravity and Grace', author:'Simone Weil', why:'Weil\'s notebooks on attention, suffering and grace. Her acceptance of hardship is close to Stoicism, though she reaches it through faith.', type:'book', url:'https://www.goodreads.com/book/show/730139.Gravity_and_Grace' },
+    { title:'The Book of Five Rings', author:'Miyamoto Musashi', why:'Written near the end of his life by a swordsman who claimed never to have lost a duel. Strategy treated as a whole way of living, with a discipline the Stoics would recognize.', type:'book', url:'https://www.goodreads.com/book/show/276389.The_Book_of_Five_Rings' },
+    { title:'The Heart of the Buddha\'s Teaching', author:'Thích Nhất Hạnh', why:'The Vietnamese Zen teacher\'s introduction to the Four Noble Truths. A gentler route to equanimity than the Stoics took, through mindfulness and compassion rather than argument.', type:'book', url:'https://www.goodreads.com/book/show/209574.The_Heart_of_the_Buddha_s_Teaching' },
+    { title:'My Grandmother\'s Hands: Racialized Trauma and the Pathway to Mending Our Hearts and Bodies', author:'Resmaa Menakem', why:'A therapist\'s case that racialized trauma is held in the body, and that resilience comes from settling the nervous system as much as from disciplining thought.', type:'book', url:'https://www.goodreads.com/book/show/34146782-my-grandmother-s-hands' },
+    { title:'Gladiator', author:'Ridley Scott (2000)', why:'Maximus endures loss, slavery and death without self-pity. The arena becomes a kind of discipline: every fight is a test of whether he can stay himself.', type:'film', url:'https://letterboxd.com/film/gladiator-2000/' },
+    { title:'Master and Commander: The Far Side of the World', author:'Peter Weir (2003)', why:'Captain Aubrey puts duty ahead of what he wants and keeps his head when lives depend on it. A quiet film about leading people through danger.', type:'film', url:'https://letterboxd.com/film/master-and-commander-the-far-side-of-the-world/' },
+    { title:'The Daily Stoic Podcast', author:'Ryan Holiday', why:'Short daily episodes applying Stoic ideas to ordinary modern problems. More practical than scholarly.', type:'podcast', url:'https://dailystoic.com/podcast/' },
+    { title:'Epictetus: The Enchiridion', author:'Epictetus', why:'A short handbook of Epictetus\'s teachings, compiled by his student Arrian. Epictetus was born a slave, and the book is about the freedom nobody can take from you.', type:'essay', url:'https://www.gutenberg.org/ebooks/45109' },
   ],
   'The Reluctant Utilitarian': [
-    { title:'Strangers Drowning', author:'Larissa MacFarquhar', why:'Profiles of extreme altruists. What happens when you take utilitarian logic all the way — beautiful, disturbing, essential.', type:'book', url:'https://www.goodreads.com/book/show/24611937-strangers-drowning' },
-    { title:'Reasons and Persons', author:'Derek Parfit', why:'Mind-bending work on identity and ethics. Will permanently change how you think about future people.', type:'book', url:'https://www.goodreads.com/book/show/327051.Reasons_and_Persons' },
-    { title:'Poor Economics', author:'Abhijit Banerjee & Esther Duflo', why:'Nobel-winning development economics that wrestles with what actually helps — not what feels like helping.', type:'book', url:'https://www.goodreads.com/book/show/20752757-poor-economics' },
-    { title:'Winners Take All', author:'Anand Giridharadas', why:'The sharp critique of doing-good-while-doing-well. A mirror for reluctant utilitarians who benefit from the system they want to fix.', type:'book', url:'https://www.goodreads.com/book/show/37506348-winners-take-all' },
-    { title:'In a Different Voice', author:'Carol Gilligan', why:'A counterweight to pure calculation — what gets lost when we reduce ethics to arithmetic.', type:'book', url:'https://www.goodreads.com/book/show/101880.In_a_Different_Voice' },
-    { title:'Ethics of Liberation', author:'Enrique Dussel', why:'Argentine-Mexican philosopher rebuilds ethics from the perspective of the colonized. Where Western utilitarians calculate from privilege, Dussel asks: whose suffering counts? An ethics that starts with those excluded from the calculus—victims of systems, not their beneficiaries.', type:'book', url:'https://www.goodreads.com/book/show/13586042-ethics-of-liberation' },
-    { title:'Black Feminist Thought', author:'Patricia Hill Collins', why:'Black feminist standpoint theory exposes whose \'greater good\' gets prioritized. Where utilitarian calculations claim neutrality, Collins reveals the matrix of domination—how race, class, and gender determine who counts in moral math. Care work counts. Black women\'s knowledge counts.', type:'book', url:'https://www.goodreads.com/book/show/353598.Black_Feminist_Thought' },
-    { title:'The Dark Knight', author:'Christopher Nolan (2008)', why:'Batman calculates consequences in real-time—two ferries, impossible choices, the Joker forcing Gotham to do its own moral accounting. The greatest good demands the dirtiest hands, and Harvey Dent\'s fall proves even heroes can\'t escape the math.', type:'film', url:'https://letterboxd.com/film/the-dark-knight/' },
-    { title:'A Serious Man', author:'Coen Brothers (2009)', why:'Larry Gopnik tries desperately to be good, to calculate the right action, but the universe returns only static and suffering. A cosmic joke about moral ledgers that refuse to balance—sometimes the trolley hits everyone.', type:'film', url:'https://letterboxd.com/film/a-serious-man/' },
-    { title:'Famine, Affluence, and Morality', author:'Peter Singer', why:'The essay that makes you realize your morning latte might be a moral catastrophe. Singer\'s drowning-child thought experiment will haunt your wallet—and force you to reckon with what you actually owe strangers.', type:'essay', url:'https://rintintin.colorado.edu/~vancecd/phil308/Singer2.pdf' },
-    { title:'Partially Examined Life on Utilitarianism', author:'Mark Linsenmayer et al.', why:'Philosophy PhDs who escaped academia dissect the messy calculus of the greatest good. Smart without being smug, critical without being cynical—like therapy for your ethical anxieties.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
+    { title:'Strangers Drowning', author:'Larissa MacFarquhar', why:'Profiles of people who give away most of what they have to help strangers. Utilitarian logic taken all the way: sometimes admirable, sometimes unsettling.', type:'book', url:'https://www.goodreads.com/book/show/24611937-strangers-drowning' },
+    { title:'Reasons and Persons', author:'Derek Parfit', why:'Parfit\'s huge, strange book on personal identity and what we owe future generations. It will change how you think about both.', type:'book', url:'https://www.goodreads.com/book/show/327051.Reasons_and_Persons' },
+    { title:'Poor Economics', author:'Abhijit Banerjee & Esther Duflo', why:'Two Nobel-winning economists test what actually helps the world\'s poorest people, as opposed to what feels as if it should.', type:'book', url:'https://www.goodreads.com/book/show/20752757-poor-economics' },
+    { title:'Winners Take All', author:'Anand Giridharadas', why:'A sharp critique of the rich doing good in ways that leave the system that made them rich untouched. Uncomfortable reading if you benefit from that system.', type:'book', url:'https://www.goodreads.com/book/show/37506348-winners-take-all' },
+    { title:'In a Different Voice', author:'Carol Gilligan', why:'Gilligan\'s argument that moral theory had ignored an ethics of care and relationship. A counterweight to treating ethics as arithmetic.', type:'book', url:'https://www.goodreads.com/book/show/101880.In_a_Different_Voice' },
+    { title:'Ethics of Liberation', author:'Enrique Dussel', why:'The Argentine-Mexican philosopher builds ethics from the standpoint of the excluded and the colonized. It asks whose suffering gets counted in the first place.', type:'book', url:'https://www.goodreads.com/book/show/13586042-ethics-of-liberation' },
+    { title:'Black Feminist Thought', author:'Patricia Hill Collins', why:'Collins on how race, class and gender shape whose knowledge is taken seriously. A good question to put to any calculation of "the greater good".', type:'book', url:'https://www.goodreads.com/book/show/353598.Black_Feminist_Thought' },
+    { title:'The Dark Knight', author:'Christopher Nolan (2008)', why:'Two ferries, each holding the detonator to the other, and a city forced to do its own moral arithmetic. Harvey Dent\'s fall shows what that arithmetic can cost.', type:'film', url:'https://letterboxd.com/film/the-dark-knight/' },
+    { title:'A Serious Man', author:'Coen Brothers (2009)', why:'Larry Gopnik tries hard to be good and gets no answer from the universe except more trouble. A comedy about moral ledgers that refuse to balance.', type:'film', url:'https://letterboxd.com/film/a-serious-man/' },
+    { title:'Famine, Affluence, and Morality', author:'Peter Singer', why:'The essay with the drowning child. If you would ruin your clothes to save a child in front of you, Singer asks, why not give to save one far away?', type:'essay', url:'https://rintintin.colorado.edu/~vancecd/phil308/Singer2.pdf' },
+    { title:'Partially Examined Life on Utilitarianism', author:'Mark Linsenmayer et al.', why:'Long, informal discussions by a group who were once set on doing philosophy for a living and thought better of it. Serious about the ideas without being stuffy.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
   ],
   'The Existential Pragmatist': [
-    { title:'Shop Class as Soulcraft', author:'Matthew Crawford', why:'Motorcycle repair as existential practice. Why working with your hands is a philosophical act.', type:'book', url:'https://www.goodreads.com/book/show/6261332-shop-class-as-soulcraft' },
-    { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Freedom isn\'t just a right — it\'s a responsibility. de Beauvoir on what it means to act in an uncertain world.', type:'book', url:'https://www.goodreads.com/book/show/21119.The_Ethics_of_Ambiguity' },
-    { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that reads like absurdist comedy. The butterfly dream alone is worth the price of entry.', type:'book', url:'https://www.goodreads.com/book/show/313980.Chuang_Tzu' },
-    { title:'The Craftsman', author:'Richard Sennett', why:'Explores skilled practice as a form of embodied knowledge. Pragmatism through making, not just thinking — hands shaping mind.', type:'book', url:'https://www.goodreads.com/book/show/1931426.The_Craftsman' },
-    { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A pragmatist\'s guide to mortality — stop optimizing time and start living in it.', type:'book', url:'https://www.goodreads.com/book/show/54785515-four-thousand-weeks' },
-    { title:'Borderlands/La Frontera: The New Mestiza', author:'Gloria Anzaldúa', why:'Queer Chicana poet-philosopher lives in the borderlands between cultures, languages, genders. Where pragmatism adapts to circumstances, Anzaldúa creates \'mestiza consciousness\'—not choosing between worlds but inhabiting contradiction itself. The third space where transformation happens.', type:'book', url:'https://www.goodreads.com/book/show/45882.Borderlands_La_Frontera' },
-    { title:'Parable of the Sower', author:'Octavia E. Butler', why:'Black sci-fi prophet builds philosophy through apocalypse. Where existential pragmatism theorizes adaptation, Butler\'s hyperempathic protagonist creates \'Earthseed\'—a religion of change, shaping God through community survival. Philosophy isn\'t thought experiments; it\'s the practice of staying alive and staying human.', type:'book', url:'https://www.goodreads.com/book/show/52397.Parable_of_the_Sower' },
-    { title:'No Country for Old Men', author:'Coen Brothers (2007)', why:'Llewelyn Moss makes the choice and lives the consequence—no cosmic justice, no safety net, just the cold truth that actions ripple forward into chaos. Chigurh is fate with a philosophy degree; the coin flip is all the meaning you get.', type:'film', url:'https://letterboxd.com/film/no-country-for-old-men/' },
-    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Andre chases transcendence across continents while Wallace defends the comfort of coffee and routine—two philosophers at dinner, one mystic and one pragmatist, both trying to justify how they\'ve chosen to live. The conversation is the philosophy.', type:'film', url:'https://letterboxd.com/film/my-dinner-with-andre/' },
-    { title:'The Will to Believe', author:'William James', why:'James defends leaping before you look—arguing that some truths only reveal themselves to those who dare to act. The philosophical permission slip for the practically courageous.', type:'essay', url:'https://www.gutenberg.org/files/26659/26659-h/26659-h.htm' },
-    { title:'Awakening from the Meaning Crisis', author:'John Vervaeke', why:'A cognitive scientist traces Western civilization\'s loss of meaning through philosophy, religion, and psychology—then rebuilds wisdom from the fragments. Dense, sprawling, transformative.', type:'lecture', url:'https://www.youtube.com/playlist?list=PLND1JCRq8Vuh3f0P5qjrSdb5eC1ZfZwWJ' },
+    { title:'Shop Class as Soulcraft', author:'Matthew Crawford', why:'A philosopher who became a motorcycle mechanic on why working with your hands is a way of thinking.', type:'book', url:'https://www.goodreads.com/book/show/6261332-shop-class-as-soulcraft' },
+    { title:'The Ethics of Ambiguity', author:'Simone de Beauvoir', why:'Beauvoir on acting in a world with no guarantees, and why freedom is a responsibility as much as a right.', type:'book', url:'https://www.goodreads.com/book/show/21119.The_Ethics_of_Ambiguity' },
+    { title:'The Inner Chapters', author:'Zhuangzi', why:'Ancient Chinese philosophy that often reads like absurdist comedy. The butterfly dream alone is worth it.', type:'book', url:'https://www.goodreads.com/book/show/313980.Chuang_Tzu' },
+    { title:'The Craftsman', author:'Richard Sennett', why:'Sennett on skilled work as a kind of knowledge that lives in the hands. Pragmatism by way of making things.', type:'book', url:'https://www.goodreads.com/book/show/1931426.The_Craftsman' },
+    { title:'Four Thousand Weeks', author:'Oliver Burkeman', why:'A practical book about mortality: stop trying to master your time and start living in it.', type:'book', url:'https://www.goodreads.com/book/show/54785515-four-thousand-weeks' },
+    { title:'Borderlands/La Frontera: The New Mestiza', author:'Gloria Anzaldúa', why:'Anzaldúa writes from the border between Mexico and the US, and between languages, cultures and genders. Instead of choosing one world, she makes a way of thinking out of living between them.', type:'book', url:'https://www.goodreads.com/book/show/45882.Borderlands_La_Frontera' },
+    { title:'Parable of the Sower', author:'Octavia E. Butler', why:'A novel set in a collapsing America, where a young woman builds a religion around one idea: God is change. Philosophy as a way of staying alive.', type:'book', url:'https://www.goodreads.com/book/show/52397.Parable_of_the_Sower' },
+    { title:'No Country for Old Men', author:'Coen Brothers (2007)', why:'Llewelyn Moss makes one choice and lives with what follows. No cosmic justice, only consequences, and Chigurh\'s coin toss as the only meaning on offer.', type:'film', url:'https://letterboxd.com/film/no-country-for-old-men/' },
+    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Two old friends talk over dinner, one chasing transcendence around the world, the other defending coffee and routine. The whole film is the conversation.', type:'film', url:'https://letterboxd.com/film/my-dinner-with-andre/' },
+    { title:'The Will to Believe', author:'William James', why:'James argues that on some questions you have to commit before the evidence is in, and that some truths only show up for people who act.', type:'essay', url:'https://www.gutenberg.org/files/26659/26659-h/26659-h.htm' },
+    { title:'Awakening from the Meaning Crisis', author:'John Vervaeke', why:'A cognitive scientist\'s fifty-lecture history of how the West lost its sources of meaning, and what might replace them. Long, dense and worth it.', type:'lecture', url:'https://www.youtube.com/playlist?list=PLND1JCRq8Vuh3f0P5qjrSdb5eC1ZfZwWJ' },
   ],
   'The Relational Existentialist': [
-    { title:'I and Thou', author:'Martin Buber', why:'The foundational text on what it means to truly encounter another person. Short, dense, life-altering.', type:'book', url:'https://www.goodreads.com/book/show/551866.I_and_Thou' },
-    { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Morality as attention — seeing others clearly is the hardest and most important philosophical work.', type:'book', url:'https://www.goodreads.com/book/show/11232.The_Sovereignty_of_Good' },
-    { title:'All About Love', author:'bell hooks', why:'Love as a practice of freedom. hooks dismantles romantic myths and builds something more honest in their place.', type:'book', url:'https://www.goodreads.com/book/show/17607.All_About_Love' },
-    { title:'Philosophy and an African Culture', author:'Kwasi Wiredu', why:'Akan communal philosophy — personhood as co-created through relationship, not granted at birth.', type:'book', url:'https://www.goodreads.com/book/show/6678075-philosophy-and-an-african-culture' },
-    { title:'Relational Being', author:'Kenneth Gergen', why:'Social psychology meets philosophy — the self as process, not thing. Changes how you understand connection.', type:'book', url:'https://www.goodreads.com/book/show/6718365-relational-being' },
-    { title:'Poetics of Relation', author:'Édouard Glissant', why:'Martinican poet-philosopher weaves identity from archipelagos, not roots. Where Western existentialism isolates the individual, Glissant\'s creolization builds selfhood through relation—not despite difference but because of it. Caribbean thought as relational ontology, where mixture creates, not dilutes.', type:'book', url:'https://www.goodreads.com/book/show/444809.Poetics_of_Relation' },
-    { title:'Pilgrimages/Peregrinajes: Theorizing Coalition Against Multiple Oppressions', author:'María Lugones', why:'Argentine feminist philosopher rejects the colonial logic of purity. Where liberal relationality seeks common ground, Lugones teaches \'world-traveling\'—learning to see yourself through another\'s eyes without erasing difference. Coalition as ontological practice, loving across worlds.', type:'book', url:'https://www.goodreads.com/book/show/144958.Pilgrimages_Peregrinajes' },
-    { title:'Before Sunrise', author:'Richard Linklater (1995)', why:'Jesse and Céline wander Vienna discovering the I-Thou in real-time—two strangers becoming whole through genuine encounter, creating meaning through dialogue, building a world between them that didn\'t exist before. Connection as existential act.', type:'film', url:'https://letterboxd.com/film/before-sunrise/' },
-    { title:'Wings of Desire', author:'Wim Wenders (1987)', why:'Damiel the angel witnesses humanity from above—lonely, eternal, untouchable—until love for a trapeze artist pulls him into mortal flesh. A meditation on what we sacrifice for connection: immortality for a single human touch.', type:'film', url:'https://letterboxd.com/film/wings-of-desire/' },
-    { title:'Hunhu/Ubuntu in the Traditional Thought of Southern Africa', author:'Internet Encyclopedia of Philosophy', why:'African philosophy\'s antidote to Descartes: your humanity emerges through connection, not isolated thought. A communal manifesto for those who find themselves in the mirror of others.', type:'essay', url:'https://iep.utm.edu/hunhu-ubuntu-southern-african-thought/' },
-    { title:'On Being with Krista Tippett', author:'Krista Tippett', why:'Where philosophy meets poetry, theology dances with neuroscience, and every conversation asks: what does it mean to be human together? Tippett listens like attention is an act of love.', type:'podcast', url:'https://onbeing.org/series/podcast/' },
+    { title:'I and Thou', author:'Martin Buber', why:'Buber\'s short, dense book on the difference between treating someone as an object and actually meeting them.', type:'book', url:'https://www.goodreads.com/book/show/551866.I_and_Thou' },
+    { title:'The Sovereignty of Good', author:'Iris Murdoch', why:'Murdoch on morality as attention: the hard work of seeing other people as they really are.', type:'book', url:'https://www.goodreads.com/book/show/11232.The_Sovereignty_of_Good' },
+    { title:'All About Love', author:'bell hooks', why:'hooks takes apart the romantic myths about love and puts something more honest in their place: love as a practice, not a feeling.', type:'book', url:'https://www.goodreads.com/book/show/17607.All_About_Love' },
+    { title:'Philosophy and an African Culture', author:'Kwasi Wiredu', why:'Wiredu on Akan thought, in which personhood is something you grow into through your relationships rather than something you\'re born with.', type:'book', url:'https://www.goodreads.com/book/show/6678075-philosophy-and-an-african-culture' },
+    { title:'Relational Being', author:'Kenneth Gergen', why:'A psychologist argues that the self is made in relationships rather than existing before them. It changes how you think about connection.', type:'book', url:'https://www.goodreads.com/book/show/6718365-relational-being' },
+    { title:'Poetics of Relation', author:'Édouard Glissant', why:'The Martinican poet and philosopher thinks of identity as a network of relations, like an archipelago, instead of a single root. Mixing makes something new; it doesn\'t water anything down.', type:'book', url:'https://www.goodreads.com/book/show/444809.Poetics_of_Relation' },
+    { title:'Pilgrimages/Peregrinajes: Theorizing Coalition Against Multiple Oppressions', author:'María Lugones', why:'Lugones on "world-travelling": learning to see yourself through someone else\'s eyes without erasing the differences between you.', type:'book', url:'https://www.goodreads.com/book/show/144958.Pilgrimages_Peregrinajes' },
+    { title:'Before Sunrise', author:'Richard Linklater (1995)', why:'Two strangers walk around Vienna for one night and talk. A film about what happens between people when they really pay attention to each other.', type:'film', url:'https://letterboxd.com/film/before-sunrise/' },
+    { title:'Wings of Desire', author:'Wim Wenders (1987)', why:'An angel who has watched over Berlin for centuries falls in love and gives up immortality to be able to touch and taste things. What we would trade for connection.', type:'film', url:'https://letterboxd.com/film/wings-of-desire/' },
+    { title:'Hunhu/Ubuntu in the Traditional Thought of Southern Africa', author:'Internet Encyclopedia of Philosophy', why:'An encyclopedia entry on Southern African ubuntu philosophy: the idea that your humanity comes through other people. A clear place to start.', type:'essay', url:'https://iep.utm.edu/hunhu-ubuntu-southern-african-thought/' },
+    { title:'On Being with Krista Tippett', author:'Krista Tippett', why:'Krista Tippett\'s long conversations with poets, scientists and theologians about what it means to live well together. She is a remarkable listener.', type:'podcast', url:'https://onbeing.org/series/podcast/' },
   ],
   'The Radical Individualist': [
-    { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s wild, poetic manifesto for becoming who you are. Not a self-help book — something stranger and better.', type:'book', url:'https://www.goodreads.com/book/show/380285.Thus_Spoke_Zarathustra' },
-    { title:'The Complete Works of Zhuangzi', author:'Zhuangzi (trans. Burton Watson)', why:'Daoist freedom — the sage wanders without purpose and finds everything. Individualism without ego.', type:'book', url:'https://www.goodreads.com/book/show/18197152-the-complete-works-of-zhuangzi' },
-    { title:'Narrative of the Life of Frederick Douglass', author:'Frederick Douglass', why:'Self-liberation as philosophy. Douglass didn\'t just escape slavery — he thought his way to freedom.', type:'book', url:'https://www.goodreads.com/book/show/36529.Narrative_of_the_Life_of_Frederick_Douglass' },
-    { title:'Sister Outsider', author:'Audre Lorde', why:'Radical individuality as survival and resistance. Lorde\'s essays burn with clarity.', type:'book', url:'https://www.goodreads.com/book/show/32951.Sister_Outsider' },
-    { title:'Cruising Utopia', author:'José Esteban Muñoz', why:'Queer futurity — imagining selves and worlds that don\'t exist yet. Individualism as radical possibility.', type:'book', url:'https://www.goodreads.com/book/show/6664343-cruising-utopia' },
-    { title:'The Invention of Women: Making an African Sense of Western Gender Discourses', author:'Oyèrónkẹ́ Oyěwùmí', why:'Yoruba feminist philosopher refuses Western gender binaries. Where radical individualism breaks from norms, Oyěwùmí reveals that \'woman\' itself is a colonial invention—Yoruba society organized by seniority, not gender. Freedom isn\'t escaping categories; it\'s exposing how they were forced upon you.', type:'book', url:'https://www.goodreads.com/book/show/1161702.The_Invention_of_Women' },
-    { title:'Dear Senthuran: A Black Spirit Memoir', author:'Akwaeke Emezi', why:'Nonbinary Igbo writer refuses the gender binary and the body/spirit divide. Where Western individualism builds the self through assertion, Emezi draws on ogbanje spirituality—being many, being liminal, being neither alive nor dead. Radical selfhood as spiritual fact, not political claim.', type:'book', url:'https://www.goodreads.com/book/show/55877915-dear-senthuran' },
-    { title:'The Matrix', author:'Lana & Lilly Wachowski (1999)', why:'Neo wakes up, rejects the given world, and wills himself into the Übermensch—literally rewriting reality through sheer self-creation. The red pill is the most Nietzschean choice in cinema: truth over comfort, becoming over being.', type:'film', url:'https://letterboxd.com/film/the-matrix/' },
-    { title:'When Nietzsche Wept', author:'Pinchas Perry (2007)', why:'Nietzsche himself as patient-philosopher, wrestling with despair and the death of God in 19th-century Vienna. A dramatization of the man behind the Übermensch, showing the loneliness of radical freedom and the cost of rejecting herd morality.', type:'film', url:'https://letterboxd.com/film/when-nietzsche-wept/' },
-    { title:'Civil Disobedience', author:'Henry David Thoreau', why:'Thoreau\'s defiant blueprint for conscience over conformity, written after a night in jail for refusing to pay taxes that funded war and slavery. The ur-text of American rebellion—Gandhi and King both carried it into battle.', type:'essay', url:'https://users.manchester.edu/Facstaff/SSNaragon/Online/texts/201/Thoreau,%20CivilDisobedience.pdf' },
-    { title:'The Partially Examined Life on Nietzsche', author:'Mark Linsenmayer et al.', why:'Recovering academics wrestle with philosophy\'s most dangerous individualist, the prophet of self-overcoming. They bring Nietzsche down from his mountain without neutering his fire.', type:'podcast', url:'https://partiallyexaminedlife.com/tag/nietzsche/' },
+    { title:'Thus Spoke Zarathustra', author:'Friedrich Nietzsche', why:'Nietzsche\'s strange, poetic book about becoming who you are. It isn\'t self-help, and it\'s better for it.', type:'book', url:'https://www.goodreads.com/book/show/380285.Thus_Spoke_Zarathustra' },
+    { title:'The Complete Works of Zhuangzi', author:'Zhuangzi (trans. Burton Watson)', why:'Daoist freedom: the sage wanders without a goal and finds everything. Individualism without the ego.', type:'book', url:'https://www.goodreads.com/book/show/18197152-the-complete-works-of-zhuangzi' },
+    { title:'Narrative of the Life of Frederick Douglass', author:'Frederick Douglass', why:'Douglass\'s account of teaching himself to read and, through reading, finding his way out of slavery. Self-liberation as philosophy.', type:'book', url:'https://www.goodreads.com/book/show/36529.Narrative_of_the_Life_of_Frederick_Douglass' },
+    { title:'Sister Outsider', author:'Audre Lorde', why:'Lorde\'s essays and speeches on difference, anger and speaking for yourself. Clear and fierce.', type:'book', url:'https://www.goodreads.com/book/show/32951.Sister_Outsider' },
+    { title:'Cruising Utopia', author:'José Esteban Muñoz', why:'Muñoz on queer futurity: imagining selves and worlds that don\'t exist yet. Individuality as a kind of hope.', type:'book', url:'https://www.goodreads.com/book/show/6664343-cruising-utopia' },
+    { title:'The Invention of Women: Making an African Sense of Western Gender Discourses', author:'Oyèrónkẹ́ Oyěwùmí', why:'The Nigerian scholar argues that "woman" as a social category came to Yorubaland with colonialism, and that Yoruba society was organized by seniority rather than gender. Freedom here starts with seeing where your categories came from.', type:'book', url:'https://www.goodreads.com/book/show/1161702.The_Invention_of_Women' },
+    { title:'Dear Senthuran: A Black Spirit Memoir', author:'Akwaeke Emezi', why:'A memoir in letters by a Nigerian writer who understands themself through the Igbo idea of the ogbanje, a spirit born into a human body. Selfhood that doesn\'t fit the usual categories.', type:'book', url:'https://www.goodreads.com/book/show/55877915-dear-senthuran' },
+    { title:'The Matrix', author:'Lana & Lilly Wachowski (1999)', why:'Neo wakes up, rejects the world he was given and remakes himself. The red pill is a very Nietzschean choice: truth over comfort.', type:'film', url:'https://letterboxd.com/film/the-matrix/' },
+    { title:'When Nietzsche Wept', author:'Pinchas Perry (2007)', why:'A fictional meeting between Nietzsche and the physician Josef Breuer in 1880s Vienna, adapted from Irvin Yalom\'s novel. Nietzsche as a patient, wrestling with despair.', type:'film', url:'https://letterboxd.com/film/when-nietzsche-wept/' },
+    { title:'Civil Disobedience', author:'Henry David Thoreau', why:'Thoreau\'s essay, written after a night in jail for refusing to pay a tax that supported slavery and the Mexican-American War. Gandhi and Martin Luther King Jr. both read it closely.', type:'essay', url:'https://users.manchester.edu/Facstaff/SSNaragon/Online/texts/201/Thoreau,%20CivilDisobedience.pdf' },
+    { title:'The Partially Examined Life on Nietzsche', author:'Mark Linsenmayer et al.', why:'The Partially Examined Life spends several episodes on philosophy\'s most dangerous individualist, without taming him.', type:'podcast', url:'https://partiallyexaminedlife.com/tag/nietzsche/' },
   ],
   'The Contemplative Mystic': [
-    { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s translation captures the poetry. 81 short chapters that say more than most 500-page books.', type:'book', url:'https://www.goodreads.com/book/show/18814253-tao-te-ching' },
-    { title:'The Essential Rumi', author:'Rumi (trans. Coleman Barks)', why:'Sufi ecstasy in English. "Out beyond ideas of wrongdoing and rightdoing there is a field. I\'ll meet you there."', type:'book', url:'https://www.goodreads.com/book/show/304079.The_Essential_Rumi' },
-    { title:'I Am That', author:'Nisargadatta Maharaj', why:'Advaita Vedanta in dialogue form. A Mumbai shopkeeper dismantles the self with terrifying precision.', type:'book', url:'https://www.goodreads.com/book/show/299869.I_Am_That' },
-    { title:'The Cloud of Unknowing', author:'Anonymous (14th century)', why:'Christian mysticism stripped to its core: God is found in darkness, not knowledge. Apophatic theology at its most honest.', type:'book', url:'https://www.goodreads.com/book/show/241902.The_Cloud_of_Unknowing' },
-    { title:'Waking Up', author:'Sam Harris', why:'Contemplative neuroscience — meditation without religion. The mystic tradition meets empirical investigation.', type:'book', url:'https://www.goodreads.com/book/show/18774981-waking-up' },
-    { title:'The Garden of Truth: The Vision and Promise of Sufism, Islam\'s Mystical Tradition', author:'Seyyed Hossein Nasr', why:'Iranian-American Islamic philosopher restores Sufism\'s sacred heart. Where Western mysticism sometimes exoticizes the East, Nasr teaches Islam\'s own contemplative tradition—the garden of truth cultivated through dhikr, not escape. The intellect as sacred faculty, knowledge as gnosis.', type:'book', url:'https://www.goodreads.com/book/show/142133.The_Garden_of_Truth' },
-    { title:'Zen Mind, Beginner\'s Mind', author:'Shunryu Suzuki', why:'Japanese Zen master brings beginner\'s mind to California. Where mysticism often seeks the extraordinary, Suzuki teaches: your everyday mind is the Way. Not transcendence through effort but presence through practice. Each breath, each moment—already complete, already enough.', type:'book', url:'https://www.goodreads.com/book/show/402843.Zen_Mind_Beginner_s_Mind' },
-    { title:'Stalker', author:'Andrei Tarkovsky (1979)', why:'Three men journey into the Zone seeking a room that grants desires—but the real pilgrimage is inward, through stillness and silence, toward the ineffable. Tarkovsky films time itself, turning cinema into prayer.', type:'film', url:'https://letterboxd.com/film/stalker/' },
-    { title:'The Tree of Life', author:'Terrence Malick (2011)', why:'Malick shoots the cosmic and the domestic as one continuous meditation—the Big Bang to a 1950s childhood, dinosaurs to whispered prayers. Grace versus nature, eternity in a blade of grass, the universe contemplating itself through human eyes.', type:'film', url:'https://letterboxd.com/film/the-tree-of-life-2011/' },
-    { title:'Gravity and Grace', author:'Simone Weil', why:'A French mystic\'s field notes from the edge of existence, where suffering meets transcendence and attention becomes prayer. Weil writes like she\'s reporting from another dimension.', type:'book', url:'https://www.goodreads.com/book/show/730139.Gravity_and_Grace' },
-    { title:'Making Sense with Sam Harris', author:'Sam Harris', why:'A neuroscientist and longtime meditator bridges rationalism and contemplative practice, exploring consciousness without the mystical fluff. Secular spirituality for the scientifically minded seeker.', type:'podcast', url:'https://www.samharris.org/podcasts' },
+    { title:'Tao Te Ching', author:'Lao Tzu (trans. Ursula K. Le Guin)', why:'Le Guin\'s version keeps the poetry. Eighty-one short chapters that say more than most long books.', type:'book', url:'https://www.goodreads.com/book/show/18814253-tao-te-ching' },
+    { title:'The Essential Rumi', author:'Rumi (trans. Coleman Barks)', why:'Loose, popular versions of the Sufi poet. "Out beyond ideas of wrongdoing and rightdoing there is a field. I\'ll meet you there."', type:'book', url:'https://www.goodreads.com/book/show/304079.The_Essential_Rumi' },
+    { title:'I Am That', author:'Nisargadatta Maharaj', why:'Conversations with Nisargadatta Maharaj, a Mumbai shopkeeper who taught Advaita Vedanta. He takes apart the idea of a separate self, patiently and relentlessly.', type:'book', url:'https://www.goodreads.com/book/show/299869.I_Am_That' },
+    { title:'The Cloud of Unknowing', author:'Anonymous (14th century)', why:'An anonymous 14th-century guide to contemplative prayer, in which God is reached through unknowing rather than through ideas.', type:'book', url:'https://www.goodreads.com/book/show/241902.The_Cloud_of_Unknowing' },
+    { title:'Waking Up', author:'Sam Harris', why:'Sam Harris on meditation without religion, and what it shows about the self.', type:'book', url:'https://www.goodreads.com/book/show/18774981-waking-up' },
+    { title:'The Garden of Truth: The Vision and Promise of Sufism, Islam\'s Mystical Tradition', author:'Seyyed Hossein Nasr', why:'The Iranian-American scholar\'s introduction to Sufism from the inside: remembrance of God, love and knowledge as a spiritual path.', type:'book', url:'https://www.goodreads.com/book/show/142133.The_Garden_of_Truth' },
+    { title:'Zen Mind, Beginner\'s Mind', author:'Shunryu Suzuki', why:'Talks by the Japanese teacher who brought Soto Zen to San Francisco. Ordinary mind is the Way, and practice is this breath.', type:'book', url:'https://www.goodreads.com/book/show/402843.Zen_Mind_Beginner_s_Mind' },
+    { title:'Stalker', author:'Andrei Tarkovsky (1979)', why:'Three men cross a forbidden Zone toward a room said to grant your deepest wish. Slow, quiet, and closer to prayer than to science fiction.', type:'film', url:'https://letterboxd.com/film/stalker/' },
+    { title:'The Tree of Life', author:'Terrence Malick (2011)', why:'Malick puts the birth of the universe beside a 1950s Texas childhood. A film about grace, nature and paying attention.', type:'film', url:'https://letterboxd.com/film/the-tree-of-life-2011/' },
+    { title:'Gravity and Grace', author:'Simone Weil', why:'Weil\'s notebooks, collected after her death, on affliction, attention and God. She writes as if from very far away.', type:'book', url:'https://www.goodreads.com/book/show/730139.Gravity_and_Grace' },
+    { title:'Making Sense with Sam Harris', author:'Sam Harris', why:'Harris\'s podcast, with regular episodes on meditation and consciousness from a secular angle.', type:'podcast', url:'https://www.samharris.org/podcasts' },
   ],
   'The Philosophical Warrior': [
-    { title:'Deliverance from Error', author:'Al-Ghazali', why:'A scholar at the peak of his career demolishes his own framework because truth demanded it. Autobiography as philosophy.', type:'book', url:'https://www.goodreads.com/book/show/254519.Al_Ghazali_s_Path_to_Sufism' },
-    { title:'The Incoherence of the Incoherence', author:'Ibn Rushd (Averroes)', why:'Ibn Rushd\'s legendary rebuttal to Al-Ghazali — Islamic philosophy\'s greatest debate on reason vs revelation, fought at the highest intellectual level.', type:'book', url:'https://www.goodreads.com/book/show/8152334-incoherence-of-the-incoherence' },
-    { title:'The Second Sex', author:'Simone de Beauvoir', why:'Courageous, systematic, world-changing. de Beauvoir dismantles centuries of assumptions with surgical precision.', type:'book', url:'https://www.goodreads.com/book/show/457264.The_Second_Sex' },
-    { title:'Your Silence Will Not Protect You', author:'Audre Lorde', why:'Intellectual courage as survival. "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less important whether I am afraid."', type:'book', url:'https://www.goodreads.com/book/show/36355617-your-silence-will-not-protect-you' },
-    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift — and why the people inside them can\'t see the shift coming.', type:'book', url:'https://www.goodreads.com/book/show/61539.The_Structure_of_Scientific_Revolutions' },
-    { title:'Necropolitics', author:'Achille Mbembe', why:'Cameroonian political philosopher maps the power to decide who lives and who dies. Where just war theory debates rules of engagement, Mbembe exposes necropolitics—colonial sovereignty as the right to kill. The philosophical warrior must confront not just battlefields but the slow violence of occupation.', type:'book', url:'https://www.goodreads.com/book/show/44901216-necropolitics' },
-    { title:'God Is Red: A Native View of Religion', author:'Vine Deloria Jr.', why:'Standing Rock Sioux scholar wages intellectual war on Christian colonialism. Where Western warriors fight for abstract principles, Deloria defends land-based spirituality—place over time, relation over salvation. The warrior as one who remembers what was taken and refuses to forget.', type:'book', url:'https://www.goodreads.com/book/show/254349.God_Is_Red' },
-    { title:'Harakiri', author:'Masaki Kobayashi (1962)', why:'Kobayashi dismantles bushido from within—a ronin exposes the samurai code as performative cruelty, honor as institutional violence. The greatest warrior film is the one that asks whether the warrior\'s way is worth the bloodshed.', type:'film', url:'https://letterboxd.com/film/harakiri/' },
-    { title:'The Last Samurai', author:'Edward Zwick (2003)', why:'Captain Algren finds discipline, honor, and purpose in the dying samurai tradition—learning that the warrior\'s true battle is internal, against ego and chaos. Bushido as spiritual practice, the sword as path to enlightenment, death as teacher.', type:'film', url:'https://letterboxd.com/film/the-last-samurai/' },
-    { title:'Hagakure: The Book of the Samurai', author:'Yamamoto Tsunetomo', why:'An 18th-century samurai\'s meditation on death, loyalty, and living with absolute presence. Less about swords, more about the discipline to face each moment as if it\'s your last.', type:'book', url:'https://www.goodreads.com/book/show/19429830-the-hagakure' },
-    { title:'The Divided Brain (RSA Animate)', author:'Iain McGilchrist', why:'A psychiatrist reveals how the left brain\'s hunger for control has colonized Western thought—and why integrating both hemispheres is the warrior\'s real conquest. Neuroscience meets philosophy of civilization.', type:'lecture', url:'https://www.youtube.com/watch?v=dFs9WO2B8uI' },
+    { title:'Deliverance from Error', author:'Al-Ghazali', why:'Al-Ghazali\'s account of the crisis of doubt that made him leave the most prestigious teaching post of his time. The autobiography of a mind taking itself apart.', type:'book', url:'https://www.goodreads.com/book/show/254519.Al_Ghazali_s_Path_to_Sufism' },
+    { title:'The Incoherence of the Incoherence', author:'Ibn Rushd (Averroes)', why:'Ibn Rushd\'s point-by-point reply to Al-Ghazali\'s attack on the philosophers. One of the great arguments about reason and revelation.', type:'book', url:'https://www.goodreads.com/book/show/8152334-incoherence-of-the-incoherence' },
+    { title:'The Second Sex', author:'Simone de Beauvoir', why:'Beauvoir\'s systematic account of how women were made "the Other". Brave, thorough, and it changed the world.', type:'book', url:'https://www.goodreads.com/book/show/457264.The_Second_Sex' },
+    { title:'Your Silence Will Not Protect You', author:'Audre Lorde', why:'A collection of Lorde\'s essays and poems. "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less and less important whether I am afraid."', type:'book', url:'https://www.goodreads.com/book/show/36355617-your-silence-will-not-protect-you' },
+    { title:'The Structure of Scientific Revolutions', author:'Thomas Kuhn', why:'How paradigms shift, and why the people inside them can\'t see it coming.', type:'book', url:'https://www.goodreads.com/book/show/61539.The_Structure_of_Scientific_Revolutions' },
+    { title:'Necropolitics', author:'Achille Mbembe', why:'The Cameroonian philosopher on power as the right to decide who lives and who dies, and how colonial rule and occupation exercise it.', type:'book', url:'https://www.goodreads.com/book/show/44901216-necropolitics' },
+    { title:'God Is Red: A Native View of Religion', author:'Vine Deloria Jr.', why:'A Standing Rock Sioux scholar\'s challenge to Christianity from the standpoint of Native religion, which is rooted in place rather than in history.', type:'book', url:'https://www.goodreads.com/book/show/254349.God_Is_Red' },
+    { title:'Harakiri', author:'Masaki Kobayashi (1962)', why:'A masterless samurai exposes the cruelty and hypocrisy behind a clan\'s talk of honor. A warrior film that asks whether the warrior\'s code is worth it.', type:'film', url:'https://letterboxd.com/film/harakiri/' },
+    { title:'The Last Samurai', author:'Edward Zwick (2003)', why:'An American officer comes to admire the discipline of Japan\'s last samurai. Romanticized, but serious about bushido as inner training.', type:'film', url:'https://letterboxd.com/film/the-last-samurai/' },
+    { title:'Hagakure: The Book of the Samurai', author:'Yamamoto Tsunetomo', why:'An 18th-century samurai\'s reflections on death, loyalty and living fully in each moment. Less about swords than about readiness.', type:'book', url:'https://www.goodreads.com/book/show/19429830-the-hagakure' },
+    { title:'The Divided Brain (RSA Animate)', author:'Iain McGilchrist', why:'An animated talk by the psychiatrist Iain McGilchrist on the two halves of the brain, and what an imbalance between them might mean for Western culture.', type:'lecture', url:'https://www.youtube.com/watch?v=dFs9WO2B8uI' },
   ],
   'The Practical Philosopher': [
-    { title:'Permaculture: Principles and Pathways Beyond Sustainability', author:'David Holmgren', why:'Design philosophy disguised as agriculture. Ethics embedded in how you arrange a garden.', type:'book', url:'https://www.goodreads.com/book/show/381989.Permaculture' },
-    { title:'Pedagogy of the Oppressed', author:'Paulo Freire', why:'Education as liberation. The most practical radical philosophy ever written — still changing classrooms worldwide.', type:'book', url:'https://www.goodreads.com/book/show/72657.Pedagogy_of_the_Oppressed' },
-    { title:'Development as Freedom', author:'Amartya Sen', why:'Economics meets philosophy — freedom isn\'t just a value, it\'s the actual mechanism of human development.', type:'book', url:'https://www.goodreads.com/book/show/173961.Development_as_Freedom' },
-    { title:'Hind Swaraj', author:'Mahatma Gandhi', why:'Self-rule as philosophy. Gandhi\'s practical ethics — satyagraha as a way of being, not just a tactic.', type:'book', url:'https://www.goodreads.com/book/show/165941831-hind-swaraj' },
-    { title:'Small Is Beautiful', author:'E.F. Schumacher', why:'Buddhist economics meets practical wisdom. "Economics as if people mattered" — the philosophy of human-scale systems.', type:'book', url:'https://www.goodreads.com/book/show/1117634.Small_Is_Beautiful' },
-    { title:'Staying Alive: Women, Ecology and Development', author:'Vandana Shiva', why:'Indian physicist-turned-ecofeminist refuses the \'development\' that destroys. Where Western practical philosophy optimizes systems, Shiva learns from Chipko women who hug trees—preservation as practice, subsistence as resistance. The feminine principle not as metaphor but as ecological survival.', type:'book', url:'https://www.goodreads.com/book/show/278186.Staying_Alive' },
-    { title:'Capitalism: A Ghost Story', author:'Arundhati Roy', why:'Indian novelist dissects how foundations and NGOs manufacture consent. Where practical philosophy seeks solutions, Roy exposes the problem—corporate capture of resistance itself. The writer as public intellectual, the essay as scalpel, language as last defense against total market logic.', type:'book', url:'https://www.goodreads.com/book/show/18528093-capitalism' },
-    { title:'Examined Life', author:'Astra Taylor (2008)', why:'Philosophy pulled from the ivory tower and placed on city streets—Cornel West in a taxi, Peter Singer among Fifth Avenue\'s luxury shops, philosophers making their ideas walk. The unexamined life is not worth living; this doc makes examination cinematic.', type:'film', url:'https://letterboxd.com/film/examined-life/' },
-    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Two old friends debate how to live over dinner—mysticism versus materialism, experience versus comfort, meaning versus routine. Philosophy as conversation, the everyday elevated into inquiry, a restaurant booth as Socratic dialogue.', type:'film', url:'https://letterboxd.com/film/my-dinner-with-andre/' },
-    { title:'The School of Life YouTube Channel', author:'Alain de Botton', why:'Philosophy as therapy for the anxiously alive—bite-sized videos on relationships, work, and self-knowledge. De Botton makes Schopenhauer relevant to your lunch break.', type:'lecture', url:'https://www.youtube.com/channel/UC7IcJI8PUf5Z3zKxnZvTBog' },
-    { title:'Seth Tichenor: Philosophy is a Human Right', author:'Seth Tichenor', why:'A philosopher makes the case that thinking critically about existence isn\'t academic luxury—it\'s survival gear. Short, accessible, and unapologetically earnest about philosophy\'s practical power.', type:'lecture', url:'https://www.ted.com/talks/seth_tichenor_philosophy_is_a_human_right_and_can_change_your_life' },
+    { title:'Permaculture: Principles and Pathways Beyond Sustainability', author:'David Holmgren', why:'Design philosophy dressed as agriculture. Ethics built into how you lay out a garden.', type:'book', url:'https://www.goodreads.com/book/show/381989.Permaculture' },
+    { title:'Pedagogy of the Oppressed', author:'Paulo Freire', why:'Freire on education as liberation. One of the most practical radical books ever written, and still changing classrooms.', type:'book', url:'https://www.goodreads.com/book/show/72657.Pedagogy_of_the_Oppressed' },
+    { title:'Development as Freedom', author:'Amartya Sen', why:'Sen argues that freedom is both the goal of development and the main way it happens.', type:'book', url:'https://www.goodreads.com/book/show/173961.Development_as_Freedom' },
+    { title:'Hind Swaraj', author:'Mahatma Gandhi', why:'Gandhi\'s short book on self-rule, written as a dialogue. His ethics as a way of living, not only a political tactic.', type:'book', url:'https://www.goodreads.com/book/show/165941831-hind-swaraj' },
+    { title:'Small Is Beautiful', author:'E.F. Schumacher', why:'Schumacher\'s case for economics at a human scale, including his chapter on Buddhist economics. Subtitled "economics as if people mattered".', type:'book', url:'https://www.goodreads.com/book/show/1117634.Small_Is_Beautiful' },
+    { title:'Staying Alive: Women, Ecology and Development', author:'Vandana Shiva', why:'The Indian physicist and activist on how "development" damages ecosystems and the women who sustain them, drawing on the Chipko tree-huggers.', type:'book', url:'https://www.goodreads.com/book/show/278186.Staying_Alive' },
+    { title:'Capitalism: A Ghost Story', author:'Arundhati Roy', why:'Arundhati Roy on how corporations and foundations shape politics in India, including the movements meant to resist them.', type:'book', url:'https://www.goodreads.com/book/show/18528093-capitalism' },
+    { title:'Examined Life', author:'Astra Taylor (2008)', why:'Philosophers talk while moving through cities: Cornel West in a car, Peter Singer on Fifth Avenue. Philosophy out of the lecture hall.', type:'film', url:'https://letterboxd.com/film/examined-life/' },
+    { title:'My Dinner with Andre', author:'Louis Malle (1981)', why:'Two friends argue over dinner about how to live: mysticism against routine, experience against comfort. A restaurant table as a Socratic dialogue.', type:'film', url:'https://letterboxd.com/film/my-dinner-with-andre/' },
+    { title:'The School of Life YouTube Channel', author:'Alain de Botton', why:'Short videos on love, work and self-knowledge. Philosophy as something to use.', type:'lecture', url:'https://www.youtube.com/channel/UC7IcJI8PUf5Z3zKxnZvTBog' },
+    { title:'Seth Tichenor: Philosophy is a Human Right', author:'Seth Tichenor', why:'A short talk arguing that thinking hard about how to live is a necessity, not an academic luxury.', type:'lecture', url:'https://www.ted.com/talks/seth_tichenor_philosophy_is_a_human_right_and_can_change_your_life' },
   ],
   'The Poetic Empiricist': [
-    { title:'Landmarks', author:'Robert Macfarlane', why:'Language shapes what we can see in landscape. Macfarlane recovers words for experiences you\'ve had but couldn\'t name.', type:'book', url:'https://www.goodreads.com/book/show/23597544-landmarks' },
-    { title:'An Immense World', author:'Ed Yong', why:'Animal perception as philosophy — what does the world look like through a bee\'s compound eye? Changes your sense of reality.', type:'book', url:'https://www.goodreads.com/book/show/59575939-an-immense-world' },
-    { title:'The Heart of Haiku', author:'Jane Hirshfield', why:'Bashō as philosopher. Seventeen syllables can hold more truth than a treatise.', type:'book', url:'https://www.goodreads.com/book/show/11861721-the-heart-of-haiku' },
-    { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Your body knows things your mind doesn\'t. Merleau-Ponty on how perception shapes reality.', type:'book', url:'https://www.goodreads.com/book/show/18279.Phenomenology_of_Perception' },
-    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'Learning through attention, reciprocity, and direct experience of the living world.', type:'book', url:'https://www.goodreads.com/book/show/17465709-braiding-sweetgrass' },
-    { title:'In Praise of Shadows', author:'Jun\'ichirō Tanizaki', why:'Japanese novelist discovers beauty in what electric light erases. Where Western empiricism illuminates everything, Tanizaki teaches the aesthetics of shadow—lacquer in candlelight, darkness in the alcove. Not what we see but what we allow to remain unseen. Perception as restraint.', type:'book', url:'https://www.goodreads.com/book/show/34473.In_Praise_of_Shadows' },
-    { title:'Queer Phenomenology: Orientations, Objects, Others', author:'Sara Ahmed', why:'British-Pakistani feminist phenomenologist asks: what comes into view when you\'re queer? Where straight phenomenology takes orientation for granted, Ahmed reveals how bodies get oriented toward some objects and not others. The oblique angle sees what the straight line misses.', type:'book', url:'https://www.goodreads.com/book/show/18285.Queer_Phenomenology' },
-    { title:'Koyaanisqatsi', author:'Godfrey Reggio (1982)', why:'Pure observation without narration—time-lapse cities, slow-motion crowds, the planet as raw sensory data set to Philip Glass. Reggio films reality as it is, letting patterns emerge from patient watching: empiricism as visual poem.', type:'film', url:'https://letterboxd.com/film/koyaanisqatsi/' },
-    { title:'Baraka', author:'Ron Fricke (1992)', why:'Fricke shoots 24 countries without a single word, trusting the image to reveal truth—ritual, industry, nature, devotion, all woven into wordless meditation. The eye as instrument, the camera as microscope of the human condition.', type:'film', url:'https://letterboxd.com/film/baraka/' },
-    { title:'The Poetics of Space', author:'Gaston Bachelard', why:'A phenomenologist explores how we inhabit houses, corners, drawers—turning architecture into archaeology of the soul. Observation becomes poetry; the ordinary reveals its sacred geometry.', type:'book', url:'https://www.goodreads.com/book/show/13269.The_Poetics_of_Space' },
-    { title:'Iseult Gillespie: The Meaning of Life According to Simone de Beauvoir', author:'Iseult Gillespie', why:'How de Beauvoir broke philosophy\'s rules to insist that embodied, lived experience trumps abstract theory. Existentialism for those who trust their senses more than systems.', type:'lecture', url:'https://www.ted.com/talks/iseult_gillespie_the_meaning_of_life_according_to_simone_de_beauvoir' },
+    { title:'Landmarks', author:'Robert Macfarlane', why:'Macfarlane collects words for landscape from across Britain and Ireland, and shows how language shapes what we notice.', type:'book', url:'https://www.goodreads.com/book/show/23597544-landmarks' },
+    { title:'An Immense World', author:'Ed Yong', why:'Ed Yong on how other animals sense the world, from bee vision to bat sonar. It makes your own senses feel like one option among many.', type:'book', url:'https://www.goodreads.com/book/show/59575939-an-immense-world' },
+    { title:'The Heart of Haiku', author:'Jane Hirshfield', why:'Hirshfield on Bashō\'s life and poems. Seventeen syllables can hold as much as a treatise.', type:'book', url:'https://www.goodreads.com/book/show/11861721-the-heart-of-haiku' },
+    { title:'Phenomenology of Perception', author:'Maurice Merleau-Ponty', why:'Merleau-Ponty on the body as the ground of perception. Your body knows things your mind doesn\'t.', type:'book', url:'https://www.goodreads.com/book/show/18279.Phenomenology_of_Perception' },
+    { title:'Braiding Sweetgrass', author:'Robin Wall Kimmerer', why:'A botanist and Potawatomi writer on learning from plants through attention and reciprocity.', type:'book', url:'https://www.goodreads.com/book/show/17465709-braiding-sweetgrass' },
+    { title:'In Praise of Shadows', author:'Jun\'ichirō Tanizaki', why:'Tanizaki\'s essay on the beauty of dimness: lacquer in candlelight, the dark corners of old rooms, everything electric light destroys.', type:'book', url:'https://www.goodreads.com/book/show/34473.In_Praise_of_Shadows' },
+    { title:'Queer Phenomenology: Orientations, Objects, Others', author:'Sara Ahmed', why:'Ahmed on orientation: how bodies are turned toward some objects and away from others, and what becomes visible from an unexpected angle.', type:'book', url:'https://www.goodreads.com/book/show/18285.Queer_Phenomenology' },
+    { title:'Koyaanisqatsi', author:'Godfrey Reggio (1982)', why:'No dialogue, no narration: time-lapse cities, crowds and landscapes, set to Philip Glass. Patient watching until patterns appear.', type:'film', url:'https://letterboxd.com/film/koyaanisqatsi/' },
+    { title:'Baraka', author:'Ron Fricke (1992)', why:'Filmed in over twenty countries without a word of dialogue. Ritual, industry, nature and devotion, with the images left to do the work.', type:'film', url:'https://letterboxd.com/film/baraka/' },
+    { title:'The Poetics of Space', author:'Gaston Bachelard', why:'Bachelard on how we live in houses, corners, drawers and nests, and how those spaces shape the imagination.', type:'book', url:'https://www.goodreads.com/book/show/13269.The_Poetics_of_Space' },
+    { title:'Iseult Gillespie: The Meaning of Life According to Simone de Beauvoir', author:'Iseult Gillespie', why:'A short animated lesson on Beauvoir and why lived experience matters more than abstract systems.', type:'lecture', url:'https://www.ted.com/talks/iseult_gillespie_the_meaning_of_life_according_to_simone_de_beauvoir' },
   ],
   'The Communal Builder': [
-    { title:'Mutual Aid', author:'Dean Spade', why:'Solidarity not charity. How communities take care of each other when institutions fail — practical, urgent, now.', type:'book', url:'https://www.goodreads.com/book/show/54654726-mutual-aid' },
-    { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Ubuntu in action — how South Africa chose restoration over retribution. A blueprint for collective healing.', type:'book', url:'https://www.goodreads.com/book/show/165811.No_Future_Without_Forgiveness' },
-    { title:'Governing the Commons', author:'Elinor Ostrom', why:'Nobel-winning proof that communities can manage shared resources without privatization or state control.', type:'book', url:'https://www.goodreads.com/book/show/1048424.Governing_the_Commons' },
-    { title:'The Dispossessed', author:'Ursula K. Le Guin', why:'A novel about an anarchist mutual-aid society. The best thought experiment on communal living ever written.', type:'book', url:'https://www.goodreads.com/book/show/13651.The_Dispossessed' },
-    { title:'A Psalm for the Wild-Built', author:'Becky Chambers', why:'Solarpunk fiction — what does a society look like when it\'s actually organized around care? Gentle and radical.', type:'book', url:'https://www.goodreads.com/book/show/40864002-a-psalm-for-the-wild-built' },
-    { title:'Cultural Universals and Particulars: An African Perspective', author:'Kwasi Wiredu', why:'Ghanaian philosopher rebuilds universals from Akan consensus-building. Where Western communitarianism debates individual vs. collective, Wiredu shows how the Akan build truth through communal deliberation—not imposing unity but achieving it through patient talk. Philosophy as palaver.', type:'book', url:'https://www.goodreads.com/book/show/880549.Cultural_Universals_and_Particulars' },
-    { title:'Ch\'ixinakax utxiwa: On Decolonising Practices and Discourses', author:'Silvia Rivera Cusicanqui', why:'Aymara sociologist reclaims \'ch\'ixi\'—the mottled, the mixed, the unresolved. Where liberal multiculturalism seeks harmony, Rivera Cusicanqui teaches Andean contradiction—Indigenous and modern, colonized and resistant, at once. Community built not despite antagonism but through it.', type:'book', url:'https://www.goodreads.com/book/show/22606837-ch-ixinakax-utxiwa' },
-    { title:'12 Angry Men', author:'Sidney Lumet (1957)', why:'Twelve strangers in a room, deliberating a life—democracy as crucible, community forged through argument and persuasion. One dissenting voice changes eleven minds; the jury room becomes the polis, dialogue the tool of justice.', type:'film', url:'https://letterboxd.com/film/12-angry-men/' },
-    { title:'American Factory', author:'Steven Bognar & Julia Reichert (2019)', why:'Chinese management meets American labor in an Ohio factory—culture clash, collective bargaining, the fraught work of building community across vast difference. Neither side wins cleanly; the documentary watches humans try to make it work anyway.', type:'film', url:'https://letterboxd.com/film/american-factory/' },
-    { title:'Michael Sandel on The Tyranny of Merit', author:'Michael J. Sandel', why:'Harvard\'s communitarian diagnostician dissects how meritocracy corrodes solidarity—and why we need to rebuild the common good. A philosophical autopsy of what binds (and breaks) us.', type:'lecture', url:'https://news.harvard.edu/gazette/story/2021/01/the-myth-of-meritocracy-according-to-michael-sandel/' },
-    { title:'I Am Because We Are: Ubuntu and African Philosophy', author:'To The Best Of Our Knowledge', why:'The radical proposition that your humanity is not solo achievement but collective creation. Ubuntu as antidote to Western atomization—you exist because others call you into being.', type:'podcast', url:'https://www.wpr.org/shows/to-the-best-of-our-knowledge/i-am-because-we-are-the-african-philosophy-of-ubuntu' },
+    { title:'Mutual Aid', author:'Dean Spade', why:'Solidarity rather than charity: how communities look after each other when institutions fail. Practical and urgent.', type:'book', url:'https://www.goodreads.com/book/show/54654726-mutual-aid' },
+    { title:'No Future Without Forgiveness', author:'Desmond Tutu', why:'Tutu on the Truth and Reconciliation Commission, and how South Africa tried to choose restoration over revenge.', type:'book', url:'https://www.goodreads.com/book/show/165811.No_Future_Without_Forgiveness' },
+    { title:'Governing the Commons', author:'Elinor Ostrom', why:'Ostrom\'s Nobel-winning work showing that communities can manage shared resources without either privatization or state control.', type:'book', url:'https://www.goodreads.com/book/show/1048424.Governing_the_Commons' },
+    { title:'The Dispossessed', author:'Ursula K. Le Guin', why:'Le Guin\'s novel about an anarchist society on a barren world and the physicist who leaves it. The best thought experiment about communal living in fiction.', type:'book', url:'https://www.goodreads.com/book/show/13651.The_Dispossessed' },
+    { title:'A Psalm for the Wild-Built', author:'Becky Chambers', why:'A gentle novel about a tea monk and a robot in a world rebuilt around care.', type:'book', url:'https://www.goodreads.com/book/show/40864002-a-psalm-for-the-wild-built' },
+    { title:'Cultural Universals and Particulars: An African Perspective', author:'Kwasi Wiredu', why:'Wiredu on Akan politics by consensus, where decisions come from patient talk rather than a majority vote.', type:'book', url:'https://www.goodreads.com/book/show/880549.Cultural_Universals_and_Particulars' },
+    { title:'Ch\'ixinakax utxiwa: On Decolonising Practices and Discourses', author:'Silvia Rivera Cusicanqui', why:'The Aymara sociologist\'s essay on ch\'ixi, the mottled and unresolved: Indigenous and modern at the same time, without forcing them into harmony.', type:'book', url:'https://www.goodreads.com/book/show/22606837-ch-ixinakax-utxiwa' },
+    { title:'12 Angry Men', author:'Sidney Lumet (1957)', why:'Twelve jurors in one room, one dissenting voice, and a verdict argued out point by point. Democracy at its most stubborn.', type:'film', url:'https://letterboxd.com/film/12-angry-men/' },
+    { title:'American Factory', author:'Steven Bognar & Julia Reichert (2019)', why:'A Chinese company reopens a factory in Ohio, and two work cultures collide. Nobody wins cleanly, and the film watches people try to make it work anyway.', type:'film', url:'https://letterboxd.com/film/american-factory/' },
+    { title:'Michael Sandel on The Tyranny of Merit', author:'Michael J. Sandel', why:'An interview with Sandel on how meritocracy erodes solidarity, and why the winners come to look down on everyone else.', type:'lecture', url:'https://news.harvard.edu/gazette/story/2021/01/the-myth-of-meritocracy-according-to-michael-sandel/' },
+    { title:'I Am Because We Are: Ubuntu and African Philosophy', author:'To The Best Of Our Knowledge', why:'A radio hour on ubuntu, the Southern African idea that your humanity comes through other people.', type:'podcast', url:'https://www.wpr.org/shows/to-the-best-of-our-knowledge/i-am-because-we-are-the-african-philosophy-of-ubuntu' },
   ],
   'The Philosophical Pluralist': [
-    { title:'Taking Back Philosophy', author:'Bryan Van Norden', why:'The case for multicultural philosophy. Why limiting "philosophy" to the Western canon is intellectually bankrupt.', type:'book', url:'https://www.goodreads.com/book/show/34889251-taking-back-philosophy' },
-    { title:'Essays', author:'Michel de Montaigne', why:'The original essayist — curious about everything, certain about nothing. Your intellectual ancestor.', type:'book', url:'https://www.goodreads.com/book/show/30735.The_Complete_Essays' },
-    { title:'Range', author:'David Epstein', why:'Why generalists triumph in a specialized world. The pluralist\'s manifesto backed by research.', type:'book', url:'https://www.goodreads.com/book/show/41795733-range' },
-    { title:'Cloud Atlas', author:'David Mitchell', why:'Six nested narratives across centuries, each with its own epistemology. A novel that embodies philosophical pluralism.', type:'book', url:'https://www.goodreads.com/book/show/49628.Cloud_Atlas' },
-    { title:'The Human Condition', author:'Hannah Arendt', why:'Labor, work, action — Arendt maps the full range of human activity. Dense but essential.', type:'book', url:'https://www.goodreads.com/book/show/127227.The_Human_Condition' },
-    { title:'Can the Subaltern Speak?', author:'Gayatri Chakravorty Spivak', why:'Bengali deconstructionist asks: can the colonized speak or only be spoken for? Where pluralism celebrates many voices, Spivak reveals the structures that silence some from the start. The subaltern doesn\'t need a platform; the platform itself must be dismantled. Listening as ethical responsibility.', type:'book', url:'https://www.goodreads.com/book/show/7811553-can-the-subaltern-speak' },
-    { title:'All About Love: New Visions', author:'bell hooks', why:'Black feminist critic refuses love as private feeling—it\'s a public practice, a political choice. Where pluralism tolerates difference, hooks teaches love as action across divides—not in spite of race, class, gender but through reckoning with them. Love as revolutionary discipline, not liberal sentiment.', type:'book', url:'https://www.goodreads.com/book/show/17607.All_About_Love' },
-    { title:'Rashomon', author:'Akira Kurosawa (1950)', why:'One crime, four testimonies, zero objective truth—Kurosawa\'s masterpiece weaponizes perspective itself. Every witness is unreliable, every account self-serving, and the film refuses to arbitrate. Pluralism as narrative structure, ambiguity as wisdom.', type:'film', url:'https://letterboxd.com/film/rashomon/' },
-    { title:'Gone Girl', author:'David Fincher (2014)', why:'Amy and Nick narrate competing realities—marriage as Rashomon, truth as performance, each partner the unreliable narrator of their shared life. Fincher films the collision of perspectives, showing how the same events contain infinite interpretations.', type:'film', url:'https://letterboxd.com/film/gone-girl/' },
-    { title:'Contingency, Irony, and Solidarity', author:'Richard Rorty', why:'Rorty\'s case for holding your beliefs lightly while fighting for them fiercely—philosophical irony as the foundation for genuine solidarity. Truth is conversation, not monument.', type:'book', url:'https://www.goodreads.com/book/show/86098.Contingency_Irony_and_Solidarity' },
-    { title:'The Partially Examined Life', author:'Mark Linsenmayer, Wes Alwan, Seth Paskin', why:'Former philosophy grad students prove you can take ideas seriously without taking yourself seriously—roaming from Sartre to Rorty, always skeptical of dogma. The pluralist\'s podcast.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
+    { title:'Taking Back Philosophy', author:'Bryan Van Norden', why:'Van Norden\'s case that treating Western philosophy as the only philosophy is bad scholarship.', type:'book', url:'https://www.goodreads.com/book/show/34889251-taking-back-philosophy' },
+    { title:'Essays', author:'Michel de Montaigne', why:'The man who invented the essay, curious about everything and certain about very little.', type:'book', url:'https://www.goodreads.com/book/show/30735.The_Complete_Essays' },
+    { title:'Range', author:'David Epstein', why:'Epstein\'s case, with a lot of research behind it, that generalists often do better than specialists.', type:'book', url:'https://www.goodreads.com/book/show/41795733-range' },
+    { title:'Cloud Atlas', author:'David Mitchell', why:'Six stories nested across centuries, each told in a different style. A novel built out of different points of view.', type:'book', url:'https://www.goodreads.com/book/show/49628.Cloud_Atlas' },
+    { title:'The Human Condition', author:'Hannah Arendt', why:'Arendt\'s map of human activity: labor, work and action. Dense, but it repays the effort.', type:'book', url:'https://www.goodreads.com/book/show/127227.The_Human_Condition' },
+    { title:'Can the Subaltern Speak?', author:'Gayatri Chakravorty Spivak', why:'Spivak asks whether the most marginalized people can be heard at all, or only spoken for. A challenge to any easy celebration of "many voices".', type:'book', url:'https://www.goodreads.com/book/show/7811553-can-the-subaltern-speak' },
+    { title:'All About Love: New Visions', author:'bell hooks', why:'hooks on love as something you practice, including across lines of race, class and gender. Demanding in the best way.', type:'book', url:'https://www.goodreads.com/book/show/17607.All_About_Love' },
+    { title:'Rashomon', author:'Akira Kurosawa (1950)', why:'One crime, four accounts, and a film that refuses to say which is true.', type:'film', url:'https://letterboxd.com/film/rashomon/' },
+    { title:'Gone Girl', author:'David Fincher (2014)', why:'A marriage told by two unreliable narrators. Fincher shows how the same events can support opposite stories.', type:'film', url:'https://letterboxd.com/film/gone-girl/' },
+    { title:'Contingency, Irony, and Solidarity', author:'Richard Rorty', why:'Rorty\'s case for holding your beliefs lightly while still fighting for them.', type:'book', url:'https://www.goodreads.com/book/show/86098.Contingency_Irony_and_Solidarity' },
+    { title:'The Partially Examined Life', author:'Mark Linsenmayer, Wes Alwan, Seth Paskin', why:'Long episodes on everything from Sartre to Rorty, by people who take ideas seriously without taking themselves too seriously.', type:'podcast', url:'https://partiallyexaminedlife.com/' },
   ],
 };
 
@@ -2274,20 +2275,20 @@ const SCENARIOS = [
     chapter: 'I — duty',
     tradition: 'Western Ethics',
     title: 'The Promise',
-    body: `Your closest friend died three weeks ago, and before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, or perhaps by some quiet conspiracy of circumstance, and you read it. What you found was a confession: your friend did something <em>awful</em> to this woman years ago, something she has clearly moved on from, rebuilding her life in its absence. To deliver this letter now would be to tear that wound back open, to drag her into a past she has worked hard to leave behind. To destroy it would be to break a deathbed promise, the kind of vow that carries the full moral weight of finality. Your friend is gone, beyond consequence or gratitude, and the sister is at peace, unaware of what you carry. You are standing between two kinds of betrayal, and only you know it.`,
+    body: `Your closest friend died three weeks ago. Before they went, they made you promise to deliver a sealed letter to their estranged sister, someone you have never met. The envelope came open in your bag by accident, and you read it. It is a confession: years ago your friend did something <em>awful</em> to her. From everything you can tell, she has moved on and rebuilt her life without them. Delivering the letter would open all of it again. Destroying it would break a promise you made to a dying friend. Your friend is beyond consequences now, and the sister has no idea the letter exists. Nobody but you knows it does.`,
     question: 'What do you do with the letter?',
     choices: [
       { label:'a', text:'Deliver it. A promise made to the dying carries the full weight of moral obligation. It does not become optional because the consequences are ugly.',
         scores: {consequence: -2, pragmatist: -1, agency: 0, individual: 1},
-        reflection:'There\'s a reason deathbed promises feel different from ordinary ones: they can never be renegotiated, never updated with new information. Kant argued that\'s exactly what gives them force. A moral law that bends to circumstance isn\'t a law at all. You\'re not delivering a letter. You\'re deciding whether obligations survive the people who created them.',
+        reflection:'A deathbed promise can never be renegotiated, because the one person who could release you from it is gone. For Kant, that changes nothing about the duty. A promise binds because you made it, and a rule you drop whenever it becomes painful was never a rule. What you\'re deciding is whether an obligation outlives the person it was made to.',
         philosopher:'Immanuel Kant, Groundwork of the Metaphysics of Morals' },
-      { label:'b', text:'Burn it. The promise was made to secure peace, not to inflict pain. Your friend could not have wanted this, and the dead do not get to override the living.',
+      { label:'b', text:'Burn it. The promise was meant to bring peace, and this would bring pain. Your friend could not have wanted that, and the dead do not get to overrule the living.',
         scores: {consequence: 2, pragmatist: 0, individual: -1, agency: 1},
-        reflection:'Mill would push back on the idea that promises are sacred in themselves. What matters is what they\'re <em>for</em>. Your friend wanted peace for their sister, not a confession delivered from beyond the grave. When a rule produces the opposite of its intended effect, following it isn\'t integrity. It\'s stubbornness wearing a moral costume.',
+        reflection:'Mill would ask what the promise was for. Your friend wrote the letter to make peace, and a confession arriving from the grave may do the opposite. Following a rule that defeats its own purpose is closer to stubbornness than to integrity.',
         philosopher:'John Stuart Mill, Utilitarianism' },
-      { label:'c', text:'Deliver it, but stay. Sit with her while she reads it. If you are going to honor a deathbed promise, you owe her your presence when the truth lands. You don\'t get to drop a grenade and walk away.',
+      { label:'c', text:'Deliver it, but stay with her while she reads it. If you keep the promise, you owe her your presence when it lands. You don\'t get to drop a grenade and walk away.',
         scores: {pragmatist: 1, agency: 0, rationalist: -1, individual: -1},
-        reflection:'The pragmatist insists on being present for the consequences of action. You can honor the duty without hiding from its aftermath. Responsibility doesn\'t end at delivery.',
+        reflection:'William James judged ideas by what they do once they meet the world. Handing over the letter and leaving treats the promise as finished at the door. Staying treats her reaction as part of what you promised.',
         philosopher:'William James, Pragmatism' }
     ]
   },
@@ -2295,20 +2296,20 @@ const SCENARIOS = [
     chapter: 'II — control',
     tradition: 'Stoicism & Existentialism',
     title: 'The Forecast',
-    body: `Your doctor calls on a Tuesday. Something in your bloodwork. Not fatal, not painful, but in one year you will lose your eyesight completely. Irreversibly. The rest of your life will be fine, the doctor assures you. Just <em>dark</em>. You have twelve months of seeing left. Twelve months to watch light move across a room at different hours, to memorize the faces of everyone you love, to read a book with your own eyes. The countdown started the moment the phone rang, whether you acknowledge it or not. Every morning you wake now is one morning closer to a horizon you cannot push back.`,
-    question: 'How do you spend them?',
+    body: `Your doctor calls on a Tuesday. Something in your bloodwork. It isn't fatal and it won't hurt, but in a year you will lose your sight, completely and permanently. Everything else will be fine, the doctor says. Just <em>dark</em>. You have twelve months of seeing left: twelve months to watch the light move across a room, to memorize the faces of the people you love, to read a book with your own eyes. The clock started when the phone rang.`,
+    question: 'How do you spend the twelve months?',
     choices: [
       { label:'a', text:'Devour everything. Travel, memorize faces, watch every sunrise you can reach. If loss is guaranteed, the only sane response is to <em>flood</em> yourself with what remains.',
         scores: {stoic: -2, individual: 1, agency: -1, pragmatist: -1},
-        reflection:'This is the Epicurean wager: if pleasure and connection are what matter, then the rational response to guaranteed loss is to maximize what you have while you have it.',
+        reflection:'Epicurus held that pleasure and friendship are what make a life good, though he meant bread, water and good company more than travel. The logic still applies: if you are about to lose something, enjoy it fully while you have it.',
         philosopher:'Epicurus, Letter to Menoeceus' },
       { label:'b', text:'Start adapting now. Learn braille, train with a cane, reorganize your life for the dark. Grieving is a luxury. Preparing is a choice you can still make.',
         scores: {stoic: 2, pragmatist: 1, individual: 0, agency: 1},
-        reflection:'"Begin each day by telling yourself: today I shall meet with interference, ingratitude, insolence." Marcus Aurelius prepared for loss not to prevent feeling, but to keep feeling from destroying judgment.',
+        reflection:'"Begin each day by telling yourself: today I shall meet with interference, ingratitude, insolence." Marcus Aurelius rehearsed losses in advance, not to stop himself feeling them, but so that the feeling wouldn\'t wreck his judgment when they came.',
         philosopher:'Marcus Aurelius, Meditations, Book II' },
       { label:'c', text:'Change nothing. The countdown is a prison only if you let it be one. The moment you rearrange your life around a future loss, you have already lost the present.',
         scores: {agency: 1, stoic: 0, transcendent: 0, consequence: -1, individual: 1, rationalist: -1},
-        reflection:'Sartre would say the diagnosis is irrelevant to how you live today. You are condemned to be free, to choose how you live regardless of what\'s coming. Acting on prophecy is just another form of bad faith.',
+        reflection:'Sartre held that no fact about you, not even a diagnosis, decides how you live. You do. Rebuilding your year around the countdown would be letting a fact pass itself off as a fate.',
         philosopher:'Jean-Paul Sartre, Being and Nothingness' }
     ]
   },
@@ -2316,41 +2317,41 @@ const SCENARIOS = [
     chapter: 'III — honesty',
     tradition: 'Confucian & Western Ethics',
     title: 'The Dinner Party',
-    body: `You are at a friend's birthday celebration when someone pulls you aside in the kitchen and tells you, with proof—screenshots, timestamps, the whole wretched dossier—that the birthday girl's partner has been cheating on her. The person delivering this news is leaving the country next week and makes it clear they <em>do not want to be involved</em>, that they are handing you this knowledge and walking away. In the next room, the couple is sitting together, visibly happy, celebrating surrounded by people who love them. You now carry a truth that does not belong to you, about a situation that is not yours to manage, and you cannot unknow it. The knowledge sits in you like a foreign object, and every moment you stay silent is a choice, whether you intended it or not.`,
+    body: `You're at a friend's birthday party when someone pulls you aside in the kitchen and shows you proof that her partner has been cheating on her: screenshots, timestamps, all of it. The person telling you is leaving the country next week and makes it clear they <em>do not want to be involved</em>. They are handing this to you and walking away. In the next room the couple are sitting together, happy, surrounded by people who love them. None of this is yours to manage, and you can't unknow it. From here on, staying quiet is also a choice.`,
     question: 'What do you do with what you now know?',
     choices: [
       { label:'a', text:'Say nothing. You did not ask for this knowledge. Confidence is sacred. The moment people cannot trust you with secrets, you lose access to truth entirely.',
         scores: {individual: 0, consequence: -1, stoic: 0, agency: -1, rationalist: -1},
-        reflection:'Trust is the infrastructure of all relationships. Betray a confidence once and you\'ve not just broken one bond; you\'ve signaled that your loyalty is conditional.',
+        reflection:'Confucius counted xìn, being trustworthy, among the basic virtues: a person without it, he said, is like a cart without the pin that holds the yoke. Pass on what you were told in confidence and you haven\'t only broken one trust. You\'ve shown everyone that yours comes with conditions.',
         philosopher:'Confucius, Analects — on the virtue of trustworthiness (xìn)' },
       { label:'b', text:'Tell her. Some truths outweigh the promise of privacy. She is building a life on a lie, and your silence makes you part of the architecture.',
         scores: {consequence: 2, individual: -1, pragmatist: 0, agency: 1},
-        reflection:'Sometimes the utilitarian calculus is brutal but clear: the harm of silence outweighs the cost of an uncomfortable conversation. The question is whether you can live knowing and saying nothing.',
+        reflection:'Singer\'s reasoning is blunt: compare the harms. A painful conversation now, against her building years of her life on something false. On that count silence loses. What\'s left is whether you\'re willing to be the one who says it.',
         philosopher:'Peter Singer, Practical Ethics' },
       { label:'c', text:'Go to the partner. Tell them what you know. Give them one chance to come clean. The person who did the wrong thing should be the one to face it.',
         scores: {agency: 0, pragmatist: 1, individual: 0, rationalist: 1},
-        reflection:'You\'re not choosing truth or silence; you\'re choosing <em>who</em> delivers the truth. The virtue ethicist preserves agency where possible: the person who broke the trust should be the one to face the consequences of breaking it. You\'re not playing messenger. You\'re creating the conditions for someone else to do the right thing.',
+        reflection:'Aristotle thought the hard part of ethics is practical: doing the right thing, to the right person, at the right time, in the right way. Truth or silence is only half the choice. The other half is who says it, and you\'ve decided that should be the person who broke the trust.',
         philosopher:'Aristotle, Nicomachean Ethics' }
     ]
   },
   {
     chapter: 'IV — meaning',
     tradition: 'Existentialism & Absurdism',
-    title: 'The Absurd Commute',
-    body: `Three years into a PhD, you are halfway through a thesis on something you used to care about deeply enough to spend years in a library. Last month you read a paper that proves your central argument is wrong. Not wrong in a way that can be patched, but structurally, irreparably wrong. You could pivot and lose two years. You could quit and leave with nothing. Or you could push through to completion, producing scholarship you no longer believe in, building on a foundation you know is cracked. Your supervisor tells you to keep going, this is normal, no thesis is perfect. But something in you says this is not right.`,
+    title: 'The Thesis',
+    body: `You are three years into a PhD, halfway through a thesis on something you once cared about enough to give years of your life to. Last month you read a paper that shows your central argument is wrong, and not in a way you can patch. You could change direction and lose two years. You could quit and leave with nothing. Or you could finish, writing up work you no longer believe in on a foundation you know is cracked. Your supervisor tells you to keep going: this is normal, no thesis is perfect. Something in you says this is different.`,
     question: 'What do you do?',
     choices: [
-      { label:'a', text:'Walk away. There is no dignity in defending something you know to be false. The courage is not in persisting; it is in admitting the ground has shifted beneath you.',
+      { label:'a', text:'Walk away. There is no dignity in defending something you know is false. It takes more courage to admit the ground has moved than to keep standing on it.',
         scores: {agency: 1, stoic: 0, individual: 1, transcendent: -1, consequence: -1},
-        reflection:'"One must imagine Sisyphus happy." But Camus never said Sisyphus had to push the same rock. The absurd hero chooses; that\'s the point. Choosing to stop is still a choice.',
+        reflection:'"One must imagine Sisyphus happy." But nothing in Camus says you have to keep pushing the same rock. What he cared about was that the choice is yours, and stopping is a choice too.',
         philosopher:'Albert Camus, The Myth of Sisyphus' },
-      { label:'b', text:'Pivot, but be honest about why. Tell your supervisor the original argument collapsed. Salvage what you can: the research, the methods, the instincts that got you here. Build something that actually holds. Two years lost is cheaper than a career built on something you don\'t believe in.',
+      { label:'b', text:'Pivot, and be honest about why. Tell your supervisor the argument collapsed. Keep what you can (the research, the methods, the instincts that got you here) and build something that holds. Losing two years is cheaper than a career built on something you don\'t believe.',
         scores: {individual: 0, consequence: 0, pragmatist: 1, rationalist: 1},
-        reflection:'Peirce argued that the whole point of inquiry is self-correction, that getting it wrong and openly revising is not failure but the actual mechanism by which knowledge advances. A thesis that honestly accounts for its own collapse is more scientifically valuable than one that quietly papers over the cracks.',
+        reflection:'Peirce saw inquiry as self-correcting: being wrong in the open and revising is how knowledge moves forward. A thesis that says plainly where its first argument broke is worth more than one that papers over the crack.',
         philosopher:'Charles Sanders Peirce, "The Fixation of Belief"' },
       { label:'c', text:'Finish it. Being wrong is part of the scholarly record. Write the most rigorous wrong thesis you can, defend it honestly, and let the next person build on the failure.',
         scores: {pragmatist: 0, stoic: 1, consequence: -1, agency: 1, individual: 1},
-        reflection:'Kierkegaard called this the "leap." Sometimes commitment means following through even when the foundation cracks, not because you\'re naive, but because completion has its own kind of integrity.',
+        reflection:'Kierkegaard wrote about commitments that hold after the reasons for them run out. Finishing has an integrity of its own: you said you would see it through, and you do, while being honest about what the work turned out to be.',
         philosopher:'Søren Kierkegaard, Fear and Trembling' }
     ]
   },
@@ -2358,20 +2359,20 @@ const SCENARIOS = [
     chapter: 'V — justice',
     tradition: 'Political Philosophy',
     title: 'The Lottery',
-    body: `Your government runs an experiment. One thousand families are selected at random from the richest 0.1%. For one year, they are taxed at 90%. Not their income. Their <em>total wealth</em>. The money flows directly, no bureaucracy, into a fund that eliminates homelessness in three cities. It <em>works</em>. Rough sleeping drops to near zero. Suicide rates fall. Children stop disappearing from the school system. But the taxed families are destroyed. Some lose their homes. Marriages collapse under the strain. A few have killed themselves. The program is up for renewal. You get a vote.`,
+    body: `Your government runs an experiment. One thousand families are picked at random from the richest 0.1% and, for one year, taxed at 90%: not of their income, of their <em>total wealth</em>. The money goes straight into a fund to end homelessness in three cities. It <em>works</em>. Rough sleeping drops to almost nothing. Suicide rates fall. Children stop disappearing from school. The taxed families are ruined. Some lose their homes, marriages collapse, and a few have killed themselves. Other wealthy families have started moving their money abroad in case they're next. The program is up for renewal, and you get a vote.`,
     question: 'Do you vote to continue it?',
     choices: [
-      { label:'a', text:'Yes. Homelessness nearly ended in three cities is not an abstraction; it is thousands of real lives materially improved. The numbers are clear. Renew it.',
+      { label:'a', text:'Yes. Homelessness almost ended in three cities. That is thousands of real lives made better, and the numbers are clear. Renew it.',
         scores: {consequence: 2, individual: -2, pragmatist: 0, rationalist: 1},
-        reflection:'The utilitarian math is clear, but Rawls would ask: would you design this from behind the veil of ignorance? The answer reveals more than the policy.',
+        reflection:'The utilitarian sum is clear. Rawls would ask a different question: if you didn\'t know whether you\'d be born homeless or into one of those thousand families, would you sign up for this? It\'s worth noticing which of the two you pictured yourself as.',
         philosopher:'John Rawls, A Theory of Justice' },
-      { label:'b', text:'No. You cannot take ninety percent of a person\'s wealth, however noble the cause. That is not taxation; it is confiscation. Rights are not subject to cost-benefit analysis.',
+      { label:'b', text:'No. You cannot take ninety percent of someone\'s wealth, however good the cause. That is confiscation, not tax, and rights are not up for cost-benefit analysis.',
         scores: {consequence: -2, individual: 2, agency: 0, rationalist: 1},
-        reflection:'Nozick would argue: if wealth was justly acquired, taking it is theft regardless of destination. Rights aren\'t subject to cost-benefit analysis.',
+        reflection:'Nozick argued that if wealth was acquired justly, taking it by force is theft, whatever it\'s spent on. On his view you don\'t weigh rights against outcomes. Rights set the limits inside which outcomes get weighed.',
         philosopher:'Robert Nozick, Anarchy, State, and Utopia' },
-      { label:'c', text:'No. Not because the principle is wrong, but because the wealthy are already leaving. A policy that destroys itself in practice is not justice; it is a beautiful failure.',
+      { label:'c', text:'No, though not because the principle is wrong. The wealthy are already leaving, and a policy that collapses in practice helps nobody, however good it looks on paper.',
         scores: {pragmatist: 2, individual: 0, agency: 0, rationalist: 0, consequence: 1},
-        reflection:'Machiavelli would recognize this: the gap between how people should live and how they do live is where idealistic policy goes to die. Sustainable change must account for human nature.',
+        reflection:'Machiavelli wrote that anyone who studies how people ought to live, instead of how they do live, is heading for ruin. A policy has to survive the people it applies to, including the ones who can afford to leave.',
         philosopher:'Niccolò Machiavelli, The Prince, Chapter XV' }
     ]
   },
@@ -2379,20 +2380,20 @@ const SCENARIOS = [
     chapter: 'VI — identity',
     tradition: 'Metaphysics & Buddhist Philosophy',
     title: 'The Ship',
-    body: `You find a box of old journals from when you were seventeen, and the person in them is <em>embarrassing</em> in that particular way that only past selves can be: the wild certainty, the opinions held with the force of revelation, the absolute confidence about things they were completely wrong about. But they were also braver than you are now, more open to experience, less guarded, less careful about protecting themselves from disappointment. Your partner reads a page over your shoulder and says, quietly, "I wish I'd known this version of you." You have not been that person in a decade, maybe longer, and you are not entirely sure you would want to be again. The question that lingers is whether you owe anything to who you used to be, or whether growing up means letting that self die without guilt.`,
+    body: `You find a box of your journals from when you were seventeen. The person in them is <em>embarrassing</em> the way only past selves can be: certain about everything, holding opinions like revelations, confidently wrong. They were also braver than you are now, more open, less careful about protecting themselves from disappointment. Your partner reads a page over your shoulder and says quietly, "I wish I'd known this version of you." You haven't been that person in a decade, and you're not sure you'd want to be again.`,
     question: 'Do you owe anything to who you used to be?',
     choices: [
       { label:'a', text:'Yes. That person built everything you have now. Continuity matters. You can cringe at your past self, but you do not get to disown them.',
         scores: {stoic: 0, individual: 1, agency: -1, transcendent: 0, rationalist: 1},
-        reflection:'Locke grounded identity in memory: the psychological thread connecting past selves to present. To sever that thread isn\'t growth, it\'s amnesia dressed as evolution.',
+        reflection:'Locke tied personal identity to memory: you are the same person as that seventeen-year-old because you can remember being them. Disowning them would mean cutting the thread that makes you one person over time.',
         philosopher:'John Locke, Essay Concerning Human Understanding' },
       { label:'b', text:'No. You grew out of that person for a reason, and nostalgia for who you were is just another way of avoiding who you are. Growth means letting the old self die.',
         scores: {agency: 1, stoic: 0, pragmatist: 0, individual: 1, transcendent: -1},
-        reflection:'Nietzsche celebrated the capacity to outgrow yourself, to say "I was that, but I am not that now" without guilt. The Übermensch doesn\'t look backward.',
+        reflection:'Nietzsche\'s ideal was a life of continual self-overcoming, each self outgrown in turn. "Become who you are" was his motto, and it points forward. It says nothing about staying who you were.',
         philosopher:'Friedrich Nietzsche, Thus Spoke Zarathustra' },
-      { label:'c', text:'Read the whole thing aloud to your partner. Every cringeworthy page. Let them see every version of you, including the ones that embarrass you. Identity is not something you protect; it is something you share.',
+      { label:'c', text:'Read the whole thing aloud to your partner, every cringeworthy page. Let them see every version of you, including the ones that embarrass you. Who you are is something to share, not guard.',
         scores: {pragmatist: -1, stoic: 0, individual: 0, transcendent: 2, agency: -1},
-        reflection:'The Buddhist tradition holds that the self is process, not entity. Clinging to a fixed identity, whether past or present, is the root of suffering. Let the river flow.',
+        reflection:'Nāgārjuna argued that nothing has a fixed essence of its own, the self included. If there was never a single, fixed you to protect, there is nothing to gain by hiding the earlier drafts.',
         philosopher:'Nāgārjuna, Mūlamadhyamakakārikā' }
     ]
   },
@@ -2400,20 +2401,20 @@ const SCENARIOS = [
     chapter: 'VII — intimacy',
     tradition: 'Existentialism & Virtue Ethics',
     title: 'The Vulnerability Tax',
-    body: `You've been seeing someone for six months, and the relationship has settled into something genuinely good, perhaps the most honest connection you've had with another person. Last week they asked why you never talk about your family, your past, the formative experiences that made you who you are. You deflected with practiced ease, but they noticed, and though they aren't pushing, you can feel the relationship approaching a ceiling it cannot pass through without changing shape. There is a glass wall between <em>good</em> and <em>real</em>, and you are the one holding it in place. To go deeper means handing someone the exact knowledge they would need to hurt you in ways no one else could — not that they would, not that you have reason to believe they would, but they <em>could</em>, and that possibility alone feels like standing at the edge of a cliff with your eyes closed.`,
+    body: `You've been seeing someone for six months, and it's good, maybe the most honest connection you've had with anyone. Last week they asked why you never talk about your family or your past. You changed the subject, smoothly, the way you always do. They noticed. They aren't pushing, but you can feel the relationship reaching a point it can't get past without changing. Going further means handing someone exactly the knowledge they would need to hurt you. You have no reason to think they would. But they <em>could</em>, and that is enough to make you hesitate.`,
     question: 'Do you go deeper?',
     choices: [
       { label:'a', text:'Yes, all the way. To be half-known is to be half-loved. If this person matters, they get the full picture, even the parts that make you harder to love.',
         scores: {stoic: -2, individual: -2, consequence: 0, agency: 1},
-        reflection:'Aristotle placed friendship at the center of the good life, not as nice-to-have but as necessary condition. The virtuous life is inherently relational. Partial intimacy is partial living.',
+        reflection:'Aristotle put friendship at the center of the good life. Nobody, he said, would choose to live without friends even if they had every other good. On that view, partial intimacy is a partial life.',
         philosopher:'Aristotle, Nicomachean Ethics, Books VIII-IX' },
       { label:'b', text:'Partially. You can be intimate without being transparent. Share the rooms that matter, keep some locked. Not every truth serves a relationship.',
         scores: {pragmatist: 1, stoic: 0, individual: 2, rationalist: 1},
-        reflection:'Montaigne loved deeply but maintained the "back shop," an inner room no one else could enter. Intimacy doesn\'t require total transparency. Some privacy is self-preservation, not dishonesty.',
+        reflection:'Montaigne loved deeply but kept what he called a "back shop", a room of his own that no one else entered. Intimacy doesn\'t require total transparency, and some privacy is self-preservation rather than dishonesty.',
         philosopher:'Michel de Montaigne, Essays, "Of Solitude"' },
       { label:'c', text:'No. You know yourself well enough to know that you would resent them for knowing too much. The relationship is good as it is. Not everything must go to the bottom.',
         scores: {agency: 0, stoic: 1, consequence: -1, individual: 2, transcendent: 0},
-        reflection:'Rilke wrote that love is "two solitudes that protect and border and greet each other." Not every connection has to be total. Sometimes the bravest thing is accepting a limit.',
+        reflection:'Rilke described love as "two solitudes that protect and border and greet each other." Not every connection has to be total. Sometimes the honest thing is to accept a limit.',
         philosopher:'Rainer Maria Rilke, Letters to a Young Poet' }
     ]
   },
@@ -2421,20 +2422,20 @@ const SCENARIOS = [
     chapter: 'VIII — power',
     tradition: 'Taoism & Political Philosophy',
     title: 'The Room',
-    body: `You run a community of about two hundred people, and if you are honest with yourself, you are the reason it works. You book the venues, mediate the disputes, set the tone, hold the vision steady when others lose sight of it, and people tell you constantly how much it means to them. But recently you have noticed something troubling: whenever you step away for a week, the entire operation simply stops. Nobody schedules anything, nobody resolves conflicts, nobody takes initiative — the space becomes inert in your absence, as though the community were not a living organism but an extension of your own will. Your competence, which you cultivated with care and good intentions, has quietly eroded everyone else's sense of agency, and now you are not sure whether you are leading a community or performing one.`,
+    body: `You run a community of about two hundred people, and if you're honest, you're the reason it works. You book the venues, settle the disputes, set the tone and keep everyone pointed in the same direction. People tell you all the time how much it means to them. But lately you've noticed that whenever you step away for a week, everything stops. Nobody schedules anything, nobody sorts out conflicts, nobody takes the initiative. Your competence, built with care and good intentions, has slowly taken away everyone else's reason to act. You're no longer sure whether you're leading a community or performing one.`,
     question: 'What do you do?',
     choices: [
       { label:'a', text:'Keep running it. If the community dies without you, that means it needs you. The people are happy. Building something people love is not a problem that requires solving.',
         scores: {consequence: 1, individual: -1, agency: -2, pragmatist: 1},
-        reflection:'The benevolent dictator\'s argument. It works, until it doesn\'t. Mill warned that even good paternalism erodes the capacity for self-governance.',
+        reflection:'The benevolent dictator\'s argument: it works, until it doesn\'t. Mill warned that even kindly paternalism wears away people\'s capacity to govern themselves, because abilities that are never used never develop.',
         philosopher:'John Stuart Mill, On Liberty' },
       { label:'b', text:'Step away entirely. If it cannot survive without you, it was never a community. It was a performance. Let it find its own legs, or let it fall.',
         scores: {agency: 1, individual: 0, stoic: 0, transcendent: 2, consequence: -1},
-        reflection:'"A leader is best when people barely know he exists." The Taoist principle: true influence empowers others to find their own way.',
+        reflection:'"The best rulers are those whose existence is barely known." Taoist leadership works by getting out of the way, so that when the work is done, the people say they did it themselves.',
         philosopher:'Lao Tzu, Tao Te Ching, Chapter 17' },
       { label:'c', text:'Start failing on purpose. Miss a booking. Let a small problem fester. Force other people into the gap. It will be messy, but dependency only breaks when the thing it depends on disappears.',
         scores: {individual: -2, pragmatist: 1, consequence: 0, agency: 1, rationalist: 1},
-        reflection:'Dewey\'s democratic instinct: the answer to problems of leadership isn\'t less leadership; it\'s engineered opportunities for others to lead. Sometimes you have to create the vacuum.',
+        reflection:'Dewey thought democracy is something people learn by doing. The answer to a leadership problem is more chances for other people to lead, and sometimes that means leaving a gap on purpose.',
         philosopher:'John Dewey, The Public and Its Problems' }
     ]
   },
@@ -2442,20 +2443,20 @@ const SCENARIOS = [
     chapter: 'IX — time',
     tradition: 'Existentialism & Phenomenology',
     title: 'The Four Thousand Weeks',
-    body: `You are twenty-eight when the offer arrives: lead a project that could reshape how education works in your country. The kind of systemic intervention that might give millions of children a better start. The work will consume five years. No weekends, no sustained hobbies, no long dinners that stretch past midnight. Your relationships will narrow to the functional. The texture of daily life will flatten into something instrumental and relentless. Meanwhile, your best friend just had a baby whose early years you will largely miss. Your parents are entering the stage of life where time with them has started to feel finite. You have been meaning to learn piano for a decade. You have roughly <em>four thousand weeks</em> on this earth. The question is not what to do with them but what to sacrifice, because every yes forecloses a dozen other lives you might have lived.`,
+    body: `You're twenty-eight when the offer comes: lead a project that could change how education works in your country and give millions of children a better start. It will take five years. No weekends, no hobbies, no long dinners running past midnight. Your relationships will shrink to the practical. Meanwhile your best friend has just had a baby whose early years you'll mostly miss. Your parents are getting to the age where time with them has started to feel limited. You've been meaning to learn the piano for ten years. You have roughly <em>four thousand weeks</em> on this earth, and every yes rules out other lives you could have lived.`,
     question: 'Do you take the offer?',
     choices: [
       { label:'a', text:'Yes. This is the kind of thing that justifies a life. The piano and the dinners will still be there. The window for this will not.',
         scores: {individual: 0, agency: 1, stoic: -1, transcendent: -1, consequence: 1},
-        reflection:'Hannah Arendt called this "natality": the human capacity to begin something new that outlasts its creator. Action in the public realm is how mortals touch immortality.',
+        reflection:'Hannah Arendt called it natality: the human capacity to begin something new. For her, action in the public world was how mortal people leave something that outlasts them.',
         philosopher:'Hannah Arendt, The Human Condition' },
       { label:'b', text:'No. Your parents will not be around forever. The baby will grow up without you noticing. "Changing the world" is what people say when they are afraid to be present in their actual life.',
         scores: {stoic: 1, pragmatist: -2, individual: -2, transcendent: 1, agency: -1},
-        reflection:'Burkeman argues we\'ve been conned by productivity culture into treating time as a resource to optimize. The radical act is to just... be here, with the people who are here now.',
+        reflection:'Burkeman argues that productivity culture has taught us to treat time as a resource to optimize, when all any of us has is a limited number of weeks. On his account, the radical move is to be present with the people who are here now.',
         philosopher:'Oliver Burkeman, Four Thousand Weeks' },
       { label:'c', text:'Ignore the offer. Build something smaller, on your own terms. The five-year all-consuming project is a trap disguised as purpose. You can change education without sacrificing everything else.',
         scores: {pragmatist: 1, consequence: 0, agency: 1, individual: -1, rationalist: -1},
-        reflection:'Illich argued that institutions designed to solve problems often create new dependencies worse than the original condition. Sometimes the most radical act is to refuse the grand project and work at a human scale.',
+        reflection:'Illich argued that institutions built to solve problems often create dependencies worse than the problems themselves. Working at a smaller, human scale can be the more serious choice, not the timid one.',
         philosopher:'Ivan Illich, Deschooling Society' }
     ]
   },
@@ -2463,20 +2464,20 @@ const SCENARIOS = [
     chapter: 'X — the mirror',
     tradition: 'Socratic Method',
     title: 'The Last Question',
-    body: `It's late, and you are alone with this. You have been making choices for the last several minutes that you already knew the answers to before you clicked; perhaps you have known them for years but never said them plainly enough to feel their weight. That is the thing about philosophy: it does not teach you what to think. It forces you to <em>admit</em> what you already believe, to look directly at the principles you have been living by without quite naming them. All of this has been a mirror. The question now is not whether the reflection is flattering but whether it is true — and whether you have the courage to sit with what it shows you.`,
+    body: `It's late, and you're alone with this. For the last few minutes you've been making choices you already knew the answers to, perhaps for years, without ever putting them into words. That is most of what philosophy does: it makes you <em>admit</em> what you already believe, and look straight at principles you've been living by without naming them. All of this has been a mirror. Whether the reflection is flattering matters less than whether it's accurate.`,
     question: 'What is the question you are actually trying to answer?',
     choices: [
       { label:'a', text:'Am I living according to what I actually believe, or just what\'s comfortable?',
         scores: {stoic: 0, agency: 1, pragmatist: -1, rationalist: 1, individual: 1},
-        reflection:'This is Socrates\' original challenge. The examined life isn\'t about right answers; it\'s about the courage to notice when you\'re lying to yourself.',
+        reflection:'This is Socrates\' original challenge. The examined life is less about having the right answers than about noticing when you\'re lying to yourself.',
         philosopher:'Socrates, via Plato\'s Apology' },
       { label:'b', text:'Am I being good to the people who matter, or too caught up in my own story?',
         scores: {individual: -2, consequence: 0, stoic: 0, transcendent: 0},
-        reflection:'Iris Murdoch called the moral task "a just and loving gaze directed upon an individual reality", above all the reality of other people. The hardest philosophical work is paying attention.',
+        reflection:'Iris Murdoch described the moral task as "a just and loving gaze directed upon an individual reality", above all the reality of other people. Most of the hard work is paying attention.',
         philosopher:'Iris Murdoch, The Sovereignty of Good' },
       { label:'c', text:'Does any of this matter, and if not, what do I do with that?',
         scores: {pragmatist: 0, agency: 0, stoic: 0, transcendent: -1, rationalist: 1, individual: 1},
-        reflection:'The question underneath every question. Nagel called it "the absurd": the collision between our need for meaning and the universe\'s silence.',
+        reflection:'Nagel\'s "The Absurd" puts the problem in us: we take our lives completely seriously, and we can also step back and see that none of it has to matter. His advice was to meet that with irony rather than despair.',
         philosopher:'Thomas Nagel, "The Absurd"' }
     ]
   },
@@ -2506,20 +2507,20 @@ const SCENARIOS = [
     chapter: 'XII — language',
     tradition: 'Philosophy of Language · Phenomenology',
     title: 'The Untranslatable',
-    body: `Your best friend's father died last year. You were close to him too. At the funeral you said all the right things — quiet condolences, shared memories, steady presence. Your friend thanked you afterward and said it helped. You believed them. Then last night, several drinks in, they looked at you and said: <em>"You don't actually understand what this is like."</em> They're right. You've never lost a parent. You've never been in that particular darkness. Everything you offered was your best guess at what grief feels like from the outside. You meant every word of it, and none of it was enough. Now you're sitting with a question that won't leave: is there any way to truly reach someone in pain you haven't felt yourself, or were you always just standing at the window?`,
+    body: `Your best friend's father died last year. You were close to him too. At the funeral you said the right things, shared memories and stayed near, and afterwards your friend said it helped. You believed them. Then last night, a few drinks in, they looked at you and said: <em>"You don't actually understand what this is like."</em> They're right. You've never lost a parent. Everything you offered was your best guess at grief from the outside. You meant every word, and it still wasn't enough. Now you can't stop asking whether you can ever really reach someone in a pain you haven't felt yourself.`,
     question: 'Can you actually understand someone else\'s pain?',
     choices: [
-      { label:'a', text:'Yes, but not through language. Sit beside them. Say nothing. Understanding is not something you achieve with the right words; it is something that happens when you stop trying to perform it.',
+      { label:'a', text:'Yes, but not through language. Sit beside them and say nothing. Understanding doesn\'t come from finding the right words. It comes when you stop trying to perform it.',
         scores: {transcendent: 2, rationalist: -2, individual: -1, agency: -1},
-        reflection:'Wittgenstein ended the Tractatus with: "Whereof one cannot speak, thereof one must be silent." Not as defeat, but as recognition that the deepest truths live beyond language.',
+        reflection:'The Tractatus ends: "Whereof one cannot speak, thereof one must be silent." Wittgenstein didn\'t mean it as defeat. Some of what matters most, he thought, can be shown but not said.',
         philosopher:'Ludwig Wittgenstein, Tractatus Logico-Philosophicus' },
       { label:'b', text:'No. You cannot, and you should stop pretending. Say "I don\'t understand what you\'re going through" and mean it. The honesty will do more for them than any performance of empathy.',
         scores: {individual: 1, stoic: 1, transcendent: 0, pragmatist: -1},
-        reflection:'The Japanese aesthetic of mono no aware — the pathos of things — suggests that the beauty of connection is inseparable from its incompleteness. Admitting the gap is itself a form of closeness.',
+        reflection:'Motoori Norinaga\'s mono no aware is a sensitivity to things as they pass: feeling them fully without trying to fix or explain them. Admitting you don\'t know what their grief is like leaves room for it to be what it is.',
         philosopher:'Motoori Norinaga, on mono no aware (物の哀れ)' },
-      { label:'c', text:'You understood enough. Perfect empathy is a fantasy. Your friend needed someone there, and you were there. That is not performance. That is love, doing what love can.',
+      { label:'c', text:'You understood enough. Perfect empathy is a fantasy. Your friend needed someone there, and you were there. That\'s love doing what it can, and it isn\'t a performance.',
         scores: {pragmatist: 1, consequence: 0, stoic: 0, individual: -1},
-        reflection:'Gadamer argued that understanding is always partial, always evolving: a "fusion of horizons" that\'s never complete but always in motion. Imperfect understanding, genuinely offered, is enough.',
+        reflection:'Gadamer described understanding as a "fusion of horizons": partial, always moving, never finished. On his view, imperfect understanding honestly offered is the only kind anyone has.',
         philosopher:'Hans-Georg Gadamer, Truth and Method' }
     ]
   },
@@ -2548,20 +2549,20 @@ const SCENARIOS = [
     chapter: 'XIV — belonging',
     tradition: 'Ubuntu · African Philosophy',
     title: 'The Circle',
-    body: `Your religious community, the one you grew up in, the one your parents still attend every week, has taken a public stance against something you believe in deeply. Not as a matter of preference. As a moral conviction you hold in your bones. They are wrong, and you know it in a way that does not admit doubt. But these are also the people who fed your family when you couldn't feed yourselves. Who showed up at your door during the worst year of your life without being asked. Who taught you what kindness looks like in practice rather than in principle. You owe them something that cannot be reduced to gratitude, a debt made of presence and care and showing up. And yet staying means endorsing — or at least being complicit in your silence while they do harm under the banner of the same tradition that once held you.`,
+    body: `Your religious community, the one you grew up in and your parents still attend every week, has taken a public stance against something you believe in deeply. This isn't a matter of taste. You think they are wrong, and you don't doubt it. But these are also the people who fed your family when you couldn't feed yourselves, who turned up at your door during the worst year of your life without being asked, who showed you what kindness looks like in practice. You owe them more than gratitude. And staying means lending them your name, or at least your silence, while they do harm in the name of the tradition that once held you.`,
     question: 'Do you stay or go?',
     choices: [
       { label:'a', text:'Stay. "I am because we are." You do not abandon the people who made you because they are wrong. You stay and fight to change them from the inside.',
         scores: {individual: -2, agency: -1, consequence: 0, transcendent: 0, stoic: 0},
-        reflection:'Ubuntu philosophy holds that personhood is constituted through community: umuntu ngumuntu ngabantu. To leave is not just to disagree but to diminish yourself.',
+        reflection:'Ubuntu holds that a person becomes a person through other people: umuntu ngumuntu ngabantu. On that view, leaving means more than disagreeing. You lose part of what makes you who you are.',
         philosopher:'Desmond Tutu & Ubuntu philosophy' },
-      { label:'b', text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, then staying is complicity wearing a loyalty costume.',
+      { label:'b', text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, staying is complicity that calls itself loyalty.',
         scores: {individual: 2, agency: 1, stoic: 0, consequence: -1, rationalist: 1},
-        reflection:'Thoreau walked into the woods, and into jail, because he believed that conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
+        reflection:'Thoreau went to the woods, and to jail, because he believed conscience outranks consensus. "Any man more right than his neighbors constitutes a majority of one."',
         philosopher:'Henry David Thoreau, Civil Disobedience' },
       { label:'c', text:'Leave publicly. Write the letter, name the reason, make it cost them something. A quiet exit changes nothing; a loud one gives others permission to follow.',
         scores: {pragmatist: 0, agency: 1, individual: -1, consequence: 1, rationalist: 1},
-        reflection:'Audre Lorde refused the choice between belonging and truth: "Your silence will not protect you." If you\'re going to leave, leave loudly enough that others know they can too.',
+        reflection:'Audre Lorde refused to choose between belonging and telling the truth: "Your silence will not protect you." If you\'re going to leave, leave loudly enough that others know they can too.',
         philosopher:'Audre Lorde, "The Transformation of Silence into Language and Action"' }
     ]
   },
@@ -2589,21 +2590,21 @@ const SCENARIOS = [
   {
     chapter: 'XVI — mortality',
     tradition: 'Existentialism · Buddhist Philosophy',
-    title: 'The Immortality Pill',
-    body: `A single injection. Gene therapy. Your telomeres stop shortening, the biological clock that counts down to your body's obsolescence, halted mid-tick. You could live for centuries, perhaps longer. The catch: it is irreversible. No exit clause. No way to change your mind when the weight of centuries becomes unbearable. You will watch everyone you love die. All of them. Again and again — a procession of endings that you alone carry forward. Every relationship will be temporary for you in a way it is not for them, every intimacy shadowed by the knowledge that you will be the one left standing. And the urgency that makes Tuesday mornings feel real, that animal awareness that time is running out, the thought <em>"I should call my mother"</em> that only works because you might not get another chance, that vanishes. There is always tomorrow. And the day after that. And a thousand years of days after that.`,
+    title: 'The Injection',
+    body: `A single injection of gene therapy stops your cells from aging. You could live for centuries, maybe longer. The catch is that it can't be undone. There is no way out if the centuries start to feel unbearable. You will watch everyone you love die, all of them, again and again. Every relationship will be temporary for you in a way it isn't for them. And the urgency that makes an ordinary Tuesday feel real goes too: the thought <em>"I should call my mother"</em> only works because you might not get another chance. There will always be tomorrow, and a thousand years of tomorrows after that.`,
     question: 'Do you take the injection?',
     choices: [
       { label:'a', text:'Yes, and I would not want an exit. The irreversibility is the point. A commitment you can undo is not a commitment. I want to see what a human becomes with enough time to actually learn from their mistakes.',
         scores: {stoic: -1, transcendent: -1, agency: 1, pragmatist: 0, consequence: 1},
-        reflection:'Lucretius argued that the fear of death lies behind much of human misery. Remove it entirely and you don\'t lose meaning; you gain the time to find it properly, without the panic.',
+        reflection:'Lucretius argued that fear of death drives much of human misery: the grasping, the restlessness, the sense that time is running out. You\'re betting that without that fear, a person could finally learn slowly.',
         philosopher:'Lucretius, De Rerum Natura' },
-      { label:'b', text:'No. Mortality is what makes any of this matter. Without the horizon, nothing is urgent, nothing is precious, nothing costs you anything. Infinity is not a gift; it is a sentence.',
+      { label:'b', text:'No. Mortality is what makes any of this matter. Without an end, nothing is urgent or precious, and nothing costs you anything. Endless life would be a sentence.',
         scores: {stoic: 2, transcendent: 1, agency: -1, rationalist: 1},
-        reflection:'Heidegger\'s "being-toward-death": the awareness that we will die is precisely what allows us to live authentically. Remove the horizon and you remove all urgency.',
+        reflection:'Heidegger called it being-toward-death: knowing we will die is what lets us live as ourselves instead of drifting along with everyone else. Take the end away and the urgency goes with it.',
         philosopher:'Martin Heidegger, Being and Time' },
       { label:'c', text:'Only if I can choose to end it. Immortality as an option is the purest form of freedom. Immortality without an exit is the purest form of a cage.',
         scores: {agency: 1, pragmatist: 1, rationalist: 0, stoic: 0, individual: 1},
-        reflection:'The Buddhist Middle Way applied to mortality itself: neither clinging to life nor romanticizing death. The question is always about attachment, to living or to dying.',
+        reflection:'The Buddha\'s Middle Way runs between indulgence and self-denial. Applied here, it means clinging neither to life nor to death, and keeping the choice open is one way of refusing to cling.',
         philosopher:'The Buddha, Dhammacakkappavattana Sutta — on the Middle Way' }
     ]
   },
@@ -2632,41 +2633,41 @@ const SCENARIOS = [
     chapter: 'XVIII — the gift',
     tradition: 'Feminist Philosophy · Ethics of Care',
     title: 'The Invisible Labor',
-    body: `You live with three other people, all of you adults with functional lives and careers, and one of them — always the same one, you realize now that you are paying attention — does the dishes without being asked, remembers the birthdays, notices when someone is having a bad day and quietly adjusts the mood of the house, mediates arguments before they calcify into resentment, buys the toilet paper before it runs out so that no one else ever has to think about it. Nobody asked them to do this, and they never complain; it simply happens, the way weather happens, invisible until you stop to notice it. But you have started noticing, particularly when they are away for a weekend and the house falls apart in small, accumulating ways that reveal just how much was being held together by someone else's constant, unremarked attention. The rest of you are fully functional adults, capable of seeing what needs doing, but you simply do not see it until someone else has already done it, and the recognition lands with the uncomfortable weight of realizing you have been complicit in something you did not mean to endorse.`,
-    question: 'What do you do with that recognition?',
+    body: `You share a house with three other adults. One of them, always the same one, does the dishes without being asked. They remember the birthdays, notice when someone is having a bad day, head off arguments before they turn into resentment, and buy toilet paper before it runs out so nobody else has to think about it. Nobody asked them to, and they never complain. You've only started noticing because of the weekends they're away, when the house falls apart in small ways that add up. The rest of you are perfectly capable of seeing what needs doing. You just don't, until someone else has already done it.`,
+    question: 'What do you do now that you\'ve noticed?',
     choices: [
       { label:'a', text:'Name it. Explicitly, publicly, in front of everyone. "You are carrying us, and it is not fair." Invisible problems stay invisible until someone makes them awkward.',
         scores: {consequence: 0, agency: 1, individual: -1, rationalist: 1, pragmatist: -1},
-        reflection:'Carol Gilligan argued that the "ethic of care" is systematically devalued because it\'s coded as natural rather than skilled. Making it visible is a political act.',
+        reflection:'Carol Gilligan argued that care gets undervalued because it\'s treated as natural rather than as a skill, and as women\'s work rather than moral work. Saying it out loud turns a private habit into something the whole house has to reckon with.',
         philosopher:'Carol Gilligan, In a Different Voice' },
       { label:'b', text:'Skip the speech. Start doing more. Quietly, consistently. Buy the toilet paper first, remember the birthdays, take over the mediation. The ethical response to care is to care <em>back</em>.',
         scores: {pragmatist: 1, stoic: 0, individual: -2, agency: 1, consequence: 1},
-        reflection:'Nel Noddings\' care ethics is about responsiveness, not grand gestures. The ethical response to recognizing care is to care back: concretely, not abstractly.',
+        reflection:'Nel Noddings built her ethics of care on responsiveness: noticing what someone needs and answering it in small, concrete ways. When you realize you\'ve been cared for, the fitting response is to care back.',
         philosopher:'Nel Noddings, Caring: A Relational Approach to Ethics' },
       { label:'c', text:'Talk to them privately. Ask what they actually want. Do not assume you know how to fix something you only just noticed.',
         scores: {agency: 0, individual: -1, consequence: -1, rationalist: -1, transcendent: 1},
-        reflection:'bell hooks insisted that love is a practice of freedom, not a burden. The person doing the invisible work gets to define what justice looks like, not the person who just noticed. Asking is itself an act of respect that naming and fixing both skip past.',
+        reflection:'bell hooks wrote about love as something you practice, not only something you feel. The person doing the unseen work gets to say what fairness looks like, not the person who only just noticed. Asking is a form of respect that naming and fixing both skip.',
         philosopher:'bell hooks, All About Love' }
     ]
   },
   {
     chapter: 'XIX — cosmic order',
     tradition: 'Maat (Egyptian Ethics)',
-    title: 'The Whistleblower\'s Weight',
-    body: `For six months you've been the compliance officer at a mid-sized pharmaceutical company. For six months you've filed the reports, signed the certifications, assured yourself the numbers added up. They did, technically. But tonight, cross-referencing manufacturing logs with distribution records, you found the gap. The generic medication your company produces for low-income clinics is manufactured with substandard quality controls, not dangerous exactly, not illegal exactly, just <em>lesser</em>. A twelve percent higher failure rate than the premium version sold to private hospitals. Same active ingredient, same name, not quite the same care. Your boss will say it meets regulatory minimums. The lawyers will call it a resource allocation issue. They won't be entirely lying; the company employs three hundred people in a town that needs those jobs. But you keep thinking about the weighing: the heart on one side of the scale, the feather of Maat on the other. Truth, justice, cosmic order: not as abstractions but as weight. The scale is in front of you. The feather is waiting.`,
+    title: 'The Feather',
+    body: `For six months you've been the compliance officer at a mid-sized pharmaceutical company, filing the reports and signing the certifications. The numbers added up, technically. Tonight, cross-referencing manufacturing logs against distribution records, you found the gap. The generic medicine your company makes for low-income clinics is produced under weaker quality controls. It isn't dangerous, exactly, or illegal, exactly. It's just <em>worse</em>: a twelve percent higher failure rate than the premium version sold to private hospitals, with the same active ingredient and the same name. Your boss will say it meets the regulatory minimum. The lawyers will call it resource allocation, and they won't be entirely wrong: the company employs three hundred people in a town that needs the jobs. You keep thinking of the Egyptian judgment of the dead, where the heart is weighed against the feather of Maat, the goddess of truth and order.`,
     question: 'What do you do?',
     choices: [
-      { label:'a', text:'Report the findings through official channels and let the investigation unfold, trusting that bringing the truth to light restores balance regardless of personal consequences.',
+      { label:'a', text:'Report it through official channels and let the investigation run, whatever it costs you. Bringing the truth into the open is how balance gets restored.',
         scores: {consequence:-2, individual:-1, stoic:1, pragmatist:-2, agency:2, transcendent:2},
-        reflection:'You choose to align with Maat — cosmic truth and order — over social convenience. The question isn\'t whether speaking truth is strategically wise; it\'s whether you can face the weighing with a heart light enough to match the feather.',
+        reflection:'In the Book of the Dead, the soul recites the 42 negative confessions (I have not lied, I have not stolen, I have not caused pain) before its heart is weighed. You\'ve chosen truth over convenience. The weighing asks whether your heart is light enough to match the feather.',
         philosopher:'Book of the Dead, The 42 Negative Confessions' },
-      { label:'b', text:'Document everything meticulously, secure the evidence, then resign and find a position where you can advocate for stronger industry regulations without targeting this specific company.',
+      { label:'b', text:'Document everything and secure the evidence, then resign. Find a role where you can push for tougher regulation across the industry, without going after this company in particular.',
         scores: {pragmatist:2, rationalist:2, agency:1, consequence:1},
-        reflection:'You choose strategic withdrawal and systemic change over direct confrontation. It\'s a kind of Maat too: the long view, the recognition that cosmic order operates on timeframes beyond quarterly earnings. But does stepping away from the immediate imbalance to address the larger system serve cosmic order, or does it simply make the weight more comfortable to carry?',
+        reflection:'Ptahhotep\'s maxims prize patience, discretion and knowing when to speak. There\'s something of that here: the long view, change that works over years. It\'s fair to ask, though, whether stepping away fixes the imbalance or only makes it easier to carry.',
         philosopher:'Ptahhotep, The Maxims' },
-      { label:'c', text:'Bring the evidence to the executive team directly, giving them a private opportunity to correct the imbalance before it becomes public, trusting that restoration matters more than punishment.',
+      { label:'c', text:'Take the evidence to the executives yourself and give them a chance to fix it privately before anything goes public. Putting it right matters more than punishing anyone.',
         scores: {consequence:0, individual:-1, stoic:2, pragmatist:0, agency:0, rationalist:1, transcendent:2},
-        reflection:'Restorative over retributive. In the Egyptian tradition, Maat isn\'t primarily about punishment; it\'s about restoring cosmic balance. You give those who created the imbalance a chance to correct it themselves, to lighten their own hearts before the weighing.',
+        reflection:'In Egyptian thought, Maat was about restoring balance more than punishing. The Teaching for King Merykara tells a ruler to do justice and to comfort those who weep. You\'re giving the people who caused the problem a chance to put it right themselves.',
         philosopher:'The Teaching for King Merykara' }
     ]
   },
@@ -2737,20 +2738,20 @@ const SCENARIOS = [
     chapter: 'XXIII — deep listening',
     tradition: 'Dadirri (Aboriginal Australian Philosophy)',
     title: 'The Listening',
-    body: `You are an environmental scientist assessing whether a patch of old-growth forest should be cleared for affordable housing. Three weeks of data, soil samples, biodiversity indexes, carbon sequestration rates, water table measurements, all pointing toward the same conclusion: the forest can be sustainably cleared if certain mitigation measures are followed. The numbers are solid. Your methodology is peer-reviewed. Then the local Aboriginal elder asks if you would sit with her in the forest for a morning before you write your report. You almost say no. You have deadlines, and sitting isn't data collection. But something in how she asks makes you say yes. She doesn't lecture you or argue with your findings. She sits. After a while you begin to hear things your instruments didn't measure: the particular quality of silence between birdcalls, the way light moves through the canopy in patterns that suggest relationships between species your survey never captured. A feeling — unscientific, unmeasurable, but unmistakable — that the forest is not a collection of organisms but a <em>presence</em>. She calls this dadirri. Deep listening. The kind that requires you to be quiet long enough for the land itself to speak.`,
+    body: `You're an environmental scientist deciding whether a patch of old-growth forest can be cleared for affordable housing. Three weeks of soil samples, biodiversity counts, carbon figures and water-table readings all say the same thing: it can be cleared sustainably, with the right mitigation. The numbers are solid and the method is peer-reviewed. Then a local Aboriginal elder asks if you'll sit with her in the forest for a morning before you write your report. You nearly say no. You have deadlines, and sitting isn't data collection. But something in the way she asks makes you agree. She doesn't argue with your findings. She just sits. After a while you start noticing things your instruments didn't record: the silences between birdcalls, the way light moves through the canopy, links between species your survey never captured. You have a feeling you can't measure, that the forest is a <em>presence</em> rather than a list of organisms. She calls this dadirri: deep listening, being quiet long enough for the land to speak.`,
     question: 'You sit down to write your report. What do you say?',
     choices: [
       { label:'a', text:'Report the scientific data as gathered. The experience was meaningful personally, but policy decisions require measurable evidence, not feelings. The forest can be sustainably cleared.',
         scores: {rationalist:2, pragmatist:1, consequence:1, transcendent:-2, individual:0, agency:1},
-        reflection:'Your instruments measured what can be measured; the rest is poetry, not policy. Fair enough. But dadirri would ask whether your instruments are even asking the right questions, whether "sustainable clearing" is an oxymoron that only makes sense within a worldview that sees land as resource rather than kin.',
+        reflection:'Bacon wanted knowledge built on careful observation and measurement, free of what he called the idols of the mind. Your report stands on that. Dadirri would ask whether your instruments were asking the right questions, and whether "sustainable clearing" only makes sense if land is a resource rather than kin.',
         philosopher:'Francis Bacon, Novum Organum' },
-      { label:'b', text:'Recommend against clearing. Something in the forest resists your categories, and intellectual honesty demands acknowledging what your methodology cannot capture.',
+      { label:'b', text:'Recommend against clearing. Something in the forest doesn\'t fit your categories, and honesty means admitting what your method can\'t capture.',
         scores: {transcendent:2, rationalist:-2, agency:-1, individual:-1, consequence:-1, stoic:1},
-        reflection:'You let the experience change your conclusion. Not anti-science — an acknowledgment that science has boundaries, that some knowledge arrives through presence rather than measurement. Dadirri: listen carefully enough and the distinction between observer and observed dissolves.',
+        reflection:'You let the morning change your conclusion, which is different from rejecting science: some knowledge comes through presence rather than measurement. Miriam-Rose Ungunmerr-Baumann describes dadirri as "inner, deep listening and quiet, still awareness".',
         philosopher:'Miriam-Rose Ungunmerr-Baumann, "Dadirri: Inner Deep Listening and Quiet Still Awareness"' },
-      { label:'c', text:'Report the data but include a supplementary section on indigenous ecological knowledge, recommending that traditional custodians be given co-governance over any development decision.',
+      { label:'c', text:'Report the data, but add a section on Indigenous ecological knowledge and recommend that the traditional custodians share control over any decision to develop.',
         scores: {pragmatist:1, transcendent:1, consequence:0, agency:1, rationalist:0, individual:-1},
-        reflection:'You try to hold both ways of knowing at once, Western empiricism and indigenous deep listening, in a single document. It\'s an imperfect bridge between epistemologies, but it refuses to let either one erase the other. The question is whether the system that reads your report has the capacity to hear both voices.',
+        reflection:'Kimmerer, a botanist and a member of the Potawatomi Nation, writes about holding science and Indigenous knowledge side by side, braided like sweetgrass. Your report tries to do that in one document. Whether the people reading it can hear both is out of your hands.',
         philosopher:'Robin Wall Kimmerer, Braiding Sweetgrass' }
     ]
   },
@@ -3033,17 +3034,17 @@ function selectChoice(idx) {
 let goBackAttempts = 0;
 const goBackMessages = [
   "philosophy does not permit do-overs. neither does this.",
-  "you chose. the choice is yours now. sit with it.",
+  "you chose. it's yours now. sit with it.",
   "Kierkegaard wrote that life can only be understood backwards, but must be lived forwards.",
   "Heraclitus would remind you: you cannot step into the same river twice.",
   "the unexamined choice is not worth revisiting. the examined one doesn't need to be.",
-  "Sartre called this radical freedom — you are condemned to choose, and the choice is already made.",
+  "Sartre said we are condemned to be free. that includes being stuck with what you chose.",
   "the Stoics trained for this. what is done belongs to fate. what comes next belongs to you.",
-  "Simone Weil: 'attention is the rarest and purest form of generosity.' attend to what is ahead.",
-  "in Zen, they call this beginner's mind — but even a beginner cannot unring a bell.",
-  "Montaigne spent his life revising his essays. he never once revised a decision.",
+  "Simone Weil called attention the rarest and purest form of generosity. spend yours on the next question.",
+  "the moving finger writes, and having writ, moves on. (Omar Khayyám, via FitzGerald.)",
+  "Montaigne revised his essays for the rest of his life. you get one draft.",
   "the Bhagavad Gita says: you have a right to your actions, but never to their fruits. you acted.",
-  "Camus pushed the boulder uphill. he did not ask to push it back down.",
+  "Sisyphus doesn't get to roll the boulder back down either.",
   "nice try."
 ];
 
@@ -3230,11 +3231,11 @@ function showResults() {
   const activeTraditions = Object.keys(traditions);
 
   portrait.innerHTML = `
-    <div class="portrait-title">YOUR PORTRAIT</div>
+    <div class="portrait-title">your portrait</div>
     <p class="portrait-text">${archetype.portrait}</p>
-    <p class="portrait-thinkers">thinkers you might resonate with: ${linkNames(archetype.thinkers)}</p>
+    <p class="portrait-thinkers">thinkers close to you: ${linkNames(archetype.thinkers)}</p>
     <div class="traditions-section">
-      <div class="traditions-title">TRADITIONS EXPLORED</div>
+      <div class="traditions-title">traditions you passed through</div>
       <div class="traditions-grid">
         ${ALL_TRADITIONS.filter(t => activeScenarios.some(s => s.tradition === t)).map(t =>
           `<span class="tradition-badge ${activeTraditions.includes(t)?'active':''}">${t}</span>`
@@ -3249,47 +3250,47 @@ function showResults() {
 const ARCHETYPES = [
   { name:'The Examined Stoic', subtitle:'disciplined freedom through self-awareness',
     ideal:{consequence:0.5,individual:0.5,stoic:0.85,pragmatist:0.45,agency:0.75,rationalist:0.6,transcendent:0.4},
-    portrait:'You believe in controlling what you can and releasing what you can\'t — but you don\'t confuse acceptance with passivity. Your instinct is toward inner strength, personal responsibility, and a kind of defiant calm. You\'re drawn to people who\'ve thought seriously about suffering and come out clarified, not hardened. You probably distrust comfort more than pain.',
+    portrait:'You believe in controlling what you can and letting go of what you can\'t, without mistaking acceptance for passivity. Your instinct is toward inner strength, personal responsibility and a kind of stubborn calm. You\'re drawn to people who have thought seriously about suffering and come out clearer rather than harder. You probably trust discomfort more than comfort.',
     thinkers:'Marcus Aurelius, Epictetus, Simone Weil, Albert Camus, Al-Ghazali' },
   { name:'The Reluctant Utilitarian', subtitle:'pragmatic compassion with philosophical doubt',
     ideal:{consequence:0.8,individual:0.25,stoic:0.4,pragmatist:0.65,agency:0.5,rationalist:0.6,transcendent:0.3},
-    portrait:'You care more about outcomes than principles — not because principles don\'t matter, but because the world is messy and people are suffering now. You\'d rather do imperfect good than maintain perfect consistency. But you know the dangers of "ends justify means" thinking, and that awareness keeps you honest.',
+    portrait:'You care more about outcomes than principles. Principles matter to you, but the world is messy and people are suffering now, and you\'d rather do some imperfect good than stay perfectly consistent. You also know where "the ends justify the means" can lead, and that keeps you honest.',
     thinkers:'Peter Singer, Derek Parfit, Amartya Sen, William MacAskill, Carol Gilligan' },
   { name:'The Existential Pragmatist', subtitle:'meaning through action, not discovery',
     ideal:{consequence:0.5,individual:0.6,stoic:0.4,pragmatist:0.8,agency:0.8,rationalist:0.45,transcendent:0.3},
-    portrait:'You don\'t wait for the universe to hand you a purpose — you build one. Your philosophy is hands-on: try things, adapt, trust your gut more than abstract frameworks. Identity for you is a verb, not a noun. You\'re suspicious of people who have it all figured out, because certainty is usually just fear wearing a mask.',
+    portrait:'You don\'t wait for the universe to hand you a purpose. You make one. Your philosophy is hands-on: try things, adjust, trust your judgment over abstract frameworks. For you, identity is something you do. You\'re wary of people who have it all figured out, because in your experience certainty usually means someone has stopped looking.',
     thinkers:'William James, Simone de Beauvoir, Richard Rorty, Camus, Zhuangzi' },
   { name:'The Relational Existentialist', subtitle:'meaning lives in the space between people',
     ideal:{consequence:0.55,individual:0.2,stoic:0.3,pragmatist:0.5,agency:0.5,rationalist:0.4,transcendent:0.55},
-    portrait:'You find yourself through others — not codependently, but because ethics, meaning, and identity are fundamentally relational. "What should I do?" always translates to "what do I owe the person in front of me?" You\'re probably a natural host, a connector, someone who builds rooms for others to become themselves in.',
+    portrait:'You find yourself through other people, not out of dependence but because you think ethics, meaning and identity are relational at root. "What should I do?" usually turns into "what do I owe the person in front of me?" You\'re probably a natural host, someone who builds rooms where other people can become themselves.',
     thinkers:'Emmanuel Levinas, Martin Buber, Iris Murdoch, bell hooks, Desmond Tutu' },
   { name:'The Radical Individualist', subtitle:'freedom as the non-negotiable foundation',
     ideal:{consequence:0.35,individual:0.85,stoic:0.5,pragmatist:0.45,agency:0.8,rationalist:0.5,transcendent:0.35},
-    portrait:'You place autonomy at the center of everything. Allergic to paternalism, suspicious of systems that claim to know best, deeply committed to the dignity of choice. This isn\'t selfishness — it\'s a philosophical commitment. You believe the most important thing a person can do is think for themselves.',
+    portrait:'Autonomy sits at the center of everything for you. You\'re allergic to paternalism, suspicious of systems that claim to know best, and committed to people\'s right to choose for themselves. It isn\'t selfishness. You think the most important thing a person can do is think for themselves.',
     thinkers:'Nietzsche, John Stuart Mill, Thoreau, Sartre, Audre Lorde' },
   { name:'The Contemplative Mystic', subtitle:'wisdom through stillness and paradox',
     ideal:{consequence:0.4,individual:0.4,stoic:0.7,pragmatist:0.3,agency:0.35,rationalist:0.25,transcendent:0.85},
-    portrait:'You\'re drawn to traditions that embrace contradiction rather than resolve it. Rationalism feels too narrow; pure empiricism misses the point. You suspect the deepest truths can\'t be spoken, only pointed at. You probably find more wisdom in poetry and silence than in argument.',
+    portrait:'You\'re drawn to traditions that sit with contradiction instead of resolving it. Pure reason feels too narrow to you, and pure observation misses the point. You suspect the deepest truths can\'t be said, only pointed at, and you probably find more in poetry and silence than in argument.',
     thinkers:'Lao Tzu, Nāgārjuna, Ibn Arabi, Wittgenstein, Simone Weil, Keats' },
   { name:'The Philosophical Warrior', subtitle:'truth-seeking as a form of courage',
     ideal:{consequence:0.5,individual:0.6,stoic:0.55,pragmatist:0.4,agency:0.75,rationalist:0.85,transcendent:0.3},
-    portrait:'You follow arguments wherever they lead, even when they\'re uncomfortable. Intellectual honesty isn\'t a preference — it\'s a duty. You\'d rather be wrong and know it than right for the wrong reasons. Al-Ghazali would recognize you: willing to demolish your own framework if truth demands it.',
+    portrait:'You follow arguments where they lead, even when it\'s uncomfortable. Intellectual honesty feels like a duty to you, not a preference. You\'d rather be wrong and know it than right for the wrong reasons. Al-Ghazali would recognize you: he gave up the most prestigious teaching post of his time when his framework stopped holding.',
     thinkers:'Al-Ghazali, Socrates, Nietzsche, Thomas Kuhn, Simone de Beauvoir' },
   { name:'The Practical Philosopher', subtitle:'ideas are only as good as their effects',
     ideal:{consequence:0.75,individual:0.45,stoic:0.45,pragmatist:0.8,agency:0.6,rationalist:0.5,transcendent:0.3},
-    portrait:'For you, philosophy isn\'t about getting the theory right — it\'s about making things better. You evaluate ideas by their consequences, adapt your frameworks when they stop working, and have limited patience for beautiful theories that produce ugly results.',
+    portrait:'For you, philosophy is about making things better more than getting the theory right. You judge ideas by what they do, change your frameworks when they stop working, and have little patience for elegant theories with ugly results.',
     thinkers:'John Dewey, Nel Noddings, Robin Wall Kimmerer, William James, Amartya Sen' },
   { name:'The Poetic Empiricist', subtitle:'truth through experience, not abstraction',
     ideal:{consequence:0.45,individual:0.5,stoic:0.4,pragmatist:0.5,agency:0.45,rationalist:0.2,transcendent:0.8},
-    portrait:'You trust sensation, intuition, and direct experience over pure reason. The world reveals itself through attention, not analysis. You probably learn more from a long walk than a lecture, and you\'re skeptical of anyone who claims to have figured life out from behind a desk.',
+    portrait:'You trust sensation, intuition and direct experience over pure reason. The world shows itself through attention more than analysis. You probably learn more from a long walk than from a lecture, and you\'re skeptical of anyone who claims to have worked life out from behind a desk.',
     thinkers:'Motoori Norinaga, Zhuangzi, John Keats, Merleau-Ponty, Robin Wall Kimmerer' },
   { name:'The Communal Builder', subtitle:'the good life is a collective project',
     ideal:{consequence:0.7,individual:0.2,stoic:0.45,pragmatist:0.65,agency:0.55,rationalist:0.45,transcendent:0.45},
-    portrait:'You believe the best things are built together. Individual brilliance matters less than the systems we create for each other. Ubuntu runs deep in you: "I am because we are." You\'re probably the person who stays late to clean up, who remembers birthdays, who builds the infrastructure everyone else takes for granted.',
+    portrait:'You think the best things get built together, and that the systems people make for each other matter more than individual brilliance. Ubuntu runs deep in you: "I am because we are." You\'re probably the one who stays late to clean up, remembers the birthdays and keeps up the things everyone else takes for granted.',
     thinkers:'Desmond Tutu, John Dewey, Carol Gilligan, Confucius, bell hooks' },
   { name:'The Philosophical Pluralist', subtitle:'many frameworks, no single allegiance',
     ideal:{consequence:0.5,individual:0.5,stoic:0.5,pragmatist:0.5,agency:0.5,rationalist:0.5,transcendent:0.5},
-    portrait:'You resist being pinned down — not from lack of conviction, but because you\'ve found truth in contradictory positions. You argue both sides not as a debate trick but because you actually see both. This can feel like indecision, but it\'s a rare kind of intellectual honesty. The world isn\'t simple enough for one framework.',
+    portrait:'You resist being pinned down, and not for lack of conviction: you\'ve found truth in positions that contradict each other. When you argue both sides, it\'s because you actually see both. That can look like indecision, but it\'s a rare kind of honesty. You don\'t think the world is simple enough for one framework.',
     thinkers:'Isaiah Berlin, Hannah Arendt, William James, Montaigne, Ibn Arabi' }
 ];
 
@@ -3519,19 +3520,19 @@ function renderReadings(archetype) {
   }
 
   section.innerHTML = `
-    <h3 class="readings-title">📚 BOOKS</h3>
+    <h3 class="readings-title">books</h3>
     <div class="readings-grid">
       ${books.map(renderCard).join('')}
     </div>
     
     ${films.length ? `
-    <h3 class="readings-title" style="margin-top: 3rem;">🎬 FILMS & DOCUMENTARIES</h3>
+    <h3 class="readings-title" style="margin-top: 3rem;">films</h3>
     <div class="readings-grid">
       ${films.map(renderCard).join('')}
     </div>` : ''}
     
     ${talks.length ? `
-    <h3 class="readings-title" style="margin-top: 3rem;">🎙️ ESSAYS, PODCASTS & TALKS</h3>
+    <h3 class="readings-title" style="margin-top: 3rem;">essays, podcasts & talks</h3>
     <div class="readings-grid">
       ${talks.map(renderCard).join('')}
     </div>` : ''}
@@ -3667,7 +3668,7 @@ async function generateShareImage(archetypeName, archetypeSub, normalizedScores,
     canvas.width = 1080; canvas.height = 1350;
     const ctx = canvas.getContext('2d');
     const bg = pink ? '#fff0f3' : '#0a0a0c', accent = pink ? '#c4447a' : '#c9a84c', txt = pink ? '#2a1f24' : '#e8e4dc',
-      txtDim = pink ? '#6b4f58' : '#8a8680', txtFaint = pink ? '#9a7580' : '#4a4844';
+      txtDim = pink ? '#6b4f58' : '#8a8680', txtFaint = pink ? '#8d6873' : '#6e6a63';
 
     // Background
     ctx.fillStyle=bg; ctx.fillRect(0,0,1080,1350);
@@ -3797,7 +3798,7 @@ function renderRarityBadge(percentage) {
   let label,desc;
   if(percentage<10){label='rare';desc=`only ${percentage}% share your archetype`;}
   else if(percentage<25){label='uncommon';desc=`${percentage}% share your archetype`;}
-  else{label=null;desc=`${percentage}% of examined thinkers share your archetype`;}
+  else{label=null;desc=`${percentage}% of the wall share your archetype`;}
   return `<div class="rarity-badge" data-rarity="${percentage<10?'rare':percentage<25?'uncommon':'common'}">${label?`<span class="rarity-label">${label}</span>`:''}
     <span class="rarity-description">${desc}</span></div>`;
 }
@@ -3805,24 +3806,24 @@ function renderRarityBadge(percentage) {
 // ===== PHILOSOPHER MATCH =====
 const PHILOSOPHERS=[
   {name:'Socrates',dates:'470–399 BCE',description:'Athenian gadfly who chose death over compromise',scores:{consequence:0.2,individual:0.5,stoic:0.5,pragmatist:0.15,agency:0.75,rationalist:0.9,transcendent:0.8}},
-  {name:'Aristotle',dates:'384–322 BCE',description:'Practical wisdom embodied — ethics as craft',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.6,agency:0.7,rationalist:0.6,transcendent:0.5}},
+  {name:'Aristotle',dates:'384–322 BCE',description:'Ethics as a practical skill, learned by doing',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.6,agency:0.7,rationalist:0.6,transcendent:0.5}},
   {name:'Immanuel Kant',dates:'1724–1804',description:'Duty without exception, dignity without price',scores:{consequence:0.1,individual:0.75,stoic:0.75,pragmatist:0.15,agency:0.85,rationalist:0.95,transcendent:0.85}},
-  {name:'John Stuart Mill',dates:'1806–1873',description:'The greatest happiness principle, and liberty\'s great defender',scores:{consequence:0.95,individual:0.65,stoic:0.4,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.2}},
+  {name:'John Stuart Mill',dates:'1806–1873',description:'Greatest happiness, and a fierce defender of liberty',scores:{consequence:0.95,individual:0.65,stoic:0.4,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.2}},
   {name:'Friedrich Nietzsche',dates:'1844–1900',description:'Revaluator of values, philosopher with a hammer',scores:{consequence:0.4,individual:0.95,stoic:0.4,pragmatist:0.65,agency:0.9,rationalist:0.35,transcendent:0.15}},
-  {name:'Simone de Beauvoir',dates:'1908–1986',description:'Freedom through situation, ethics of ambiguity',scores:{consequence:0.6,individual:0.55,stoic:0.35,pragmatist:0.75,agency:0.85,rationalist:0.4,transcendent:0.3}},
+  {name:'Simone de Beauvoir',dates:'1908–1986',description:'Freedom is always lived in a situation',scores:{consequence:0.6,individual:0.55,stoic:0.35,pragmatist:0.75,agency:0.85,rationalist:0.4,transcendent:0.3}},
   {name:'Lao Tzu',dates:'c. 6th century BCE',description:'The way that can be spoken is not the eternal Way',scores:{consequence:0.3,individual:0.2,stoic:0.7,pragmatist:0.7,agency:0.2,rationalist:0.15,transcendent:0.9}},
-  {name:'Confucius',dates:'551–479 BCE',description:'Ritual propriety and filial devotion as social harmony',scores:{consequence:0.25,individual:0.15,stoic:0.5,pragmatist:0.75,agency:0.65,rationalist:0.4,transcendent:0.35}},
+  {name:'Confucius',dates:'551–479 BCE',description:'Ritual, family and character as the root of a good society',scores:{consequence:0.25,individual:0.15,stoic:0.5,pragmatist:0.75,agency:0.65,rationalist:0.4,transcendent:0.35}},
   {name:'Ibn Arabi',dates:'1165–1240',description:'Mystic of the unity of being, poet of divine love',scores:{consequence:0.2,individual:0.15,stoic:0.65,pragmatist:0.2,agency:0.4,rationalist:0.25,transcendent:0.95}},
   {name:'Nāgārjuna',dates:'c. 150–250 CE',description:'Nothing has a fixed essence, not even emptiness itself',scores:{consequence:0.45,individual:0.1,stoic:0.75,pragmatist:0.5,agency:0.2,rationalist:0.3,transcendent:0.8}},
-  {name:'bell hooks',dates:'1952–2021',description:'Love as practice of freedom, theory from the margins',scores:{consequence:0.65,individual:0.2,stoic:0.25,pragmatist:0.85,agency:0.75,rationalist:0.3,transcendent:0.25}},
-  {name:'Marcus Aurelius',dates:'121–180 CE',description:'Emperor and Stoic — duty, discipline, acceptance',scores:{consequence:0.25,individual:0.6,stoic:0.95,pragmatist:0.55,agency:0.5,rationalist:0.75,transcendent:0.7}},
+  {name:'bell hooks',dates:'1952–2021',description:'Love as a practice, theory from the margins',scores:{consequence:0.65,individual:0.2,stoic:0.25,pragmatist:0.85,agency:0.75,rationalist:0.3,transcendent:0.25}},
+  {name:'Marcus Aurelius',dates:'121–180 CE',description:'Emperor who wrote himself notes on duty and acceptance',scores:{consequence:0.25,individual:0.6,stoic:0.95,pragmatist:0.55,agency:0.5,rationalist:0.75,transcendent:0.7}},
   {name:'Ludwig Wittgenstein',dates:'1889–1951',description:'Silence on what cannot be said, clarity on what can',scores:{consequence:0.35,individual:0.4,stoic:0.6,pragmatist:0.7,agency:0.55,rationalist:0.45,transcendent:0.75}},
   {name:'Hannah Arendt',dates:'1906–1975',description:'Action, natality, and the space of appearance',scores:{consequence:0.45,individual:0.65,stoic:0.35,pragmatist:0.65,agency:0.8,rationalist:0.45,transcendent:0.3}},
   {name:'Iris Murdoch',dates:'1919–1999',description:'Attention as love, the Good beyond the self',scores:{consequence:0.3,individual:0.45,stoic:0.55,pragmatist:0.35,agency:0.7,rationalist:0.7,transcendent:0.85}},
   {name:'Zhuangzi',dates:'c. 369–286 BCE',description:'Butterfly dreamer, skeptic of certainty and categories',scores:{consequence:0.25,individual:0.7,stoic:0.6,pragmatist:0.75,agency:0.4,rationalist:0.2,transcendent:0.85}},
-  {name:'Epicurus',dates:'341–270 BCE',description:'Pleasure as absence of pain, tranquility as goal',scores:{consequence:0.8,individual:0.75,stoic:0.05,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.1}},
+  {name:'Epicurus',dates:'341–270 BCE',description:'Pleasure as freedom from pain and fear',scores:{consequence:0.8,individual:0.75,stoic:0.05,pragmatist:0.7,agency:0.6,rationalist:0.25,transcendent:0.1}},
   {name:'David Hume',dates:'1711–1776',description:'Sentiment as moral foundation, skeptic of reason alone',scores:{consequence:0.75,individual:0.5,stoic:0.45,pragmatist:0.75,agency:0.35,rationalist:0.1,transcendent:0.15}},
-  {name:'Baruch Spinoza',dates:'1632–1677',description:'God or Nature — substance, necessity, intellectual love',scores:{consequence:0.2,individual:0.5,stoic:0.8,pragmatist:0.25,agency:0.15,rationalist:0.95,transcendent:0.9}},
+  {name:'Baruch Spinoza',dates:'1632–1677',description:'God or Nature: everything follows by necessity',scores:{consequence:0.2,individual:0.5,stoic:0.8,pragmatist:0.25,agency:0.15,rationalist:0.95,transcendent:0.9}},
   {name:'Judith Butler',dates:'1956–',description:'Gender as performative, precarity as ethical ground',scores:{consequence:0.55,individual:0.25,stoic:0.3,pragmatist:0.8,agency:0.6,rationalist:0.3,transcendent:0.2}},
   {name:'Thomas Aquinas',dates:'1225–1274',description:'Faith seeking understanding, natural law as divine order',scores:{consequence:0.3,individual:0.35,stoic:0.5,pragmatist:0.4,agency:0.65,rationalist:0.85,transcendent:0.9}},
 ];
@@ -3834,13 +3835,13 @@ function findClosestPhilosophers(normalizedScores) {
 function renderPhilosopherMatch(matches) {
   if(!matches||matches.length===0)return '';
   const[p,s,t]=matches;
-  return `<div class="philosopher-section"><div class="philosopher-title">YOUR PHILOSOPHICAL KINDRED SPIRIT</div>
+  return `<div class="philosopher-section"><div class="philosopher-title">your nearest philosopher</div>
     <div class="philosopher-primary"><div class="philosopher-primary-name">${extLink(PEOPLE_LINKS[p.philosopher.name], p.philosopher.name)}</div>
     <div class="philosopher-primary-dates">${p.philosopher.dates}${PEOPLE_LINKS[p.philosopher.name] ? ' · ' + extLink(PEOPLE_LINKS[p.philosopher.name], 'read about them ↗') : ''}</div>
     <div class="philosopher-primary-desc">${p.philosopher.description}</div>
     <div class="philosopher-match-bar"><div class="philosopher-match-fill" data-width="${p.matchPercentage}%" style="width:0%">
-    <span class="philosopher-match-label">${p.matchPercentage}% philosophical alignment</span></div></div></div>
-    ${s&&t?`<div class="philosopher-runners"><div class="philosopher-runner-title">close contenders</div>
+    <span class="philosopher-match-label">${p.matchPercentage}% match</span></div></div></div>
+    ${s&&t?`<div class="philosopher-runners"><div class="philosopher-runner-title">also close</div>
     <div class="philosopher-runners-grid">
     <div class="philosopher-runner"><div class="philosopher-runner-name">${extLink(PEOPLE_LINKS[s.philosopher.name], s.philosopher.name)}</div><div class="philosopher-runner-dates">${s.philosopher.dates}</div><div class="philosopher-runner-desc">${s.philosopher.description}</div><div class="philosopher-runner-match">${s.matchPercentage}% match</div></div>
     <div class="philosopher-runner"><div class="philosopher-runner-name">${extLink(PEOPLE_LINKS[t.philosopher.name], t.philosopher.name)}</div><div class="philosopher-runner-dates">${t.philosopher.dates}</div><div class="philosopher-runner-desc">${t.philosopher.description}</div><div class="philosopher-runner-match">${t.matchPercentage}% match</div></div>
@@ -3855,138 +3856,71 @@ function renderPhilosopherMatch(matches) {
 const CONTRADICTION_PAIRS = [
   // --- ESSENTIAL PATH (both scenarios in 0-8, everyone sees these) ---
   { id:'ci1', s1:0, c1:0, s2:2, c2:1,
-    s1Label:'The Promise', s2Label:'The Dinner Party',
-    c1Text:'Deliver it. A promise made to the dying carries the full weight of moral obligation.',
-    c2Text:'Tell her. Some truths outweigh the promise of privacy.',
-    commentary:'Earlier, you held fast to principle regardless of outcome. Just now, you let the consequences decide. This isn\'t hypocrisy; it\'s the oldest argument in ethics. Kant and Mill would both claim you as their own.' },
+    commentary:'Earlier you held to a promise whatever the outcome. Just now you let the outcome decide. That\'s the oldest argument in ethics, and both Kant and Mill could claim you.' },
   { id:'ci2', s1:0, c1:1, s2:4, c2:1,
-    s1Label:'The Promise', s2Label:'The Lottery',
-    c1Text:'Burn the letter. The promise was made to secure peace, not to inflict pain.',
-    c2Text:'No. You cannot take ninety percent of a person\'s wealth, however noble the cause.',
-    commentary:'You began by weighing outcomes, calculating the greater good. Then something shifted\u2014a line you wouldn\'t cross, regardless of the calculus. Sometimes the ends don\'t justify the means, even when we wish they could.' },
+    commentary:'You started by weighing outcomes: the letter would do more harm than good, so it went. Then you hit a line you wouldn\'t cross, however good the result. Most people\'s consequentialism stops somewhere, and now you know roughly where yours does.' },
   { id:'ci3', s1:0, c1:0, s2:4, c2:0,
-    s1Label:'The Promise', s2Label:'The Lottery',
-    c1Text:'Deliver the letter. A deathbed promise carries unconditional moral weight.',
-    c2Text:'Yes to the wealth tax. Homelessness nearly ended in three cities is not an abstraction.',
-    commentary:'In one moment you held that promises carry unconditional weight\u2014duty, full stop. Then you calculated aggregate suffering and decided the math justified overriding individual wealth. You\'re discovering where your deontology ends and your consequentialism begins.' },
+    commentary:'You treated a promise as binding, full stop. Then you did the sum on suffering and decided it justified taking people\'s wealth. Somewhere between a letter and a tax, your sense of duty hands over to consequences.' },
   { id:'ci4', s1:1, c1:1, s2:6, c2:0,
-    s1Label:'The Forecast', s2Label:'The Vulnerability Tax',
-    c1Text:'Start adapting now. Learn braille, reorganize your life for the dark.',
-    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
-    commentary:'Earlier you chose endurance over feeling, stoic preparation over indulgence. Just now, you chose radical vulnerability\u2014to be fully known. Even the Stoics knew: asceticism isn\'t the whole story.' },
+    commentary:'Faced with losing your sight, you chose discipline and preparation. Faced with another person, you chose to be completely exposed. It may be less of a contradiction than it looks: the Stoics trained themselves for loss and still counted friendship among the best things in life.' },
   { id:'ci5', s1:1, c1:0, s2:8, c2:1,
-    s1Label:'The Forecast', s2Label:'The Four Thousand Weeks',
-    c1Text:'Devour everything. If loss is guaranteed, the only sane response is to flood yourself with what remains.',
-    c2Text:'No. Your parents will not be around forever. The baby will grow up without you noticing.',
-    commentary:'You began by seizing everything\u2014every sunrise, every face. Then something asked for sacrifice, for relationships over achievement. Epicurus knew this paradox: sometimes pleasure requires refusing pleasure.' },
+    commentary:'With a year of sight left, you wanted to take in everything. Offered the chance to change millions of lives, you turned it down to stay close to a few people. Epicurus would see one idea in both: a good life is made of near things, enjoyed while you have them.' },
   { id:'ci6', s1:2, c1:0, s2:6, c2:0,
-    s1Label:'The Dinner Party', s2Label:'The Vulnerability Tax',
-    c1Text:'Say nothing. Confidence is sacred.',
-    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
-    commentary:'You protected silence when it shielded someone else\'s peace. Then you demanded total transparency when your own intimacy was at stake. Privacy for others, vulnerability for yourself\u2014a generous contradiction, but a contradiction nonetheless.' },
+    commentary:'You kept a secret to protect someone else\'s peace, then asked for complete openness in your own relationship. Privacy for others, full exposure for yourself. It\'s a generous contradiction, but it is one.' },
   { id:'ci7', s1:4, c1:1, s2:7, c2:2,
-    s1Label:'The Lottery', s2Label:'The Room',
-    c1Text:'No to the wealth tax. That is not taxation; it is confiscation.',
-    c2Text:'Start failing on purpose. Force other people into the gap.',
-    commentary:'You claimed radical freedom\u2014the right to be left alone, the sanctity of what\'s yours. Just now you forced others into responsibility they didn\'t choose. We are both more free and less free than we think.' },
+    commentary:'You defended people\'s right to keep what\'s theirs and be left alone. Then you pushed others into responsibility they never asked for. You believe in freedom from interference, except, it seems, when it\'s for someone\'s own good.' },
   { id:'ci8', s1:5, c1:1, s2:6, c2:0,
-    s1Label:'The Ship', s2Label:'The Vulnerability Tax',
-    c1Text:'No. You grew out of that person for a reason. Nostalgia is another way of refusing to live.',
-    c2Text:'Yes, all the way. To be half-known is to be half-loved.',
-    commentary:'You claimed the self is fluid, that the old self must die for the new one to live. Then you chose to be fully known\u2014which requires a self stable enough to be seen. Who is being vulnerable if the self keeps changing?' },
+    commentary:'You said the old self should be let go, that you\'re not the person in those journals. Then you chose to be fully known, which needs a self steady enough to be seen. If the self keeps changing, who exactly is being known?' },
 
   // --- ESSENTIAL × EXAMINED (one scenario in 0-8, other in examined additions) ---
   { id:'ci9', s1:1, c1:0, s2:15, c2:1,
-    s1Label:'The Forecast', s2Label:'The Immortality Pill',
-    c1Text:'Devour everything. If loss is guaranteed, the only sane response is to flood yourself with what remains.',
-    c2Text:'No. Mortality is what makes any of this matter.',
-    commentary:'First, you valued the immediate\u2014devour everything, memorize every face. Then you said mortality is what gives life meaning. You wanted to maximize time precisely because it was finite\u2014but the logic of maximization leads to wanting more, not less.' },
+    commentary:'With a year of sight left, you wanted to cram in everything. Offered endless time, you turned it down because an ending is what makes things matter. The two fit better than they seem: in both, it\'s the ending that makes you hungry.' },
   { id:'ci10', s1:4, c1:1, s2:13, c2:0,
-    s1Label:'The Lottery', s2Label:'The Circle',
-    c1Text:'No. You cannot take ninety percent of a person\'s wealth, however noble the cause.',
-    c2Text:'Stay. You do not abandon the people who made you because they are wrong.',
-    commentary:'You claimed yourself as sovereign, self-contained\u2014nobody can take what\'s mine. Then you chose as though you were woven into something larger, staying because belonging trumped principle. The self that is both irreducibly alone and inescapably connected.' },
+    commentary:'On the wealth tax you spoke as someone self-contained: what\'s mine is mine. With your community you chose as someone bound up with others, staying even though they\'re wrong. You seem to be both, depending on who\'s asking.' },
   { id:'ci11', s1:4, c1:0, s2:13, c2:1,
-    s1Label:'The Lottery', s2Label:'The Circle',
-    c1Text:'Yes to the wealth tax. Thousands of real lives materially improved.',
-    c2Text:'Leave. Gratitude is not a leash. If your conscience says this is wrong, staying is complicity.',
-    commentary:'You calculated the greater good for the many\u2014aggregate suffering justified collective action. Then you stood alone against your community, conscience over belonging. Utilitarianism says: fold in. Thoreau says: step out. You\'ve done both.' },
+    commentary:'You backed taking from a few for the good of many. Then you stood against your own community on conscience. A utilitarian would tell you to stay and weigh the good they do; Thoreau would tell you to go. You\'ve sided with each of them once.' },
   { id:'ci12', s1:5, c1:1, s2:13, c2:0,
-    s1Label:'The Ship', s2Label:'The Circle',
-    c1Text:'No. You grew out of that person for a reason, and nostalgia is another way of refusing to live.',
-    c2Text:'Stay. "I am because we are." You do not abandon the people who made you.',
-    commentary:'You claimed radical freedom from even your own history\u2014the old self must die. Yet when it came to community, you chose belonging over conscience. Nietzsche would ask: are you free, or are you just choosing different chains?' },
+    commentary:'You were ready to let your old self go without guilt, but you wouldn\'t leave your community, even when they\'re wrong. Nietzsche would ask whether you\'re free of the past or only of the parts you don\'t love.' },
   { id:'ci13', s1:6, c1:0, s2:15, c2:1,
-    s1Label:'The Vulnerability Tax', s2Label:'The Immortality Pill',
-    c1Text:'Yes, all the way. To be half-known is to be half-loved.',
-    c2Text:'No. Mortality is what makes any of this matter.',
-    commentary:'You chose to be fully known, because half-known is half-loved. Then you chose mortality\u2014because without the horizon, nothing is urgent. Both are about stakes: intimacy matters because we can lose people, life matters because we can lose it.' },
+    commentary:'You chose to be fully known, and you chose to stay mortal. Both are about stakes: closeness matters because people can be lost, and life matters because it ends.' },
   { id:'ci14', s1:8, c1:0, s2:22, c2:1,
-    s1Label:'The Four Thousand Weeks', s2Label:'The Listening',
-    c1Text:'Yes. This is the kind of thing that justifies a life.',
-    c2Text:'Recommend against clearing. Something in the forest resists your categories.',
-    commentary:'You chose to act, to leave a mark, to justify a life through impact. Then you recommended stillness\u2014listening to what resists your categories. Hannah Arendt meets dadirri. Action and contemplation, the oldest tension in the philosophical life.' },
+    commentary:'You took the five-year project, a life measured by what it builds. Then a morning of sitting still changed your mind about a forest. Arendt\'s life of action and dadirri\'s patient listening don\'t often meet in the same person.' },
   { id:'ci15', s1:3, c1:0, s2:13, c2:0,
-    s1Label:'The Absurd Commute', s2Label:'The Circle',
-    c1Text:'Walk away. There is no dignity in defending something you know to be false.',
-    c2Text:'Stay. You do not abandon the people who made you because they are wrong.',
-    commentary:'When your thesis collapsed, you walked away\u2014no dignity in defending what you know is false. When your community had problems, you stayed. Walking away from institutions but not from people reveals where your loyalty actually lives.' },
+    commentary:'When your thesis failed, you walked away. When your community went wrong, you stayed. You\'ll leave an idea that has let you down, but not people, which says a lot about where your loyalty sits.' },
   { id:'ci16', s1:1, c1:1, s2:11, c2:0,
-    s1Label:'The Forecast', s2Label:'The Untranslatable',
-    c1Text:'Start adapting now. Learn braille, train with a cane, reorganize your life.',
-    c2Text:'Sit beside them. Say nothing. Understanding is not something you achieve through language.',
-    commentary:'You prepared rationally, methodically, for inevitable loss\u2014learn braille, face what\'s coming with eyes open. Then you abandoned method entirely, choosing to sit in silence beside grief. Reason prepared you; presence healed you.' },
+    commentary:'You met losing your sight with a plan: braille, a cane, a reorganized life. Then you met a friend\'s grief with no plan at all, only silence and presence. For your own losses you prepare. For other people\'s you show up.' },
   { id:'ci17', s1:6, c1:2, s2:17, c2:1,
-    s1Label:'The Vulnerability Tax', s2Label:'The Invisible Labor',
-    c1Text:'No. You would resent them for knowing too much.',
-    c2Text:'Skip the speech. Start doing more. Quietly, consistently.',
-    commentary:'You chose solitude, protecting yourself from the resentment of being too-known. Then you chose to quietly care for someone without speech or recognition. You guard your own depths but tend to others\'. That\'s not contradiction\u2014it might be love.' },
+    commentary:'You keep your own depths closed off, but you look after someone else quietly, without needing credit. You guard yourself and tend to others. That might just be how you love.' },
 
   // --- FULL PATH & DEEP CUT PAIRS ---
   { id:'ci18', s1:10, c1:1, s2:11, c2:0,
-    s1Label:'The Library of Babel', s2Label:'The Untranslatable',
-    c1Text:'Ban AI tools. Thinking is a muscle, and if you never use it, you lose it.',
-    c2Text:'Sit beside them. Say nothing. Understanding exceeds language.',
     commentary:'You trusted reason, discipline, the systematic method of thought\u2014ban the shortcuts, make them think. Then you leaned into wordless presence, knowledge that can\'t be articulated. Spinoza\'s geometry meets Wittgenstein\'s silence.' },
   { id:'ci19', s1:2, c1:0, s2:16, c2:0,
-    s1Label:'The Dinner Party', s2Label:'The Scholar\'s Doubt',
-    c1Text:'Say nothing. Confidence is sacred.',
-    c2Text:'Publish the correction immediately. Your reputation is less important than the truth.',
     commentary:'You held silence sacred when it protected a relationship. Then you demanded radical truth in scholarship\u2014publish immediately, consequences be damned. Your truth has a context switch: private life gets discretion, public life gets transparency.' },
   { id:'ci20', s1:14, c1:0, s2:20, c2:1,
-    s1Label:'The Last Forest', s2Label:'The River\'s Memory',
-    c1Text:'Yes, build the mine. Four hundred people versus millions of tons of carbon.',
-    c2Text:'Recommend the community\'s alternative. Development that requires erasure isn\'t development.',
     commentary:'You chose the numbers in one valley\u2014four hundred people versus carbon math. In another, you honored the river\'s memory. Your utilitarianism has a threshold you haven\'t named yet, and it lives somewhere between carbon and water.' },
   { id:'ci21', s1:14, c1:1, s2:21, c2:0,
-    s1Label:'The Last Forest', s2Label:'The Banking Hours',
-    c1Text:'No. "We will destroy your home for the greater good" is what colonizers have always said.',
-    c2Text:'Teach to the test. These students need qualifications more than consciousness-raising.',
     commentary:'You rejected utilitarian calculus when land and culture were at stake\u2014some things can\'t be priced. Then you chose pragmatic credentials over consciousness-raising. Your idealism has a class dimension: principle for the forest, pragmatism for the classroom.' },
   { id:'ci22', s1:12, c1:0, s2:13, c2:1,
-    s1Label:'The Burning Gallery', s2Label:'The Circle',
-    c1Text:'Yes. The music exists independently of the person who made it.',
-    c2Text:'Leave. If your conscience says this is wrong, staying is complicity.',
     commentary:'You argued beauty exists independently of its maker\u2014you can love the music, condemn the person. Then you refused to separate a community from its harmful actions. Art gets a pass; institutions don\'t. The distinction might be more about intimacy than principle.' },
   { id:'ci23', s1:11, c1:0, s2:22, c2:0,
-    s1Label:'The Untranslatable', s2Label:'The Listening',
-    c1Text:'Sit beside them. Say nothing. Understanding exceeds language.',
-    c2Text:'Report the scientific data as gathered. Policy decisions need evidence, not experience.',
-    commentary:'You honored the limits of language, trusting presence over articulation. Then you chose hard data over ineffable experience. In personal grief, silence is enough; in policy, only measurements count. Your epistemology shifts with the stakes.' },
+    commentary:'With your friend\'s grief you trusted presence over words. With the forest you trusted measurements over presence. You let feeling decide in private and evidence decide in public.' },
   { id:'ci24', s1:19, c1:0, s2:23, c2:1,
-    s1Label:'The Inheritance Interview', s2Label:'The Patent',
-    c1Text:'Accept the role. Create an advisory position for your partner and fund their next venture.',
-    c2Text:'Refuse to sign. Publicly advocate for the elder\'s community to receive recognition.',
     commentary:'You accepted individual advancement, leveraging the system to fund what matters. Then you chose the gift economy\u2014refusing ownership of knowledge that belongs to a community. Your individualism stops where indigenous knowledge begins.' },
   { id:'ci25', s1:21, c1:1, s2:23, c2:0,
-    s1Label:'The Banking Hours', s2Label:'The Patent',
-    c1Text:'Teach for liberation. Education must awaken critical consciousness.',
-    c2Text:'Sign the patent deal. Walking away won\'t change the system.',
     commentary:'You chose liberation over pragmatism\u2014education must awaken, not merely credential. Then you signed the corporate deal, reasoning that walking away changes nothing. Your radicalism yielded to the very pragmatism you rejected one scenario earlier.' },
 ];
 
 // Track which contradictions have been shown during this session
 let _contradictionOnContinue = null;
+
+// The answer as it was actually worded: its opening sentences, enough to recognise it.
+function choiceQuote(scenarioIdx, choiceIdx) {
+  const sentences = SCENARIOS[scenarioIdx].choices[choiceIdx].text.split(/(?<=[.!?])\s+/);
+  let out = '';
+  for (const s of sentences) { out += (out ? ' ' : '') + s; if (out.length >= 60) break; }
+  return out;
+}
 
 function checkContradiction() {
   // Build map: SCENARIOS index -> choice index
@@ -3996,8 +3930,9 @@ function checkContradiction() {
     answerMap[scenariosIdx] = a.choice;
   });
 
+  const justAnswered = SCENARIOS.indexOf(activeScenarios[currentScenario]);
   for (const pair of CONTRADICTION_PAIRS) {
-    if (shownContradictions.has(pair.id)) continue;
+    if (shownContradictions.has(pair.id) || pair.s2 !== justAnswered) continue;
     if (answerMap[pair.s1] === pair.c1 && answerMap[pair.s2] === pair.c2) {
       shownContradictions.add(pair.id);
       return pair;
@@ -4016,7 +3951,7 @@ function showContradictionInterstitial(pair, onContinue) {
     container.setAttribute('aria-labelledby', 'contradiction-header');
     container.innerHTML = `
       <div class="contradiction-content">
-        <div class="contradiction-header">a tension emerges</div>
+        <div class="contradiction-header">a tension</div>
         <div class="contradiction-symbol">\u2696</div>
         <div class="contradiction-choices"></div>
         <div class="contradiction-commentary"></div>
@@ -4031,18 +3966,18 @@ function showContradictionInterstitial(pair, onContinue) {
   const content = container.querySelector('.contradiction-content');
   const newContent = content.cloneNode(false);
   newContent.innerHTML = `
-    <div class="contradiction-header" id="contradiction-header">a tension emerges</div>
+    <div class="contradiction-header" id="contradiction-header">a tension</div>
     <div class="contradiction-symbol">\u2696</div>
     <div class="contradiction-choices">
       <div class="contradiction-choice-item">
-        <div class="contradiction-choice-label">First, you chose</div>
-        <div class="contradiction-choice-text">${pair.c1Text}</div>
-        <div class="contradiction-choice-scenario">${pair.s1Label}</div>
+        <div class="contradiction-choice-label">earlier, you chose</div>
+        <div class="contradiction-choice-text">${choiceQuote(pair.s1, pair.c1)}</div>
+        <div class="contradiction-choice-scenario">${escapeHtml(SCENARIOS[pair.s1].title)}</div>
       </div>
       <div class="contradiction-choice-item">
-        <div class="contradiction-choice-label">Now, you chose</div>
-        <div class="contradiction-choice-text">${pair.c2Text}</div>
-        <div class="contradiction-choice-scenario">${pair.s2Label}</div>
+        <div class="contradiction-choice-label">just now, you chose</div>
+        <div class="contradiction-choice-text">${choiceQuote(pair.s2, pair.c2)}</div>
+        <div class="contradiction-choice-scenario">${escapeHtml(SCENARIOS[pair.s2].title)}</div>
       </div>
     </div>
     <div class="contradiction-commentary">${pair.commentary}</div>
@@ -4166,48 +4101,26 @@ function renderDeliberationInsights() {
 function emailResults() {
   const name = document.getElementById('archetype-name').textContent;
   const sub = document.getElementById('archetype-sub').textContent;
-
-  const allRecs = READINGS[name] || READINGS['The Philosophical Pluralist'];
-  const books = allRecs.filter(b => b.type === 'book');
-
-  const portrait = currentArchetype ? currentArchetype.portrait : '';
+  const books = (READINGS[name] || READINGS['The Philosophical Pluralist']).filter(b => b.type === 'book').slice(0, 4);
+  const n = lastNormalized || computeNormalized();
+  const axes = Object.entries(AXES).map(([k, v]) => `${v.left} / ${v.right}: ${Math.round(n[k] * 100)}%`);
   const thinkers = currentArchetype ? currentArchetype.thinkers : '';
 
-  const subject = encodeURIComponent(`examined. — ${name}`);
+  // mail links over ~2,000 characters silently fail on Windows, so this stays short:
+  // no reading blurbs, no box-drawing rules (each one encodes to nine characters)
+  const subject = encodeURIComponent(`examined. - ${name}`);
   const body = encodeURIComponent(
-`examined. — your philosophical portrait
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-${name}
+`${name}
 ${sub}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+${axes.join('\n')}
 
-YOUR AXES
+thinkers close to you: ${thinkers}
 
-${axisLines('  ').join('\n')}
+to read:
+${books.map(b => `- ${b.title}, ${b.author}`).join('\n')}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-YOUR PORTRAIT
-
-${portrait}
-
-thinkers you might resonate with: ${thinkers}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-RECOMMENDED READING
-
-${books.map(b => `→ ${b.title} — ${b.author}\n  ${b.why}`).join('\n\n')}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-"the unexamined life is not worth living."
-— Socrates, via Plato's Apology
-
-take yours: ${SITE_URL}
+take it again or send it on: ${SITE_URL}
 `);
 
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
