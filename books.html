@@ -335,6 +335,21 @@
   let activeSort = 'default';
   let sortDesc = true;
 
+  // a cover that won't load becomes the plain card. The title is read back off
+  // the img rather than pasted into the handler, where an apostrophe
+  // ("Assassin's Quest") ended the string and broke the fallback.
+  function attr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+  function coverFailed(img) {
+    const box = document.createElement('div');
+    box.className = 'no-cover';
+    box.textContent = '📖';
+    const t = document.createElement('div');
+    t.className = 'mini-title';
+    t.textContent = img.dataset.short || img.alt;
+    box.appendChild(t);
+    img.replaceWith(box);
+  }
+
   function renderBooks() {
     const grid = document.getElementById('bookGrid');
     let sorted = [...books];
@@ -354,7 +369,7 @@
         <a href="${goodreadsUrl}" target="_blank" rel="noopener" class="book-card">
           <div class="book-cover">
             ${b.cover
-              ? `<img src="${b.cover}" alt="${cleanTitle}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-cover>📖<div class=mini-title>${shortTitle}</div></div>'">`
+              ? `<img src="${b.cover}" alt="${attr(cleanTitle)}" loading="lazy" data-short="${attr(shortTitle)}" onerror="coverFailed(this)">`
               : `<div class="no-cover">📖<div class="mini-title">${shortTitle}</div></div>`
             }
           </div>
