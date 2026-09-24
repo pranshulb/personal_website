@@ -1815,6 +1815,95 @@ button { font: inherit; color: inherit; }
 .reading-source { margin-top: 0.6rem; font-family: var(--font-label); font-size: 0.72rem; letter-spacing: 0.03em; color: var(--accent); }
 .reading-card-link:hover .reading-book { color: var(--accent); }
 
+/* ===== RESULTS, SET LIKE A PAGE =====
+   No boxes, chips, bars or radar: a narrow column, small-caps labels, a drop cap, printed
+   scales and a bibliography. Sections are separated by space and a fleuron. */
+#results-screen .results-container { max-width: 34rem; }
+#results-screen .results-header { margin-bottom: 2.6rem; }
+.page-section { margin: 0 0 2.4rem; }
+.page-label {
+  font-family: var(--font-label); font-weight: 400; font-size: 0.95rem;
+  letter-spacing: 0.06em; color: var(--accent); margin: 0 0 1rem;
+}
+.page-text, .portrait-text { font-size: 1rem; line-height: 1.85; color: var(--text); }
+.portrait-text::first-letter {
+  font-family: var(--font-display); float: left; font-size: 3.7em; line-height: 0.8;
+  margin: 0.07em 0.1em 0 0; color: var(--accent);
+}
+.page-note { font-size: 0.93rem; font-style: italic; color: var(--text-dim); line-height: 1.75; margin-top: 0.9rem; }
+.fleuron { text-align: center; font-family: var(--font-display); font-size: 1.35rem; line-height: 1; color: var(--accent); opacity: 0.55; margin: 2.8rem 0; }
+.rarity { font-style: italic; color: var(--accent); margin-top: 0.9rem; }
+
+.text-link {
+  background: none; border: none; padding: 0.15rem 0.05rem; cursor: pointer;
+  font: inherit; color: var(--text-dim);
+  text-decoration: underline; text-decoration-color: var(--accent-dim); text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+.text-link:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.text-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.text-link:disabled { cursor: default; text-decoration: none; opacity: 0.7; }
+
+/* where you lean: one printed scale per axis */
+.scales { display: grid; gap: 1.15rem; margin-top: 0.3rem; }
+.scale { display: grid; grid-template-columns: 1fr 1.5fr 1fr; align-items: center; column-gap: 1rem; }
+.scale-pole { font-family: var(--font-label); font-size: 0.92rem; letter-spacing: 0.03em; color: var(--text-faint); }
+.scale-left { text-align: right; }
+.scale-pole.lean { color: var(--text); }
+.scale-line { position: relative; height: 1px; margin: 0 6px; background: var(--text-faint); }
+.scale-line::after { content: ''; position: absolute; left: 50%; top: -4px; width: 1px; height: 9px; background: var(--text-faint); }
+.scale-dot {
+  position: absolute; top: 0; left: 50%; width: 11px; height: 11px; margin: -5px 0 0 -5.5px;
+  border-radius: 50%; background: var(--accent); z-index: 1;
+  transition: left 1.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* the philosopher */
+.phil-name { font-family: var(--font-display); font-size: 2.1rem; line-height: 1.15; color: var(--text); margin: 0 0 0.35rem; }
+.phil-name .ref-link { text-decoration: none; }
+.phil-name .ref-link:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+.phil-desc { font-style: italic; color: var(--text-dim); line-height: 1.7; }
+
+.page-keep { text-align: center; font-family: var(--font-label); font-size: 0.95rem; letter-spacing: 0.02em; color: var(--text-faint); margin: 2.6rem 0 0; }
+
+/* reading list: a bibliography with hanging indents */
+.refs { list-style: none; padding: 0; margin: 0 0 2.2rem; }
+.refs:last-child { margin-bottom: 0; }
+.refs li { padding-left: 1.3rem; text-indent: -1.3rem; margin-bottom: 1rem; line-height: 1.7; color: var(--text); }
+.ref-title { font-style: italic; color: var(--text); text-decoration: underline; text-decoration-color: var(--accent-dim); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a.ref-title:hover { color: var(--accent); text-decoration-color: var(--accent); }
+a.ref-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ref-why { color: var(--text-dim); font-size: 0.93rem; }
+
+/* the wall: names on dotted leaders */
+.wall-sub { margin-top: -0.4rem; }
+.wall-add { display: flex; gap: 1rem; align-items: baseline; margin: 1.3rem 0 1.8rem; }
+.wall-input {
+  flex: 1; min-width: 0; background: transparent; border: none; border-bottom: 1px solid var(--text-faint);
+  border-radius: 0; padding: 0.4rem 0; font-family: var(--font-body); font-size: 1rem; color: var(--text); outline: none;
+}
+.wall-input::placeholder { color: var(--text-faint); font-style: italic; }
+.wall-input:focus { border-bottom-color: var(--accent); }
+.wall-input:disabled { opacity: 0.7; }
+.wall-count { font-family: var(--font-label); font-size: 0.88rem; letter-spacing: 0.04em; color: var(--text-faint); margin-bottom: 0.7rem; }
+.wall-names { list-style: none; padding: 0; margin: 0; }
+.wall-names li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.3rem 0; animation: entryIn 0.3s ease; }
+.wall-name { color: var(--text); }
+.wall-names li.self .wall-name { color: var(--accent); }
+.wall-dots { flex: 1; min-width: 1.5rem; border-bottom: 1px dotted var(--text-faint); transform: translateY(-0.28em); }
+.wall-arch { font-style: italic; color: var(--text-dim); font-size: 0.93rem; text-align: right; }
+
+#results-screen .results-footer { border-top: none; margin-top: 3.2rem; padding-top: 0; }
+#results-screen .results-footer p { margin-bottom: 0.8rem; }
+#results-screen .results-footer .traditions-note { margin: 2.2rem auto 0; max-width: 30rem; font-size: 0.8rem; font-style: italic; line-height: 1.7; color: var(--text-faint); }
+
+@media (max-width: 600px) {
+  .scale { grid-template-columns: 1fr 1fr; grid-template-areas: "left right" "line line"; row-gap: 0.55rem; }
+  .scale-left { grid-area: left; text-align: left; }
+  .scale-right { grid-area: right; text-align: right; }
+  .scale-line { grid-area: line; }
+  .phil-name { font-size: 1.8rem; }
+  .page-keep { line-height: 2; }
+}
 </style>
 </head>
 <body>
@@ -1896,47 +1985,56 @@ button { font: inherit; color: inherit; }
 
 <div class="screen" id="results-screen">
   <div class="results-container">
-    <div class="results-header">
+    <header class="results-header">
       <div class="results-title">your philosophical portrait</div>
       <h2 class="results-name" id="archetype-name" tabindex="-1"></h2>
       <p class="results-subtitle" id="archetype-sub"></p>
       <div id="rarity-slot"></div>
-    </div>
-    <div class="radar-container">
-      <svg class="radar-svg" id="radar" viewBox="-70 -10 540 420"></svg>
-    </div>
-    <div class="axes-grid" id="axes-grid"></div>
-    <!-- consistency section removed -->
-    <div class="portrait" id="portrait"></div>
-    <div id="philosopher-container"></div>
-    <div class="share-block">
-      <div class="share-title">keep it</div>
-      <div class="share-row">
-        <button type="button" class="btn-small" onclick="shareResult(this)">share image</button>
-        <button type="button" class="btn-small" onclick="copyResults(this)">copy result</button>
-        <button type="button" class="btn-small" onclick="emailResults()">email to myself</button>
-      </div>
-    </div>
-    <div class="readings-section" id="readings-section"></div>
-    <div id="deliberation-slot"></div>
-    <div class="community-section" id="community-section">
-      <h3 class="community-title">the wall</h3>
-      <div class="community-subtitle">others who've examined themselves</div>
-      <form class="community-add" id="wall-form" onsubmit="addToWall(event)">
+    </header>
+
+    <section class="page-section" id="portrait"></section>
+
+    <p class="fleuron" aria-hidden="true">❦</p>
+
+    <section class="page-section">
+      <h3 class="page-label">where you lean</h3>
+      <div class="scales" id="axes-grid"></div>
+      <p class="page-note">the middle of each line is no lean either way. the dot is where your answers put you, measured against answering at random.</p>
+    </section>
+
+    <section class="page-section" id="philosopher-container"></section>
+
+    <p class="page-keep">keep it:
+      <button type="button" class="text-link" onclick="shareResult(this)">save the image</button> ·
+      <button type="button" class="text-link" onclick="copyResults(this)">copy the text</button> ·
+      <button type="button" class="text-link" onclick="emailResults()">email it to yourself</button>
+    </p>
+
+    <p class="fleuron" aria-hidden="true">❦</p>
+
+    <section class="page-section" id="readings-section"></section>
+    <section class="page-section" id="deliberation-slot"></section>
+
+    <p class="fleuron" aria-hidden="true">❦</p>
+
+    <section class="page-section" id="community-section">
+      <h3 class="page-label">the wall</h3>
+      <p class="page-note wall-sub">others who've examined themselves</p>
+      <form class="wall-add" id="wall-form" onsubmit="addToWall(event)">
         <label class="visually-hidden" for="name-input">your name</label>
-        <input class="community-input" id="name-input" type="text" placeholder="add your name to the wall" maxlength="40" autocomplete="nickname" required>
-        <button type="submit" class="btn-small" id="wall-add-btn">add</button>
+        <input class="wall-input" id="name-input" type="text" placeholder="add your name to the wall" maxlength="40" autocomplete="nickname" required>
+        <button type="submit" class="text-link" id="wall-add-btn">add</button>
       </form>
-      <div id="community-list" class="community-list" aria-live="polite">
-        <div class="community-loading">loading...</div>
+      <div id="community-list" aria-live="polite">
+        <p class="page-note">loading...</p>
       </div>
-    </div>
-    <div class="results-footer">
-      <p>“know thyself” — inscribed at the Temple of Apollo at Delphi</p>
-      <div class="share-row">
-        <button type="button" class="btn-small" onclick="restart()">take again</button>
-      </div>
-    </div>
+    </section>
+
+    <footer class="results-footer">
+      <p>“know thyself”, inscribed at the Temple of Apollo at Delphi</p>
+      <button type="button" class="text-link" onclick="restart()">take it again</button>
+      <p class="traditions-note" id="traditions-note"></p>
+    </footer>
   </div>
 </div>
 </main>
@@ -2924,6 +3022,10 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+function listWithAnd(items) {
+  return items.length < 2 ? items.join('') : items.slice(0, -1).join(', ') + ' and ' + items[items.length - 1];
+}
+
 function toRoman(n) {
   const map = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
   let out = '';
@@ -3206,46 +3308,29 @@ function showResults() {
   // (see RARITY_MIN_ENTRIES). It fills in from loadWall().
   document.getElementById('rarity-slot').innerHTML = '';
 
-  drawRadar(normalized);
-
   const grid = document.getElementById('axes-grid');
   grid.innerHTML = Object.entries(AXES).map(([key, axis]) => {
     const val = normalized[key];
     return `
-      <div class="axis-card">
-        <div class="axis-name">${axis.left} — ${axis.right}</div>
-        <div class="axis-bar-track" role="img" aria-label="${axis.left} to ${axis.right}: ${Math.round(val*100)}% towards ${axis.right}">
-          <div class="axis-bar-fill" style="background:${axis.color}" data-width="${val*100}%"></div>
-        </div>
-        <div class="axis-labels">
-          <span class="${val<0.45?'active-label':''}">${axis.left}</span>
-          <span class="${val>0.55?'active-label':''}">${axis.right}</span>
-        </div>
+      <div class="scale" role="img" aria-label="${axis.left} to ${axis.right}: ${Math.round(val*100)}% towards ${axis.right}">
+        <span class="scale-pole scale-left${val < 0.45 ? ' lean' : ''}">${axis.left}</span>
+        <span class="scale-line" aria-hidden="true"><span class="scale-dot" data-left="${val*100}%"></span></span>
+        <span class="scale-pole scale-right${val > 0.55 ? ' lean' : ''}">${axis.right}</span>
       </div>`;
   }).join('');
 
+  // the dots start in the middle and settle where the answers put them
   const prefersReduced = prefersReducedMotion();
   setTimeout(() => {
-    document.querySelectorAll('.axis-bar-fill').forEach(b => {
-      if (prefersReduced) {
-        b.style.transition = 'none';
-      }
-      b.style.width = b.dataset.width;
+    document.querySelectorAll('.scale-dot').forEach(d => {
+      if (prefersReduced) d.style.transition = 'none';
+      d.style.left = d.dataset.left;
     });
   }, prefersReduced ? 0 : 300);
 
   // consistency section removed — most people get 100%, not useful
 
-  // Philosopher match
-  const philMatches = findClosestPhilosophers(normalized);
-  document.getElementById('philosopher-container').innerHTML = renderPhilosopherMatch(philMatches);
-  // Trigger animation more reliably
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const bar = document.querySelector('.philosopher-match-fill');
-      if (bar) bar.style.width = bar.getAttribute('data-width');
-    }, 100);
-  });
+  document.getElementById('philosopher-container').innerHTML = renderPhilosopherMatch(findClosestPhilosophers(normalized));
 
   currentArchetype = archetype;
   renderReadings(archetype);
@@ -3253,22 +3338,12 @@ function showResults() {
   resetWallForm();
   loadWall();
 
-  const portrait = document.getElementById('portrait');
-  const activeTraditions = Object.keys(traditions);
-
-  portrait.innerHTML = `
-    <div class="portrait-title">your portrait</div>
+  const pathTraditions = ALL_TRADITIONS.filter(t => activeScenarios.some(s => s.tradition === t));
+  document.getElementById('portrait').innerHTML = `
     <p class="portrait-text">${archetype.portrait}</p>
-    <p class="portrait-thinkers">thinkers close to you: ${linkNames(archetype.thinkers)}</p>
-    <div class="traditions-section">
-      <div class="traditions-title">traditions you passed through</div>
-      <div class="traditions-grid">
-        ${ALL_TRADITIONS.filter(t => activeScenarios.some(s => s.tradition === t)).map(t =>
-          `<span class="tradition-badge ${activeTraditions.includes(t)?'active':''}">${t}</span>`
-        ).join('')}
-      </div>
-    </div>
+    <p class="page-note">thinkers close to you: ${linkNames(archetype.thinkers)}.</p>
   `;
+  document.getElementById('traditions-note').textContent = `the questions drew on ${listWithAnd(pathTraditions)}.`;
   document.getElementById('archetype-name').focus({ preventScroll: true });
 }
 
@@ -3355,52 +3430,6 @@ function getArchetype() {
   return best;
 }
 
-function drawRadar(normalized) {
-  const svg = document.getElementById('radar');
-  svg.setAttribute('role', 'img');
-  const axes = Object.keys(AXES);
-  const axisScores = axes.map(a => `${AXES[a].right}: ${Math.round(normalized[a]*100)}%`).join(', ');
-  svg.setAttribute('aria-label', `Radar chart of your philosophical axes: ${axisScores}`);
-  const cx = 200, cy = 200, r = 120;
-  const n = axes.length;
-  let html = '';
-
-  for (let i = 1; i <= 4; i++) {
-    const gr = (r/4)*i;
-    const pts = [];
-    for (let j = 0; j < n; j++) {
-      const a = (Math.PI*2*j/n) - Math.PI/2;
-      pts.push(`${cx+gr*Math.cos(a)},${cy+gr*Math.sin(a)}`);
-    }
-    html += `<polygon class="radar-grid" points="${pts.join(' ')}" />`;
-  }
-
-  for (let j = 0; j < n; j++) {
-    const a = (Math.PI*2*j/n) - Math.PI/2;
-    html += `<line class="radar-axis" x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" />`;
-  }
-
-  const dp = [];
-  axes.forEach((axis, j) => {
-    const v = normalized[axis];
-    const a = (Math.PI*2*j/n) - Math.PI/2;
-    dp.push({ x: cx+r*v*Math.cos(a), y: cy+r*v*Math.sin(a) });
-  });
-
-  html += `<polygon class="radar-shape" points="${dp.map(p=>`${p.x},${p.y}`).join(' ')}" />`;
-  dp.forEach(p => html += `<circle class="radar-point" cx="${p.x}" cy="${p.y}" r="4" />`);
-
-  axes.forEach((axis, j) => {
-    const a = (Math.PI*2*j/n) - Math.PI/2;
-    const lx = cx + (r+35)*Math.cos(a);
-    const ly = cy + (r+35)*Math.sin(a);
-    const anchor = lx < cx-10 ? 'end' : lx > cx+10 ? 'start' : 'middle';
-    html += `<text class="radar-label" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${AXES[axis].right}</text>`;
-  });
-
-  svg.innerHTML = html;
-}
-
 // ===== COMMUNITY BOARD =====
 let currentArchetype = null;
 let wallLoaded = false;
@@ -3450,25 +3479,23 @@ async function postToWall(name, archetype) {
 function renderWall(entries, selfName) {
   const list = document.getElementById('community-list');
   if (entries === null) {
-    list.innerHTML = '<div class="community-error">couldn\'t load the wall. <button type="button" class="btn-link" onclick="loadWall()">try again</button></div>';
+    list.innerHTML = '<p class="page-note">couldn\'t load the wall. <button type="button" class="text-link" onclick="loadWall()">try again</button></p>';
     return;
   }
   if (entries.length === 0) {
-    list.innerHTML = '<div class="community-empty">no one here yet. be the first to add your name.</div>';
+    list.innerHTML = '<p class="page-note">no one here yet. be the first.</p>';
     return;
   }
-  // Show newest first, cap at 50
-  const sorted = [...entries].reverse().slice(0, 50);
-  const count = `<div class="community-count">${entries.length} ${entries.length === 1 ? 'name' : 'names'} so far</div>`;
-  list.innerHTML = count + sorted.map(e => `
-    <div class="community-entry${selfName && e.name === selfName ? ' self' : ''}">
-      <div>
-        <div class="entry-name">${escapeHtml(e.name)}</div>
-        <div class="entry-archetype">${escapeHtml(e.archetype)}</div>
-      </div>
-      <div class="entry-date">${escapeHtml(e.date || '')}</div>
-    </div>
-  `).join('');
+  // newest first, up to 50
+  const shown = [...entries].reverse().slice(0, 50);
+  list.innerHTML = `<p class="wall-count">${entries.length} ${entries.length === 1 ? 'name' : 'names'} so far</p>
+    <ol class="wall-names">${shown.map(e => `
+      <li${selfName && e.name === selfName ? ' class="self"' : ''}${e.date ? ` title="${escapeHtml(e.date)}"` : ''}>
+        <span class="wall-name">${escapeHtml(e.name)}</span>
+        <span class="wall-dots" aria-hidden="true"></span>
+        <span class="wall-arch">${escapeHtml(String(e.archetype || '').replace(/^The /, ''))}</span>
+      </li>`).join('')}
+    </ol>`;
 }
 
 function escapeHtml(s) {
@@ -3479,7 +3506,7 @@ function escapeHtml(s) {
 
 async function loadWall(selfName) {
   const list = document.getElementById('community-list');
-  if (!selfName) list.innerHTML = '<div class="community-loading">loading...</div>';
+  if (!selfName) list.innerHTML = '<p class="page-note">loading...</p>';
   const entries = await fetchWall();
   renderWall(entries, selfName);
   wallLoaded = true;
@@ -3521,48 +3548,26 @@ async function addToWall(e) {
     // Refresh the wall
     loadWall(name);
   } else {
-    btn.textContent = result === 'slow' ? 'wait a minute, then retry' : 'error — retry';
+    btn.textContent = result === 'slow' ? 'wait a minute, then try again' : 'couldn\'t add, try again';
     btn.disabled = false;
   }
 }
 
 function renderReadings(archetype) {
-  const section = document.getElementById('readings-section');
   const items = READINGS[archetype.name] || READINGS['The Philosophical Pluralist'];
-
-  const books = items.filter(i => i.type === 'book');
-  const films = items.filter(i => i.type === 'film');
-  const talks = items.filter(i => i.type === 'essay' || i.type === 'podcast' || i.type === 'lecture');
-
-  function renderCard(b) {
-    const inner = `
-        <div class="reading-book">${b.title}</div>
-        <div class="reading-author">${b.author}</div>
-        <div class="reading-why">${b.why}</div>
-        ${b.url ? `<div class="reading-source">on ${sourceSite(b.url)} <span aria-hidden="true">↗</span></div>` : ''}`;
-    return b.url
-      ? `<a class="reading-card reading-card-link" href="${b.url}" target="_blank" rel="noopener">${inner}<span class="visually-hidden"> (opens in a new tab)</span></a>`
-      : `<div class="reading-card">${inner}</div>`;
-  }
-
-  section.innerHTML = `
-    <h3 class="readings-title">books</h3>
-    <div class="readings-grid">
-      ${books.map(renderCard).join('')}
-    </div>
-    
-    ${films.length ? `
-    <h3 class="readings-title" style="margin-top: 3rem;">films</h3>
-    <div class="readings-grid">
-      ${films.map(renderCard).join('')}
-    </div>` : ''}
-    
-    ${talks.length ? `
-    <h3 class="readings-title" style="margin-top: 3rem;">essays, podcasts & talks</h3>
-    <div class="readings-grid">
-      ${talks.map(renderCard).join('')}
-    </div>` : ''}
-  `;
+  const groups = [
+    ['books', items.filter(i => i.type === 'book')],
+    ['films', items.filter(i => i.type === 'film')],
+    ['essays, podcasts & talks', items.filter(i => i.type === 'essay' || i.type === 'podcast' || i.type === 'lecture')],
+  ];
+  const entry = (b) => `
+      <li>${b.url
+        ? `<a class="ref-title" href="${b.url}" target="_blank" rel="noopener">${b.title}</a><span class="visually-hidden"> (opens in a new tab)</span>`
+        : `<span class="ref-title">${b.title}</span>`}, ${b.author}. <span class="ref-why">${b.why}</span></li>`;
+  document.getElementById('readings-section').innerHTML = groups.filter(([, list]) => list.length).map(([label, list]) => `
+    <h3 class="page-label">${label}</h3>
+    <ul class="refs">${list.map(entry).join('')}
+    </ul>`).join('');
 }
 
 function axisLines(indent) {
@@ -3603,7 +3608,7 @@ async function copyResults(btn) {
 
   const text = `examined. — philosophical portrait\n\n${name}\n${sub}\n\n${axisText}\n\nreading list:\n${readingText}\n\ntake yours: ${SITE_URL}`;
   const ok = await copyText(text);
-  flashButton(btn, ok ? 'copied!' : 'couldn\'t copy', 'copy result');
+  flashButton(btn, ok ? 'copied' : 'couldn\'t copy', 'copy the text');
 }
 
 // ===== RESUME ON LOAD =====
@@ -3788,7 +3793,7 @@ async function shareResult(btn) {
   const archetypeSub=document.getElementById('archetype-sub')?.textContent;
   if(!archetypeName||!archetypeSub||!btn)return;
   const normalized = lastNormalized || computeNormalized();
-  const orig='share image';
+  const orig='save the image';
   btn.textContent='generating...';btn.disabled=true;
   const done = (text) => { btn.disabled=false; if (text) flashButton(btn, text, orig); else btn.textContent=orig; };
   try{
@@ -3820,13 +3825,11 @@ function calculateArchetypeRarity(entries, archetypeName) {
   return Math.round((entries.filter(e=>e.archetype===archetypeName).length/entries.length)*1000)/10;
 }
 function renderRarityBadge(percentage) {
-  if(percentage===null)return '';
-  let label,desc;
-  if(percentage<10){label='rare';desc=`only ${percentage}% share your archetype`;}
-  else if(percentage<25){label='uncommon';desc=`${percentage}% share your archetype`;}
-  else{label=null;desc=`${percentage}% of the wall share your archetype`;}
-  return `<div class="rarity-badge" data-rarity="${percentage<10?'rare':percentage<25?'uncommon':'common'}">${label?`<span class="rarity-label">${label}</span>`:''}
-    <span class="rarity-description">${desc}</span></div>`;
+  if (percentage === null) return '';
+  const text = percentage < 10 ? `a rare one: only ${percentage}% of the wall share it`
+    : percentage < 25 ? `${percentage}% of the wall share it`
+    : `${percentage}% of the wall share it, so you're in company`;
+  return `<p class="rarity">${text}</p>`;
 }
 
 // ===== PHILOSOPHER MATCH =====
@@ -3859,19 +3862,14 @@ function findClosestPhilosophers(normalizedScores) {
   matches.sort((a,b)=>a.distance-b.distance);return matches.slice(0,3);
 }
 function renderPhilosopherMatch(matches) {
-  if(!matches||matches.length===0)return '';
-  const[p,s,t]=matches;
-  return `<div class="philosopher-section"><div class="philosopher-title">your nearest philosopher</div>
-    <div class="philosopher-primary"><div class="philosopher-primary-name">${extLink(PEOPLE_LINKS[p.philosopher.name], p.philosopher.name)}</div>
-    <div class="philosopher-primary-dates">${p.philosopher.dates}${PEOPLE_LINKS[p.philosopher.name] ? ' · ' + extLink(PEOPLE_LINKS[p.philosopher.name], 'read about them ↗') : ''}</div>
-    <div class="philosopher-primary-desc">${p.philosopher.description}</div>
-    <div class="philosopher-match-bar"><div class="philosopher-match-fill" data-width="${p.matchPercentage}%" style="width:0%">
-    <span class="philosopher-match-label">${p.matchPercentage}% match</span></div></div></div>
-    ${s&&t?`<div class="philosopher-runners"><div class="philosopher-runner-title">also close</div>
-    <div class="philosopher-runners-grid">
-    <div class="philosopher-runner"><div class="philosopher-runner-name">${extLink(PEOPLE_LINKS[s.philosopher.name], s.philosopher.name)}</div><div class="philosopher-runner-dates">${s.philosopher.dates}</div><div class="philosopher-runner-desc">${s.philosopher.description}</div><div class="philosopher-runner-match">${s.matchPercentage}% match</div></div>
-    <div class="philosopher-runner"><div class="philosopher-runner-name">${extLink(PEOPLE_LINKS[t.philosopher.name], t.philosopher.name)}</div><div class="philosopher-runner-dates">${t.philosopher.dates}</div><div class="philosopher-runner-desc">${t.philosopher.description}</div><div class="philosopher-runner-match">${t.matchPercentage}% match</div></div>
-    </div></div>`:''}</div>`;
+  if (!matches || matches.length === 0) return '';
+  const [p, s, t] = matches.map(m => m.philosopher);
+  const name = (x) => extLink(PEOPLE_LINKS[x.name], x.name);
+  return `
+    <h3 class="page-label">the philosopher you answered most like</h3>
+    <p class="phil-name">${name(p)}</p>
+    <p class="phil-desc">${p.dates}. ${p.description}.</p>
+    ${s && t ? `<p class="page-note">not far behind: ${name(s)} and ${name(t)}.</p>` : ''}`;
 }
 
 // ===== CONSISTENCY CHECK =====
@@ -4095,33 +4093,16 @@ function renderConsistencyCheck(analysis) {
 function renderDeliberationInsights() {
   const slot = document.getElementById('deliberation-slot');
   slot.innerHTML = '';
-  if (!deliberationTimes || deliberationTimes.length === 0) return;
-  const sorted = [...deliberationTimes].sort((a, b) => b.time - a.time);
-  const longest = sorted[0];
-  const meaningful = deliberationTimes.filter(d => d.time >= 5);
-  const shortest = meaningful.length > 0 ? meaningful.reduce((min, d) => d.time < min.time ? d : min) : sorted[sorted.length - 1];
-  const avgTime = deliberationTimes.reduce((sum, t) => sum + t.time, 0) / deliberationTimes.length;
-  const formatTime = s => s < 60 ? Math.round(s) + 's' : Math.floor(s/60) + 'm ' + Math.round(s%60) + 's';
-  const html = `
-    <div class="deliberation-section">
-      <div class="deliberation-title">your deliberation</div>
-      <div class="deliberation-list">
-        <div class="deliberation-entry">
-          <span class="deliberation-scenario">longest pause: “${escapeHtml(longest.scenarioTitle)}”</span>
-          <span class="deliberation-time">${formatTime(longest.time)}</span>
-        </div>
-        <div class="deliberation-entry">
-          <span class="deliberation-scenario">quickest choice: “${escapeHtml(shortest.scenarioTitle)}”</span>
-          <span class="deliberation-time">${formatTime(shortest.time)}</span>
-        </div>
-        <div class="deliberation-entry">
-          <span class="deliberation-scenario">average deliberation</span>
-          <span class="deliberation-time">${formatTime(avgTime)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-  slot.innerHTML = html;
+  if (!deliberationTimes || deliberationTimes.length < 2) return;
+  const longest = deliberationTimes.reduce((a, d) => d.time > a.time ? d : a);
+  const meaningful = deliberationTimes.filter(d => d.time >= 5 && d !== longest);
+  const pool = meaningful.length ? meaningful : deliberationTimes.filter(d => d !== longest);
+  const quickest = pool.reduce((a, d) => d.time < a.time ? d : a);
+  const avg = deliberationTimes.reduce((sum, d) => sum + d.time, 0) / deliberationTimes.length;
+  const fmt = s => { const r = Math.round(s); return r < 1 ? 'under a second' : r === 1 ? 'a second' : r < 60 ? r + ' seconds' : Math.floor(r / 60) + ' min ' + (r % 60) + ' s'; };
+  slot.innerHTML = `
+    <h3 class="page-label">how long you took</h3>
+    <p class="page-text">You spent longest on <em>${escapeHtml(longest.scenarioTitle)}</em> (${fmt(longest.time)}) and were quickest with <em>${escapeHtml(quickest.scenarioTitle)}</em> (${fmt(quickest.time)}). About ${fmt(avg)} a question, on average.</p>`;
 }
 
 function emailResults() {
