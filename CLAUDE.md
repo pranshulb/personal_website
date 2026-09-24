@@ -136,10 +136,16 @@ vercel.json                 routing, headers, proxies
   rules as the community map (suffixed writes, a failed read is an error
   and never an empty wall, 30 versions kept); the older version read a
   failure as `[]` and the next signature would have replaced everyone.
-  The quiz's scoring has a quirk in `getArchetype`
-  (`n[axis] || 0.5` turns the lowest axis into 0.5) that the archetype
-  ideals were tuned around; there's a comment there — don't "fix" it
-  without retuning, it changes about half of all results.
+  Scoring (rebuilt September 2026): each axis is read against what random
+  answering on the same path would give (`axisBaseline` / `normalCdf`),
+  because most answers lean pragmatist and libertarian and raw totals
+  read everyone that way; the archetype is the one most likely to have
+  given exactly those answers (`getArchetype`, `ARCHETYPE_NOISE`). Tested
+  by simulating people with known leanings — change the archetype
+  `ideal`s or a scenario's `scores` and it's worth re-running that kind
+  of check. Every reading links out (books to Goodreads, films to
+  Letterboxd, people and cited works to Wikipedia via `PEOPLE_LINKS` /
+  `SOURCE_LINKS`); a new entry needs its `url`.
 
 ### Routing and hosting
 
