@@ -66,8 +66,28 @@ vercel.json                 routing, headers, proxies
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, neighbours nudged aside, rings on a
   water canvas under the words). Position is a `transform`, never
-  `left`/`top` after layout. The ink canvas under the words is stamped
-  along the eased path.
+  `left`/`top` after layout. Each word sits on a scrap of paper (the same
+  paper as the `/3d` tags) with a rule under it in the home page's link
+  colour, so it reads as something to pick up and as a link; a press
+  pushes the paper into the water, a carry lifts it. Hover styles are
+  inside `@media (hover: hover)` and hover is `pointerenter` from a mouse
+  only, or a tap leaves the scrap stuck "hovered" on a phone.
+  Input is **pointer events only**, and **nothing opens a link by
+  script**: a scrap that was only pressed lets the browser's own click
+  through; one that was carried has that click cancelled. It used to open
+  links with `window.open` from separate mouse and touch handlers, and a
+  phone tap fired both, opening the link twice — while cancelling every
+  click meant the Enter key opened nothing. Keep it this way.
+  The ink a carried word leaves is a list of prints, each dissolving over
+  `MOTION.ink.life` seconds (softens, swells, drifts, fades), redrawn from
+  the list. That redraw made the page 3x slower until three things were
+  done, all measured: the ink canvas is drawn at 1 canvas px per css px
+  (it is faint and soft anyway), it is redrawn every 50-100ms rather than
+  every frame (nobody can see a 12-second fade at 15fps), and each print's
+  tilt and swell are baked into three pre-softened states when the drag
+  starts, so a redraw is plain un-rotated copies. With those it matches the
+  original page's frame time, including under 4x CPU throttling. Don't put
+  a rotate or scale back into the per-frame draw.
 - **Tuning panel** (`tune.js`). `things-i-like.html` and `index.html`
   open with a labelled block of every number and curve that shapes their
   motion (`MOTION`, `REVEAL`; curves are CSS cubic-bezier quadruples or a
