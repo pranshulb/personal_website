@@ -80,9 +80,25 @@ vercel.json                 routing, headers, proxies
   float, bob and drift instead of stopping.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
-  a lean and a glide on release, neighbours nudged aside, rings on a
+  a lean and a glide on release, every word bumping every other, rings on a
   water canvas under the words). Position is a `transform`, never
-  `left`/`top` after layout. Every word is a link and sits in a bubble,
+  `left`/`top` after layout.
+  Bumping (September 2026) is between **every** pair, each bubble a pill
+  where it is drawn (`BUMPING` in the script). It used to be only the
+  dragged word that pushed, box-shaped and straight sideways or up/down;
+  what it pushed, or a thrown word, glided on with nothing in its way, and
+  one drag across the middle on a phone left four words stacked on top of
+  each other (measured in a headless phone: 35-40px overlap that never
+  cleared). The edges are hard with a little bounce, and the water's bottom
+  is the *visible* height (`pond()`), so nothing slides past the screen
+  edge or under a phone's browser bar. Every per-frame number is scaled by
+  the frame's length (`k` in `tick`), so 60 and 120Hz screens match.
+  Tilting a phone tips the water (`onTilt`). iPhones only report tilt after
+  `DeviceOrientationEvent.requestPermission()`, which must be called from a
+  touch; it is asked on the first carry or touch on the water, never on a
+  tap that opens a link. How the phone is held becomes level over
+  `tilt.settle` seconds — keep it long: at 4s, tipping left and back read
+  "back" as a tip to the right and the words slid across again. Every word is a link and sits in a bubble,
   always (September 2026: paper scraps, then a hover-only glass pill, were
   both turned down; "more transparent, thinner, more natural"). The body
   (`::before`) is all but clear with two small patches of light; the rim

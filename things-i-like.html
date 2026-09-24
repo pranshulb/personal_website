@@ -303,6 +303,24 @@
       throwing: 1.6,    // release speed multiplier
       lift:     0.035,  // scale added while hovered or held
     },
+    // bumping: words are round-ended bubbles that knock into each other
+    // and off the edges of the screen, the bigger one shoving the smaller
+    bump: {
+      bounce:   0.3,    // speed a knock gives back between two words (0 = a dead thud, 1 = a rubber ball)
+      edge:     0.3,    // the same, off the edges of the screen
+      gap:      isMobile ? 4 : 8,   // px of clear water kept between two bubbles
+    },
+    // tilting a phone tips the water: the words drift downhill, bump into
+    // each other and gather against the low edge. However the phone is
+    // held counts as level after a while, so lying down with it doesn't
+    // leave every word stuck in one corner. Not too soon: at 4 seconds,
+    // tipping the phone left for a few seconds and back made "back" a tip
+    // to the right, and the words slid back across
+    tilt: {
+      strength: 1.0,    // how fast words slide downhill (px per frame gained per frame, at a full tilt)
+      settle:   20,     // seconds a held tilt takes to count as level again
+      ignore:   3,      // degrees of hand wobble that move nothing
+    },
     // the bob: a spring back to level after a dip
     bob: { spring: 0.04, damping: 0.92, hoverDip: 0.7, lifted: 1.2 },
     // the letters: a ring passing under a word lifts each letter as its
@@ -318,6 +336,7 @@
       trail:  { reach: 14, life: 130, alpha: 0.11, every: 56 },   // behind the mouse crossing the water (desktop)
       splash: { reach: 60, share: 0.70, life: 190, alpha: 0.26, second: 0.62 },
       tap:    { reach: 64, life: 160, alpha: 0.20, second: 0.6 },
+      bump:   { reach: 20, life: 120, alpha: 0.16, speed: 1.5 },    // where two words knock together; speed: the slowest knock that makes one (px/frame)
       spread: 'outQuad',   // how the radius grows over the ring's life
       fade:   1.6,         // higher = fades sooner
       width:  1.0,         // line width at birth, px
@@ -404,6 +423,15 @@
       { path: 'drag.follow',  label: 'follows the finger (1 = stuck to it)', kind: 'number', min: 0.05, max: 1, step: 0.01 },
       { path: 'drag.leanDeg', label: 'leans into the move',  kind: 'number', min: 0, max: 15, step: 0.5, unit: '°' },
       { path: 'drag.glide',   label: 'keeps gliding after (higher = further)', kind: 'number', min: 0.5, max: 0.98, step: 0.01 },
+      { section: 'bumping' },
+      { path: 'bump.bounce', label: 'how bouncy two words are (0 = thud)', kind: 'number', min: 0, max: 1, step: 0.05 },
+      { path: 'bump.edge',   label: 'how bouncy the edges are',            kind: 'number', min: 0, max: 1, step: 0.05 },
+      { path: 'bump.gap',    label: 'clear water kept between words',      kind: 'number', min: 0, max: 30, step: 1, unit: 'px' },
+      { path: 'rings.bump.alpha', label: 'the ring a knock makes',         kind: 'number', min: 0, max: 0.5, step: 0.01 },
+      { section: 'tilting the phone' },
+      { path: 'tilt.strength', label: 'how fast words slide downhill',     kind: 'number', min: 0, max: 4, step: 0.1 },
+      { path: 'tilt.settle',   label: 'seconds until a held tilt is level again', kind: 'number', min: 2, max: 60, step: 1, unit: 's' },
+      { path: 'tilt.ignore',   label: 'hand wobble ignored',               kind: 'number', min: 0, max: 10, step: 0.5, unit: '°' },
       { section: 'the water' },
       { path: 'rings.strength', label: 'how dark the rings are', kind: 'number', min: 0, max: 3, step: 0.05, unit: '×' },
       { path: 'rings.size',     label: 'how far they spread',   kind: 'number', min: 0.2, max: 3, step: 0.05, unit: '×' },
@@ -497,9 +525,11 @@
      A dragged word follows the finger through a spring, so it trails a
      little and catches up; it leans into the direction it is moving and
      rights itself when it stops. Let go and it keeps its speed and glides
-     to rest. Words it is pushed into make room and stay where they were
-     nudged. The ink under it is stamped along the eased path, so the
-     trail is a curve rather than a stutter.
+     to rest. Every word knocks into every other and off the edges of the
+     screen, so one pushed or thrown into the rest sends them on in turn
+     (see BUMPING). Tilting a phone tips the water (see TILT). The ink
+     under a dragged word is stamped along the eased path, so the trail
+     is a curve rather than a stutter.
 
      The words sit on water. Under them is a second canvas where rings
      spread and fade, drawn with a hand's wobble like the pool on the home
@@ -509,7 +539,7 @@
      shiver through the neighbours.
   ================================================================ */
   const field = document.getElementById('field');
-  const words = [];        // { el, x, y, vx, vy, w, h, rot, lean, lift, hot, born, f1, f2, p1, p2, amp }
+  const words = [];        // { el, x, y, vx, vy, w, h, rot, lean, lift, hot, born, p1, p2, p3, fx, fy, ang, sc }
   const placed = [];
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
@@ -585,6 +615,7 @@
       el, x, y, vx: 0, vy: 0, w, h, rot, lean: 0, lift: 0, hot: false, pressed: false, letters, rippling: false,
       born: performance.now() + 250 + idx * MOTION.entrance.stagger * 1000,
       bob: 0, bobV: 0,
+      fx: 0, fy: 0, ang: rot * Math.PI / 180, sc: 1,   // as last drawn: float offset, turn, scale
       ua: Math.random(), us: Math.random(), ul: Math.random(),   // where in each range this word sits
       p1: Math.random() * Math.PI * 2, p2: Math.random() * Math.PI * 2,   // running phases
       p3: Math.random() * Math.PI * 2
@@ -610,8 +641,9 @@
   // overlap are pushed apart, half each, along the shorter way out, and
   // kept on the screen, until nothing overlaps.
   function relax() {
-    const fw = field.clientWidth, fh = Math.max(field.clientHeight, window.innerHeight);
-    const top = isMobile ? 110 : 100, bottom = isMobile ? 40 : 60, m = isMobile ? 6 : 12;
+    // the same water the words are kept on while they move, with a little
+    // more room left at the bottom when they are first laid out
+    const B = pond(), extra = isMobile ? 28 : 36, m = isMobile ? 6 : 12;
     for (let it = 0; it < 160; it++) {
       let moved = false;
       for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
@@ -627,11 +659,19 @@
         else         { const k = Math.sign(by - ay) || 1; a.y -= k * oy / 2; b.y += k * oy / 2; }
       }
       for (const q of words) {
-        q.x = clamp(q.x, 8, Math.max(8, fw - q.w - 8));
-        q.y = clamp(q.y, top, Math.max(top, fh - q.h - bottom));
+        q.x = clamp(q.x, B.l, Math.max(B.l, B.r - q.w));
+        q.y = clamp(q.y, B.t, Math.max(B.t, B.b - q.h - extra));
       }
       if (!moved) break;
     }
+  }
+
+  // The water the words may float on: below the title, inside the sides of
+  // the screen, and above the bottom of what is actually on screen. On a
+  // phone a full-height page runs on under the browser's bottom bar, so the
+  // bottom is the visible height, not the page's.
+  function pond() {
+    return { l: 8, r: field.clientWidth - 8, t: isMobile ? 110 : 100, b: window.innerHeight - (isMobile ? 12 : 24) };
   }
 
   // Turning a phone on its side kept every word where it was, so they sat
@@ -645,6 +685,7 @@
     const [w, h] = fieldSize();
     if (!words.length || !fieldW) return;
     if (w === fieldW && Math.abs(h - fieldH) < 120) return;
+    levelX = null;   // the tilt's sense of level turned with the phone: start it afresh
     for (const q of words) {
       q.x = (q.x + q.w / 2) * w / fieldW - q.w / 2;
       q.y = (q.y + q.h / 2) * h / fieldH - q.h / 2;
@@ -700,23 +741,161 @@
     const fy = Math.cos(q.p3) * amp * 0.7 + Math.sin(q.p2 * 1.3) * amp * 0.3 + q.bob;
     const wob = (Math.sin(q.p3) + Math.sin(q.p2) * 0.5) * MOTION.float.rock;
     const sc = 1 + q.lift * MOTION.drag.lift;
+    // kept for the bumping, which goes by where the bubble is drawn
+    q.fx = fx; q.fy = fy; q.ang = (q.rot + wob + q.lean) * Math.PI / 180; q.sc = sc;
     q.el.style.transform = `translate3d(${(q.x + fx).toFixed(2)}px, ${(q.y + fy + rise).toFixed(2)}px, 0) rotate(${(q.rot + wob + q.lean).toFixed(2)}deg) scale(${sc.toFixed(3)})`;
   }
 
-  // Two words are too close when their boxes, grown by a margin, overlap.
-  // The one being dragged has right of way; the other is nudged along the
-  // line between their centres, by a share of the overlap each frame, so
-  // it slides aside rather than jumping.
-  function makeRoom(d) {
-    const m = 14;
-    for (const q of words) {
-      if (q === d) continue;
-      const ox = (d.w + q.w) / 2 + m - Math.abs((d.x + d.w / 2) - (q.x + q.w / 2));
-      const oy = (d.h + q.h) / 2 + m - Math.abs((d.y + d.h / 2) - (q.y + q.h / 2));
-      if (ox <= 0 || oy <= 0) continue;
-      const sx = Math.sign((q.x + q.w / 2) - (d.x + d.w / 2)) || 1;
-      const sy = Math.sign((q.y + q.h / 2) - (d.y + d.h / 2)) || 1;
-      if (ox < oy) q.vx += sx * ox * 0.09; else q.vy += sy * oy * 0.09;
+  /* ---------------- BUMPING ----------------
+     It used to be only the dragged word that pushed, and only straight
+     sideways or straight up or down, by a box drawn round each word. A
+     word it pushed, or one that was thrown, then slid with nothing in its
+     way: it glided on into the next word and stopped on top of it, and one
+     plough through the middle left three or four words piled up at an
+     edge. Now every word knocks into every other, all the time.
+
+     Each bubble is a pill: a line through the middle of the word, turned
+     with it, thickened by half its height, where it is drawn (float and
+     all). Two touch when their lines come closer than their two radii
+     plus MOTION.bump.gap, and are pushed apart along the line between the
+     nearest points: straight apart side by side, glancing off each
+     other's round ends at a corner.
+
+     A push is shared by size, so the bigger word gives way less. A word
+     under a finger doesn't give way at all, unless the one it presses on
+     has its back to an edge (or to a word that does): then the held word
+     is stopped instead of squeezing the other through the wall. A few
+     passes over every pair each frame let a push travel down a line of
+     words. Closing speed is turned back by MOTION.bump.bounce; a very slow
+     one just stops, so words resting against each other or an edge (on a
+     tilted phone) sit still instead of buzzing.
+  ------------------------------------------------ */
+  const PASSES = 6;
+  const SLOW = 0.4;              // px/frame: closing slower than this is resting, not a knock
+  const knockedAt = new Map();   // pair -> when it last made a ring
+  const held = (q) => dragEl !== null && dragEl._word === q;
+  const heft = (q) => 1 / (q.w * q.h);   // how easily a word is pushed: bigger is heavier
+
+  function pillOf(q) {
+    const cx = q.x + q.fx + q.w / 2, cy = q.y + q.fy + q.h / 2;
+    const flat = q.w >= q.h;
+    const r = Math.min(q.w, q.h) / 2 * q.sc, half = Math.abs(q.w - q.h) / 2 * q.sc;
+    const c = Math.cos(q.ang), s = Math.sin(q.ang);
+    const ux = flat ? c : -s, uy = flat ? s : c;
+    // ex, ey: how far it reaches from its centre, sideways and up/down
+    return { cx, cy, ux, uy, half, r, ex: Math.abs(ux) * half + r, ey: Math.abs(uy) * half + r };
+  }
+  // a word moved during bumping carries its pill with it
+  function shift(q, dx, dy) { q.x += dx; q.y += dy; q.P.cx += dx; q.P.cy += dy; }
+
+  // how far a pill is past the edges of the water, as the move back in
+  const out = { x: 0, y: 0 };
+  function past(P, B) {
+    out.x = P.cx - P.ex < B.l ? B.l - (P.cx - P.ex) : P.cx + P.ex > B.r ? B.r - (P.cx + P.ex) : 0;
+    out.y = P.cy - P.ey < B.t ? B.t - (P.cy - P.ey) : P.cy + P.ey > B.b ? B.b - (P.cy + P.ey) : 0;
+    return out;
+  }
+
+  // The nearest points of two pills' middle lines, into `near` (closest
+  // points of two segments, as in Ericson's Real-Time Collision Detection).
+  const near = { x1: 0, y1: 0, x2: 0, y2: 0 };
+  function nearest(A, B) {
+    const p1x = A.cx - A.ux * A.half, p1y = A.cy - A.uy * A.half, d1x = A.ux * 2 * A.half, d1y = A.uy * 2 * A.half;
+    const p2x = B.cx - B.ux * B.half, p2y = B.cy - B.uy * B.half, d2x = B.ux * 2 * B.half, d2y = B.uy * 2 * B.half;
+    const rx = p1x - p2x, ry = p1y - p2y;
+    const a = d1x * d1x + d1y * d1y, e = d2x * d2x + d2y * d2y, f = d2x * rx + d2y * ry;
+    let s = 0, t = 0;
+    if (a <= 1e-9 && e > 1e-9) t = clamp(f / e, 0, 1);
+    else if (a > 1e-9) {
+      const c = d1x * rx + d1y * ry;
+      if (e <= 1e-9) s = clamp(-c / a, 0, 1);
+      else {
+        const b = d1x * d2x + d1y * d2y, den = a * e - b * b;
+        s = den > a * e * 1e-9 ? clamp((b * f - c * e) / den, 0, 1) : 0;   // parallel: any point will do
+        t = (b * s + f) / e;
+        if (t < 0) { t = 0; s = clamp(-c / a, 0, 1); }
+        else if (t > 1) { t = 1; s = clamp((b - c) / a, 0, 1); }
+      }
+    }
+    near.x1 = p1x + d1x * s; near.y1 = p1y + d1y * s;
+    near.x2 = p2x + d2x * t; near.y2 = p2y + d2y * t;
+  }
+
+  // Two words that touch are pushed apart; on the first pass of a frame
+  // their speeds along the push are exchanged too. Returns whether they
+  // touched.
+  function knock(a, b, first, pair, now) {
+    const A = a.P, Bp = b.P, G = MOTION.bump;
+    if (Math.abs(A.cx - Bp.cx) > A.ex + Bp.ex + G.gap || Math.abs(A.cy - Bp.cy) > A.ey + Bp.ey + G.gap) return false;
+    nearest(A, Bp);
+    let nx = near.x2 - near.x1, ny = near.y2 - near.y1, d = Math.hypot(nx, ny);
+    if (d > 1e-6) { nx /= d; ny /= d; }
+    else {
+      // their middle lines cross (one dropped straight across the other):
+      // out the way their centres already lie
+      nx = Bp.cx - A.cx; ny = Bp.cy - A.cy;
+      const c = Math.hypot(nx, ny);
+      if (c > 1e-6) { nx /= c; ny /= c; } else { nx = 0; ny = 1; }
+      d = 0;
+    }
+    const pen = A.r + Bp.r + G.gap - d;
+    if (pen <= 0) return false;
+
+    let wa = held(a) || a.pin ? 0 : heft(a), wb = held(b) || b.pin ? 0 : heft(b);
+    // neither will move: a held word gives way to one backed against an
+    // edge, and two backed against edges share it
+    if (!wa && !wb) { wa = held(b) ? 0 : heft(a); wb = held(a) ? 0 : heft(b); }
+    const k = pen / (wa + wb);
+    shift(a, -nx * k * wa, -ny * k * wa);
+    shift(b, nx * k * wb, ny * k * wb);
+    // pressed against one that can't move, it can't move that way either
+    if (a.pin && !held(b)) b.pin = true;
+    else if (b.pin && !held(a)) a.pin = true;
+
+    if (first) {
+      const closing = -((b.vx - a.vx) * nx + (b.vy - a.vy) * ny);
+      if (closing > 0) {
+        const ia = held(a) ? 0 : heft(a), ib = held(b) ? 0 : heft(b);
+        if (ia + ib > 0) {
+          const J = (1 + (closing > SLOW ? G.bounce : 0)) * closing / (ia + ib);
+          a.vx -= J * ia * nx; a.vy -= J * ia * ny;
+          b.vx += J * ib * nx; b.vy += J * ib * ny;
+        }
+        // a knock you could hear: a ring where they met, which rocks them
+        // both as it passes under them
+        const R = MOTION.rings.bump;
+        if (closing > R.speed && now - (knockedAt.get(pair) || -1e9) > 250) {
+          knockedAt.set(pair, now);
+          const sp = Math.min(closing, 12);
+          ripple(near.x1 + nx * A.r, near.y1 + ny * A.r, R.reach + sp * 3, R.life, R.alpha * Math.min(1, sp / 5));
+        }
+      }
+    }
+    return true;
+  }
+
+  // The edges of the water: a word that reaches one stops against it and
+  // comes back off it a little.
+  function edges(q, B) {
+    const o = past(q.P, B);
+    if (!o.x && !o.y) return;
+    shift(q, o.x, o.y);
+    q.pin = true;
+    const E = MOTION.bump.edge;
+    if (o.x && q.vx * o.x < 0) q.vx = Math.abs(q.vx) > SLOW ? -q.vx * E : 0;
+    if (o.y && q.vy * o.y < 0) q.vy = Math.abs(q.vy) > SLOW ? -q.vy * E : 0;
+  }
+
+  function bumpAll(B, now) {
+    for (const q of words) { q.P = pillOf(q); q.pin = false; }
+    for (let pass = 0; pass < PASSES; pass++) {
+      let touching = false;
+      for (let i = 0; i < words.length; i++) for (let j = i + 1; j < words.length; j++) {
+        if (knock(words[i], words[j], pass === 0, i * 64 + j, now)) touching = true;
+      }
+      // one already well past an edge is being eased back in (see step)
+      for (const q of words) if (!q.stray) edges(q, B);
+      if (!touching) break;
     }
   }
 
@@ -786,10 +965,12 @@
     }
   }
 
-  function updateWater() {
+  // frames: how long this frame was, in frames of a 60Hz screen (see tick)
+  function ageRings(frames) {
     for (let i = rings.length - 1; i >= 0; i--) {
       const g = rings[i];
-      if (++g.age > g.life) { rings.splice(i, 1); continue; }
+      g.age += frames;
+      if (g.age > g.life) { rings.splice(i, 1); continue; }
       const k = g.age / g.life;
       g.r = 2 + (g.maxR - 2) * spreadCurve(k);
       // a ring reaching a word lifts it a little, once
@@ -799,6 +980,9 @@
         if (Math.abs(d - g.r) < 14) { g.hit.add(q); q.bobV -= MOTION.bob.lifted * g.a * (1 - k * 0.6); }
       }
     }
+  }
+
+  function drawWater() {
     const c = waterC;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, inkW, inkH);
@@ -817,36 +1001,62 @@
   let startX = 0, startY = 0, tgtX = 0, tgtY = 0;
   let dragThreshold = 5;   // px before a press becomes a carry: set per pointer in startDrag
 
+  // Every speed, pull and fade here is counted per frame of a 60Hz screen,
+  // the one it was tuned on. A phone that draws at 90 or 120Hz used to run
+  // them all that much more often: the finger pulled harder, a push faded
+  // sooner, rings came and went faster. Now each frame counts as the
+  // share `k` of a 60Hz frame it lasted, and everything is scaled by it,
+  // so it moves the same on every screen and still redraws on every frame
+  // the screen shows. A slow frame is stepped in pieces, so a thrown word
+  // can't jump through another in one go.
   let lastNow = 0;
   function tick(now) {
     const dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 0.016;
     lastNow = now;
-    const fw = field.clientWidth, fh = Math.max(field.clientHeight, window.innerHeight);
+    const k = dt * 60, n = Math.max(1, Math.ceil(k - 0.01));
+    for (let i = 0; i < n; i++) step(k / n, now);
+    for (const q of words) place(q, dt);
+    ageRings(k);
+    drawWater();
+    drawInk(now);
+    rippleLetters();
+    requestAnimationFrame(tick);
+  }
+
+  function step(k, now) {
+    const B = pond();
+    const glide = Math.pow(MOTION.drag.glide, k);
+    const downhill = MOTION.tilt.strength * k;
+    const ease = (rate) => 1 - Math.pow(1 - rate, k);
     for (const q of words) {
-      const dragging = dragEl && dragEl._word === q && hasDragged;
+      // well past an edge before it has even moved: the water got smaller
+      // under it (a phone's bar sliding in, the phone turning), so it is
+      // eased back in, as it always used to be, rather than jumping
+      const o = past(pillOf(q), B);
+      q.stray = Math.abs(o.x) > 2 || Math.abs(o.y) > 2;
+      const dragging = held(q) && hasDragged;
       if (dragging) {
-        const nx = q.x + (tgtX - q.x) * MOTION.drag.follow, ny = q.y + (tgtY - q.y) * MOTION.drag.follow;
-        q.vx = nx - q.x; q.vy = ny - q.y;
+        const f = ease(MOTION.drag.follow);
+        const nx = q.x + (tgtX - q.x) * f, ny = q.y + (tgtY - q.y) * f;
+        q.vx = (nx - q.x) / k; q.vy = (ny - q.y) / k;
         q.x = nx; q.y = ny;
-        makeRoom(q);
         inkAlong(q.x, q.y);
         // a wake: small rings every so often along the way
         const sp = Math.hypot(q.vx, q.vy);
-        wakeDist += sp;
+        wakeDist += sp * k;
         if (sp > 0.8 && wakeDist > MOTION.rings.wake.every) {
           wakeDist = 0;
           const R = MOTION.rings.wake;
           ripple(q.x + q.w / 2 + (Math.random() - 0.5) * q.w * 0.5, q.y + q.h / 2, R.reach + Math.min(sp, 14) * 2, R.life, R.alpha);
         }
+      } else if (held(q)) {
+        // pressed and not yet moved: the finger holds it where it is
+        q.vx = 0; q.vy = 0;
       } else {
-        q.x += q.vx; q.y += q.vy;
-        q.vx *= MOTION.drag.glide; q.vy *= MOTION.drag.glide;
-        // soft walls: a word that slides off the field is eased back in
-        const minX = 8, maxX = fw - q.w - 8, minY = 8, maxY = fh - q.h - 8;
-        if (q.x < minX) q.vx += (minX - q.x) * 0.08;
-        if (q.x > maxX) q.vx += (maxX - q.x) * 0.08;
-        if (q.y < minY) q.vy += (minY - q.y) * 0.08;
-        if (q.y > maxY) q.vy += (maxY - q.y) * 0.08;
+        q.vx += slopeX * downhill; q.vy += slopeY * downhill;
+        if (q.stray) { q.vx += o.x * 0.08 * k; q.vy += o.y * 0.08 * k; }
+        q.x += q.vx * k; q.y += q.vy * k;
+        q.vx *= glide; q.vy *= glide;
         if (Math.abs(q.vx) < 0.01) q.vx = 0;
         if (Math.abs(q.vy) < 0.01) q.vy = 0;
         if (glideInk === q) {
@@ -854,20 +1064,65 @@
         }
       }
       const leanTo = clamp(q.vx * 1.0, -MOTION.drag.leanDeg, MOTION.drag.leanDeg);
-      q.lean += (leanTo - q.lean) * (dragging ? MOTION.drag.leanRate * 1.8 : MOTION.drag.leanRate);
+      q.lean += (leanTo - q.lean) * ease(dragging ? MOTION.drag.leanRate * 1.8 : MOTION.drag.leanRate);
       // held: lifted; pressed and not yet moved: pushed down into the water,
       // the way a button goes in; touched: lifted a little
       const liftTo = dragging ? 1 : q.pressed ? -0.9 : q.hot ? 1 : 0;
-      q.lift += (liftTo - q.lift) * (q.pressed ? 0.3 : 0.12);
+      q.lift += (liftTo - q.lift) * ease(q.pressed ? 0.3 : 0.12);
       // the bob: a spring back to level, so a ring or a hover rocks the word
-      q.bobV += -q.bob * MOTION.bob.spring; q.bobV *= MOTION.bob.damping; q.bob += q.bobV;
-      place(q, dt);
+      q.bobV += -q.bob * MOTION.bob.spring * k; q.bobV *= Math.pow(MOTION.bob.damping, k); q.bob += q.bobV * k;
     }
-    updateWater();
-    drawInk(now);
-    rippleLetters();
-    requestAnimationFrame(tick);
+    bumpAll(B, now);
   }
+
+  /* ---------------- TILT ----------------
+     A phone's tilt tips the water. The pull of gravity along the screen
+     comes from the phone's front-back (beta) and side-to-side (gamma)
+     angles, turned to match the screen if the phone is on its side. How
+     the phone is being held is taken as level, and that follows the phone
+     over MOTION.tilt.settle seconds: a quick tilt sends the words sliding,
+     a phone held at a new angle stops tipping them after a while. iPhones
+     only report tilt once the visitor allows it, and only ask in answer to
+     a touch: they are asked the first time someone plays with the water
+     (carries a word, or touches the water), never on a tap that opens a
+     link. Other phones report it without asking.
+  ------------------------------------------------ */
+  let slopeX = 0, slopeY = 0;            // downhill on the screen: direction, and steepness (0..1)
+  let levelX = null, levelY = null, tiltAt = 0;
+  function onTilt(e) {
+    if (e.beta == null || e.gamma == null) return;   // a computer without the sensor reports one empty reading
+    const b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
+    const ux = Math.sin(g) * Math.cos(b), uy = Math.sin(b);   // along the screen held upright
+    const so = window.screen && screen.orientation;
+    const turn = (so && typeof so.angle === 'number' ? so.angle : (window.orientation || 0)) * Math.PI / 180;
+    const gx = ux * Math.cos(turn) + uy * Math.sin(turn), gy = uy * Math.cos(turn) - ux * Math.sin(turn);
+    const now = performance.now();
+    if (levelX === null) { levelX = gx; levelY = gy; }
+    else {
+      const u = 1 - Math.exp(-Math.min(0.5, (now - tiltAt) / 1000) / Math.max(0.1, MOTION.tilt.settle));
+      levelX += (gx - levelX) * u; levelY += (gy - levelY) * u;
+    }
+    tiltAt = now;
+    const sx = gx - levelX, sy = gy - levelY, m = Math.hypot(sx, sy);
+    const still = Math.sin(MOTION.tilt.ignore * Math.PI / 180);
+    const f = m > still ? (m - still) / m : 0;
+    slopeX = sx * f; slopeY = sy * f;
+  }
+  let tiltOn = false, tiltAsked = false, playing = false;
+  function listenTilt() {
+    if (tiltOn) return;
+    tiltOn = true;
+    window.addEventListener('deviceorientation', onTilt);
+  }
+  const Orient = window.DeviceOrientationEvent;
+  const tiltNeedsAsking = !!(Orient && typeof Orient.requestPermission === 'function');
+  if (Orient && !tiltNeedsAsking) listenTilt();
+  field.addEventListener('touchend', () => {
+    if (!tiltNeedsAsking || tiltAsked || !playing) return;
+    tiltAsked = true;
+    Orient.requestPermission().then((s) => { if (s === 'granted') listenTilt(); }).catch(() => {});
+  }, { passive: true });
+  window.TUNE.slope = () => [slopeX, slopeY];   // for the tests
 
   // --- INK ---
   // The words are HTML and the browser paints them; we can't smudge them
@@ -1084,14 +1339,16 @@
     if (!hasDragged && dist > dragThreshold) {
       // it has moved: no longer a press, now it's being carried
       hasDragged = true;
+      playing = true;
       dragEl._word.pressed = false;
       dragEl.classList.remove('pressed');
       dragEl.classList.add('dragging');
     }
     if (!hasDragged) return;
-    const fieldRect = field.getBoundingClientRect();
-    tgtX = clientX - fieldRect.left - dragOffX;
-    tgtY = clientY - fieldRect.top - dragOffY;
+    // it goes where the finger goes, as far as the edges of the water
+    const fieldRect = field.getBoundingClientRect(), B = pond(), q = dragEl._word;
+    tgtX = clamp(clientX - fieldRect.left - dragOffX, B.l, Math.max(B.l, B.r - q.w));
+    tgtY = clamp(clientY - fieldRect.top - dragOffY, B.t, Math.max(B.t, B.b - q.h));
   }
 
   function endDrag() {
@@ -1130,6 +1387,7 @@
   // a finger or a click on the water itself: a ring where it touched
   field.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.thing')) return;
+    playing = true;
     const r = field.getBoundingClientRect();
     const x = e.clientX - r.left, y = e.clientY - r.top;
     const R = MOTION.rings.tap;
