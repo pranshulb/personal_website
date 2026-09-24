@@ -94,9 +94,15 @@ vercel.json                 routing, headers, proxies
   edge or under a phone's browser bar. Every per-frame number is scaled by
   the frame's length (`k` in `tick`), so 60 and 120Hz screens match.
   Tilting a phone tips the water (`onTilt`). iPhones only report tilt after
-  `DeviceOrientationEvent.requestPermission()`, which must be called from a
-  touch; it is asked on the first carry or touch on the water, never on a
-  tap that opens a link. How the phone is held becomes level over
+  `DeviceOrientationEvent.requestPermission()`, which Safari only honours
+  from a tap; it is tried at the end of a carry or a touch on the water,
+  never on a tap that opens a link. The first version tried once at the end
+  of a carry and gave up when Safari refused, so nobody was ever asked: now
+  a refusal shows a "tap here, then tilt your phone" button (`#tiltAsk`),
+  it retries until Safari answers, and it never asks once readings arrive.
+  A title with `twoLinesOnPhone: true` in `things` is broken into two even,
+  centred lines on phones (`fitTwoLines`); "two men contemplating the moon"
+  lay right across the screen on one. How the phone is held becomes level over
   `tilt.settle` seconds — keep it long: at 4s, tipping left and back read
   "back" as a tip to the right and the words slid across again. Every word is a link and sits in a bubble,
   always (September 2026: paper scraps, then a hover-only glass pill, were

@@ -237,6 +237,30 @@
       .hint { font-size: 0.65rem; bottom: 1rem; }
     }
 
+    /* on an iPhone, the way in to tilting (see TILT in the script): Safari
+       only lets a page feel the phone tilt after a tap, so when it refuses
+       this offers one, looking like one of the bubbles */
+    .tilt-ask {
+      position: fixed;
+      left: 50%;
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 20;
+      padding: 0.45em 1.1em 0.5em;
+      font-size: 0.85rem;
+      color: #9a8575;
+      white-space: nowrap;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(170,200,214,0.7);
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgba(58,47,47,0.06);
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease, visibility 0s 0.6s;
+    }
+    .tilt-ask.show { opacity: 1; visibility: visible; transition: opacity 0.6s ease; }
+
     /* the home page's paper grain */
     .grain {
       position: fixed; top: -50%; left: -50%;
@@ -259,6 +283,7 @@
 <div class="vignette"></div>
 
 <div class="field" id="field"><canvas id="ink"></canvas><canvas id="water"></canvas></div>
+<button class="tilt-ask" id="tiltAsk" type="button">tap here, then tilt your phone</button>
 
 <script>
   const things = [
@@ -270,7 +295,7 @@
 
     { text: "exurb1a", style: "wild", url: "https://www.youtube.com/@Exurb1a" },
     { text: "green", style: "color", url: "/shrek" },
-    { text: "two men contemplating the moon", style: "painting", url: "/things-i-like/two-men-contemplating-the-moon" },
+    { text: "two men contemplating the moon", style: "painting", url: "/things-i-like/two-men-contemplating-the-moon", twoLinesOnPhone: true },
     { text: "charles bukowski", style: "book", url: "https://www.poetryfoundation.org/poets/charles-bukowski" },
   ];
 
@@ -577,6 +602,7 @@
     if (isMobile) {
       el.style.maxWidth = (window.innerWidth - 40) + 'px';
       el.style.whiteSpace = 'normal';
+      if (item.twoLinesOnPhone) { el.dataset.lines = '2'; fitTwoLines(el); }
     }
 
     const w = el.offsetWidth, h = el.offsetHeight;
@@ -634,6 +660,32 @@
     el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') word.hot = false; });
   });
   relax();
+  }
+
+  // A long title marked `twoLinesOnPhone` lay right across a phone's screen
+  // on one line. It is made two lines, centred: as narrow as the words
+  // allow, so the lines come out as even as they can be. The browser still
+  // does the wrapping (and the ink stamp copies it); the width only
+  // decides where the break falls.
+  function fitTwoLines(el) {
+    const chs = el.querySelectorAll('.ch');
+    if (!chs.length) return;
+    el.style.maxWidth = 'none';
+    el.style.whiteSpace = 'nowrap';
+    const from = chs[0].getBoundingClientRect().left, to = chs[chs.length - 1].getBoundingClientRect().right;
+    const r = document.createRange();
+    let best = Infinity;   // the longer line of the best break
+    for (const n of el.childNodes) {
+      if (n.nodeType !== Node.TEXT_NODE) continue;   // the spaces between words
+      r.selectNode(n);
+      const sp = r.getBoundingClientRect();
+      best = Math.min(best, Math.max(sp.left - from, to - sp.right));
+    }
+    el.style.whiteSpace = 'normal';
+    const cs = getComputedStyle(el);
+    const most = window.innerWidth - 40;
+    el.style.maxWidth = (best === Infinity ? most : Math.min(most, Math.ceil(best + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2))) + 'px';
+    el.style.textAlign = 'center';
   }
 
   // Random placement gives up after 150 tries and takes the last one, which
@@ -701,6 +753,7 @@
     for (const q of words) {
       const tf = q.el.style.transform;
       q.el.style.transform = 'none';
+      if (q.el.dataset.lines === '2') fitTwoLines(q.el);   // the break may fall elsewhere in the real font
       q.w = q.el.offsetWidth; q.h = q.el.offsetHeight;
       const wr = q.el.getBoundingClientRect();
       for (const l of q.letters) {
@@ -1081,16 +1134,14 @@
      angles, turned to match the screen if the phone is on its side. How
      the phone is being held is taken as level, and that follows the phone
      over MOTION.tilt.settle seconds: a quick tilt sends the words sliding,
-     a phone held at a new angle stops tipping them after a while. iPhones
-     only report tilt once the visitor allows it, and only ask in answer to
-     a touch: they are asked the first time someone plays with the water
-     (carries a word, or touches the water), never on a tap that opens a
-     link. Other phones report it without asking.
+     a phone held at a new angle stops tipping them after a while. Other
+     phones report tilt without asking; iPhones need askTilt below.
   ------------------------------------------------ */
   let slopeX = 0, slopeY = 0;            // downhill on the screen: direction, and steepness (0..1)
   let levelX = null, levelY = null, tiltAt = 0;
   function onTilt(e) {
     if (e.beta == null || e.gamma == null) return;   // a computer without the sensor reports one empty reading
+    if (!tiltFelt) { tiltFelt = true; showAsk(false); }
     const b = e.beta * Math.PI / 180, g = e.gamma * Math.PI / 180;
     const ux = Math.sin(g) * Math.cos(b), uy = Math.sin(b);   // along the screen held upright
     const so = window.screen && screen.orientation;
@@ -1108,20 +1159,41 @@
     const f = m > still ? (m - still) / m : 0;
     slopeX = sx * f; slopeY = sy * f;
   }
-  let tiltOn = false, tiltAsked = false, playing = false;
-  function listenTilt() {
-    if (tiltOn) return;
-    tiltOn = true;
-    window.addEventListener('deviceorientation', onTilt);
-  }
+  // iPhones only report tilt once the visitor allows it, and Safari only
+  // shows its "allow motion" question in answer to a tap. It is asked when
+  // someone first plays with the water (the end of a carry, or a touch on
+  // the water), never on a tap that opens a link. The first version asked
+  // once, at the end of a carry, and gave up when Safari refused, which it
+  // does when a drag isn't a tap: nobody was ever asked. Now a refusal
+  // brings up a small "tap here, then tilt your phone" at the bottom, and a
+  // tap on that is the tap Safari wants. It keeps trying until Safari gives
+  // an answer, and a phone already allowed on this visit (tilt readings are
+  // arriving) is never asked at all.
+  let tiltFelt = false, tiltAnswered = false, asking = false, playing = false, askTimer = 0;
+  const askEl = document.getElementById('tiltAsk');
   const Orient = window.DeviceOrientationEvent;
   const tiltNeedsAsking = !!(Orient && typeof Orient.requestPermission === 'function');
-  if (Orient && !tiltNeedsAsking) listenTilt();
-  field.addEventListener('touchend', () => {
-    if (!tiltNeedsAsking || tiltAsked || !playing) return;
-    tiltAsked = true;
-    Orient.requestPermission().then((s) => { if (s === 'granted') listenTilt(); }).catch(() => {});
-  }, { passive: true });
+  if (Orient) window.addEventListener('deviceorientation', onTilt);
+  function showAsk(on) {
+    clearTimeout(askTimer);
+    askEl.classList.toggle('show', on);
+    if (on) askTimer = setTimeout(() => askEl.classList.remove('show'), 12000);   // offered, not insisted on
+  }
+  function askTilt() {
+    if (!tiltNeedsAsking || tiltFelt || tiltAnswered || asking) return;
+    asking = true;
+    let answer;
+    try { answer = Orient.requestPermission(); } catch (err) { answer = Promise.reject(err); }
+    Promise.resolve(answer).then((state) => {
+      tiltAnswered = true;
+      showAsk(false);
+      // listened for from the start; listening afresh makes sure Safari
+      // starts sending now that it's allowed
+      if (state === 'granted') { window.removeEventListener('deviceorientation', onTilt); window.addEventListener('deviceorientation', onTilt); }
+    }, () => showAsk(true)).finally(() => { asking = false; });
+  }
+  field.addEventListener('touchend', () => { if (playing) askTilt(); }, { passive: true });
+  askEl.addEventListener('click', askTilt);
   window.TUNE.slope = () => [slopeX, slopeY];   // for the tests
 
   // --- INK ---
@@ -1242,7 +1314,8 @@
     const asc = m.fontBoundingBoxAscent || fs * 0.8;
     const desc = m.fontBoundingBoxDescent || fs * 0.2;
     const lineH = (h - padT - padB) / lines.length;
-    lines.forEach((ln, i) => x.fillText(ln, padL, padT + i * lineH + (lineH - asc - desc) / 2 + asc));
+    const centred = cs.textAlign === 'center';   // a title made two lines on a phone
+    lines.forEach((ln, i) => x.fillText(ln, centred ? padL + (inner - x.measureText(ln).width) / 2 : padL, padT + i * lineH + (lineH - asc - desc) / 2 + asc));
     // three states of the same print: fresh, softening, dissolved — each a
     // little softer and a little bigger than the last
     const r = Math.max(0, MOTION.ink.soften), g = Math.max(0, MOTION.ink.spread);
