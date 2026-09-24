@@ -139,6 +139,26 @@ vercel.json                 routing, headers, proxies
   tell a tap from a swipe. It was tried at `/garden-home2` first
   (September 2026), which now redirects home.
 
+- **examined** (`/examined`, the philosophy quiz) keeps its own look on
+  purpose: pink by default with a dark toggle, set in an old-printed-book
+  type (IM Fell English for titles and small-caps labels, Libre Caslon
+  for reading) since September 2026 — not the site's Princess Sofia /
+  Unkempt, and not the Space Mono / Garamond / Caveat it had before.
+  Its wall of names is `api/wall.js`, stored in Vercel Blob by the same
+  rules as the community map (suffixed writes, a failed read is an error
+  and never an empty wall, 30 versions kept); the older version read a
+  failure as `[]` and the next signature would have replaced everyone.
+  Scoring (rebuilt September 2026): each axis is read against what random
+  answering on the same path would give (`axisBaseline` / `normalCdf`),
+  because most answers lean pragmatist and libertarian and raw totals
+  read everyone that way; the archetype is the one most likely to have
+  given exactly those answers (`getArchetype`, `ARCHETYPE_NOISE`). Tested
+  by simulating people with known leanings — change the archetype
+  `ideal`s or a scenario's `scores` and it's worth re-running that kind
+  of check. Every reading links out (books to Goodreads, films to
+  Letterboxd, people and cited works to Wikipedia via `PEOPLE_LINKS` /
+  `SOURCE_LINKS`); a new entry needs its `url`.
+
 ### Routing and hosting
 
 - `vercel.json` holds 33 rewrites. `cleanUrls: true`, so `/foo.html` serves at
