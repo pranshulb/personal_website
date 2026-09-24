@@ -1873,6 +1873,8 @@ button { font: inherit; color: inherit; }
 a.ref-title:hover { color: var(--accent); text-decoration-color: var(--accent); }
 a.ref-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ref-why { color: var(--text-dim); font-size: 0.93rem; }
+.refs li.ref-more { animation: entryIn 0.4s ease; }
+.refs-more { display: block; margin: -1.1rem 0 0; font-size: 1rem; }
 
 /* the wall: names on dotted leaders */
 .wall-sub { margin-top: -0.4rem; }
@@ -3555,19 +3557,31 @@ async function addToWall(e) {
 
 function renderReadings(archetype) {
   const items = READINGS[archetype.name] || READINGS['The Philosophical Pluralist'];
+  // a few to start (three books, a film, one of the rest); "more" shows the others in place
   const groups = [
-    ['books', items.filter(i => i.type === 'book')],
-    ['films', items.filter(i => i.type === 'film')],
-    ['essays, podcasts & talks', items.filter(i => i.type === 'essay' || i.type === 'podcast' || i.type === 'lecture')],
-  ];
-  const entry = (b) => `
-      <li>${b.url
+    ['books', items.filter(i => i.type === 'book'), 3],
+    ['films', items.filter(i => i.type === 'film'), 1],
+    ['essays, podcasts & talks', items.filter(i => i.type === 'essay' || i.type === 'podcast' || i.type === 'lecture'), 1],
+  ].filter(([, list]) => list.length);
+  const held = groups.reduce((n, [, list, show]) => n + Math.max(0, list.length - show), 0);
+  const entry = (b, later) => `
+      <li${later ? ' class="ref-more" hidden' : ''}>${b.url
         ? `<a class="ref-title" href="${b.url}" target="_blank" rel="noopener">${b.title}</a><span class="visually-hidden"> (opens in a new tab)</span>`
         : `<span class="ref-title">${b.title}</span>`}, ${b.author}. <span class="ref-why">${b.why}</span></li>`;
-  document.getElementById('readings-section').innerHTML = groups.filter(([, list]) => list.length).map(([label, list]) => `
+  document.getElementById('readings-section').innerHTML = groups.map(([label, list, show]) => `
     <h3 class="page-label">${label}</h3>
-    <ul class="refs">${list.map(entry).join('')}
-    </ul>`).join('');
+    <ul class="refs">${list.map((b, i) => entry(b, i >= show)).join('')}
+    </ul>`).join('') +
+    (held ? '<button type="button" class="text-link refs-more" onclick="showAllReadings(this)">more</button>' : '');
+}
+
+function showAllReadings(btn) {
+  const later = [...document.querySelectorAll('#readings-section .ref-more')];
+  later.forEach(li => { li.hidden = false; });
+  btn.remove();
+  // keyboard users land on the first thing that just appeared
+  const first = later.length && later[0].querySelector('a');
+  if (first) first.focus({ preventScroll: true });
 }
 
 function axisLines(indent) {
