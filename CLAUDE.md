@@ -71,8 +71,16 @@ vercel.json                 routing, headers, proxies
   he saw at once as a zigzag. Keep the sideways speed (`swAmp`, gusts)
   well under the fall speed (~10 px/s). Both files step the physics at a fixed 60 per
   second whatever the screen's refresh rate; one step per frame made every
-  petal twice as fast on 120Hz screens. The home page's `?tune` panel has
-  sliders for flutter, sway and wind (`REVEAL.petals`).
+  petal twice as fast on 120Hz screens. Pranshul then found them slower than
+  before on the laptop (a 120Hz screen would explain it), so gravity is scaled by `fall` — 1.5, `REVEAL.petals.fall`
+  on the home page and `FALL` in petals.js, kept equal. The home page's
+  `?tune` panel has sliders for flutter, sway, wind and fall
+  (`REVEAL.petals`).
+  Clicking: a resting pointer catches passing petals within moments, so a
+  click that only let them go (as it once did) left most clicks on the
+  tree doing nothing — and a petal let go beside a still pointer was caught
+  straight back. A click now lets go *and* shakes, and a petal let go
+  (`letGo`) can't be caught again until it has left the pointer's reach.
 - **The home page's ground is water** along the whole bottom (September
   2026), with the tree's mound an island in it; `onWater` is "below the
   water's top edge and off the island", so a tap, a stir or a landing petal

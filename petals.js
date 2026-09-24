@@ -34,6 +34,9 @@
   let t = 0;
   let airPetals = [];
 
+  // How fast petals drop: the home page's REVEAL.petals.fall.
+  const FALL = 1.5;
+
   // The home page's petal pinks, as they are.
   const PETAL_SOFT = ['#F4A8BD','#EE92AB','#F0B8CC','#EBA3B8','#F5C0D0','#E8889E','#F2B0C2','#EFA0B6'];
   const PETAL_DEEP = ['#D85878','#C04866','#CE4F70','#B83C5E','#D9637D'];
@@ -234,7 +237,7 @@
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
-      p.vy += 0.00055;
+      p.vy += 0.00055 * FALL;
       p.swp += p.swSpd;
       p.vx *= 0.998; p.vy *= 0.999;
       if (p.drag > 0) { p.drag--; p.vx *= 0.96; p.vy *= 0.96; }

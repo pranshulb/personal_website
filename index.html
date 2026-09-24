@@ -225,8 +225,10 @@
     treeHeight: 0.68,
     // the falling petals, everywhere: 1 is as set, 0 is none of it.
     // flutter: how fast they flip over; sway: how far they swing side to
-    // side as they fall; wind: how strong the passing gusts are
-    petals: { flutter: 1, sway: 1, wind: 1 },
+    // side as they fall; wind: how strong the passing gusts are; fall: how
+    // fast they drop (1.5 since September 2026: once every screen fell at
+    // the same pace, it read as slow next to what 120Hz laptops had shown)
+    petals: { flutter: 1, sway: 1, wind: 1, fall: 1.5 },
   };
   const VALUES = REVEAL;
 
@@ -293,6 +295,7 @@
       { path: 'petals.flutter', label: 'how fast they flip over', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.sway',    label: 'how far they swing side to side', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.wind',    label: 'how strong the gusts are', kind: 'number', min: 0, max: 3, step: 0.05 },
+      { path: 'petals.fall',    label: 'how fast they fall', kind: 'number', min: 0.25, max: 3, step: 0.05 },
     ],
   };
 
@@ -938,7 +941,7 @@
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
-      p.vy += 0.00055;   // was 0.0009, then 0.00065 — "just a tad slower still"
+      p.vy += 0.00055 * P.fall;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
       p.vx *= 0.998; p.vy *= 0.999;
       if (p.drag > 0) { p.drag--; p.vx *= 0.96; p.vy *= 0.96; }   // a flicked petal loses its speed nearby
