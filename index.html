@@ -149,6 +149,19 @@
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
+<style>
+  /* "someone else is here too": only there while someone is */
+  .company {
+    position: fixed; left: 0; right: 0; bottom: 0.9rem;
+    margin: 0; text-align: center;
+    font-size: 0.8rem; color: #a08878; letter-spacing: 0.02em;
+    pointer-events: none; z-index: 30;
+    opacity: 0; transition: opacity 1.2s ease;
+  }
+  .company.on { opacity: 0.85; }
+  /* phones keep the epigraph at the bottom: sit just above it */
+  @media (max-width: 900px) { .company { bottom: 2.1rem; font-size: 0.74rem; } }
+</style>
 <style id="enola-font-override">
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.9rem !important;}
@@ -201,6 +214,7 @@
 </svg>
 
 <div class="copy-toast" id="copyToast">email copied!</div>
+<p class="company" id="company" aria-live="polite"></p>
 
 <script>
 (() => {
@@ -806,9 +820,11 @@
     if (rings.length > 80) rings.shift();
     rings.push({ x, y, r: 2, maxR, age: 0, life, a, ph: Math.random() * PI2 });
   }
-  function tapWater(x, y) {
-    ripple(x, y, 64, 110, 0.5);
-    setTimeout(() => ripple(x, y, 46, 95, 0.35), 130);
+  // fromPeer: somebody else's tap, arriving from the presence room (below)
+  function tapWater(x, y, fromPeer) {
+    ripple(x, y, 64, 110, fromPeer ? 0.38 : 0.5);
+    setTimeout(() => ripple(x, y, 46, 95, fromPeer ? 0.26 : 0.35), 130);
+    if (!fromPeer) shareTap(x, y);
   }
   function updateRings() {
     for (let i = rings.length - 1; i >= 0; i--) {
@@ -1131,6 +1147,7 @@
     }
     for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
     for (const h of held) drawPetalShape(c, h.p.x, h.p.y, h.p.r, h.p.rot, h.p.color, h.p.alpha, h.p.tumble);
+    drawPeers(c);
   }
 
   /* ================================================================
@@ -1240,7 +1257,9 @@
       updatePetals();
       updateShake();
       updateRings();
+      updatePeers();
     }
+    if (steps) presenceTick(now);
     if (steps === 4) acc = 0;                // after a stall, don't race to catch up
     if (steps) drawOverlay();
     if (shakeX !== 0 || leaning) placeScene();
@@ -1309,6 +1328,18 @@
     // cap total petals so rapid repeated taps can't grow this unbounded
     const room = Math.max(0, 260 - airPetals.length);
     for (let i = 0; i < Math.min(35, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
+    shareShake(Math.sign(shakeV));
+  }
+  // Somebody else shook it: the same shake, gentler, a few petals, and at
+  // most one every second and a half however many people are shaking.
+  let lastPeerShakeAt = 0;
+  function shakeFromPeer(d) {
+    const now = performance.now();
+    if (now - lastPeerShakeAt < 1500 || now - lastShakeAt < 400) return;
+    lastPeerShakeAt = now;
+    shakeV = d * rng(5, 8);
+    const room = Math.max(0, 260 - airPetals.length);
+    for (let i = 0; i < Math.min(12, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
   }
   // The words' column is wider than its words, and on desktop its right edge
   // runs into the tree's left-hand blossoms. A click there shakes the tree
@@ -1380,6 +1411,173 @@
   });
   const mc = document.getElementById('mobileCopy');
   if (mc) mc.addEventListener('click', copyEmail);
+
+  /* ================================================================
+     COMPANY — other people under the tree
+
+     Everyone with the page open joins one room on a small presence
+     server (presence/server.js, on PartyKit). Each other visitor shows
+     as a pale petal with a little light round it, drifting where their
+     pointer or finger is; their taps on the water ripple here too, and
+     when one of them shakes the tree it trembles and lets a few petals
+     go. A quiet line at the bottom says when someone else is here.
+
+     Positions travel relative to the tree — across from the trunk and
+     up from the ground, in tree-heights — so a pointer by the canopy on
+     a laptop is by the canopy on a phone, whatever the two screens.
+     Nothing about a visitor is sent but that, and it isn't kept.
+
+     With PRESENCE_HOST empty the page never connects and nothing here
+     does anything. ?presence=ws://localhost:…/party/home points it at a
+     local server for testing (localhost only).
+  ================================================================ */
+  const PRESENCE_HOST = '';   // e.g. 'pranshul-cafe-presence.<account>.partykit.dev'
+  // the tree's own mid pinks: pale ones vanished against the paper
+  const PEER_COLORS = ['#E8889E', '#EE92AB', '#E25075', '#F08FAB'];
+  const peers = new Map();    // id -> { u, v, tu, tv, a, here, r, rot, tumble, tumSpd, swp, color }
+  const companyEl = document.getElementById('company');
+  let sock = null, sockTries = 0, sockTimer = 0, sockWanted = true;
+  let sentAt = 0, sentU = null, sentV = null, awaySent = true;
+
+  function presenceURL() {
+    try {
+      const q = new URLSearchParams(location.search).get('presence');
+      if (q && /^ws:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(q)) return q;
+    } catch (e) {}
+    return PRESENCE_HOST ? `wss://${PRESENCE_HOST}/party/home` : '';
+  }
+  // screen <-> tree units. y is taken in ground coordinates (without the
+  // phone's scroll shift), so a tap and a pointer land the same way.
+  function treeUnit() { return (isMobile ? REVEAL.treeHeight : 0.72) * H; }
+  function toTree(x, gy) { const s = treeUnit(); return [(x - TREE_X) / s, (gy - H * 0.90) / s]; }
+  function fromTree(u, v) { const s = treeUnit(); return [TREE_X + u * s, H * 0.90 + v * s]; }
+
+  function send(msg) {
+    if (sock && sock.readyState === 1) { try { sock.send(JSON.stringify(msg)); } catch (e) {} }
+  }
+  function shareTap(x, gy) { const [u, v] = toTree(x, gy); send({ t: 'tap', x: u, y: v }); }
+  function shareShake(d) { send({ t: 'shake', d }); }
+
+  // our pointer, ten times a second at most, and only when it has moved
+  function presenceTick(now) {
+    if (!sock || sock.readyState !== 1) return;
+    if (px < -5000) {
+      if (!awaySent) { send({ t: 'away' }); awaySent = true; sentU = null; }
+      return;
+    }
+    if (now - sentAt < 100) return;
+    const [u, v] = toTree(px, py - sceneShift);
+    if (sentU !== null && Math.abs(u - sentU) < 0.003 && Math.abs(v - sentV) < 0.003) return;
+    sentAt = now; sentU = u; sentV = v; awaySent = false;
+    send({ t: 'm', x: +u.toFixed(3), y: +v.toFixed(3) });
+  }
+
+  function peer(id) {
+    let p = peers.get(id);
+    if (!p) {
+      if (peers.size >= 40) return null;
+      p = { u: 0, v: 0, tu: 0, tv: 0, a: 0, here: false, placed: false,
+            r: rng(9, 11), rot: rng(-0.6, 0.6), tumble: Math.random() * PI2, tumSpd: rng(0.008, 0.016),
+            swp: Math.random() * PI2, color: pick(PEER_COLORS) };
+      peers.set(id, p);
+    }
+    return p;
+  }
+  const fin = (v) => typeof v === 'number' && Number.isFinite(v) ? clamp(v, -4, 4) : null;
+  function onPresence(ev) {
+    let m;
+    try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (!m || typeof m !== 'object') return;
+    if (m.t === 'hi') {
+      peers.clear();
+      if (Array.isArray(m.peers)) for (const q of m.peers) {
+        const x = fin(q.x), y = fin(q.y), p = x !== null && y !== null && typeof q.id === 'string' && peer(q.id);
+        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; }
+      }
+      setCompany(m.n);
+      awaySent = true; sentU = null;   // say where we are straight away
+      return;
+    }
+    if (m.t === 'n') { setCompany(m.n); return; }
+    if (typeof m.id !== 'string') return;
+    if (m.t === 'gone') { const p = peers.get(m.id); if (p) p.here = false; return; }
+    if (m.t === 'away') { const p = peers.get(m.id); if (p) p.here = false; return; }
+    if (m.t === 'shake') { shakeFromPeer(m.d < 0 ? -1 : 1); return; }
+    const x = fin(m.x), y = fin(m.y);
+    if (x === null || y === null) return;
+    if (m.t === 'm') {
+      const p = peer(m.id);
+      if (!p) return;
+      p.tu = x; p.tv = y; p.here = true;
+      if (!p.placed) { p.u = x; p.v = y; p.placed = true; }   // appear where they are, not slide in from the trunk
+    } else if (m.t === 'tap') {
+      const [gx, gy] = fromTree(x, y);
+      if (onWater(gx, gy)) tapWater(gx, gy, true);
+    }
+  }
+  function setCompany(n) {
+    const others = Math.max(0, (n | 0) - 1);
+    companyEl.textContent = others === 0 ? '' : others === 1 ? 'someone else is here too' : `${others} others are here too`;
+    companyEl.classList.toggle('on', others > 0);
+  }
+
+  // eased toward where they are, faded in and out, drifting a little so a
+  // still pointer still reads as alive
+  function updatePeers() {
+    for (const [id, p] of peers) {
+      p.u += (p.tu - p.u) * 0.14; p.v += (p.tv - p.v) * 0.14;
+      p.a += ((p.here ? 1 : 0) - p.a) * 0.05;
+      p.tumble += p.tumSpd; p.swp += 0.02;
+      if (!p.here && p.a < 0.01) { p.placed = false; if (!sock || sock.readyState !== 1) peers.delete(id); }
+    }
+  }
+  function drawPeers(c) {
+    for (const p of peers.values()) {
+      if (p.a < 0.01 || !p.placed) continue;
+      const [x, gy] = fromTree(p.u, p.v);
+      const y = gy + sceneShift + Math.sin(p.swp) * 3;
+      // a person, not another falling petal: a thin ring that breathes,
+      // in the ink of the rings on the water, round a petal that turns
+      // a pale disc behind it lifts it off the blossom; on paper it vanishes
+      c.fillStyle = `rgba(255, 252, 250, ${0.5 * p.a})`;
+      c.beginPath(); c.arc(x, y, 16, 0, PI2); c.fill();
+      c.lineWidth = 1.3;
+      c.strokeStyle = `rgba(110, 80, 96, ${0.55 * p.a})`;
+      c.beginPath(); c.arc(x, y, 17 + Math.sin(p.swp * 1.3) * 2, 0, PI2); c.stroke();
+      c.strokeStyle = `rgba(196, 122, 122, ${0.22 * p.a})`;
+      c.beginPath(); c.arc(x, y, 23 + Math.sin(p.swp * 1.3 + 1) * 2.5, 0, PI2); c.stroke();
+      drawPetalShape(c, x, y, p.r, p.rot + Math.sin(p.swp * 0.7) * 0.3, p.color, 0.85 * p.a, p.tumble);
+    }
+  }
+
+  // one connection while the page is visible, closed while it's hidden (a
+  // tab left open in the background isn't somebody under the tree), and
+  // retried, more and more slowly, if it drops
+  function connect() {
+    clearTimeout(sockTimer);
+    const url = presenceURL();
+    if (!url || sock || !sockWanted || typeof WebSocket === 'undefined') return;
+    let s;
+    try { s = new WebSocket(url); } catch (e) { return; }
+    sock = s;
+    s.onopen = () => { sockTries = 0; };
+    s.onmessage = onPresence;
+    s.onclose = () => {
+      if (sock !== s) return;
+      sock = null;
+      for (const p of peers.values()) p.here = false;
+      setCompany(1);
+      if (sockWanted && sockTries < 8) sockTimer = setTimeout(connect, Math.min(30000, 1500 * 2 ** sockTries++));
+    };
+    s.onerror = () => {};
+  }
+  document.addEventListener('visibilitychange', () => {
+    sockWanted = !document.hidden;
+    if (sockWanted) { sockTries = 0; connect(); }
+    else if (sock) { const s = sock; sock = null; try { s.close(1000); } catch (e) {} for (const p of peers.values()) p.here = false; setCompany(1); }
+  });
+  // after the page has drawn, so it never slows the first paint
+  setTimeout(connect, 1200);
 
   /* ================================================================
      INIT

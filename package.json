@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./test/register.mjs test/api.test.mjs",
-    "test:pages": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./test/register.mjs test/pages.test.mjs"
+    "test:pages": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./test/register.mjs test/pages.test.mjs",
+    "test:presence": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON test/presence.test.mjs"
   },
   "repository": {
     "type": "git",

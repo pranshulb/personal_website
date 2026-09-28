@@ -86,6 +86,21 @@ vercel.json                 routing, headers, proxies
   water's top edge and off the island", so a tap, a stir or a landing petal
   makes rings anywhere along the bottom, and petals that land on water
   float, bob and drift instead of stopping.
+- **Company on the home page** (September 2026): other visitors show as a
+  rose petal in a thin breathing ring (a pale disc behind it lifts it off
+  the blossom), drifting where their pointer or finger is; their taps on
+  the water ripple here, their shakes tremble the tree and let a few
+  petals go (at most one per 1.5s), and "someone else is here too" /
+  "N others are here too" sits at the bottom. Positions travel in tree
+  units (across from the trunk, up from the ground, in tree-heights) so
+  laptop and phone agree. The server is `presence/` (PartyKit, since
+  Vercel can't hold WebSockets): it relays and forgets, checks Origin,
+  clamps every number, holds each visitor to 20 messages a second and
+  one shake per 1.2s, caps a room at 60. `PRESENCE_HOST` in `index.html`
+  is empty until it is deployed, and while it is the page never
+  connects. A hidden tab disconnects. `npm run test:presence`; see
+  `presence/README.md`. The first try drew visitors as pale petals with a
+  white glow, which were invisible on the paper.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, every word bumping every other, rings on a
