@@ -126,12 +126,20 @@ vercel.json                 routing, headers, proxies
   side, shaded after StPageFlip); the covers swing on the spine as boards
   in `drawBoard()`, as in turn.js. Everything moves from one animation
   loop, `tick()`: a tap plays an arced turn on a cubic-bezier, a drag
-  trails the finger by 30ms, a page let go carries the hand's speed into a
-  critically damped spring. Every number is in `TURN`. Driven by a click
-  or tap, a dragged corner, a swipe, the arrow keys or the wheel; taps
-  mid-turn are counted, a swipe mid-turn lands the page and takes the next.
-  The flap's blurred drop-shadow is desktop-only: a blur is redone every
-  frame and measured as the biggest cost of a turn.
+  stays right under the finger (a 30ms trail, tried for the feel of paper,
+  read as lag), a page let go carries the hand's speed into a critically
+  damped spring. Every number is in `TURN`. Driven by a click or tap, a
+  dragged corner, a swipe, the arrow keys or the wheel; taps mid-turn are
+  counted, a swipe mid-turn lands the page and takes the next.
+  **It shows `writings/pages/*.webp`, not the SVGs.** Each SVG wraps a
+  1860×2480 scan (18MB decoded) that was being shrunk on every frame of a
+  turn; the WebPs are the same pages drawn out at 700/1100/1500px and
+  picked by `srcset`. A new or changed writing needs them remade:
+  `writings/pages/make.mjs` (instructions at its top). Other things
+  measured as costing frames during a turn, all gone: a blurred
+  drop-shadow under the turning page, the grain at twice the screen's size,
+  and the petals' canvas, which `petals.js` now draws at half rate while
+  `<html data-petals-hush>` is set (the page sets it mid-turn).
   The list of pieces and their page counts is `WRITINGS` at the top of the
   script; a new piece goes there as well as on `/writings`. `/page#slug`
   opens at that piece. Pages move between slots rather than being rebuilt,

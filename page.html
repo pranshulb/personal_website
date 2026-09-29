@@ -91,14 +91,10 @@
       z-index: 4; pointer-events: none;
     }
     /* the turned-over part: a hairline and a little shade along its edges,
-       so white paper over white paper still reads as two sheets */
+       so white paper over white paper still reads as two sheets. (It had a
+       blurred drop-shadow on desktops too; a blur is redone every frame of a
+       turn and was most of the turn's cost, so no.) */
     #slotK { box-shadow: inset 0 0 0 0.5px rgba(58, 47, 47, 0.22), inset 0 0 calc(var(--u) * 1.6) rgba(58, 47, 47, 0.07); }
-    /* and where there's a mouse (and so a graphics card), a soft shadow under
-       it too. A blur has to be redone every frame of a turn; on a phone it
-       cost more than it gave. */
-    @media (hover: hover) and (pointer: fine) {
-      .flap { filter: drop-shadow(calc(var(--u) * 0.3) calc(var(--u) * 0.5) calc(var(--u) * 1.2) rgba(45, 30, 25, 0.18)); }
-    }
 
     /* the shading that makes a fold read as a fold: a shadow cast on the
        page underneath, along the fold, and a sheen on the turned-over part */
@@ -221,8 +217,10 @@
     .where { min-width: 12rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .where .pg { color: #c4b0a0; font-size: 0.85em; margin-left: 0.4em; }
 
-    /* the home page's paper grain */
-    .grain { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 8; opacity: 0.12; }
+    /* the home page's paper grain. The other pages draw it at twice the
+       screen's size; here it never moves, so the screen's size is enough, and
+       a quarter of the texture (47MB less on a 3x phone) */
+    .grain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; opacity: 0.12; }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
@@ -288,7 +286,7 @@
     quick: 0.55,                // a turn queued behind another (tapping fast) takes this share of the time
     ease: [0.36, 0, 0.18, 1],   // its timing, as a CSS cubic-bezier: a slow lift, a quick middle, a long soft landing
     arc: 0.14,                  // how high the corner rises on the way over, as a share of the page's height
-    follow: 0.03,               // a dragged page trails the finger by this many seconds, the way paper does
+    follow: 0,                  // a dragged page trails the finger by this many seconds (0: right under it; 0.03 felt laggy)
     spring: 11,                 // let go, it finishes (or falls back) on a spring this stiff, carrying the hand's speed
     dragDone: 0.3,              // let go with the corner this far past the middle and it turns (two-page view)…
     flick: 0.35,                // …or moving this fast towards the spine, in px per ms
@@ -353,14 +351,22 @@
       const w = WRITINGS[d.wi], img = new Image();
       img.decoding = 'async'; img.draggable = false;
       img.alt = w.title + (w.pages > 1 ? ', page ' + d.n + ' of ' + w.pages : '');
-      img.src = '/writings/' + w.slug + '-' + d.n + '.svg';
+      // Not the SVGs the writings pages use: each of those wraps a 1860×2480
+      // scan, 18MB once decoded, shrunk again on every frame a page moves —
+      // a phone ran out of memory and stuttered. These are the same pages
+      // drawn out at three widths (writings/pages/, made from the SVGs; see
+      // CLAUDE.md), and the browser takes the one the screen needs.
+      const base = '/writings/pages/' + w.slug + '-' + d.n + '-';
+      img.sizes = W + 'px';
+      img.srcset = base + '700.webp 700w, ' + base + '1100.webp 1100w, ' + base + '1500.webp 1500w';
+      img.src = base + '1100.webp';
       const f = document.createElement('span'); f.className = 'folio'; f.textContent = d.folio;
       el.append(img, f);
     } else if (d.kind === 'paperback') {
       if (d.of.kind === 'scan') {
         const w = WRITINGS[d.of.wi], img = new Image();
         img.className = 'ghost'; img.alt = ''; img.decoding = 'async'; img.draggable = false;
-        img.src = '/writings/' + w.slug + '-' + d.of.n + '.svg';
+        img.src = '/writings/pages/' + w.slug + '-' + d.of.n + '-700.webp';
         el.append(img);
       }
     } else if (d.kind === 'cover') {
@@ -395,12 +401,13 @@
     slot.hidden = false;
   }
   // start fetching the pages a turn or two away
-  // and decode them, so the first frame of a turn doesn't wait on a picture
+  // and decode the ones a turn away, so the first frame of a turn doesn't
+  // wait on a picture (only those: every decoded page holds several MB)
   function preload() {
     for (let j = Math.max(0, s - 2); j <= Math.min(L - 1, s + 2); j++) {
       for (const d of [leaves[j].front, leaves[j].back]) {
         const img = nodeFor(d).querySelector('img');
-        if (img && !img.dataset.decoded && img.decode) { img.dataset.decoded = '1'; img.decode().catch(() => { delete img.dataset.decoded; }); }
+        if (img && Math.abs(j - s) <= 1 && !img.dataset.decoded && img.decode) { img.dataset.decoded = '1'; img.decode().catch(() => { delete img.dataset.decoded; }); }
       }
     }
   }
@@ -418,6 +425,7 @@
     book.style.setProperty('--ph', H + 'px');
     book.style.setProperty('--u', (W / 100) + 'px');
     TURN.ms = Math.round(560 + W * 0.6);           // a wider page takes a little longer to cross
+    for (const n of nodes.values()) { const img = n.querySelector('img[srcset]'); if (img) img.sizes = W + 'px'; }
     if (sp !== spread || !leaves.length) {
       spread = sp; leaves = build(sp); L = leaves.length;
       maxS = spread ? L : L - 1;      // one page at a time: the last page stays, there is no back cover to close
@@ -531,6 +539,7 @@
     slotK.style.transform = slotK.style.clipPath = slotK.style.left = slotK.style.transformOrigin = '';
     for (const el of shades) el.style.opacity = 0;
     turn = null; mode = 'idle';
+    document.documentElement.removeAttribute('data-petals-hush');
     book.classList.remove('dragging');
     renderStatic();
     if (pending) { const d = Math.sign(pending); pending -= d; go(d, 'b', true); }
@@ -631,7 +640,11 @@
   }
 
   /* ---- motion. Everything is drawn once per screen frame, from here. ---- */
-  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+  function kick() {
+    if (!raf) raf = requestAnimationFrame(tick);
+    // petals at half rate while a page moves (petals.js reads this)
+    document.documentElement.setAttribute('data-petals-hush', '');
+  }
   function tick(now) {
     raf = 0;
     const t = turn;
@@ -646,7 +659,7 @@
       done = k >= 1;
     } else if (mode === 'drag' || mode === 'peek') {
       // the paper follows the hand a few hundredths of a second behind
-      const f = 1 - Math.exp(-dt / (mode === 'drag' ? TURN.follow : 0.07));
+      const tau = mode === 'drag' ? TURN.follow : 0.07, f = tau > 0 ? 1 - Math.exp(-dt / tau) : 1;
       if (t.hard) t.th += (t.goalTh - t.th) * f;
       else t.P = { x: t.P.x + (t.goal.x - t.P.x) * f, y: t.P.y + (t.goal.y - t.P.y) * f };
       if (mode === 'peek' && t.leaving && (t.hard ? t.th < 0.003 : Math.hypot(W - t.P.x, H - t.P.y) < 0.6)) { end(false); return; }
