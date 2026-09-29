@@ -253,6 +253,10 @@
     tree: { until: 0.75, ease: 'outCubic', dropFrom: 0.10, alphaFrom: 0.5 },
     // the "the tree is below" hint fades
     hint: { until: 0.20, ease: 'linear' },
+    // the epigraph ("cherry blossoms fall…") waits at the foot of the
+    // screen until the words have gone, then fades in under the tree:
+    // on the first screen it sat on "the tree is below" on most iPhones
+    epigraph: { from: 0.30, until: 0.65, ease: 'inOut' },
     // how tall the tree stands on phones, as a share of the screen
     treeHeight: 0.68,
     // the falling petals, everywhere: 1 is as set, 0 is none of it.
@@ -328,6 +332,8 @@
       { path: 'treeHeight',     label: 'how tall it stands', kind: 'number', min: 0.3, max: 0.95, step: 0.01 },
       { section: 'the hint' },
       { path: 'hint.until',     label: '"the tree is below" is gone by', kind: 'number', min: 0.02, max: 1, step: 0.01 },
+      { path: 'epigraph.from',  label: 'the epigraph starts to appear at', kind: 'number', min: 0, max: 1, step: 0.01 },
+      { path: 'epigraph.until', label: 'and is fully there by', kind: 'number', min: 0.02, max: 1, step: 0.01 },
       { section: 'the petals' },
       { path: 'petals.flutter', label: 'how fast they flip over', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.sway',    label: 'how far they swing side to side', kind: 'number', min: 0, max: 3, step: 0.05 },
@@ -1478,6 +1484,7 @@
   ================================================================ */
   const contentWrapEl = document.querySelector('.content-wrap');
   const containerEl = document.querySelector('.container');
+  const epigraphEl = document.querySelector('.epigraph');
   let scrollTicking = false;
   function applyScrollFade() {
     scrollTicking = false;
@@ -1486,6 +1493,7 @@
       containerEl.style.removeProperty('--card-a');
       containerEl.style.removeProperty('--card-blur');
       containerEl.style.removeProperty('--hint-a');
+      epigraphEl.style.opacity = ''; epigraphEl.style.pointerEvents = '';
       bgEl.style.transform = ''; scEl.style.opacity = '';
       sceneShift = 0;
       placeScene();
@@ -1498,6 +1506,10 @@
     containerEl.style.setProperty('--card-a', (REVEAL.card.alphaFrom * card).toFixed(3));
     containerEl.style.setProperty('--card-blur', (REVEAL.card.blurFrom * card).toFixed(2) + 'px');
     containerEl.style.setProperty('--hint-a', (1 - prog(progress, REVEAL.hint)).toFixed(2));
+    const ep = REVEAL.epigraph;
+    const ea = curve(ep.ease)(clamp((progress - ep.from) / Math.max(0.01, ep.until - ep.from), 0, 1));
+    epigraphEl.style.opacity = ea.toFixed(3);
+    epigraphEl.style.pointerEvents = ea > 0.05 ? '' : 'none';
     const k = prog(progress, REVEAL.tree);
     if (bloom && bloom.t0 === null && k > 0.15) startBloom();
     sceneShift = (1 - k) * H * REVEAL.tree.dropFrom;

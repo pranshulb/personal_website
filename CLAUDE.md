@@ -258,7 +258,9 @@ vercel.json                 routing, headers, proxies
   blur gone as you scroll, the tree rising from a little low and faint to
   its place at full strength (`REVEAL` at the top of the script; the bg and
   scene canvases are translated and everything on the ground is kept in
-  ground coordinates, `sceneShift`). On phones the content wrap takes the
+  ground coordinates, `sceneShift`). The epigraph fades in under the
+  tree only once the words have gone (`REVEAL.epigraph`): at the foot of
+  the first screen it sat right on "the tree is below" on most iPhones. On phones the content wrap takes the
   finger everywhere so a swipe anywhere scrolls, and the touch handlers
   tell a tap from a swipe. It was tried at `/garden-home2` first
   (September 2026), which now redirects home.
