@@ -128,6 +128,23 @@ vercel.json                 routing, headers, proxies
   tree doing nothing — and a petal let go beside a still pointer was caught
   straight back. A click now lets go *and* shakes, and a petal let go
   (`letGo`) can't be caught again until it has left the pointer's reach.
+- **The tree coming into flower** (experiment on `/garden-home`, September
+  2026, resynced from `index.html` so it differs only by this): the bare
+  branches first, then the canopy opens from its heart outwards over
+  `REVEAL.bloom.seconds`, each clump swelling a little past its size; no
+  petal falls until it has flowered, then the first few let go. On phones
+  it waits until the tree scrolls into view. Off under reduced motion. It
+  plays on every visit there (`BLOOM_EVERY_VISIT`); for the home page the
+  idea is first visit only (localStorage `pcafe:bloomed`). Cost, measured:
+  redrawing all 5262 blossoms and 732 flowers per frame took 60-90ms on a
+  laptop and 400+ on a 4x-throttled phone, so the canopy is cut into
+  26px patches drawn once (exactly as the finished tree draws them,
+  blossoms and flowers on separate layers so the order matches), finished
+  patches are baked onto a layer, and only opening patches are drawn per
+  frame: 1-6ms a frame, ~0.1-0.4s of setup at load instead of the usual
+  full-tree draw. The last frame cross-fades into the finished tree (the
+  bake order shifts a few tones). The `?tune` panel has sliders for it;
+  changing one plays it again. The 3D tree that lived here is at `/3d`.
 - **The home page's ground is water** along the whole bottom (September
   2026), with the tree's mound an island in it; `onWater` is "below the
   water's top edge and off the island", so a tap, a stir or a landing petal
