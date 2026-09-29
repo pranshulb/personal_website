@@ -50,6 +50,12 @@
       ]
     },
     {
+      "source": "/visitors/hand-v1.bin",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
       "source": "/gladiator/assets/:path*",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }

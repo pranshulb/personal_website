@@ -27,10 +27,11 @@ const handlers = {
   approve: await imp('api/community/approve/[id].js'),
   reject: await imp('api/community/reject/[id].js'),
   edit: await imp('api/community/edit/[id].js'),
+  guestbook: await imp('api/guestbook.js'),
 };
 
 let ipSeq = 1;
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.bin': 'application/octet-stream' };
 
 const REWRITES = { '/community': 'community/index.html', '/community/suggest': 'community/suggest.html', '/community/admin': 'community/admin/index.html' };
 
@@ -58,7 +59,8 @@ function wrap(res) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + req.headers.host);
-  const m = url.pathname.match(/^\/api\/community\/([a-z-]+)(?:\/([^/]+))?$/);
+  const m = url.pathname === '/api/guestbook' ? [null, 'guestbook']
+    : url.pathname.match(/^\/api\/community\/([a-z-]+)(?:\/([^/]+))?$/);
   if (m) {
     if (process.env.LOG) console.log('REQ', req.method, url.pathname + url.search);
     const handler = handlers[m[1]];

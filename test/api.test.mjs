@@ -792,4 +792,107 @@ test('lock: the lock file never shows up as a version of the data', async () => 
   assert.equal((await getPending()).length, 1);
 });
 
+// ======================================================================
+// the visitors' book (api/guestbook.js)
+// ======================================================================
+
+const guestbook = await imp('api/guestbook.js');
+// a plausible signature: a few strokes, a name's worth of ink
+const ink = (n = 3) => Array.from({ length: n }, (_, i) => [i * 40, 10, i * 40 + 20, 50, i * 40 + 30, 20]);
+const sign = (body, headers) => call(guestbook, { method: 'POST', body, headers: { ...ip(), ...headers } });
+const readBook = async (headers) => (await call(guestbook, { method: 'GET', headers: { ...ip(), ...headers } })).body;
+
+test('guestbook: an empty book reads as [] and anyone can see it', async () => {
+  const body = await readBook();
+  assert.deepEqual(body.entries, []);
+  assert.equal(body.canRemove, false);
+});
+
+test('guestbook: signing keeps the name and the strokes, newest first', async () => {
+  assert.equal((await sign({ name: 'Ada', strokes: ink() })).statusCode, 200);
+  assert.equal((await sign({ name: 'Grace <b>', strokes: ink(4) })).statusCode, 200);
+  const { entries } = await readBook();
+  assert.deepEqual(entries.map((e) => e.name), ['Grace b', 'Ada']);
+  assert.deepEqual(entries[1].strokes, ink());
+  assert.equal(entries[1].w, 110);
+  assert.ok(entries[0].id && entries[0].date && entries[0].ts);
+});
+
+test('guestbook: names in any script are kept as typed', async () => {
+  assert.equal((await sign({ name: 'Zoë Ōkubo', strokes: ink() })).statusCode, 200);
+  assert.equal((await readBook()).entries[0].name, 'Zoë Ōkubo');
+});
+
+test('guestbook: a name the pen cannot write is kept without strokes', async () => {
+  assert.equal((await sign({ name: '李小龙' })).statusCode, 200);
+  const e = (await readBook()).entries[0];
+  assert.equal(e.name, '李小龙');
+  assert.equal(e.strokes, undefined);
+});
+
+test('guestbook: refuses a missing or overlong name, and junk strokes', async () => {
+  assert.equal((await sign({ name: '', strokes: ink() })).statusCode, 400);
+  assert.equal((await sign({ name: '!!!', strokes: ink() })).statusCode, 400);
+  assert.equal((await sign({ name: 'x'.repeat(41), strokes: ink() })).statusCode, 400);
+  for (const strokes of [[], 'abc', [[1, 2, 3]], [[1.5, 2]], [[-1, 2, 3, 4]], [[0, 0, 0, 0]], [['1', '2']]]) {
+    assert.equal((await sign({ name: 'Ada', strokes })).statusCode, 400, JSON.stringify(strokes));
+  }
+  assert.deepEqual((await readBook()).entries, []);
+});
+
+test('guestbook: a name gets a name\'s worth of ink, no more (no drawing pictures)', async () => {
+  const huge = [Array.from({ length: 2 * 400 }, (_, i) => (i % 2 ? 50 : i))];
+  assert.equal((await sign({ name: 'Al', strokes: huge })).statusCode, 400);
+  assert.equal((await sign({ name: 'Al', strokes: [[0, 0, 5000, 40]] })).statusCode, 400);
+  assert.equal((await sign({ name: 'Al', strokes: [[0, 0, 40, 2000]] })).statusCode, 400);
+});
+
+test('guestbook: honeypot submissions are accepted and discarded', async () => {
+  const res = await sign({ name: 'bot', strokes: ink(), website: 'http://spam' });
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual((await readBook()).entries, []);
+});
+
+test('guestbook: signing is rate limited per IP at 3/min', async () => {
+  const same = { 'x-forwarded-for': '203.0.113.9' };
+  for (let i = 0; i < 3; i++) assert.equal((await sign({ name: 'n' + i, strokes: ink() }, same)).statusCode, 200);
+  assert.equal((await sign({ name: 'n4', strokes: ink() }, same)).statusCode, 429);
+});
+
+test('guestbook: a read failure is a 503 and does not wipe the book', async () => {
+  await sign({ name: 'keep me', strokes: ink() });
+  T.fail.list = true;
+  assert.equal((await sign({ name: 'during outage', strokes: ink() })).statusCode, 503);
+  assert.equal((await call(guestbook, { method: 'GET', headers: ip() })).statusCode, 503);
+  T.fail.list = false;
+  assert.deepEqual((await readBook()).entries.map((e) => e.name), ['keep me']);
+});
+
+test('guestbook: simultaneous signatures are all kept', async () => {
+  const names = Array.from({ length: 8 }, (_, i) => 'guest ' + i);
+  const results = await Promise.all(names.map((name) => sign({ name, strokes: ink() })));
+  assert.ok(results.every((r) => r.statusCode === 200), results.map((r) => r.statusCode).join(','));
+  assert.deepEqual((await readBook()).entries.map((e) => e.name).sort(), names.sort());
+});
+
+test('guestbook: only the admin can remove, and sees that they can', async () => {
+  await sign({ name: 'stays', strokes: ink() });
+  await sign({ name: 'goes', strokes: ink() });
+  const { entries } = await readBook();
+  const goes = entries.find((e) => e.name === 'goes').id;
+  assert.equal((await call(guestbook, { method: 'DELETE', query: { id: goes }, headers: ip() })).statusCode, 401);
+  assert.equal((await readBook(ADMIN)).canRemove, true);
+  assert.equal((await call(guestbook, { method: 'DELETE', query: { id: goes }, headers: admin() })).statusCode, 200);
+  assert.equal((await call(guestbook, { method: 'DELETE', query: { id: goes }, headers: admin() })).statusCode, 404);
+  assert.deepEqual((await readBook()).entries.map((e) => e.name), ['stays']);
+});
+
+test('guestbook: its blobs never show up as community data (and vice versa)', async () => {
+  await sign({ name: 'Ada', strokes: ink() });
+  await suggestOne({ name: 'a place' });
+  assert.deepEqual((await getPlaces()).map((p) => p.name), []);
+  assert.equal((await getPending()).length, 1);
+  assert.equal((await readBook()).entries.length, 1);
+});
+
 await run();

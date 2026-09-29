@@ -258,6 +258,30 @@ vercel.json                 routing, headers, proxies
   of check. Every reading links out (books to Goodreads, films to
   Letterboxd, people and cited works to Wikipedia via `PEOPLE_LINKS` /
   `SOURCE_LINKS`); a new entry needs its `url`.
+- **The visitors' book** (September 2026) lives on `/garden`
+  (`garden.html`): "sign the visitors' book" under the title opens it, and
+  `/garden#visitors` opens it directly. It may move to the home page later,
+  on his word. A visitor types a name and a pen writes it out: a
+  handwriting network (Alex Graves's 2013 handwriting synthesis) running
+  in their browser, in a Web Worker —
+  `visitors/hand-core.js` (the network, plain JS, no libraries),
+  `visitors/hand-checks.js` (what makes a clean signature),
+  `visitors/hand-worker.js`, and the weights, `visitors/hand-v1.bin`
+  (3.8 MB, 8-bit; from X-rayLaser's pytorch-handwriting-synthesis-toolkit,
+  MIT). The weights load only when someone presses "write it"; reading
+  the book is just saved strokes drawn as SVG. The strokes are kept
+  (`api/guestbook.js`, Blob key `guestbook.json`, through the community
+  store's `mutate`), so everyone sees the same signature. Names the
+  network can't write (other scripts) go in as typed, in the page font.
+  **Removing an entry**: log in at `/community/admin` (same password),
+  then open the book — each entry has a "remove" link. The server can't
+  tell that the strokes spell the name, so it caps them at a name's worth
+  of ink. The network alone is glitchy the way calligrapher.ai is
+  (skipped letters, scribbles, never lifting the pen); what fixed it was
+  measured by reading hundreds of samples back with a handwriting
+  recogniser — see the top of `visitors/hand-checks.js` before changing
+  its numbers. Bump the file name (`hand-v2.bin`) if the weights change:
+  `vercel.json` caches it for a year.
 
 ### Routing and hosting
 

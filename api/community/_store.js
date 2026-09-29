@@ -36,7 +36,7 @@ export class StoreReadError extends Error {
 
 // Returns `fallback` only when the store is genuinely empty (nothing has ever
 // been written). Any failure to list, fetch or parse throws instead.
-async function readBlob(key, fallback) {
+export async function readBlob(key, fallback) {
   let blobs;
   try {
     // Prefix is the extension-less base, because addRandomSuffix inserts the
@@ -226,7 +226,9 @@ export function overwrite(key, data) {
 // had gone through.
 const MUTATE_ATTEMPTS = 4;
 
-async function mutate(key, fallback, mutator, isApplied, normalise = (x) => x, attempts = MUTATE_ATTEMPTS) {
+// Exported for the other lists that live in Blob (api/guestbook.js), so they get the
+// same lock, check and history rather than a second copy of this logic.
+export async function mutate(key, fallback, mutator, isApplied, normalise = (x) => x, attempts = MUTATE_ATTEMPTS) {
   return withLock(key, async () => {
     for (let i = 0; i < attempts; i++) {
       if (i > 0) await sleep(20 + Math.random() * 60);
@@ -451,6 +453,13 @@ export function sameOrigin(req) {
   } catch (e) {
     return false;
   }
+}
+
+// For public routes that show extra controls to the admin (the guestbook's
+// remove buttons). Never a substitute for requireAdmin on the write itself.
+export function isAdmin(req) {
+  if (!process.env.COMMUNITY_ADMIN_PASS) return false;
+  return cookieValid(req) || passwordMatches(req.headers['x-admin-pass']);
 }
 
 export function requireAdmin(req, res) {
