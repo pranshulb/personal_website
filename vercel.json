@@ -105,7 +105,7 @@
     },
     {
       "source": "/musings",
-      "destination": "/writings.html"
+      "destination": "/writings"
     },
     {
       "source": "/writings2",
@@ -113,7 +113,7 @@
     },
     {
       "source": "/musings/:slug(passion|feeling-empty|important-and-sadness|things-to-do-places-to-be|consume|how-to-network)",
-      "destination": "/writings/:slug.html"
+      "destination": "/writings/:slug"
     },
     {
       "source": "/things-i-like/two-men-contemplating-the-moon",
