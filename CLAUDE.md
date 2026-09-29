@@ -117,6 +117,20 @@ vercel.json                 routing, headers, proxies
   technical: this is how he steers the motion. The home page styles every
   `canvas` as `position: fixed`, so the panel's curve canvases set
   `position: relative` explicitly.
+- **`/page` is the writings as a book** (`page.html`, a trial from
+  September 2026, linked from nowhere and `noindex`): the 22 scanned pages
+  bound behind a cloth cover and a contents page, turned instead of
+  scrolled — a two-page spread where there is room, one page over a
+  binding on phones. The turn is a fold computed per frame in `frame()`
+  (clip-path polygons plus one matrix for the turned-over side), driven by
+  a click or tap, a dragged corner, a swipe, the arrow keys or the wheel.
+  The list of pieces and their page counts is `WRITINGS` at the top of the
+  script; a new piece goes there as well as on `/writings`. `/page#slug`
+  opens at that piece. Pages move between slots rather than being rebuilt,
+  so an image never reloads mid-turn. A touch starts out captured by the
+  element under the finger: only the book's own `lostpointercapture` may
+  end a drag, or every swipe on a phone cancels itself the moment it
+  starts (caught in testing, where mouse drags worked and swipes didn't).
 - **The home page on phones** puts the words on the first screen and the
   tree on the second: a viewport of room below the words, the card and its
   blur gone as you scroll, the tree rising from a little low and faint to
