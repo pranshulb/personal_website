@@ -14,6 +14,11 @@
    attribute (default: the page's `h1`); a word under the pointer sheds
    its petals. Keep this and the copy in index.html in step: shape,
    colours and physics are the same code, transcribed.
+
+   A page busy animating something of its own can set
+   `data-petals-hush` on <html>: while it's there, petals are drawn on
+   every other frame (they move just as fast, the steps are timed) and the
+   canvas costs half as much. The book page sets it while a page is turning.
    ================================================================ */
 (() => {
   const me = document.currentScript;
@@ -302,7 +307,8 @@
   // steps of a 60th of a second, however fast the screen refreshes
   // (one step per refresh ran everything twice as fast at 120Hz)
   const STEP = 1000 / 60;
-  let lastNow = performance.now(), acc = 0;
+  let lastNow = performance.now(), acc = 0, hushTick = 0;
+  const hushed = () => document.documentElement.hasAttribute('data-petals-hush');
   function frame(now) {
     if (now === undefined) now = performance.now();
     acc += Math.min(now - lastNow, 100); lastNow = now;
@@ -314,7 +320,7 @@
       updatePetals();
     }
     if (steps === 4) acc = 0;
-    if (steps) draw();
+    if (steps && !(hushed() && (++hushTick & 1))) draw();
     requestAnimationFrame(frame);
   }
 

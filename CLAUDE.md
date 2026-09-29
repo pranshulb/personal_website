@@ -253,6 +253,15 @@ vercel.json                 routing, headers, proxies
   technical: this is how he steers the motion. The home page styles every
   `canvas` as `position: fixed`, so the panel's curve canvases set
   `position: relative` explicitly.
+- **`/leaves-oz09` is the writings as a book whose pages turn**
+  (`leaves-oz09.html`, September 2026): a trial of turning pages instead
+  of scrolling, put live at an unguessable address so Pranshul can share
+  it. Linked from nowhere and `noindex`. It shows `writings/pages/*.webp`
+  (each SVG's 1860×2480 scan drawn out at 700/1100/1500px; remake them with
+  `writings/pages/make.mjs` when a writing changes), and sets
+  `<html data-petals-hush>` mid-turn so `petals.js` draws at half rate.
+  It was built and tuned on the branch `claude/fervent-rubin-di4ve3` as
+  `/page`, where the commit messages explain every choice.
 - **The home page on phones** puts the words on the first screen and the
   tree on the second: a viewport of room below the words, the card and its
   blur gone as you scroll, the tree rising from a little low and faint to

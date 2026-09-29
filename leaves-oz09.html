@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+  <title>writings — pranshul's cafe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
+  <style>
+    /* ================================================================
+       /page — the writings as a notebook whose pages turn.
+
+       A trial of the writings page (September 2026): instead of scrolling
+       down a column of scanned pages, the pages are bound into a book and
+       turned. On a wide screen it is an open two-page spread; on a phone
+       it is one page at a time, turning over a binding on the left.
+
+       A paper page turns as a real fold, not a card flipping: the corner
+       you grab follows the pointer, the fold line is halfway between where
+       the corner was and where it is now, the part beyond the fold is
+       reflected across it (showing the back of the page), and the page
+       underneath shows through where the turned part was. All of it is
+       clip-path polygons and one matrix (drawPaper()). The covers are
+       boards and swing on the spine in 3D instead (drawBoard()), as they do
+       in turn.js and StPageFlip; the shading follows StPageFlip's.
+
+       Everything moves in one requestAnimationFrame loop (tick()): a tap
+       plays a turn along an arc with its own timing curve, a dragged page
+       trails the finger slightly, and a page let go carries on at the
+       hand's speed and settles on a spring. The numbers are in TURN.
+       ================================================================ */
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      color: #3a2f2f;
+      background: #faf5ef;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .top { flex: none; position: relative; text-align: center; padding: 1.1rem 4.5rem 0; }
+    .back {
+      position: absolute; top: 1.5rem; left: 1.5rem;
+      font-size: 0.9rem; color: #b09a8a; text-decoration: none;
+      transition: color 0.3s ease; z-index: 10;
+    }
+    .back:hover { color: #3a2f2f; }
+    h1.desk-title { font-weight: 400; line-height: 1.25; display: inline-block; }
+
+    .epigraph {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      font-size: 0.85rem; color: #c4a0a0; letter-spacing: 0.03em; z-index: 10;
+    }
+    @media (max-width: 760px) { .epigraph { display: none; } }
+
+    /* ---- the desk and the book ---- */
+    .stage { flex: 1; position: relative; min-height: 0; }
+    .book {
+      position: absolute; left: 0; top: 0;
+      width: calc(var(--pw) * 2); height: var(--ph);
+      touch-action: pinch-zoom;      /* one finger turns pages; two still zoom */
+      user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .book.ready { opacity: 1; }
+    .book.zoomed { touch-action: auto; }
+    .book.dragging { cursor: grabbing; }
+
+    .slot { position: absolute; top: 0; width: var(--pw); height: var(--ph); overflow: hidden; }
+    .slot[hidden], .flap[hidden], .stack[hidden] { display: none; }
+    .slot .holder { position: absolute; inset: 0; }
+    #slotA { left: 0; z-index: 2; }
+    #slotB { left: var(--pw); z-index: 2; }
+    #slotU { z-index: 1; pointer-events: none; }
+    /* each page on its own layer, so reshaping one mid-turn doesn't redraw the
+       others (measured: about a third fewer late frames during a turn) */
+    #slotA, #slotB, #slotU { will-change: transform; }
+    #slotK { left: 0; transform-origin: 0 0; }
+    .flap {
+      position: absolute; left: 0; top: 0; width: calc(var(--pw) * 2); height: var(--ph);
+      z-index: 4; pointer-events: none;
+    }
+    /* the turned-over part: a hairline and a little shade along its edges,
+       so white paper over white paper still reads as two sheets. (It had a
+       blurred drop-shadow on desktops too; a blur is redone every frame of a
+       turn and was most of the turn's cost, so no.) */
+    #slotK { box-shadow: inset 0 0 0 0.5px rgba(58, 47, 47, 0.22), inset 0 0 calc(var(--u) * 1.6) rgba(58, 47, 47, 0.07); }
+
+    /* the shading that makes a fold read as a fold: a shadow cast on the
+       page underneath, along the fold, and a sheen on the turned-over part */
+    .shade {
+      position: absolute; left: 0; top: 0; height: 6000px; width: 10px;
+      transform-origin: 0 0; pointer-events: none; opacity: 0;
+    }
+    .shade.cast { background: linear-gradient(to right, rgba(35, 22, 18, 0.42), rgba(35, 22, 18, 0.17) 22%, rgba(35, 22, 18, 0.05) 58%, rgba(35, 22, 18, 0)); }
+    .shade.curve { background: linear-gradient(to right, rgba(60, 40, 30, 0.15), rgba(60, 40, 30, 0.05) 45%, rgba(60, 40, 30, 0)); }
+    .shade.sheen { background: linear-gradient(to right, rgba(60, 40, 30, 0.24) 0%, rgba(255, 251, 244, 0.32) 7%, rgba(60, 40, 30, 0.13) 24%, rgba(60, 40, 30, 0.04) 58%, rgba(60, 40, 30, 0) 100%); }
+    .shade.land { background: linear-gradient(to right, rgba(35, 22, 18, 0.3), rgba(35, 22, 18, 0.1) 45%, rgba(35, 22, 18, 0)); }
+    .dim { position: absolute; inset: 0; background: #2a1a14; opacity: 0; pointer-events: none; z-index: 3; }
+    /* the binding: a crisp line where the pages meet, soft on either side */
+    .spine {
+      position: absolute; top: 0; left: calc(var(--pw) * 0.95); width: calc(var(--pw) * 0.1); height: var(--ph);
+      z-index: 2; pointer-events: none; opacity: 0;
+      background: linear-gradient(to right, rgba(40, 25, 20, 0) 0%, rgba(40, 25, 20, 0.07) 40%, rgba(40, 25, 20, 0.035) 49%, rgba(40, 25, 20, 0.2) 50%, rgba(40, 25, 20, 0.11) 51.5%, rgba(40, 25, 20, 0) 100%);
+    }
+
+    /* the thickness of the pages still to come (right) and already read (left) */
+    .stack { position: absolute; top: 0; width: var(--pw); height: var(--ph); background: #f7f1e8; border-radius: 2px; }
+    #stackL { left: 0; }
+    #stackR { left: var(--pw); }
+
+    /* ---- the faces: what is printed on each side of a page ---- */
+    .face { position: absolute; inset: 0; background: #fefcf8; overflow: hidden; }
+    .face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; -webkit-user-drag: none; }
+    /* the gutter: pages darken a little where they curve into the binding */
+    .face::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    .face.rside::after { background: linear-gradient(to right, rgba(58, 47, 47, 0.1), rgba(58, 47, 47, 0.03) 5%, rgba(58, 47, 47, 0) 11%); }
+    .face.lside::after { background: linear-gradient(to left, rgba(58, 47, 47, 0.1), rgba(58, 47, 47, 0.03) 5%, rgba(58, 47, 47, 0) 11%); }
+    .folio { position: absolute; bottom: 2.4%; font-size: calc(var(--u) * 3.1); color: #b8a090; z-index: 1; }
+    .rside .folio { right: 5.5%; }
+    .lside .folio { left: 5.5%; }
+
+    /* the covers: dusty rose cloth, a paper label, an elastic strap */
+    .face.cover, .face.backcover {
+      background-color: #b98378;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(60, 30, 25, 0.05) 0 1px, transparent 1px 3px);
+    }
+    .face.cover { border-radius: 0 calc(var(--u) * 1.4) calc(var(--u) * 1.4) 0; box-shadow: inset calc(var(--u) * 1.6) 0 calc(var(--u) * 1.6) calc(var(--u) * -1.2) rgba(40, 20, 15, 0.45); }
+    .face.backcover { border-radius: calc(var(--u) * 1.4) 0 0 calc(var(--u) * 1.4); box-shadow: inset calc(var(--u) * -1.6) 0 calc(var(--u) * 1.6) calc(var(--u) * -1.2) rgba(40, 20, 15, 0.45); }
+    .face.cover::after, .face.backcover::after { display: none; }
+    .strap { position: absolute; top: 0; bottom: 0; width: 3.6%; background: linear-gradient(90deg, #5c3833, #7d4c45 45%, #5c3833); box-shadow: 1px 0 2px rgba(0, 0, 0, 0.25); }
+    .cover .strap { right: 9%; }
+    .backcover .strap { left: 9%; }
+    .cover .label {
+      position: absolute; left: 17%; right: 17%; top: 31%;
+      padding: 7% 4% 6%; text-align: center;
+      background: #faf5ef; border: 1px solid #d4a080;
+      box-shadow: 0 0 0 calc(var(--u) * 0.9) #faf5ef, 0 0 0 calc(var(--u) * 0.9 + 1px) #d4a080, 0 calc(var(--u) * 0.8) calc(var(--u) * 1.6) rgba(40, 20, 15, 0.3);
+    }
+    .book .lt, .book .c-title { font-family: 'Princess Sofia', cursive !important; font-weight: 400; }
+    .cover .lt { display: block; font-size: calc(var(--u) * 10.5); line-height: 1.15; color: #3a2f2f; }
+    .cover .lb { display: block; font-size: calc(var(--u) * 3.4); color: #6a5545; margin-top: calc(var(--u) * 1.5); letter-spacing: 0.04em; }
+    .backcover .mark { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font-size: calc(var(--u) * 2.8); color: rgba(250, 245, 239, 0.7); letter-spacing: 0.06em; }
+
+    /* endpapers: sprigged paper, a slip of writing on it */
+    .face.endpaper, .face.endpaper-back {
+      background-color: #f6e8e2;
+      background-image:
+        radial-gradient(ellipse 3px 2px at 50% 50%, #eab8c2 60%, transparent 70%),
+        radial-gradient(ellipse 2px 3px at 50% 50%, #efc9cf 60%, transparent 70%);
+      background-size: 34px 34px, 34px 34px;
+      background-position: 0 0, 17px 17px;
+    }
+    .slip {
+      position: absolute; left: 13%; right: 13%; top: 38%;
+      padding: 7% 6%; text-align: center; background: #fefcf8;
+      box-shadow: 0 1px 3px rgba(58, 47, 47, 0.15);
+      font-size: calc(var(--u) * 3.7); line-height: 1.55; color: #6a5545;
+      transform: rotate(-1.4deg);
+    }
+    .endpaper-back .slip { top: 30%; transform: rotate(1.1deg); }
+    .slip em { font-style: italic; }
+    .slip .star { display: block; color: #d4a080; margin-bottom: calc(var(--u) * 2); }
+    .slip button, .slip a {
+      font: inherit; font-size: calc(var(--u) * 3.4); color: #c47a7a; background: none; border: 0;
+      cursor: pointer; text-decoration: underline; text-decoration-color: #e0b8b0; text-underline-offset: 3px;
+      display: inline-block; margin-top: calc(var(--u) * 3);
+    }
+    .slip button:hover, .slip a:hover { color: #3a2f2f; text-decoration-color: #3a2f2f; }
+    .slip .sep { color: #d4bfb0; margin: 0 0.5em; }
+
+    .face.blank .star, .face.paperback .star { position: absolute; left: 0; right: 0; top: 47%; text-align: center; color: #e0c8b4; font-size: calc(var(--u) * 3.4); }
+    /* a page's back in the one-page view: blank, with the ink of the other
+       side just showing through, the way it does in a real notebook */
+    .face.paperback { background: #fbf7f1; }
+    .face.paperback img.ghost { transform: scaleX(-1); opacity: 0.07; }
+
+    /* the contents */
+    .contents { padding: 13% 11% 8%; }
+    .c-title { display: block; font-size: calc(var(--u) * 10); line-height: 1.15; margin-bottom: calc(var(--u) * 2.5); }
+    .c-sub { font-size: calc(var(--u) * 3.5); line-height: 1.55; color: #b09a8a; font-style: italic; margin-bottom: calc(var(--u) * 7); }
+    .toc { list-style: none; }
+    .toc button {
+      font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left;
+      width: 100%; display: flex; align-items: baseline; gap: calc(var(--u) * 1.6);
+      padding: calc(var(--u) * 1.7) 0; font-size: calc(var(--u) * 4.1); line-height: 1.35;
+    }
+    .toc .t { flex: 0 1 auto; }
+    .toc .dots { flex: 1 0 calc(var(--u) * 4); border-bottom: 1px dotted #d4bfb0; transform: translateY(-0.28em); }
+    .toc .num { flex: none; color: #b8a090; font-size: 0.8em; }
+    .toc button:hover .t { text-decoration: underline; text-decoration-color: #c4a0a0; text-underline-offset: 3px; }
+    .book button:focus-visible, .book a:focus-visible, .bar button:focus-visible { outline: 1px dotted #c47a7a; outline-offset: 3px; }
+
+    /* ---- under the book: where you are, and a way to turn without the pages ---- */
+    .bar {
+      flex: none; height: 3.4rem; display: flex; align-items: center; justify-content: center; gap: 1.1rem;
+      color: #b09a8a; font-size: 0.95rem; padding: 0 1rem;
+    }
+    .bar button {
+      font: inherit; font-size: 1.35rem; line-height: 1; color: #b09a8a; background: none; border: 0;
+      cursor: pointer; padding: 0.3rem 0.6rem; transition: color 0.2s ease, opacity 0.2s ease;
+    }
+    .bar button:hover { color: #3a2f2f; }
+    .bar button:disabled { opacity: 0.25; cursor: default; color: #b09a8a; }
+    .where { min-width: 12rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .where .pg { color: #c4b0a0; font-size: 0.85em; margin-left: 0.4em; }
+
+    /* the home page's paper grain. The other pages draw it at twice the
+       screen's size; here it never moves, so the screen's size is enough, and
+       a quarter of the texture (47MB less on a 3x phone) */
+    .grain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; opacity: 0.12; }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+
+<style id="enola-font-override">
+  body, body *{font-family:'Unkempt',cursive !important;}
+  body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
+</style>
+</head>
+<body>
+
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<div class="top">
+  <a href="/writings" class="back">← back</a>
+  <h1 class="desk-title">writings</h1>
+</div>
+
+<main class="stage" id="stage">
+  <div class="book" id="book" role="region" aria-label="the writings, as a book">
+    <div class="stack" id="stackL" hidden></div>
+    <div class="stack" id="stackR" hidden></div>
+    <div class="slot" id="slotU" hidden><div class="holder"></div><div class="shade cast"></div></div>
+    <div class="slot" id="slotA" hidden><div class="holder"></div><div class="shade curve"></div><div class="shade land"></div><div class="dim"></div></div>
+    <div class="slot" id="slotB" hidden><div class="holder"></div><div class="shade curve"></div><div class="shade land"></div><div class="dim"></div></div>
+    <div class="spine" id="spine"></div>
+    <div class="flap" id="flap" hidden>
+      <div class="slot" id="slotK"><div class="holder"></div><div class="shade sheen"></div><div class="dim"></div></div>
+    </div>
+  </div>
+</main>
+
+<nav class="bar" aria-label="turn the page">
+  <button type="button" id="prev" aria-label="previous page">‹</button>
+  <span class="where" id="where" aria-live="polite"></span>
+  <button type="button" id="next" aria-label="next page">›</button>
+</nav>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<script>
+(() => {
+  // The book's contents, in the order of the writings page. `pages` is how
+  // many scanned pages each has: /writings/<slug>-1.svg … -<pages>.svg
+  const WRITINGS = [
+    { slug: 'passion', title: 'passion', pages: 3 },
+    { slug: 'feeling-empty', title: 'feeling empty', pages: 5 },
+    { slug: 'important-and-sadness', title: "what's really important and about sadness", pages: 5 },
+    { slug: 'things-to-do-places-to-be', title: 'things to do, places to be', pages: 2 },
+    { slug: 'consume', title: 'consume', pages: 6 },
+    { slug: 'how-to-network', title: 'how to network', pages: 1 },
+  ];
+
+  // How a turn feels. Times in ms unless it says otherwise.
+  const TURN = {
+    ms: 800,                    // a whole turn from a tap, a key or the buttons (set from the page's width in layout())
+    coverMs: 1050,              // the covers are boards and swing on the spine, a little slower
+    quick: 0.55,                // a turn queued behind another (tapping fast) takes this share of the time
+    ease: [0.36, 0, 0.18, 1],   // its timing, as a CSS cubic-bezier: a slow lift, a quick middle, a long soft landing
+    arc: 0.14,                  // how high the corner rises on the way over, as a share of the page's height
+    follow: 0,                  // a dragged page trails the finger by this many seconds (0: right under it; 0.03 felt laggy)
+    spring: 11,                 // let go, it finishes (or falls back) on a spring this stiff, carrying the hand's speed
+    dragDone: 0.3,              // let go with the corner this far past the middle and it turns (two-page view)…
+    flick: 0.35,                // …or moving this fast towards the spine, in px per ms
+    peekRadius: 90,             // how near a corner the mouse must be for the page to lift (desktop)…
+    peekLift: 70,               // …and how far it lifts
+  };
+
+  const AR = 595.28 / 841.89;          // an A4 page, which is what the scans are
+  const $ = id => document.getElementById(id);
+  const stage = $('stage'), book = $('book'), flap = $('flap');
+  const slotA = $('slotA'), slotB = $('slotB'), slotU = $('slotU'), slotK = $('slotK');
+  const stackL = $('stackL'), stackR = $('stackR');
+  const castEl = slotU.querySelector('.cast'), sheenEl = slotK.querySelector('.sheen'), spineEl = $('spine');
+  const shades = book.querySelectorAll('.shade, .dim');
+  const prevBtn = $('prev'), nextBtn = $('next'), whereEl = $('where');
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  /* ---------------- the book: pages and leaves ----------------
+     A page is one side of paper. A leaf is one sheet: a front (a right-hand
+     page) and a back (the left-hand page it becomes once turned). The state
+     `s` is how many leaves have been turned: the right page showing is
+     leaves[s].front, the left page is leaves[s-1].back.
+
+     Two-page view: pages pair up into leaves, a cover first, and each piece
+     starts on a left-hand page so its first two pages open together (a
+     blank with a small star fills in where needed).
+     One-page view: every page is its own leaf with a blank back. */
+  let spread = false, leaves = [], L = 0, maxS = 0, s = 0, W = 0, H = 0;
+
+  function build(sp) {
+    const P = [];
+    P.push({ kind: 'cover', key: 'cover' });
+    if (sp) P.push({ kind: 'endpaper', key: 'endpaper' });
+    P.push({ kind: 'contents', key: 'contents' });
+    let folio = 0;
+    WRITINGS.forEach((w, wi) => {
+      if (sp && P.length % 2 === 0) P.push({ kind: 'blank', key: 'blank' + P.length });
+      for (let n = 1; n <= w.pages; n++) P.push({ kind: 'scan', wi, n, folio: ++folio, key: 'scan:' + wi + ':' + n });
+    });
+    if (sp && P.length % 2 === 1) P.push({ kind: 'blank', key: 'blank' + P.length });
+    P.push({ kind: 'endpaper-back', key: 'end' });
+    if (sp) P.push({ kind: 'backcover', key: 'backcover' });
+
+    const out = [];
+    if (sp) for (let i = 0; i < P.length; i += 2) out.push({ front: P[i], back: P[i + 1] });
+    else P.forEach((d, i) => out.push({ front: d, back: { kind: 'paperback', of: d, key: 'pb' + i } }));
+    out.forEach(l => { l.front.side = 'rside'; l.back.side = 'lside'; });
+    return out;
+  }
+  // the first page of each piece, for the contents page's numbers
+  const firstFolio = []; { let f = 1; WRITINGS.forEach(w => { firstFolio.push(f); f += w.pages; }); }
+
+  /* ---------------- what is printed on each page ---------------- */
+  const nodes = new Map();
+  function nodeFor(d) {
+    let el = nodes.get(d);
+    if (el) return el;
+    el = document.createElement('div');
+    el.className = 'face ' + d.kind + ' ' + d.side;
+    if (d.kind === 'scan') {
+      const w = WRITINGS[d.wi], img = new Image();
+      img.decoding = 'async'; img.draggable = false;
+      img.alt = w.title + (w.pages > 1 ? ', page ' + d.n + ' of ' + w.pages : '');
+      // Not the SVGs the writings pages use: each of those wraps a 1860×2480
+      // scan, 18MB once decoded, shrunk again on every frame a page moves —
+      // a phone ran out of memory and stuttered. These are the same pages
+      // drawn out at three widths (writings/pages/, made from the SVGs; see
+      // CLAUDE.md), and the browser takes the one the screen needs.
+      const base = '/writings/pages/' + w.slug + '-' + d.n + '-';
+      img.sizes = W + 'px';
+      img.srcset = base + '700.webp 700w, ' + base + '1100.webp 1100w, ' + base + '1500.webp 1500w';
+      img.src = base + '1100.webp';
+      const f = document.createElement('span'); f.className = 'folio'; f.textContent = d.folio;
+      el.append(img, f);
+    } else if (d.kind === 'paperback') {
+      if (d.of.kind === 'scan') {
+        const w = WRITINGS[d.of.wi], img = new Image();
+        img.className = 'ghost'; img.alt = ''; img.decoding = 'async'; img.draggable = false;
+        img.src = '/writings/pages/' + w.slug + '-' + d.of.n + '-700.webp';
+        el.append(img);
+      }
+    } else if (d.kind === 'cover') {
+      el.innerHTML = '<div class="strap"></div><div class="label"><span class="lt">writings</span><span class="lb">pranshul</span></div>';
+    } else if (d.kind === 'backcover') {
+      el.innerHTML = '<div class="strap"></div><div class="mark">pranshul.cafe</div>';
+    } else if (d.kind === 'endpaper') {
+      el.innerHTML = '<p class="slip"><em>cherry blossoms fall at 5 centimeters per second.</em></p>';
+    } else if (d.kind === 'endpaper-back') {
+      el.innerHTML = '<div class="slip"><span class="star">✦</span>that\'s all, for now.<br>' +
+        '<button type="button" data-go="contents">back to the contents</button><span class="sep">·</span><a href="/writings">all writings</a></div>';
+    } else if (d.kind === 'blank') {
+      el.innerHTML = '<span class="star">✦</span>';
+    } else if (d.kind === 'contents') {
+      el.classList.add('contents');
+      el.innerHTML = '<span class="c-title">writings</span>' +
+        '<p class="c-sub">I am thinking out loud and taking you through this journey with me.</p>' +
+        '<ol class="toc">' + WRITINGS.map((w, i) =>
+          '<li><button type="button" data-go="' + w.slug + '"><span class="t">' + w.title + '</span><span class="dots"></span><span class="num">' + firstFolio[i] + '</span></button></li>'
+        ).join('') + '</ol>';
+    }
+    nodes.set(d, el);
+    return el;
+  }
+  // put a page into a slot. Moving the same element between slots keeps its
+  // image decoded, so a page never flashes blank when it changes slot.
+  function show(slot, d) {
+    const holder = slot.firstElementChild;
+    if (!d) { slot.hidden = true; holder.replaceChildren(); return; }
+    const n = nodeFor(d);
+    if (n.parentNode !== holder) holder.replaceChildren(n);
+    slot.hidden = false;
+  }
+  // start fetching the pages a turn or two away
+  // and decode the ones a turn away, so the first frame of a turn doesn't
+  // wait on a picture (only those: every decoded page holds several MB)
+  function preload() {
+    for (let j = Math.max(0, s - 2); j <= Math.min(L - 1, s + 2); j++) {
+      for (const d of [leaves[j].front, leaves[j].back]) {
+        const img = nodeFor(d).querySelector('img');
+        if (img && Math.abs(j - s) <= 1 && !img.dataset.decoded && img.decode) { img.dataset.decoded = '1'; img.decode().catch(() => { delete img.dataset.decoded; }); }
+      }
+    }
+  }
+
+  /* ---------------- size and place ---------------- */
+  function layout() {
+    const sw = stage.clientWidth, sh = stage.clientHeight - 6;
+    const hSpread = Math.min(sh, (sw - 48) / 2 / AR);
+    const hSingle = Math.min(sh, (sw - 32) / AR);
+    // two pages side by side unless that would make them much smaller than one alone
+    const sp = hSpread >= hSingle * 0.75;
+    H = Math.max(120, Math.floor(sp ? hSpread : hSingle));
+    W = Math.floor(H * AR);
+    book.style.setProperty('--pw', W + 'px');
+    book.style.setProperty('--ph', H + 'px');
+    book.style.setProperty('--u', (W / 100) + 'px');
+    TURN.ms = Math.round(560 + W * 0.6);           // a wider page takes a little longer to cross
+    for (const n of nodes.values()) { const img = n.querySelector('img[srcset]'); if (img) img.sizes = W + 'px'; }
+    if (sp !== spread || !leaves.length) {
+      spread = sp; leaves = build(sp); L = leaves.length;
+      maxS = spread ? L : L - 1;      // one page at a time: the last page stays, there is no back cover to close
+    }
+  }
+  // a closed book sits in the middle of the desk, not off to one side
+  const offsetFor = st => spread ? (st === 0 ? -W / 2 : st === L ? W / 2 : 0) : 0;
+  function placeBook(off) {
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const spine = spread ? sw / 2 : (sw - W) / 2;
+    book.style.transform = 'translate(' + (spine - W + off).toFixed(1) + 'px,' + Math.max(0, (sh - H) / 2).toFixed(1) + 'px)';
+  }
+  function paintStack(el, visible, count, dir) {
+    if (!visible) { el.hidden = true; return; }
+    el.hidden = false;
+    const n = Math.min(5, Math.ceil(count / 2)), sh = [];
+    for (let i = 1; i <= n; i++) sh.push((dir * i * 1.3).toFixed(1) + 'px ' + (i * 1).toFixed(1) + 'px 0 -0.4px ' + (i % 2 ? '#eee3d5' : '#e2d4c2'));
+    sh.push((dir * 5) + 'px 16px 30px rgba(58, 47, 47, 0.16)');
+    el.style.boxShadow = sh.join(',');
+  }
+  // state `left` has leaves[left-1].back on the left, with left-1 pages
+  // beneath it; state `right` has leaves[right].front on the right, with
+  // L-right-1 beneath it
+  function stacks(left, right) {
+    if (left != null) paintStack(stackL, spread && left > 0, left - 1, -1);
+    if (right != null) paintStack(stackR, right < L, L - right - 1, 1);
+  }
+
+  function renderStatic() {
+    slotA.style.clipPath = slotB.style.clipPath = '';
+    slotA.style.zIndex = slotB.style.zIndex = '';
+    // the pages that were turning become the pages at rest (moved, not rebuilt)
+    show(slotA, spread && s > 0 ? leaves[s - 1].back : null);
+    show(slotB, s < L ? leaves[s].front : null);
+    show(slotU, null); show(slotK, null); flap.hidden = true;
+    stacks(s, s);
+    placeBook(offsetFor(s));
+    spineEl.style.opacity = spineOpen(s);
+    ui();
+    preload();
+  }
+
+  /* ---------------- the turn ----------------
+     Worked in the turning page's own coordinates: the spine is x = 0, the
+     page runs to x = W, and the corner being turned is C = (W, H). A top
+     corner or a left-hand page is the same picture mirrored, which is all
+     toBook / fromBook do. P is where the corner is now. */
+  let mode = 'idle';          // idle | peek | drag | play (a whole turn from a tap or a key) | spring (let go)
+  let turn = null, raf = 0;
+  let pending = 0;            // turns asked for while one was under way: +n forward, -n back
+
+  const canTurn = dir => dir > 0 ? s < maxS : s > 0;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const spineOpen = st => spread && st > 0 && st < L ? 1 : 0;
+
+  // CSS's cubic-bezier(), for the turns that play on their own
+  function cubicBezier(x1, y1, x2, y2) {
+    const bx = t => 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t;
+    const by = t => 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+    return x => {
+      if (x <= 0) return 0; if (x >= 1) return 1;
+      let lo = 0, hi = 1, t = x;
+      for (let i = 0; i < 22; i++) { t = (lo + hi) / 2; if (bx(t) < x) lo = t; else hi = t; }
+      return by(t);
+    };
+  }
+  const ease = cubicBezier.apply(null, TURN.ease);
+  const onCurve = (p, e) => {
+    const u = 1 - e, a = u * u * u, b = 3 * u * u * e, c = 3 * u * e * e, d = e * e * e;
+    return { x: a * p[0].x + b * p[1].x + c * p[2].x + d * p[3].x, y: a * p[0].y + b * p[1].y + c * p[2].y + d * p[3].y };
+  };
+
+  function begin(dir, corner, target) {
+    if (target === undefined) target = s + dir;
+    target = clamp(target, 0, maxS);
+    if (target === s || Math.sign(target - s) !== dir) return false;
+    // the covers are boards: they swing on the spine instead of bending
+    const hard = dir > 0 ? (s === 0 || (spread && target === L)) : (target === 0 || (spread && s === L));
+    turn = { dir, corner, target, hard, P: { x: W, y: H }, V: { x: 0, y: 0 }, th: 0, vth: 0, goal: { x: W, y: H }, goalTh: 0, last: 0 };
+    turn.leaf = dir > 0 ? slotB : slotA;           // the page being lifted
+    turn.other = dir > 0 ? slotA : slotB;          // the page that stays where it is
+    turn.leafLeft = dir > 0 ? W : 0;
+    turn.finalLeft = dir > 0 ? 0 : W;              // where its other side ends up
+    if (dir > 0) {
+      show(slotK, leaves[target - 1].back);
+      show(slotU, target < L ? leaves[target].front : null);
+      slotU.style.left = W + 'px';
+      stacks(null, target);
+    } else {
+      show(slotK, leaves[target].front);
+      show(slotU, spread && target > 0 ? leaves[target - 1].back : null);
+      slotU.style.left = '0px';
+      stacks(target, null);
+      if (!spread) slotA.hidden = true;           // one page at a time: the page coming back arrives from off the edge
+    }
+    turn.leaf.style.zIndex = 3;
+    if (hard) {
+      turn.leaf.style.transformOrigin = dir > 0 ? '0 50%' : '100% 50%';
+      slotK.style.left = turn.finalLeft + 'px';
+      slotK.style.transformOrigin = dir > 0 ? '100% 50%' : '0 50%';
+    }
+    flap.hidden = false;
+    flap.style.visibility = 'hidden';
+    return true;
+  }
+
+  function end(complete) {
+    if (!turn) return;
+    if (complete) s = turn.target;
+    for (const el of [slotA, slotB]) { el.style.transform = el.style.transformOrigin = el.style.visibility = ''; }
+    slotK.style.transform = slotK.style.clipPath = slotK.style.left = slotK.style.transformOrigin = '';
+    for (const el of shades) el.style.opacity = 0;
+    turn = null; mode = 'idle';
+    document.documentElement.removeAttribute('data-petals-hush');
+    book.classList.remove('dragging');
+    renderStatic();
+    if (pending) { const d = Math.sign(pending); pending -= d; go(d, 'b', true); }
+  }
+
+  // the corner can't be pulled further from the spine than the paper reaches
+  function constrain(p) {
+    let x = p.x, y = Math.min(p.y, H);
+    let d = Math.hypot(x, y - H);                   // from the spine's near end: at most the page's width
+    if (d > W) { x = x * W / d; y = H + (y - H) * W / d; }
+    const D = Math.hypot(W, H);
+    d = Math.hypot(x, y);                           // from its far end: at most the diagonal
+    if (d > D) { x = x * D / d; y = y * D / d; }
+    return { x, y };
+  }
+
+  function clipRect(fn) {             // the part of a W×H page where fn >= 0, as a polygon
+    const R = [[0, 0], [W, 0], [W, H], [0, H]], out = [];
+    for (let i = 0; i < 4; i++) {
+      const a = R[i], b = R[(i + 1) % 4], fa = fn(a), fb = fn(b);
+      if (fa >= 0) out.push(a);
+      if ((fa >= 0) !== (fb >= 0)) { const t = fa / (fa - fb); out.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]); }
+    }
+    return out.length < 3 ? 'polygon(0 0, 0 0, 0 0)' : 'polygon(' + out.map(p => p[0].toFixed(2) + 'px ' + p[1].toFixed(2) + 'px').join(',') + ')';
+  }
+  // a band of shading whose near edge lies along a line through q, fading in direction dirv
+  function band(el, q, dirv, width, opacity) {
+    el.style.width = width.toFixed(1) + 'px';
+    el.style.transform = 'translate(' + q.x.toFixed(2) + 'px,' + q.y.toFixed(2) + 'px) rotate(' + Math.atan2(dirv.y, dirv.x).toFixed(4) + 'rad) translate(0,-50%)';
+    el.style.opacity = clamp(opacity, 0, 1).toFixed(3);
+  }
+
+  function draw() {
+    const t = turn;
+    const prog = t.hard ? clamp(t.th / Math.PI, 0, 1) : clamp((W - t.P.x) / (2 * W), 0, 1);
+    placeBook(offsetFor(s) + (offsetFor(t.target) - offsetFor(s)) * prog);
+    spineEl.style.opacity = spineOpen(s) + (spineOpen(t.target) - spineOpen(s)) * prog;
+    if (t.hard) drawBoard(); else drawPaper(prog);
+  }
+
+  // A paper page: a fold. The corner is at P; the fold is halfway between
+  // where the corner was (C) and P; what is beyond the fold is lifted over.
+  function drawPaper(prog) {
+    const t = turn, dir = t.dir, cb = t.corner === 'b';
+    const P = t.P = constrain(t.P);
+    const toBook = (p, d) => ({ x: (d || dir) > 0 ? W + p.x : W - p.x, y: cb ? p.y : H - p.y });
+    const fromBook = (X, Y, d) => ({ x: (d || dir) > 0 ? X - W : W - X, y: cb ? Y : H - Y });
+
+    const dx = W - P.x, dy = H - P.y, dist = Math.hypot(dx, dy);
+    const curveEl = t.leaf.querySelector('.curve');
+    if (dist < 0.5) { t.leaf.style.clipPath = ''; flap.style.visibility = 'hidden'; castEl.style.opacity = curveEl.style.opacity = 0; return; }
+    flap.style.visibility = '';
+    const n = { x: dx / dist, y: dy / dist };                       // points from the fold towards where the corner was
+    const Q = { x: (W + P.x) / 2, y: (H + P.y) / 2 };               // a point on the fold
+    const side = p => (p.x - Q.x) * n.x + (p.y - Q.y) * n.y;        // > 0: the part that has been lifted over
+
+    // the page being turned keeps only what hasn't been lifted
+    t.leaf.style.clipPath = clipRect(v => 0.6 - side(fromBook(t.leafLeft + v[0], v[1])));
+    // its other side: only the lifted part, reflected across the fold.
+    // A point of that page, where it is on paper…
+    const onPaper = (ex, ey) => fromBook(t.finalLeft + ex, ey, -dir);
+    slotK.style.clipPath = clipRect(v => side(onPaper(v[0], v[1])) + 0.6);
+    // …and where it shows: reflected across the fold. That is a rotation
+    // and a shift, so one matrix places the whole page.
+    const shown = (ex, ey) => { const p = onPaper(ex, ey), k = 2 * side(p); return toBook({ x: p.x - k * n.x, y: p.y - k * n.y }); };
+    const o = shown(0, 0), ax = shown(1, 0), ay = shown(0, 1);
+    slotK.style.transform = 'matrix(' + [ax.x - o.x, ax.y - o.y, ay.x - o.x, ay.y - o.y, o.x, o.y].map(v => v.toFixed(4)).join(',') + ')';
+
+    // The shading (after StPageFlip's): it comes in as the page lifts off
+    // and goes as the page lies down on the other side.
+    const rise = Math.min(1, dist / (W * 0.25)), lying = Math.pow(1 - prog, 0.6);
+    const qb = toBook(Q), nb = toBook({ x: Q.x + n.x, y: Q.y + n.y }), mb = toBook({ x: Q.x - n.x, y: Q.y - n.y });
+    // the shadow the lifted part casts on the page it uncovers
+    band(castEl, { x: qb.x - t.leafLeft, y: qb.y }, { x: nb.x - qb.x, y: nb.y - qb.y }, Math.max(8, Math.min(W * 0.5, dist * 0.4)), rise * lying);
+    // the paper rising into the bend, just before the fold
+    band(curveEl, { x: qb.x - t.leafLeft, y: qb.y }, { x: mb.x - qb.x, y: mb.y - qb.y }, Math.max(8, Math.min(W * 0.2, dist * 0.22)), rise * lying);
+    // and the bend itself on the turned part: a crease, a line of light, then shade
+    const back = p => { const b = toBook(p, -dir); return { x: b.x - t.finalLeft, y: b.y }; };
+    const kq = back(Q), kn = back({ x: Q.x + n.x, y: Q.y + n.y });
+    band(sheenEl, kq, { x: kn.x - kq.x, y: kn.y - kq.y }, Math.max(16, Math.min(W * 0.42, dist * 0.45)), rise * Math.pow(1 - prog, 0.35));
+  }
+
+  // A cover: a board swinging on the spine, th from 0 (where it lay) to π (turned over)
+  function drawBoard() {
+    const t = turn, dir = t.dir, th = clamp(t.th, 0, Math.PI), sn = Math.sin(th);
+    const persp = 'perspective(' + Math.round(W * 5) + 'px) ';
+    const up = th < Math.PI / 2;                     // still showing the side it started on
+    flap.style.visibility = up ? 'hidden' : '';
+    t.leaf.style.visibility = up ? '' : 'hidden';
+    t.leaf.style.transform = persp + 'rotateY(' + (dir > 0 ? -th : th).toFixed(4) + 'rad)';
+    slotK.style.transform = persp + 'rotateY(' + (dir > 0 ? Math.PI - th : th - Math.PI).toFixed(4) + 'rad)';
+    // turned away from the light, it darkens
+    t.leaf.querySelector('.dim').style.opacity = (0.32 * sn).toFixed(3);
+    slotK.querySelector('.dim').style.opacity = (0.32 * sn).toFixed(3);
+    // its shadow on the page it uncovers, and on the page it comes down on
+    band(castEl, { x: dir > 0 ? 0 : W, y: H / 2 }, { x: dir > 0 ? 1 : -1, y: 0 }, Math.max(4, W * 0.7 * sn), up ? sn : 0.5 * sn);
+    band(t.other.querySelector('.land'), { x: dir > 0 ? W : 0, y: H / 2 }, { x: dir > 0 ? -1 : 1, y: 0 }, Math.max(4, W * 0.7 * sn), up ? 0 : sn);
+  }
+
+  /* ---- motion. Everything is drawn once per screen frame, from here. ---- */
+  function kick() {
+    if (!raf) raf = requestAnimationFrame(tick);
+    // petals at half rate while a page moves (petals.js reads this)
+    document.documentElement.setAttribute('data-petals-hush', '');
+  }
+  function tick(now) {
+    raf = 0;
+    const t = turn;
+    if (!t || mode === 'idle') return;
+    const dt = clamp((now - (t.last || now - 16.7)) / 1000, 0.001, 0.05);
+    t.last = now;
+    let done = false;
+    if (mode === 'play') {
+      const a = t.play, k = a.dur > 0 ? clamp((now - a.t0) / a.dur, 0, 1) : 1, e = ease(k);
+      if (t.hard) t.th = a.th0 + (Math.PI - a.th0) * e;
+      else t.P = onCurve(a.path, e);
+      done = k >= 1;
+    } else if (mode === 'drag' || mode === 'peek') {
+      // the paper follows the hand a few hundredths of a second behind
+      const tau = mode === 'drag' ? TURN.follow : 0.07, f = tau > 0 ? 1 - Math.exp(-dt / tau) : 1;
+      if (t.hard) t.th += (t.goalTh - t.th) * f;
+      else t.P = { x: t.P.x + (t.goal.x - t.P.x) * f, y: t.P.y + (t.goal.y - t.P.y) * f };
+      if (mode === 'peek' && t.leaving && (t.hard ? t.th < 0.003 : Math.hypot(W - t.P.x, H - t.P.y) < 0.6)) { end(false); return; }
+    } else if (mode === 'spring') {
+      // let go: it carries on at the hand's speed and settles, critically damped
+      const w = TURN.spring;
+      for (let n = Math.ceil(dt / 0.004), h = dt / n; n > 0; n--) {
+        if (t.hard) { t.vth += (w * w * (t.to - t.th) - 2 * w * t.vth) * h; t.th += t.vth * h; }
+        else {
+          t.V.x += (w * w * (t.to.x - t.P.x) - 2 * w * t.V.x) * h;
+          t.V.y += (w * w * (t.to.y - t.P.y) - 2 * w * t.V.y) * h;
+          t.P = { x: t.P.x + t.V.x * h, y: t.P.y + t.V.y * h };
+        }
+      }
+      // done once the rest would be under a pixel: a spring's tail is long and invisible
+      done = t.hard ? Math.abs(t.to - t.th) < 0.006 && Math.abs(t.vth) < 0.12
+                    : Math.hypot(t.to.x - t.P.x, t.to.y - t.P.y) < 1.5 && Math.hypot(t.V.x, t.V.y) < 90;
+      if (done) { if (t.hard) t.th = t.to; else t.P = { x: t.to.x, y: t.to.y }; }
+    }
+    draw();
+    if (done) { end(t.complete); return; }
+    kick();
+  }
+
+  // a whole turn, from a tap, a key, the buttons or the wheel: the corner
+  // rises in an arc, crosses over, and the page settles slowly
+  function play(quick) {
+    const t = turn;
+    mode = 'play'; t.complete = true; t.last = 0;
+    const k = quick ? TURN.quick : 1;
+    if (t.hard) {
+      // one page at a time, a cover coming back is out of sight until it stands on the spine
+      const th0 = !spread && t.dir < 0 ? Math.PI / 2 : t.th;
+      t.th = th0;
+      t.play = { th0, t0: performance.now(), dur: TURN.coverMs * k * (1 - th0 / Math.PI) };
+    } else {
+      const P0 = !spread && t.dir < 0 && t.P.x > 0 ? { x: 0, y: H } : { x: t.P.x, y: t.P.y };
+      const E = { x: -W, y: H }, frac = Math.min(1, Math.hypot(E.x - P0.x, E.y - P0.y) / (2 * W)), lift = TURN.arc * H * frac;
+      t.P = P0;
+      t.play = {
+        path: [P0, { x: P0.x + (E.x - P0.x) * 0.33, y: Math.min(P0.y, H - lift) }, { x: P0.x + (E.x - P0.x) * 0.72, y: H - lift * 0.55 }, E],
+        t0: performance.now(), dur: TURN.ms * k * Math.max(0.45, frac),
+      };
+    }
+    if (reduced) t.play.dur = 0;
+    kick();
+  }
+  // let go of a dragged page: v is how fast the hand was moving along the page (px/s)
+  function letGo(complete, v) {
+    const t = turn;
+    t.complete = complete;
+    if (reduced) { if (!t.hard) t.P = complete ? { x: -W, y: H } : { x: W, y: H }; end(complete); return; }
+    mode = 'spring'; t.last = 0;
+    const offLeft = !spread && t.dir < 0;          // one page at a time, going back: out of sight at the spine
+    if (t.hard) { t.to = complete ? Math.PI : offLeft ? Math.PI / 2 : 0; t.vth = clamp(-v / W, -14, 14); }
+    else { t.to = complete ? { x: -W, y: H } : offLeft ? { x: 0, y: H } : { x: W, y: H }; t.V = { x: clamp(v, -6000, 6000), y: 0 }; }
+    kick();
+  }
+
+  // turn the page: from the buttons, a tap, a key, the wheel
+  function go(dir, corner, quick, target) {
+    corner = corner || 'b';
+    if (mode === 'drag') return;
+    // tapped again mid-turn: count it, so three taps turn three pages
+    if (mode === 'play' || mode === 'spring') { if (target === undefined) pending = Math.sign(pending) === -dir ? dir : clamp(pending + dir, -4, 4); return; }
+    if (mode === 'peek') {
+      if (turn.dir === dir && target === undefined) return play(quick);
+      end(false);
+    }
+    if (!begin(dir, corner, target)) return;
+    play(quick);
+  }
+  function goTo(state) { if (state !== s) go(Math.sign(state - s), 'b', false, state); }
+
+  /* ---------------- hands on the paper ----------------
+     A press that doesn't move is a tap: the right page turns forward, the
+     left page back (one page at a time: the left third goes back). A press
+     that moves picks up the corner nearest to it and it follows the
+     pointer; let go past the middle, or with a flick, and it turns. */
+  let press = null, zoomed = false;
+  function bookPoint(e) { const r = book.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+
+  // A press on a button or link (the contents, the last page) can still
+  // become a drag, so a swipe works from anywhere on the page; if it doesn't
+  // move, the button's own click does the rest. The pointer is only captured
+  // once it moves, or that click would go to the book instead of the button.
+  // A press while a page is still landing is allowed: a tap queues the next
+  // turn, and a drag lands that page at once and takes the next, so a phone
+  // can be swiped through as fast as a thumb goes.
+  book.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.ctrlKey || zoomed) return;
+    if (mode === 'drag') return;
+    const onLink = !!e.target.closest('button, a');
+    if (!onLink) e.preventDefault();
+    const b = bookPoint(e);
+    press = { id: e.pointerId, x: e.clientX, y: e.clientY, bx: b.x, by: b.y, moved: false, onLink, samples: [] };
+  });
+
+  book.addEventListener('pointermove', e => {
+    if (!press || e.pointerId !== press.id) return;
+    const dx = e.clientX - press.x, dy = e.clientY - press.y;
+    if (!press.moved) {
+      if (Math.hypot(dx, dy) < 6) return;
+      press.moved = true;
+      if (mode === 'play' || mode === 'spring') { const c = turn.complete; pending = 0; end(c); }
+      if (mode === 'peek') press.P0 = turn.hard ? { x: W * Math.cos(turn.th), y: H } : { x: turn.P.x, y: turn.P.y };
+      else {
+        const dir = spread ? (press.bx >= W ? 1 : -1) : (dx < 0 ? 1 : -1);    // one page: swipe left for the next
+        if (!begin(dir, press.by > H / 2 ? 'b' : 't')) { press = null; return; }
+        // one page at a time, going back: the page comes in from the binding, following the finger
+        press.follow = !spread && dir < 0;
+        press.P0 = press.follow ? { x: 0, y: H } : { x: W, y: H };
+        turn.P = { x: press.P0.x, y: press.P0.y };
+        turn.th = Math.acos(clamp(press.P0.x / W, -1, 1));
+      }
+      mode = 'drag'; turn.last = 0;
+      book.classList.add('dragging');
+      try { book.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    if (mode !== 'drag') return;
+    const lx = turn.dir > 0 ? dx : -dx, ly = turn.corner === 'b' ? dy : -dy;
+    const g = { x: press.P0.x + lx, y: press.P0.y + ly * (press.follow ? 0.5 : 1) };
+    turn.goal = g;
+    turn.goalTh = Math.acos(clamp(g.x / W, -1, 1));   // a cover's edge stays under the finger
+    press.samples.push({ t: e.timeStamp, x: g.x });
+    if (press.samples.length > 12) press.samples.shift();
+    kick();
+  });
+
+  function release(e, cancelled) {
+    if (!press || e.pointerId !== press.id) return;
+    const p = press; press = null;
+    if (!p.moved) {
+      if (cancelled || p.onLink) return;
+      let dir = spread ? (p.bx >= W ? 1 : -1) : (p.bx - W < W * 0.3 ? -1 : 1);
+      if (s === 0) dir = 1;                                   // the cover opens wherever you touch it
+      go(dir, p.by > H / 2 ? 'b' : 't');
+      return;
+    }
+    if (mode !== 'drag') return;
+    // how fast the hand was moving as it let go: only the last tenth of a
+    // second counts, so a drag that stops and then lets go is not a flick
+    const recent = p.samples.filter(q => e.timeStamp - q.t < 100);
+    const a = recent[0], b = recent[recent.length - 1];
+    const v = a && b && b.t > a.t ? (b.x - a.x) / (b.t - a.t) * 1000 : 0;
+    const x = turn.goal.x;
+    const done = spread ? W * TURN.dragDone : (turn.dir > 0 ? W * 0.5 : -W * 0.3);
+    let complete = x < done;
+    if (v < -TURN.flick * 1000) complete = true; else if (v > TURN.flick * 1000) complete = false;
+    if (cancelled) complete = false;
+    letGo(complete, v);
+  }
+  book.addEventListener('pointerup', e => release(e, false));
+  book.addEventListener('pointercancel', e => release(e, true));
+  // only the book's own capture: a touch starts out captured by whatever the
+  // finger landed on, and moving that capture to the book fires this for it
+  book.addEventListener('lostpointercapture', e => { if (e.target === book && press && press.id === e.pointerId) release(e, true); });
+
+  // the corner lifts a little when the mouse comes near it, so you know you can take it
+  function leavePeek() { if (mode === 'peek') { turn.leaving = true; turn.goal = { x: W, y: H }; turn.goalTh = 0; kick(); } }
+  function hover(e) {
+    if (!spread || !finePointer || press || mode === 'play' || mode === 'spring' || mode === 'drag') return;
+    const b = bookPoint(e), R = Math.min(TURN.peekRadius, W * 0.2);
+    const near = (x, y) => Math.hypot(b.x - x, b.y - y) < R;
+    let dir = 0, corner = 'b';
+    if (near(2 * W, H)) dir = 1; else if (near(2 * W, 0)) { dir = 1; corner = 't'; }
+    else if (near(0, H)) dir = -1; else if (near(0, 0)) { dir = -1; corner = 't'; }
+    if (dir && !canTurn(dir)) dir = 0;
+    if (!dir) return leavePeek();
+    if (mode === 'peek' && (turn.dir !== dir || turn.corner !== corner)) end(false);
+    if (mode === 'idle') { if (!begin(dir, corner)) return; mode = 'peek'; }
+    turn.leaving = false;
+    const lx = dir > 0 ? b.x - W : W - b.x, ly = corner === 'b' ? b.y : H - b.y;
+    let gx = Math.min(lx, W - 18), gy = Math.min(ly, H - 18);
+    const d = Math.hypot(W - gx, H - gy);
+    if (d > TURN.peekLift) { gx = W - (W - gx) * TURN.peekLift / d; gy = H - (H - gy) * TURN.peekLift / d; }
+    turn.goal = { x: gx, y: gy };
+    turn.goalTh = 0.26;                              // a cover opens a crack
+    kick();
+  }
+  document.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !e.buttons) hover(e); });
+  document.addEventListener('mouseout', e => { if (!e.relatedTarget) leavePeek(); });
+
+  // the contents page and the last page have buttons that go somewhere
+  book.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-go]');
+    if (!btn || mode !== 'idle') return;
+    goTo(stateOf(btn.dataset.go === 'contents' ? d => d.kind === 'contents' : d => d.kind === 'scan' && WRITINGS[d.wi].slug === btn.dataset.go && d.n === 1));
+  });
+
+  prevBtn.addEventListener('click', () => go(-1));
+  nextBtn.addEventListener('click', () => go(1));
+
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const onButton = e.target.closest && e.target.closest('button, a');
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey && !onButton)) { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey && !onButton)) { e.preventDefault(); go(-1); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    else if (e.key === 'End') { e.preventDefault(); goTo(maxS); }
+  });
+
+  // scrolling turns pages too, since that is what a hand does on this site.
+  // A trackpad keeps sending after the fingers lift, so one swipe turns one page.
+  let wheelAcc = 0, lastWheel = 0, lastWheelTurn = 0;
+  window.addEventListener('wheel', e => {
+    if (e.ctrlKey) return;                                    // a pinch on a trackpad: let it zoom
+    e.preventDefault();
+    const now = performance.now();
+    if (now - lastWheel > 220) wheelAcc = 0;
+    lastWheel = now;
+    const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+    wheelAcc += (Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * k;
+    if (Math.abs(wheelAcc) > 40 && now - lastWheelTurn > 800) { go(wheelAcc > 0 ? 1 : -1); lastWheelTurn = now; wheelAcc = 0; }
+  }, { passive: false });
+
+  // zoomed in with two fingers: one finger pans the zoomed page instead of turning it
+  if (window.visualViewport) visualViewport.addEventListener('resize', () => {
+    zoomed = visualViewport.scale > 1.02;
+    book.classList.toggle('zoomed', zoomed);
+  });
+
+  /* ---------------- where you are ---------------- */
+  function stateOf(pred) {
+    for (let j = 0; j < L; j++) {
+      if (pred(leaves[j].front)) return j;
+      if (pred(leaves[j].back)) return Math.min(maxS, j + 1);
+    }
+    return -1;
+  }
+  function visible() {
+    return [spread && s > 0 ? leaves[s - 1].back : null, s < L ? leaves[s].front : null].filter(Boolean);
+  }
+  function ui() {
+    prevBtn.disabled = !canTurn(-1);
+    nextBtn.disabled = !canTurn(1);
+    const vis = visible(), scans = vis.filter(d => d.kind === 'scan');
+    let label = '', pg = '';
+    if (scans.length) {
+      const w = WRITINGS[scans[0].wi], mine = scans.filter(d => d.wi === scans[0].wi).map(d => d.n);
+      label = w.title;
+      if (w.pages > 1) pg = (mine.length > 1 ? mine[0] + '–' + mine[mine.length - 1] : mine[0]) + ' / ' + w.pages;
+      try { history.replaceState(null, '', '#' + w.slug); } catch (e) {}
+    } else {
+      const k = vis.map(d => d.kind);
+      label = k.includes('cover') ? (finePointer ? 'click the cover, or lift its corner' : 'tap the cover to open it')
+        : k.includes('contents') ? 'contents' : 'the end';
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    }
+    whereEl.textContent = label;
+    if (pg) { const sp = document.createElement('span'); sp.className = 'pg'; sp.textContent = pg; whereEl.appendChild(sp); }
+  }
+
+  // keep your place when the window changes between one page and two
+  function anchor() {
+    const vis = visible();
+    const d = vis.find(d => d.kind === 'scan') || vis[vis.length - 1] || vis[0];
+    return d ? d.key : 'cover';
+  }
+  function relayout() {
+    if (turn) { press = null; pending = 0; end(false); }
+    const key = anchor();
+    layout();
+    let st = stateOf(d => d.key === key);
+    if (st < 0) st = key === 'endpaper' ? stateOf(d => d.kind === 'contents') : key === 'backcover' ? maxS : 0;
+    s = Math.max(0, Math.min(maxS, st));
+    renderStatic();
+  }
+  let resizeT = 0;
+  window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(relayout, 120); });
+
+  // start: at the piece named after the #, or at the closed cover
+  layout();
+  const slug = decodeURIComponent(location.hash.slice(1));
+  const at = slug ? stateOf(d => d.kind === 'scan' && WRITINGS[d.wi].slug === slug && d.n === 1) : -1;
+  s = at > 0 ? at : 0;
+  renderStatic();
+  requestAnimationFrame(() => book.classList.add('ready'));
+  // the heading's font arrives late and changes its height, and with it the room for the book
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (mode === 'idle') relayout(); });
+
+  window.BOOK = { go, goTo, get state() { return s; }, get maxState() { return maxS; }, get spread() { return spread; }, get mode() { return mode; } };
+})();
+</script>
+<script defer src="/petals.js" data-ledges=".desk-title"></script>
+
+</body>
+</html>
