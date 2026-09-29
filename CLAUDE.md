@@ -121,9 +121,17 @@ vercel.json                 routing, headers, proxies
   September 2026, linked from nowhere and `noindex`): the 22 scanned pages
   bound behind a cloth cover and a contents page, turned instead of
   scrolled — a two-page spread where there is room, one page over a
-  binding on phones. The turn is a fold computed per frame in `frame()`
-  (clip-path polygons plus one matrix for the turned-over side), driven by
-  a click or tap, a dragged corner, a swipe, the arrow keys or the wheel.
+  binding on phones. A paper page turns as a fold computed per frame in
+  `drawPaper()` (clip-path polygons plus one matrix for the turned-over
+  side, shaded after StPageFlip); the covers swing on the spine as boards
+  in `drawBoard()`, as in turn.js. Everything moves from one animation
+  loop, `tick()`: a tap plays an arced turn on a cubic-bezier, a drag
+  trails the finger by 30ms, a page let go carries the hand's speed into a
+  critically damped spring. Every number is in `TURN`. Driven by a click
+  or tap, a dragged corner, a swipe, the arrow keys or the wheel; taps
+  mid-turn are counted, a swipe mid-turn lands the page and takes the next.
+  The flap's blurred drop-shadow is desktop-only: a blur is redone every
+  frame and measured as the biggest cost of a turn.
   The list of pieces and their page counts is `WRITINGS` at the top of the
   script; a new piece goes there as well as on `/writings`. `/page#slug`
   opens at that piece. Pages move between slots rather than being rebuilt,
