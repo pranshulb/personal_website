@@ -46,6 +46,12 @@ vercel.json                 routing, headers, proxies
 - **Palette**: paper `#faf5ef`, ink `#3a2f2f`, muted `#6a5545` / `#b8a090`,
   accent rose `#c47a7a`, rule `#d4a080`. A fixed SVG-noise grain overlay sits at
   `body::before` on most pages.
+- **writings is called musings** (September 2026): it lives at `/musings`
+  and `/musings/<piece>`, but the files kept their names (`writings.html`,
+  `writings-typed.html`, `writings/`) and the images stay at
+  `/writings/*.svg`. `/writings`, the old piece addresses and
+  `/typewriter/writings` redirect. A new piece needs its slug added to
+  both `:slug(...)` lists in `vercel.json` (the redirect and the rewrite).
 - **Typewriter variants**: several pages have a `-typed.html` twin routed at
   `/typewriter/<page>`. If you add an entry to a list page, check whether its
   twin needs the same entry.
