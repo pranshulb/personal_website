@@ -30,6 +30,8 @@ community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
+cafe.css                    what every café page shares: fonts, page changes, arrivals, back link, link hovers
+fonts/                      Unkempt and Princess Sofia, self-hosted (see fonts/README.md)
 tune.js                     sliders and curves for a page's motion (?tune)
 middleware.js               edge auth gate for private pages
 vercel.json                 routing, headers, proxies
@@ -43,6 +45,45 @@ vercel.json                 routing, headers, proxies
 - **Fonts**: `Princess Sofia` for headings, `Unkempt` for body, `EB Garamond`
   for italic asides. A `<style id="enola-font-override">` block on 20 pages
   forces these with `!important` — new pages should include it to match.
+  Since September 2026 the two handwriting faces are served from `/fonts/`
+  by `/cafe.css` (not Google), preloaded, `font-display: block`, cached a
+  year as immutable — a changed font needs a new file name.
+- **Smooth joins (`/cafe.css`)**, September 2026, after a study of fourteen
+  personal sites people praise for their feel (mervi.art, Restless Egg, Josh
+  Comeau, Maggie Appleton, Paco Coursey, Lynn Fisher…) against filmstrips of
+  this one. The site never stuttered; the seams did. Every café page (home,
+  the six content pages, the essays, the moon page, the three community
+  pages — not the typewriter twins, examined, gladiator or the party) links
+  `/cafe.css` last in its head, plus two font preloads, a two-line script
+  and speculation rules. In it:
+  - **Page changes** are the browser's cross-document view transition
+    (`@view-transition { navigation: auto }`), a 0.34s cross-fade; old and
+    new on the same curve so the paper never dims. "← back" and, on wide
+    screens, the epigraph are named so they stay still. Chrome/Edge/Safari
+    18.2+; elsewhere the old hard cut. Off under reduced motion.
+  - **Prefetch**: speculation rules, `moderate` (on hover), prefetch only —
+    never prerender, which would run analytics for pages nobody opened.
+    Private and proxied paths are excluded; add any new ones.
+  - **One layout**: "← back" is a fixed paper pill top-left on every page
+    (`a.back, a.back-link`); every title's top is 80px on laptops, 72px on
+    phones (each page's own padding does it — check with a measurement if
+    you touch a page's top). On phones the epigraph sits top-right beside
+    the pill. The home page's sky is the same paper, #faf5ef, as every
+    other page (it was a cool white, so the paper changed colour between
+    pages). The moon page keeps its darker paper.
+  - **Arrivals**: `.arrive` (fade + rise), `.arrive-soft` (fade only — use it
+    on anything petals settle on, or they land where it was mid-rise),
+    `.arrive-each` for lists; `--i` counts the beats. `translate`, not
+    `transform`, so turned things stay turned.
+  - **Pictures** with `fade-in` fade up once loaded. The listener is on
+    `document`, capturing: an image's load event never reaches `window`
+    (the DOM spec excludes it), which the first version found out by
+    leaving every picture invisible. With scripts off nothing is hidden.
+  - **Links**: `.ink` on a container (or `a.ink`) gives a quiet rule that a
+    rose line draws over from the left in about a fifth of a second; the
+    page keeps its own link colour. The home list's "→" leans in on hover.
+  The portrait (was the 4288px camera file, 1.29MB) is 1200px, 103KB, with
+  a 1KB blurred copy under it; the moon photo (3MB) is 1280px, 300KB.
 - **Palette**: paper `#faf5ef`, ink `#3a2f2f`, muted `#6a5545` / `#b8a090`,
   accent rose `#c47a7a`, rule `#d4a080`. A fixed SVG-noise grain overlay sits at
   `body::before` on most pages.
@@ -570,6 +611,9 @@ submit control, not just a key handler.
   MapLibre is served from disk and the style and tiles are stubbed (see
   `test/README.md`).
 - `npm test -- "some words"` runs only tests whose name contains them.
+- In the sandbox (September 2026), `map: clicking a card opens its popup…`
+  fails on "dot stayed lit" — on the code from before the smooth-joins
+  change too, so it isn't that. Not yet investigated; the other 14 pass.
 
 **The most important lesson**: three separate bugs reached production because
 an earlier blob stub was more forgiving than the real service. `test/blob-stub.mjs`

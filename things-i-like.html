@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <title>things i like — pranshul's cafe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,7 +39,7 @@
 
     h1 {
       position: fixed;
-      top: 1.5rem;
+      top: 5rem;           /* the same height as every café page's title (cafe.css) */
       left: 50%;
       transform: translateX(-50%);
       font-size: 1.5rem;
@@ -231,7 +228,7 @@
 
     @media (max-width: 640px) {
       /* the title sits under the back link and the epigraph, not across them */
-      body h1 { font-size: 1.5rem !important; top: 3rem; white-space: nowrap; }
+      body h1 { font-size: 1.5rem !important; top: 4.5rem; white-space: nowrap; }
       .epigraph { font-size: 0.7rem; top: 1.1rem; right: 1rem; }
       .back { top: 1rem; left: 1rem; }
       .hint { font-size: 0.65rem; bottom: 1rem; }
@@ -274,11 +271,23 @@
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
 </style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
-<a href="/" class="back">← back</a>
-<h1>things i like</h1>
+<a href="/" class="back"><span class="arr">←</span> back</a>
+<h1 class="arrive-soft">things i like</h1>
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 <div class="vignette"></div>
 
@@ -627,7 +636,7 @@
     });
     const padX = isMobile ? 15 : 60;
     const maxX = Math.max(field.clientWidth - w - padX, padX);
-    const topMin = isMobile ? 120 : 110;
+    const topMin = isMobile ? 152 : 160;   // below the title
     const maxY = Math.max(window.innerHeight - (isMobile ? 120 : 180), 350);
 
     let x, y, tries = 0, ok = false;
@@ -736,7 +745,7 @@
   // phone a full-height page runs on under the browser's bottom bar, so the
   // bottom is the visible height, not the page's.
   function pond() {
-    return { l: 8, r: field.clientWidth - 8, t: isMobile ? 110 : 100, b: window.innerHeight - (isMobile ? 12 : 24) };
+    return { l: 8, r: field.clientWidth - 8, t: isMobile ? 142 : 150, b: window.innerHeight - (isMobile ? 12 : 24) };
   }
 
   // Turning a phone on its side kept every word where it was, so they sat

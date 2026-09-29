@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>consume — pranshul's cafe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,7 +20,7 @@
     .header {
       max-width: 760px;
       margin: 0 auto;
-      padding: 3rem 2rem 2rem;
+      padding: 5rem 2rem 0;
     }
 
     .back-link {
@@ -126,7 +123,7 @@
     }
 
     @media (max-width: 600px) {
-      .header { padding: 1.5rem 1.2rem 1.5rem; }
+      .header { padding: 4.5rem 1.2rem 0; }
       .pages { padding: 0 1rem 3rem; gap: 2rem; }
       .page-wrapper { max-width: 100%; }
       .page-wrapper:nth-child(1),
@@ -150,48 +147,60 @@
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
 </style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 
 <div class="header">
-  <a href="/musings" class="back-link">← back</a>
+  <a href="/musings" class="back-link"><span class="arr">←</span> back</a>
 </div>
 
 <div class="pages">
   <div class="page-wrapper">
-    <img src="/writings/consume-1.svg" alt="consume page 1" loading="lazy">
+    <img class="fade-in" src="/writings/consume-1.svg" alt="consume page 1" loading="lazy">
   </div>
 
   <div class="page-divider"></div>
 
   <div class="page-wrapper">
-    <img src="/writings/consume-2.svg" alt="consume page 2" loading="lazy">
+    <img class="fade-in" src="/writings/consume-2.svg" alt="consume page 2" loading="lazy">
   </div>
 
   <div class="page-divider"></div>
 
   <div class="page-wrapper">
-    <img src="/writings/consume-3.svg" alt="consume page 3" loading="lazy">
+    <img class="fade-in" src="/writings/consume-3.svg" alt="consume page 3" loading="lazy">
   </div>
 
   <div class="page-divider"></div>
 
   <div class="page-wrapper">
-    <img src="/writings/consume-4.svg" alt="consume page 4" loading="lazy">
+    <img class="fade-in" src="/writings/consume-4.svg" alt="consume page 4" loading="lazy">
   </div>
 
   <div class="page-divider"></div>
 
   <div class="page-wrapper">
-    <img src="/writings/consume-5.svg" alt="consume page 5" loading="lazy">
+    <img class="fade-in" src="/writings/consume-5.svg" alt="consume page 5" loading="lazy">
   </div>
 
   <div class="page-divider"></div>
 
   <div class="page-wrapper">
-    <img src="/writings/consume-6.svg" alt="consume page 6" loading="lazy">
+    <img class="fade-in" src="/writings/consume-6.svg" alt="consume page 6" loading="lazy">
   </div>
 </div>
 

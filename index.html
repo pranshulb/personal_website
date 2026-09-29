@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>pranshul's cafe!</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,7 +11,7 @@
     body {
       font-family: 'EB Garamond', Georgia, serif;
       color: #3a2f2f; line-height: 1.8;
-      background: #FFF5EB;
+      background: #FAF5EF;   /* the paper every café page is on (cafe.css) */
     }
     ::selection { background: rgba(240, 166, 35, 0.3); color: #4a2f1a; }
 
@@ -48,7 +45,15 @@
     p { color: #6a5545; margin-bottom: 0.5rem; font-size: 1.05rem; }
     ul { list-style: none; padding: 0; margin-bottom: 2rem; }
     li { margin: 0.6rem 0; font-size: 1.05rem; }
-    li::before { content: '\2192 '; color: #d4a080; opacity: 0.7; }
+    /* the arrow before each link leans towards it when the link is pointed at */
+    li::before {
+      content: '\2192'; display: inline-block; margin-right: 0.3em;
+      color: #d4a080; opacity: 0.7;
+      transition: translate 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.15s ease-out, opacity 0.15s ease-out;
+    }
+    @media (hover: hover) {
+      li:has(> a:hover)::before { translate: 3px 0; color: #c47a7a; opacity: 1; }
+    }
     a { color: #4a3020; text-decoration: none; border-bottom: 1px solid #d4a080; transition: all 0.3s ease; }
     a:hover { color: #c47a7a; border-bottom-color: #c47a7a; }
     .socials { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.06); }
@@ -122,7 +127,7 @@
       .content-wrap { pointer-events: auto; }
       /* the bg canvas slides down with the tree; what shows above it must
          match its top edge, which is white */
-      body { background: #FFFFFF; }
+      body { background: #FAF5EF; }
       #bg, #scene { will-change: transform, opacity; }
       .scroll-hint {
         display: block; text-align: center; margin-top: 2.6rem;
@@ -166,6 +171,18 @@
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.9rem !important;}
 </style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
@@ -176,8 +193,8 @@
 
 <div class="content-wrap">
   <div class="container">
-    <h1><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
-    <ul>
+    <h1 class="arrive-soft" style="--i:2"><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">pranshul's cafe</a></h1>
+    <ul class="arrive-each soft ink" style="--i:3">
       <li><a href="/who-am-i">who am i?</a></li>
       <li><a href="/musings">musings</a></li>
       <li><a href="/questions">my questions</a></li>
@@ -187,7 +204,7 @@
       <li><a href="/community">community map of london</a> (WIP)</li>
       <li><a href="/examined">examined.</a> (philosophy personality test)</li>
     </ul>
-    <div class="socials">
+    <div class="socials arrive-soft" style="--i:6">
       <div class="social-links">
         <a href="mailto:pranshulbohra@gmail.com">email</a>
         <a href="https://pranshulbohra.substack.com/">substack</a>
@@ -569,10 +586,13 @@
 
     // Warm paper gradient — cream to slightly blush at bottom
     const sky = c.createLinearGradient(0, 0, 0, H);
-    sky.addColorStop(0,    '#FFFFFF');
-    sky.addColorStop(0.55, '#FDFCFD');
-    sky.addColorStop(0.85, '#FAFAFC');
-    sky.addColorStop(1,    '#F3F4F8');
+    // the same warm paper as every other page (#faf5ef), a shade deeper
+    // towards the ground; it was a cool white, so going from here to any
+    // other page the paper changed colour
+    sky.addColorStop(0,    '#FAF5EF');
+    sky.addColorStop(0.55, '#F9F4EE');
+    sky.addColorStop(0.85, '#F6F1EB');
+    sky.addColorStop(1,    '#F1ECE7');
     c.fillStyle = sky; c.fillRect(0, 0, W, H);
 
     // Very subtle warm blush tint near the tree crown area

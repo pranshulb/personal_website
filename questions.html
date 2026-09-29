@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <title>my questions — pranshul's cafe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,7 +22,7 @@
     .container {
       max-width: 560px;
       margin: 0 0 0 2rem;
-      padding: 4rem 1.5rem 3rem;
+      padding: 5rem 1.5rem 3rem;
       position: relative;
       z-index: 2;
     }
@@ -49,7 +46,7 @@
       letter-spacing: 0.02em;
     }
 
-    a { color: #c47a7a; text-decoration: none; border-bottom: 1px solid #d4a0a0; transition: all 0.3s ease; }
+    a { color: #c47a7a; text-decoration: none; border-bottom: 1px solid #d4a0a0; transition: color 0.15s ease-out, border-color 0.15s ease-out; }
     a:hover { border-bottom-color: #c47a7a; }
 
     ol {
@@ -144,7 +141,7 @@
 
     @media (max-width: 600px) {
       .container {
-        padding: 2.5rem 1.2rem 2rem;
+        padding: 4.5rem 1.2rem 2rem;
         max-width: 100%;
       }
       h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
@@ -176,17 +173,29 @@
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
 </style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 
 <div class="container">
-  <a href="/" class="back">← back</a>
+  <a href="/" class="back"><span class="arr">←</span> back</a>
 
-  <h1>my questions</h1>
+  <h1 class="arrive-soft">my questions</h1>
 
-  <ol>
+  <ol class="arrive-each ink" style="--i:1">
     <li class="biggest">what is the meaning in/of life?</li>
     <li>why do people do the things they do?</li>
     <li>how are certain (societally evil) acts justified by people?</li>

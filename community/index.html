@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>community map — pranshul.cafe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Unkempt&family=Princess+Sofia&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" />
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <style>
@@ -49,7 +49,7 @@
     .page {
       max-width: 1360px;
       margin: 0 auto;
-      padding: 3rem max(2rem, 5vw) 0 max(2rem, 5vw);
+      padding: 5rem max(2rem, 5vw) 0 max(2rem, 5vw);
     }
 
     /* The reading column keeps its old width and place; the map moves into
@@ -611,7 +611,7 @@
     @media (max-width: 900px) {
       .page {
         max-width: 100%;
-        padding: 2rem max(1.25rem, 4vw) 0 max(1.25rem, 4vw);
+        padding: 4.5rem max(1.25rem, 4vw) 0 max(1.25rem, 4vw);
       }
       .layout { grid-template-columns: 1fr; gap: 0; }
       .masthead { max-width: none; }
@@ -661,6 +661,18 @@
     }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
@@ -673,11 +685,13 @@
   </filter>
 </svg>
 
+<a href="/" class="back"><span class="arr">←</span> back</a>
+
 <div class="page">
 
   <header class="masthead">
-    <h1>community map</h1>
-    <p class="intro">things i've been to and enjoyed around london. workshops, screenings, swaps, whatever. click the dots, or just scroll.</p>
+    <h1 class="arrive-soft">community map</h1>
+    <p class="intro arrive" style="--i:1">things i've been to and enjoyed around london. workshops, screenings, swaps, whatever. click the dots, or just scroll.</p>
     <p class="tally" id="tally"></p>
   </header>
 

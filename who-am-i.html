@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
   <title>who am i? — pranshul's cafe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Princess+Sofia&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
   <style>
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -75,10 +72,22 @@
       transform: rotate(0deg) scale(1.02);
     }
     .portrait img {
+      position: relative;
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+    }
+    /* a 24px copy of the photo, blurred, sits under it until it has
+       loaded, so the frame arrives with the picture's colours in it and
+       the photo fades up out of them (it used to draw in top to bottom
+       over seconds on a slow phone; it was the full 4288px camera file) */
+    .portrait::before {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      background: url(data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwB/ifXzFpB0NEHmyYR5AxG3JyR9f6GuZsYhbSoYwhnVgyknnPqOai12583WLjcRgSHafSq1vOcuvIbGc4PGPf0rzYQfs0eknBTZ6zpmv/adOhZ7bFxLHvbPyqcErkeucdKKw/7fgAjxbskEMKQqyMCTg+gPTsaK5KrqOWmwQpJrY//Z) center / cover;
+      filter: blur(14px);
     }
     @keyframes portrait-rise {
       from { opacity: 0; transform: translateY(20px) rotate(1.5deg); }
@@ -116,7 +125,7 @@
         right: auto;
         transform: rotate(1deg);
         width: min(380px, 78vw);
-        margin: 3.5rem auto 0.5rem;
+        margin: 0.25rem auto 2rem;
         display: block;
       }
       .portrait:hover {
@@ -127,22 +136,7 @@
         to   { opacity: 1; transform: translateY(0) rotate(1deg); }
       }
       .container {
-        padding-top: 1.5rem;
-      }
-      .back {
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        margin-bottom: 0;
-        z-index: 20;
-        background: rgba(250, 245, 239, 0.85);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        padding: 0.4rem 0.8rem;
-        border-radius: 999px;
-        box-shadow: 0 2px 8px rgba(60, 40, 20, 0.12);
-        font-size: 0.85rem;
-        color: #3a2f2f;
+        padding-top: 4.5rem;
       }
       h1 {
         margin-bottom: 1.25rem;
@@ -160,11 +154,11 @@
       }
       .portrait {
         width: min(320px, 72vw);
-        margin: 3rem auto 0.25rem;
+        margin: 0.25rem auto 1.6rem;
       }
       .container {
         margin: 0 auto;
-        padding: 1rem 1.25rem 2.5rem;
+        padding: 4.5rem 1.25rem 2.5rem;
       }
 
       h1 {
@@ -196,29 +190,41 @@
   body, body *{font-family:'Unkempt',cursive !important;}
   body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
 </style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script>
+  // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
+  document.documentElement.classList.add('js');
+  ['load', 'error'].forEach(function (t) { document.addEventListener(t, function (e) { var i = e.target; if (i && i.tagName === 'IMG') i.classList.add('loaded'); }, true); });
+</script>
+<script type="speculationrules">
+{"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": ["/api/*", "/login", "/pdfs*", "/typeshit*", "/london-events*", "/bookmarks*", "/monica*", "/location-tool*", "/community/admin*"]}}]}, "eagerness": "moderate"}]}
+</script>
 </head>
 <body>
 
 <p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
 
-<div class="portrait">
-  <img src="/images/pranshul.jpg" alt="Pranshul" loading="lazy">
-</div>
-
 <div class="container">
-  <a href="/" class="back">← back</a>
+  <a href="/" class="back"><span class="arr">←</span> back</a>
 
-  <h1>who am i?</h1>
+  <h1 class="arrive-soft">who am i?</h1>
 
-  <p>I am Pranshul. but that's what my parents gave me.</p>
+  <div class="portrait">
+    <img class="fade-in" src="/images/pranshul.jpg" alt="Pranshul" width="1200" height="797" decoding="async">
+  </div>
 
-  <p>I study philosophy at the universities of santa cruz/edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
+  <p class="arrive" style="--i:1">I am Pranshul. but that's what my parents gave me.</p>
 
-  <p>I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I <a href="/musings">write</a>, I read <a href="https://www.goodreads.com/user/show/52233098-pranshul">A LOT</a> (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I photograph, I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
+  <p class="arrive" style="--i:2">I study philosophy at the universities of santa cruz/edinburgh. because that's what one does, one goes to uni. I study philosophy because it felt like the least life-draining degree I could think of (it's a fun story)</p>
 
-  <p>these are things I do. I have no idea who I am.</p>
+  <p class="arrive ink" style="--i:3">I dance bachata, and sometimes salsa. I play basketball and <a href="https://en.wikipedia.org/wiki/Quadball">quadball</a> (yes, quidditch!), I <a href="/musings">write</a>, I read <a href="https://www.goodreads.com/user/show/52233098-pranshul">A LOT</a> (and I re-read a lot, but only useful stuff like high fantasy or literary fiction), I photograph, I meditate (I have gone to a couple of <a href="https://www.dhamma.org/">vipassana</a> (buddhist) meditation camps, and I have tried other stuff, pls ask me about it), I host things (<a href="https://ensemble.rodeo/">ensemble</a>, <a href="https://morphhouse.co.uk/">morphhouse</a>, kitchen), and I really really like to hangout with my friends!!</p>
 
-  <div class="socials">
+  <p class="arrive" style="--i:4">these are things I do. I have no idea who I am.</p>
+
+  <div class="socials arrive" style="--i:5">
     <div class="social-links">
       <a href="mailto:pranshulbohra@gmail.com">email</a>
       <a href="https://pranshulbohra.substack.com/">substack</a>

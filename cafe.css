@@ -1,0 +1,192 @@
+/* ================================================================
+   cafe.css — what every café page shares
+
+   The café pages (home, the six content pages, the essays, the moon
+   page and the community map) each keep their own inline styles. This
+   file holds only what has to be the same everywhere, so it can't drift
+   apart page by page (the same reason petals.js exists):
+
+     1. the two handwriting fonts, served from this site
+     2. the soft change from one page to the next
+     3. things arriving in turn instead of all at once
+     4. pictures fading in when they have loaded
+     5. the "← back" link, in one place on every page
+     6. links whose underline draws in when you point at them
+
+   It is linked at the end of each page's <head>, after the page's own
+   styles, so where the two disagree this file wins. See CLAUDE.md,
+   "Smooth joins", for why each piece is the way it is.
+   ================================================================ */
+
+/* 1. Fonts. Were fetched from Google on every first visit: a stylesheet
+   from one host, then the fonts from another, before any word could be
+   drawn. Same files, from here, asked for first (each page preloads the
+   two it needs most). `block` keeps the old rule: no flash of a stand-in
+   font, the words just wait. */
+@font-face {
+  font-family: 'Unkempt'; font-style: normal; font-weight: 400; font-display: block;
+  src: url(/fonts/unkempt-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Unkempt'; font-style: normal; font-weight: 700; font-display: block;
+  src: url(/fonts/unkempt-700.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Princess Sofia'; font-style: normal; font-weight: 400; font-display: block;
+  src: url(/fonts/princess-sofia-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Princess Sofia'; font-style: normal; font-weight: 400; font-display: block;
+  src: url(/fonts/princess-sofia-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* 2. Page changes. Every link between café pages was a hard cut. Now the
+   browser cross-fades the old page into the new one (Chrome, Edge,
+   Safari 18.2+; elsewhere it is the old hard cut, nothing breaks). The
+   "← back" pill and, on wider screens, the epigraph are the same on both
+   pages, so they are lifted out of the fade and simply stay put. Old and
+   new fade over the same time on the same curve, so their sum stays
+   whole and the paper never dims mid-way. */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+a.back, a.back-link { view-transition-name: cafe-back; }
+@media (min-width: 901px) {
+  .epigraph { view-transition-name: cafe-epigraph; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* 3. Arrivals. A page's title, then its words, then its pictures, each a
+   beat after the last (--i on the element counts the beats). `translate`
+   rather than `transform`, so an element that is already turned or placed
+   with a transform keeps it. Nothing moves for anyone who has asked their
+   device for less motion. */
+@keyframes cafe-arrive { from { opacity: 0; translate: 0 10px; } }
+@keyframes cafe-arrive-soft { from { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .arrive {
+    animation: cafe-arrive 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+  }
+  /* for things petals settle on, or that are measured as they land:
+     they fade but don't move */
+  .arrive-soft {
+    animation: cafe-arrive-soft 0.8s ease-out both;
+    animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+  }
+}
+
+/* the items of a list, one after another: `arrive-each` on the list (with
+   its own --i for when the list as a whole starts), a short beat between
+   items, and everything past the twelfth together. `soft` for lists that
+   petals settle on. */
+.arrive-each > :nth-child(1) { --n: 0; }  .arrive-each > :nth-child(2) { --n: 1; }
+.arrive-each > :nth-child(3) { --n: 2; }  .arrive-each > :nth-child(4) { --n: 3; }
+.arrive-each > :nth-child(5) { --n: 4; }  .arrive-each > :nth-child(6) { --n: 5; }
+.arrive-each > :nth-child(7) { --n: 6; }  .arrive-each > :nth-child(8) { --n: 7; }
+.arrive-each > :nth-child(9) { --n: 8; }  .arrive-each > :nth-child(10) { --n: 9; }
+.arrive-each > :nth-child(11) { --n: 10; } .arrive-each > :nth-child(12) { --n: 11; }
+.arrive-each > :nth-child(n+13) { --n: 12; }
+@media (prefers-reduced-motion: no-preference) {
+  .arrive-each > * {
+    animation: cafe-arrive 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 90ms + var(--n, 0) * 45ms + 60ms);
+  }
+  .arrive-each.soft > * { animation-name: cafe-arrive-soft; }
+}
+
+/* 4. Pictures fade in once they have loaded, instead of snapping in
+   (book covers, posters, the portrait). `html.js` is set by a line in
+   each page's head, and `loaded` by a listener there, so with scripts off
+   nothing is ever hidden. */
+html.js img.fade-in { opacity: 0; transition: opacity 0.6s ease-out; }
+html.js img.fade-in.loaded { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  html.js img.fade-in { transition: none; }
+}
+
+/* 5. "← back". Sat in a different place on every page: in the text on
+   some, pinned to a corner on others, at the bottom of the community map.
+   Now it is always here, top left, a small paper pill so it stays
+   readable over a long list scrolling under it. The epigraph mirrors it
+   top right. */
+a.back, a.back-link {
+  position: fixed;
+  top: 1.1rem;
+  left: 1.25rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin: 0;
+  padding: 0.28rem 0.8rem 0.34rem 0.7rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: #8a7060;
+  background: rgba(250, 245, 239, 0.86);
+  border: 1px solid rgba(176, 150, 130, 0.22);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(60, 40, 20, 0.06);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  transition: color 0.15s ease-out, border-color 0.15s ease-out, background-color 0.15s ease-out;
+}
+a.back .arr, a.back-link .arr {
+  display: inline-block;
+  transition: translate 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (hover: hover) {
+  a.back:hover, a.back-link:hover { color: #3a2f2f; border-color: rgba(196, 122, 122, 0.45); background: rgba(252, 248, 243, 0.95); }
+  a.back:hover .arr, a.back-link:hover .arr { translate: -3px 0; }
+}
+a.back:focus-visible, a.back-link:focus-visible { outline: 2px solid #c47a7a; outline-offset: 2px; }
+@media (max-width: 640px) {
+  a.back, a.back-link { top: 0.9rem; left: 0.9rem; }
+  /* on a phone the epigraph used to run across the top of the page, in
+     the flow, where the pill now sits: it moves to the top right corner,
+     beside the pill, as on "things i like". The home page keeps its own
+     (at the bottom; it has no back link). */
+  body:has(a.back, a.back-link) .epigraph {
+    position: absolute;
+    top: 1.2rem; right: 0.9rem; bottom: auto; left: auto;
+    width: auto; max-width: calc(100% - 7rem);
+    margin: 0; padding: 0;
+    text-align: right;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    transform: none;
+  }
+}
+
+/* 6. Links in running text and lists: a quiet rule under them at rest, and
+   a rose line that draws in from the left when you point at one, quick
+   (a fifth of a second), the way the best personal sites answer a hover.
+   Put `ink` on the element that holds the links. */
+.ink a:not(.back):not(.back-link), a.ink {
+  text-decoration: none;
+  border-bottom: none;
+  background-image: linear-gradient(#c47a7a, #c47a7a), linear-gradient(rgba(212, 160, 128, 0.75), rgba(212, 160, 128, 0.75));
+  background-size: 0% 1px, 100% 1px;
+  background-position: 0 100%, 0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 1px;
+  transition: background-size 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.15s ease-out;
+}
+@media (hover: hover) {
+  .ink a:not(.back):not(.back-link):hover, a.ink:hover { background-size: 100% 1px, 100% 1px; color: #c47a7a; }
+}
+.ink a:not(.back):not(.back-link):focus-visible, a.ink:focus-visible { background-size: 100% 1px, 100% 1px; color: #c47a7a; outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ink a, a.ink { transition: color 0.15s ease-out; }
+}
