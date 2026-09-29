@@ -155,14 +155,21 @@ vercel.json                 routing, headers, proxies
   the blossom), drifting where their pointer or finger is; their taps on
   the water ripple here, their shakes tremble the tree and let a few
   petals go (at most one per 1.5s), and "someone else is here too" /
-  "N others are here too" sits at the bottom. Positions travel in tree
+  "N others are here too" sits at the bottom (at the top on phones, where
+  the bottom holds the epigraph and "the tree is below"). Positions travel in tree
   units (across from the trunk, up from the ground, in tree-heights) so
   laptop and phone agree. The server is `presence/` (PartyKit, since
   Vercel can't hold WebSockets): it relays and forgets, checks Origin,
   clamps every number, holds each visitor to 20 messages a second and
-  one shake per 1.2s, caps a room at 60. `PRESENCE_HOST` in `index.html`
-  is empty until it is deployed, and while it is the page never
-  connects. A hidden tab disconnects. `npm run test:presence`; see
+  one shake per 1.2s, caps a room at 60. It went live on 29 September
+  2026 at `pranshul-cafe-presence.pranshulb.partykit.dev` (`PRESENCE_HOST`
+  in `index.html` and `garden-home.html`, one shared room); for weeks
+  before, PartyKit's shared domain was full and every deploy was refused.
+  Deploying needs the CLI logged in as pranshulb (GitHub). Empty
+  `PRESENCE_HOST` means the page never connects. A hidden tab disconnects.
+  The sandbox's browser can't open any `wss://` through the agent proxy
+  (even to an echo server), so test the page through a local relay and
+  `?presence=ws://localhost:…`, and the server from Node. `npm run test:presence`; see
   `presence/README.md`. The first try drew visitors as pale petals with a
   white glow, which were invisible on the paper.
 - **things i like** is a field of draggable words moved by one animation

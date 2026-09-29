@@ -164,8 +164,9 @@
     opacity: 0; transition: opacity 1.2s ease;
   }
   .company.on { opacity: 0.85; }
-  /* phones keep the epigraph at the bottom: sit just above it */
-  @media (max-width: 900px) { .company { bottom: 2.1rem; font-size: 0.74rem; } }
+  /* phones keep the epigraph at the bottom, and the first screen ends in
+     "the tree is below", so there it sits at the top, above the title */
+  @media (max-width: 900px) { .company { top: 1.4rem; bottom: auto; font-size: 0.74rem; } }
 </style>
 <style id="enola-font-override">
   body, body *{font-family:'Unkempt',cursive !important;}
@@ -1437,7 +1438,7 @@
 
      Everyone with the page open joins one room on a small presence
      server (presence/server.js, on PartyKit). Each other visitor shows
-     as a pale petal with a little light round it, drifting where their
+     as a rose petal in a thin breathing ring, drifting where their
      pointer or finger is; their taps on the water ripple here too, and
      when one of them shakes the tree it trembles and lets a few petals
      go. A quiet line at the bottom says when someone else is here.
@@ -1447,11 +1448,12 @@
      a laptop is by the canopy on a phone, whatever the two screens.
      Nothing about a visitor is sent but that, and it isn't kept.
 
-     With PRESENCE_HOST empty the page never connects and nothing here
+     PRESENCE_HOST is the server in presence/ (deployed to PartyKit,
+     September 2026); empty, the page never connects and nothing here
      does anything. ?presence=ws://localhost:…/party/home points it at a
      local server for testing (localhost only).
   ================================================================ */
-  const PRESENCE_HOST = '';   // e.g. 'pranshul-cafe-presence.<account>.partykit.dev'
+  const PRESENCE_HOST = 'pranshul-cafe-presence.pranshulb.partykit.dev';   // presence/, on PartyKit
   // the tree's own mid pinks: pale ones vanished against the paper
   const PEER_COLORS = ['#E8889E', '#EE92AB', '#E25075', '#F08FAB'];
   const peers = new Map();    // id -> { u, v, tu, tv, a, here, r, rot, tumble, tumSpd, swp, color }

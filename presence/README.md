@@ -16,8 +16,10 @@ because Vercel, which hosts the site, can't hold WebSockets open.
     npx partykit deploy
 
 Deploy prints the host, `pranshul-cafe-presence.<account>.partykit.dev`.
-Put it in `PRESENCE_HOST` near the "COMPANY" block in `index.html` and push.
-Until then that is empty and the page never connects.
+It lives at `pranshul-cafe-presence.pranshulb.partykit.dev` (deployed 29
+September 2026, logged in as pranshulb), which is `PRESENCE_HOST` near the
+"COMPANY" block in `index.html` and `garden-home.html`. A redeploy keeps
+the same host. With `PRESENCE_HOST` empty the page never connects.
 
 ## Testing
 
