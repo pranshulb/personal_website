@@ -18,7 +18,7 @@ function load(url) {
   if (!loading) {
     loading = fetch(url)
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
-      .then((buf) => { model = HandCore.parse(buf); net = HandCore.Network(model); });
+      .then((buf) => { model = HandCore.parse(buf); net = HandCore.Network(model); HandChecks.warmUp(HandCore, model, net); });
   }
   return loading;
 }
@@ -28,30 +28,22 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 async function write(id, text) {
   // a name in a script the network can't write goes in as typed
   if (!HandChecks.writable(text)) { postMessage({ type: 'typed', id }); return; }
-  const plan = HandChecks.plan(text);
-  const words = [];
-  for (const part of plan.parts) {
-    let best = null;
-    for (let attempt = 0; attempt < plan.attempts; attempt++) {
-      if (id !== current) return;
-      let batch = [], steps = 0;
-      const out = HandCore.write(model, net, part, {
-        bias: plan.ladder[attempt], maxDwell: plan.maxDwell, maxAfterEnd: plan.maxAfterEnd,
-        onPoint(x, y, up) {
-          batch.push([x, y, up]);
-          if (++steps % 8 === 0) { postMessage({ type: 'ink', id, part: words.length, attempt, pts: batch }); batch = []; }
-        },
-      });
-      if (batch.length) postMessage({ type: 'ink', id, part: words.length, attempt, pts: batch });
-      const why = HandChecks.check(part, out);
-      if (!why) { best = out; break; }
-      postMessage({ type: 'again', id, part: words.length, why });
-      await tick();   // let a newer request in
-    }
-    if (!best) { postMessage({ type: 'fail', id }); return; }
-    words.push(best.pts);
-  }
-  postMessage({ type: 'done', id, strokes: HandChecks.layout(words, plan) });
+  let batch = [], batchAttempt = 0, steps = 0;
+  const flush = () => { if (batch.length) postMessage({ type: 'ink', id, part: 0, attempt: batchAttempt, pts: batch }); batch = []; };
+  const r = await HandChecks.writeName(HandCore, model, net, text, {
+    onPoint(x, y, up, attempt) {
+      if (attempt !== batchAttempt) { flush(); batchAttempt = attempt; }
+      batch.push([x, y, up]);
+      if (++steps % 8 === 0) flush();
+    },
+    onAgain(why) { flush(); postMessage({ type: 'again', id, part: 0, why }); },
+    pause: tick,                        // let a newer request in
+    cancelled: () => id !== current,
+  });
+  if (!r) return;                       // a newer request took over
+  flush();
+  if (!r.strokes) { postMessage({ type: 'fail', id }); return; }
+  postMessage({ type: 'done', id, strokes: r.strokes });
 }
 
 onmessage = async (e) => {

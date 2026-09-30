@@ -179,33 +179,50 @@ const HandCore = (() => {
     return Array.from(text, (ch) => map.get(ch) || 0);
   }
 
+  function copyState(s) { const o = {}; for (const k in s) o[k] = Float32Array.from(s[k]); return o; }
+
+  // Walks the network through a sample of handwriting (prime.offs: its pen
+  // offsets, already normalised) and returns where that leaves it. A name
+  // written after it (write's opts.primed) is written in the same hand, as
+  // the sample's continuation. Done once; every name starts from a copy.
+  function primeState(model, net, prime) {
+    const codes = encode(model, prime.text + '  ');
+    const st = net.initState(), phi = new Float32Array(codes.length);
+    let x = [0, 0, 1];
+    for (const o of prime.offs) { net.step(x, codes, st, 0, phi); x = o; }
+    return { text: prime.text, st, x };
+  }
+
   // Writes `text`. Pads it with two spaces so the pen can "read past" the last
   // letter: the model has finished when its attention sits beyond the text and
-  // the pen is lifted. Returns absolute points plus the attention path, which
-  // the checks use to spot skipped letters and scribbles.
+  // the pen is lifted. Returns absolute points [x, y, penUp, letter] (letter:
+  // which letter of `text` the pen's attention was on), the attention path,
+  // which the checks use to spot skipped letters and scribbles, and why it
+  // stopped.
   //
-  // opts.prime = { text, offs } primes the style: the network is walked through
-  // a known sample first (offs: its pen offsets, already normalised) and then
-  // writes `text` as the continuation, in that hand. Only the continuation is
-  // returned; `path` is measured from the start of `text`.
+  // opts.primed (from primeState) writes `text` as the continuation of a
+  // sample, in that hand; only the continuation is returned.
   function write(model, net, text, opts = {}) {
     const bias = opts.bias ?? 2;
     const rand = opts.rand || rng(opts.seed ?? (Math.random() * 2 ** 32));
     const maxPerChar = opts.maxPerChar ?? 40;
-    const prime = opts.prime;
-    const start = prime ? prime.text.length + 1 : 0;
-    const codes = encode(model, (prime ? prime.text + ' ' : '') + text + '  ');
+    const primed = opts.primed;
+    const start = primed ? primed.text.length + 1 : 0;
+    const codes = encode(model, (primed ? primed.text + ' ' : '') + text + '  ');
     const U = text.length;
-    const st = net.initState();
+    const st = primed ? copyState(primed.st) : net.initState();
     const phi = new Float32Array(codes.length);
-    let x = [0, 0, 0], X = 0, Y = 0, done = false, begun = !prime;
-    if (prime) for (const o of prime.offs) { net.step(x, codes, st, bias, phi); x = o; }
+    // The pen starts lifted, as every sample the network learned from did.
+    // It used to start down, as if in the middle of a stroke: the network
+    // drew a line from nowhere and lost its place, and a name beginning with
+    // E never came out at all (0 of 8; A 1, L 1, Y 2, W 4).
+    let x = primed ? primed.x.slice() : [0, 0, 1], X = 0, Y = 0, done = false, begun = !primed;
     const pts = [], path = [];
     const limit = maxPerChar * U + 60;
     // a pen that has lost its way stays on one letter, or past the end without
     // lifting, for far longer than a clean one ever does: stop it early
     const maxDwell = opts.maxDwell ?? Infinity, maxAfterEnd = opts.maxAfterEnd ?? Infinity;
-    let dwell = 0, afterEnd = 0;
+    let dwell = 0, afterEnd = 0, stop = 'limit';
     for (let t = 0; t < limit; t++) {
       const mix = net.step(x, codes, st, bias, phi);
       x = samplePoint(mix, rand);
@@ -218,15 +235,16 @@ const HandCore = (() => {
       path.push(a);
       X += x[0] * model.sd[0] + model.mu[0];
       Y += x[1] * model.sd[1] + model.mu[1];
-      pts.push([X, Y, x[2]]);
+      pts.push([X, Y, x[2], a]);
       if (opts.onPoint) opts.onPoint(X, Y, x[2]);
-      if (a >= U && x[2]) { done = true; break; }
-      if (dwell > maxDwell || afterEnd > maxAfterEnd) break;
+      if (a >= U && x[2]) { done = true; stop = 'done'; break; }
+      if (dwell > maxDwell) { stop = 'stuck'; break; }
+      if (afterEnd > maxAfterEnd) { stop = 'ran on'; break; }
     }
-    return { pts, path, done };
+    return { pts, path, done, stop };
   }
 
-  return { parse, Network, write, rng, encode, matvec };
+  return { parse, Network, write, primeState, rng, encode, matvec };
 })();
 
 if (typeof module !== 'undefined') module.exports = HandCore;

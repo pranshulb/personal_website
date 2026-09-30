@@ -392,7 +392,18 @@ vercel.json                 routing, headers, proxies
   (skipped letters, scribbles, never lifting the pen); what fixed it was
   measured by reading hundreds of samples back with a handwriting
   recogniser — see the top of `visitors/hand-checks.js` before changing
-  its numbers. Bump the file name (`hand-v2.bin`) if the weights change:
+  its numbers. Capitals and several words came out jangled (September
+  2026) until: the pen starts lifted (it started as if on the paper, and a
+  name beginning with E never came out); every name is written as the
+  continuation of a warm-up sample, "Alice Lee Kent" (`PRIME`, chosen from
+  ten by writing 70 names after each), so no name starts from a blank page
+  and all are in one hand; ALL-CAPS names are written with a capital to
+  each word; words run together are spaced. On 30 names kept back: letters
+  wrong 6.6% -> 2.4%, attempts 2.5 -> 1.0, 5s -> 2s. The whole procedure is
+  `HandChecks.writeName`, shared by the worker and any test, and the pen
+  loads and warms up while the visitor types. Z and X capitals are still
+  weak. A test harness (Node + TrOCR) isn't in the repo; the numbers are in
+  the commit message. Bump the file name (`hand-v2.bin`) if the weights change:
   `vercel.json` caches it for a year.
 
 ### Routing and hosting

@@ -242,6 +242,7 @@
   function onWorker(ev) {
     const m = ev.data;
     if (m.id !== undefined && m.id !== job) return;       // an old request
+    if (m.type === 'ready') { modelReady = true; return; }
     if (m.type === 'ink') {
       modelReady = true;
       if (!parts[m.part] || parts[m.part].attempt !== m.attempt) { parts[m.part] = []; parts[m.part].attempt = m.attempt; }
@@ -283,6 +284,10 @@
   form.addEventListener('submit', (e) => { e.preventDefault(); startWriting(); });
   againBtn.addEventListener('click', startWriting);
   nameIn.addEventListener('input', () => { if (result && nameIn.value.trim() !== typedName) { actions.hidden = true; setStatus('press "write it" to write the new name'); } });
+  // Someone typing a name is about to write it: fetch the pen and warm it
+  // up now (a couple of seconds' work, once), so it's ready when they press
+  // "write it".
+  nameIn.addEventListener('input', () => { if (!worker) { ensureWorker(); worker.postMessage({ type: 'load', url: MODEL }); } }, { once: true });
 
   signBtn.addEventListener('click', async () => {
     if (!result) return;
