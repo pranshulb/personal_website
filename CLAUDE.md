@@ -118,7 +118,15 @@ vercel.json                 routing, headers, proxies
   he saw at once as a zigzag. Keep the sideways speed (`swAmp`, gusts)
   well under the fall speed (~10 px/s). Both files step the physics at a fixed 60 per
   second whatever the screen's refresh rate; one step per frame made every
-  petal twice as fast on 120Hz screens. Pranshul then found them slower than
+  petal twice as fast on 120Hz screens. Every refresh is still *drawn*,
+  each petal part of the way between its last two steps (`ip`,
+  `remember`, `drawMoving`): drawing only on refreshes that had a step made
+  petals hop every second frame on 120Hz screens and unevenly on 90/144Hz,
+  which Pranshul felt at once as the whole site lagging (fixed September
+  2026). A petal over the words fades to `TEXT_VEIL` of its strength
+  (text found by tag; `.container` text on the home page), and those
+  resting on the title are paler (`PERCHED_ALPHA`) and fewer (5 on
+  phones, 10 on laptops): at full strength the deep pinks hid letters. Pranshul then found them slower than
   before on the laptop (a 120Hz screen would explain it), so gravity is scaled by `fall` — 1.5, `REVEAL.petals.fall`
   on the home page and `FALL` in petals.js, kept equal. The home page's
   `?tune` panel has sliders for flutter, sway, wind and fall

@@ -780,7 +780,7 @@
     // On phones the canopy hangs right over the title, so it fills fast; a
     // lower cap keeps it a dusting rather than a burial.
     return { el, left: r.left, top: r.top, width: r.width, height: r.height, sky,
-             cap: el.closest('h1') ? (isMobile ? 8 : 14) : 3 };
+             cap: el.closest('h1') ? (isMobile ? 5 : 10) : 3 };
   }
 
   // Full measure: skylines and positions. Runs on load, once the fonts are
@@ -799,6 +799,7 @@
   // phones, and perched petals are stored relative to their word, so this
   // is all a scroll needs.
   function layoutLedges() {
+    measureText();
     for (const L of ledges) {
       const r = L.el.getBoundingClientRect();
       L.left = r.left; L.top = r.top;
@@ -816,7 +817,7 @@
     const mine = perched.filter(q => q.l === k);
     if (mine.length >= L.cap) releasePetal(mine[0], 0);   // the oldest slides off to make room
     perched.push({ l: k, ox: p.x - L.left, oy: s - p.r * 0.45, r: p.r,
-      rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha, age: 0 });
+      rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha * PERCHED_ALPHA, age: 0 });
   }
 
   function releasePetal(q, gust) {
@@ -911,6 +912,7 @@
         const wob = Math.sin(t * 2 + h.wob) * 3;               // each petal breathes in and out a little
         const tx = Math.cos(a) * (R + wob), ty = Math.sin(a) * (R + wob) * 0.85;   // a slightly flattened ring
         h.ox += (tx - h.ox) * 0.14; h.oy += (ty - h.oy) * 0.14;   // a new petal slides into its place
+        remember(h.p);
         h.p.x = px + h.ox; h.p.y = py + h.oy;
         h.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + h.wob) * 0.25;   // side-on to the ring, like a wheel
         h.p.tumble += 0.02;
@@ -999,8 +1001,13 @@
     windX += (mx * 0.7 - windX) * 0.006;
     const P = REVEAL.petals;
 
+    if (++textTick % 20 === 0) measureText();
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
+      remember(p);
+      // over the words it pales, so they can still be read through it
+      const vt = overText(p.x, p.y, p.r) ? TEXT_VEIL : 1;
+      p.veil = p.veil === undefined ? vt : p.veil + (vt - p.veil) * 0.12;
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055 * P.fall;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
@@ -1325,6 +1332,41 @@
   /* ================================================================
      DRAW OVERLAY — falling hearts + resting ground petals (animated)
   ================================================================ */
+  /* Petals move in steps of a 60th of a second (see frame), so that they
+     fall at the same pace on every screen. Drawn only when a step had
+     happened, a 120Hz screen (recent MacBooks and iPhones) showed each
+     petal hop every second frame, and 90 or 144Hz ones unevenly - it read
+     as lag (September 2026). Now every refresh is drawn, each petal part
+     of the way from its last step to its latest one (ip). */
+  let ip = 1;
+  function remember(p) { p._x = p.x; p._y = p.y; p._rot = p.rot; p._tum = p.tumble; }
+  function drawMoving(c, p, alpha) {
+    if (p._x === undefined) { drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, alpha, p.tumble); return; }
+    drawPetalShape(c, p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, p.r,
+      p._rot + (p.rot - p._rot) * ip, p.color, alpha, p._tum + (p.tumble - p._tum) * ip);
+  }
+
+  /* The words stay readable: a petal passing over them fades to TEXT_VEIL
+     of its strength and comes back once it's past, and those resting on
+     the title are paler (PERCHED_ALPHA) and fewer. At full strength the
+     deep pinks hid whole letters on a phone. */
+  const TEXT_VEIL = 0.35, PERCHED_ALPHA = 0.6;
+  const TEXT_SEL = '.container h1, .container li, .container p, .container .social-links, .epigraph, .company';
+  let textRects = [], textTick = 0;
+  function measureText() {
+    textRects = [];
+    document.querySelectorAll(TEXT_SEL).forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1 || r.bottom < 0 || r.top > H) return;
+      if (parseFloat(getComputedStyle(el).opacity) < 0.05) return;
+      textRects.push([r.left, r.top, r.right, r.bottom]);
+    });
+  }
+  function overText(x, y, r) {
+    for (const q of textRects) if (x > q[0] - r && x < q[2] + r && y > q[1] - r && y < q[3] + r) return true;
+    return false;
+  }
+
   function drawOverlay() {
     const c = ovC; c.clearRect(0, 0, W, H);
     // Rings on the water: they run out fast, then slow, and fade as they go.
@@ -1353,8 +1395,8 @@
       const a = q.alpha * Math.max(0, 1 - q.age);
       if (a > 0.015) drawPetalShape(c, L.left + q.ox, L.top + q.oy, q.r, q.rot, q.color, a);
     }
-    for (const p of airPetals) drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
-    for (const h of held) drawPetalShape(c, h.p.x, h.p.y, h.p.r, h.p.rot, h.p.color, h.p.alpha, h.p.tumble);
+    for (const p of airPetals) drawMoving(c, p, p.alpha * (p.veil === undefined ? 1 : p.veil));
+    for (const h of held) drawMoving(c, h.p, h.p.alpha);
     drawPeers(c);
   }
 
@@ -1473,7 +1515,8 @@
     }
     if (steps) presenceTick(now);
     if (steps === 4) acc = 0;                // after a stall, don't race to catch up
-    if (steps) drawOverlay();
+    ip = Math.max(0, Math.min(1, acc / STEP));
+    drawOverlay();
     if (shakeX !== 0 || leaning) placeScene();
     requestAnimationFrame(frame);
   }

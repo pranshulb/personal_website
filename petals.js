@@ -105,7 +105,7 @@
       }
     } catch (e) { sky = null; }
     return { el, left: r.left, top: r.top, width: r.width, height: r.height, sky,
-             cap: el.closest('h1') ? (isMobile ? 8 : 14) : 3 };
+             cap: el.closest('h1') ? (isMobile ? 5 : 10) : 3 };
   }
 
   function measureLedges() {
@@ -118,6 +118,7 @@
   }
 
   function layoutLedges() {
+    measureText();
     for (const L of ledges) {
       const r = L.el.getBoundingClientRect();
       L.left = r.left; L.top = r.top;
@@ -135,7 +136,7 @@
     const mine = perched.filter(q => q.l === k);
     if (mine.length >= L.cap) releasePetal(mine[0], 0);
     perched.push({ l: k, ox: p.x - L.left, oy: s - p.r * 0.45, r: p.r,
-      rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha, age: 0 });
+      rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha * PERCHED_ALPHA, age: 0 });
   }
 
   function releasePetal(q, gust) {
@@ -151,6 +152,27 @@
     const k = ledges.findIndex(L => L.el === el);
     if (k < 0) return;
     for (const q of perched.filter(q => q.l === k)) releasePetal(q, gust);
+  }
+
+  /* ---------------- the words stay readable ----------------
+     A petal passing over text fades to TEXT_VEIL of its strength and comes
+     back once it's past; those resting on the title are paler
+     (PERCHED_ALPHA) and fewer. At full strength the deep pinks hid whole
+     letters on a phone. Text is found by tag, so any page works as it is. */
+  const TEXT_VEIL = 0.35, PERCHED_ALPHA = 0.6;
+  const TEXT_SEL = 'h1, h2, h3, h4, p, li, blockquote, figcaption, dt, dd, td, .epigraph, .thing';
+  let textRects = [], textTick = 0;
+  function measureText() {
+    textRects = [];
+    document.querySelectorAll(TEXT_SEL).forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1 || r.bottom < 0 || r.top > H) return;
+      textRects.push([r.left, r.top, r.right, r.bottom]);
+    });
+  }
+  function overText(x, y, r) {
+    for (const q of textRects) if (x > q[0] - r && x < q[2] + r && y > q[1] - r && y < q[3] + r) return true;
+    return false;
   }
 
   /* ---------------- pointer: catching petals ---------------- */
@@ -185,6 +207,7 @@
         const wob = Math.sin(t * 2 + h.wob) * 3;
         const tx = Math.cos(a) * (R + wob), ty = Math.sin(a) * (R + wob) * 0.85;
         h.ox += (tx - h.ox) * 0.14; h.oy += (ty - h.oy) * 0.14;
+        remember(h.p);
         h.p.x = px + h.ox; h.p.y = py + h.oy;
         h.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + h.wob) * 0.25;
         h.p.tumble += 0.02;
@@ -239,8 +262,13 @@
 
   function updatePetals() {
     windX += (mx * 0.7 - windX) * 0.006;
+    if (++textTick % 20 === 0) measureText();
     for (let i = airPetals.length - 1; i >= 0; i--) {
       const p = airPetals[i];
+      remember(p);
+      // over the words it pales, so they can still be read through it
+      const vt = overText(p.x, p.y, p.r) ? TEXT_VEIL : 1;
+      p.veil = p.veil === undefined ? vt : p.veil + (vt - p.veil) * 0.12;
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055 * FALL;
       p.swp += p.swSpd;
@@ -293,6 +321,19 @@
     c.globalAlpha = 1;
   }
 
+  /* Steps are a 60th of a second (see frame). Drawn only when a step had
+     happened, a 120Hz screen showed each petal hop every second frame,
+     and 90 or 144Hz ones unevenly - it read as lag (September 2026). Now
+     every refresh is drawn, each petal part of the way from its last step
+     to its latest one (ip). Same as index.html. */
+  let ip = 1;
+  function remember(p) { p._x = p.x; p._y = p.y; p._rot = p.rot; p._tum = p.tumble; }
+  function drawMoving(p, alpha) {
+    if (p._x === undefined) { drawPetalShape(p.x, p.y, p.r, p.rot, p.color, alpha, p.tumble); return; }
+    drawPetalShape(p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, p.r,
+      p._rot + (p.rot - p._rot) * ip, p.color, alpha, p._tum + (p.tumble - p._tum) * ip);
+  }
+
   function draw() {
     c.clearRect(0, 0, W, H);
     for (const q of perched) {
@@ -300,8 +341,8 @@
       const a = q.alpha * Math.max(0, 1 - q.age);
       if (a > 0.015) drawPetalShape(L.left + q.ox, L.top + q.oy, q.r, q.rot, q.color, a);
     }
-    for (const p of airPetals) drawPetalShape(p.x, p.y, p.r, p.rot, p.color, p.alpha, p.tumble);
-    for (const h of held) drawPetalShape(h.p.x, h.p.y, h.p.r, h.p.rot, h.p.color, h.p.alpha, h.p.tumble);
+    for (const p of airPetals) drawMoving(p, p.alpha * (p.veil === undefined ? 1 : p.veil));
+    for (const h of held) drawMoving(h.p, h.p.alpha);
   }
 
   // steps of a 60th of a second, however fast the screen refreshes
@@ -320,7 +361,8 @@
       updatePetals();
     }
     if (steps === 4) acc = 0;
-    if (steps && !(hushed() && (++hushTick & 1))) draw();
+    ip = Math.max(0, Math.min(1, acc / STEP));
+    if (!(hushed() && (++hushTick & 1))) draw();
     requestAnimationFrame(frame);
   }
 
