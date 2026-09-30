@@ -293,10 +293,14 @@ vercel.json                 routing, headers, proxies
   of check. Every reading links out (books to Goodreads, films to
   Letterboxd, people and cited works to Wikipedia via `PEOPLE_LINKS` /
   `SOURCE_LINKS`); a new entry needs its `url`.
-- **The visitors' book** (September 2026) lives on `/garden`
-  (`garden.html`): "sign the visitors' book" under the title opens it, and
-  `/garden#visitors` opens it directly. It may move to the home page later,
-  on his word. A visitor types a name and a pen writes it out: a
+- **The visitors' book** (September 2026) opens from the home page's list
+  ("visitors' book (sign it!)") and from "sign the visitors' book" under
+  the title on `/garden`; `#visitors` on either opens it directly. All of
+  it lives in `visitors/`: `book.js` adds its own page and stylesheet
+  (`book.css`), so a page needs only `<script defer
+  src="/visitors/book.js">` and a link to `#visitors`. Clicks and taps
+  inside the book stop there, so the tree under it doesn't shake. A
+  visitor types a name and a pen writes it out: a
   handwriting network (Alex Graves's 2013 handwriting synthesis) running
   in their browser, in a Web Worker —
   `visitors/hand-core.js` (the network, plain JS, no libraries),
