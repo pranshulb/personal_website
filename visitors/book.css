@@ -23,14 +23,13 @@
 }
 .vb .vb-title {
   font-family: 'Princess Sofia', cursive !important; font-weight: 400; font-size: 2.6rem;
-  line-height: 1.1; margin: 0 0 0.6rem; color: #4a3020;
+  line-height: 1.1; margin: 0 0 1.4rem; color: #4a3020;
 }
 .vb-close {
   position: absolute; top: 0.8rem; right: 1rem;
   background: none; border: 0; font-size: 1.7rem; line-height: 1; color: #b8a090; cursor: pointer; padding: 0.3rem 0.5rem;
 }
 .vb-close:hover, .vb-close:focus-visible { color: #c47a7a; }
-.vb-sub { color: #6a5545; font-size: 1rem; margin: 0 0 1.4rem; }
 .vb-form { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .vb-form input {
   flex: 1 1 14rem; min-width: 0; font-size: 1.1rem; padding: 0.55rem 0.8rem;

@@ -21,9 +21,8 @@
     document.body.insertAdjacentHTML('beforeend', `
     <div class="vb" id="vb" hidden role="dialog" aria-modal="true" aria-labelledby="vb-title">
       <div class="vb-page">
-        <button type="button" class="vb-close" id="vb-close" aria-label="close the book">&times;</button>
-        <h2 class="vb-title" id="vb-title">visitors' book</h2>
-        <p class="vb-sub">leave your name and a pen will write it out for you. everyone who has been here is below.</p>
+        <button type="button" class="vb-close" id="vb-close" aria-label="close the guestbook">&times;</button>
+        <h2 class="vb-title" id="vb-title">guestbook</h2>
         <form class="vb-form" id="vb-form" autocomplete="off">
           <label class="vb-hp" for="vb-name">your name</label>
           <input id="vb-name" name="name" maxlength="40" placeholder="your name" required enterkeyhint="go">
@@ -34,7 +33,7 @@
           <svg class="vb-ink" id="vb-ink" aria-hidden="true"></svg>
           <p class="vb-status" id="vb-status" aria-live="polite"></p>
           <div class="vb-actions" id="vb-actions" hidden>
-            <button type="button" class="vb-btn" id="vb-sign">sign the book</button>
+            <button type="button" class="vb-btn" id="vb-sign">sign the guestbook</button>
             <button type="button" class="vb-btn quiet" id="vb-again">write it again</button>
           </div>
         </div>
@@ -143,7 +142,7 @@
   function showCount() {
     const n = entries.length;
     countEl.textContent = n === 0 ? 'no one has signed yet. be the first!'
-      : n === 1 ? 'one person has signed the book' : n + ' people have signed the book';
+      : n === 1 ? 'one person has signed the guestbook' : n + ' people have signed the guestbook';
   }
   // a signature stays unwritten until it scrolls into view, then writes itself
   const io = 'IntersectionObserver' in window && !reduceMotion ? new IntersectionObserver((seen) => {
@@ -162,7 +161,7 @@
     list.appendChild(frag);
   }
   async function loadBook() {
-    countEl.textContent = 'opening the book…';
+    countEl.textContent = 'opening the guestbook…';
     try {
       const res = await fetch(API, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -172,13 +171,13 @@
     } catch (e) {
       countEl.textContent = '';
       const a = document.createElement('button');
-      a.type = 'button'; a.className = 'vb-btn quiet'; a.textContent = 'the book wouldn\'t open, try again';
+      a.type = 'button'; a.className = 'vb-btn quiet'; a.textContent = 'the guestbook wouldn\'t open, try again';
       a.addEventListener('click', loadBook);
       countEl.appendChild(a);
     }
   }
   async function removeEntry(e, li) {
-    if (!confirm('remove "' + e.name + '" from the book?')) return;
+    if (!confirm('remove "' + e.name + '" from the guestbook?')) return;
     const res = await fetch(API + '?id=' + encodeURIComponent(e.id), { method: 'DELETE' });
     if (res.ok) { entries = entries.filter((x) => x.id !== e.id); li.remove(); showCount(); }
     else alert('could not remove it (' + res.status + ')');
@@ -256,7 +255,7 @@
       queueDraw();
     } else if (m.type === 'done') {
       delete statusEl.dataset.again;
-      setStatus('like it? sign the book, or have it written again');
+      setStatus('like it? sign the guestbook, or have it written again');
       showResult({ strokes: m.strokes });
     } else if (m.type === 'typed') {
       setStatus('the pen only knows the latin alphabet so far, so your name goes in as you typed it');
