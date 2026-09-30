@@ -265,11 +265,14 @@
     // fast they drop (1.5 since September 2026: once every screen fell at
     // the same pace, it read as slow next to what 120Hz laptops had shown)
     petals: { flutter: 1, sway: 1, wind: 1, fall: 1.5 },
-    // the tree coming into flower (garden-home experiment, September
-    // 2026): seconds for the whole canopy to open, from the heart of it
-    // outwards, and for each blossom to open; how far a blossom swells
-    // past its size before settling (0 = not at all)
-    bloom: { seconds: 2.6, each: 0.9, overshoot: 1.2 },
+    // the tree growing from a sapling and coming into flower
+    // (garden-home experiment, September 2026): seconds it grows for; how
+    // big the sapling is, as a share of the grown tree; how far through
+    // the growing the first blossoms open
+    grow: { seconds: 6, sapling: 0.35, flowerAt: 0.6 },
+    // seconds for each blossom to open, and how far it swells past its
+    // size before settling (0 = not at all)
+    bloom: { each: 0.9, overshoot: 1.2 },
   };
   const VALUES = REVEAL;
 
@@ -339,8 +342,10 @@
       { path: 'petals.sway',    label: 'how far they swing side to side', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.wind',    label: 'how strong the gusts are', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.fall',    label: 'how fast they fall', kind: 'number', min: 0.25, max: 3, step: 0.05 },
-      { section: 'the tree coming into flower (changing one plays it again)' },
-      { path: 'bloom.seconds',  label: 'the whole tree takes', kind: 'number', min: 0.8, max: 8, step: 0.1, unit: 's' },
+      { section: 'the tree growing and flowering (changing one plays it again)' },
+      { path: 'grow.seconds',   label: 'it grows for', kind: 'number', min: 1, max: 20, step: 0.5, unit: 's' },
+      { path: 'grow.sapling',   label: 'the sapling is this big (share of the grown tree)', kind: 'number', min: 0.05, max: 1, step: 0.01 },
+      { path: 'grow.flowerAt',  label: 'blossoms begin this far through the growing', kind: 'number', min: 0, max: 1, step: 0.01 },
       { path: 'bloom.each',     label: 'each blossom takes', kind: 'number', min: 0.2, max: 3, step: 0.05, unit: 's' },
       { path: 'bloom.overshoot',label: 'how much a blossom swells past its size', kind: 'number', min: 0, max: 3, step: 0.05 },
     ],
@@ -476,13 +481,14 @@
 
     // 2) interpret with a turtle in LOCAL coords (base at 0,0, grows upward)
     const rawB = [], leaves = [];
-    let st = { x: 0, y: 0, angle: 0, len: P.stemLength, w: P.stemWidth, d: 0 };
+    // dist: how far along the branches from the ground, for growing it
+    let st = { x: 0, y: 0, angle: 0, len: P.stemLength, w: P.stemWidth, d: 0, dist: 0 };
     const stack = [];
     const step = () => {
       const ex = st.x - st.len * Math.sin(Math.PI * st.angle / 180);
       const ey = st.y - st.len * Math.cos(Math.PI * st.angle / 180);
-      rawB.push({ x1: st.x, y1: st.y, x2: ex, y2: ey, w: st.w, d: st.d });
-      st.x = ex; st.y = ey;
+      rawB.push({ x1: st.x, y1: st.y, x2: ex, y2: ey, w: st.w, d: st.d, d0: st.dist, d1: st.dist + st.len });
+      st.x = ex; st.y = ey; st.dist += st.len;
     };
     for (const cmd of expr) {
       switch (cmd) {
@@ -496,7 +502,7 @@
           if (st.len < 1) st.len = 1; st.d++;
           stack.push({ ...st }); break;
         case "]": { const p = stack.pop(); if (p) st = p; break; }
-        case "L": leaves.push({ x: st.x, y: st.y, d: st.d }); break;
+        case "L": leaves.push({ x: st.x, y: st.y, d: st.d, dist: st.dist }); break;
       }
     }
 
@@ -528,7 +534,7 @@
       const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
       const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
       const jAmt = Math.max(0.4, w * 0.055);
-      branches.push({ x1, y1, cx, cy, x2, y2, w, d: b.d,
+      branches.push({ x1, y1, cx, cy, x2, y2, w, d: b.d, d0: b.d0, d1: b.d1,
         jx: sRngR(-jAmt, jAmt), jy: sRngR(-jAmt, jAmt) });
     }
     branches.sort((a, b) => (a.d - b.d) || (b.w - a.w)); // trunk/thick first
@@ -543,20 +549,20 @@
       blossoms.push({
         x: lx + sRngR(-6, 6), y: ly + sRngR(-6, 6),
         r: sRngR(6, 15) * bScale * 0.7, color: pickBlossomColor(),
-        alpha: sRngR(0.4, 0.68), ph: sRng() * PI2, swPh: sRng() * PI2
+        alpha: sRngR(0.4, 0.68), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
       });
       // extra fluff near the canopy
       if (sRng() < 0.5) blossoms.push({
         x: lx + sRngR(-14, 14), y: ly + sRngR(-14, 14),
         r: sRngR(4, 10) * bScale * 0.7, color: pickBlossomColor(),
-        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2
+        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
       });
       // saturated highlight dot
       if (sRng() < 0.28) blossoms.push({
         x: lx + sRngR(-10, 10), y: ly + sRngR(-10, 10),
         r: sRngR(2.5, 5.5) * bScale * 0.7,
         color: sRng() < 0.5 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
-        alpha: sRngR(0.7, 0.95), ph: sRng() * PI2, swPh: sRng() * PI2
+        alpha: sRngR(0.7, 0.95), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
       });
       // HD 5-petal flower on some nodes
       if (sRng() < 0.24) flowers.push({
@@ -564,7 +570,7 @@
         sz: sRngR(4, 8) * Math.max(0.9, bScale * 0.75),
         angle: sRng() * PI2,
         color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
-        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
+        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2, dist: l.dist
       });
     }
 
@@ -1159,27 +1165,46 @@
   }
 
   /* ================================================================
-     THE TREE COMING INTO FLOWER — an experiment on /garden-home
+     THE TREE GROWING — an experiment on /garden-home
 
-     The bare branches are drawn first; then the blossoms open, from the
-     heart of the canopy outwards, each swelling a touch past its size and
-     settling (REVEAL.bloom). No petal falls until the tree is in flower;
-     then the first few let go. On a phone it waits until the tree scrolls
-     into view. Nothing moves for anyone who has asked for less motion.
+     It starts as a sapling on the mound: a thin stem and its first few
+     twigs, a third of its size. Then it grows. Every branch lengthens out
+     of the one it forks from; new wood is thin and a lighter, redder
+     brown, and thickens and darkens as it ages; and the whole tree gains
+     height and girth as it goes (REVEAL.grow). Once the canopy has mostly
+     formed, blossoms open where the branches have reached, each swelling
+     a touch past its size and settling (REVEAL.bloom), and a branch still
+     growing flowers when it gets there. No petal falls until the tree is
+     in flower; then the first few let go. On a phone the sapling waits
+     until the tree scrolls into view. Nothing moves for anyone who has
+     asked for less motion.
+
+     How far the growth has reached is a distance along the branches from
+     the ground (each piece of wood knows its own, from genTree). It runs
+     partly at an even pace and partly at an even rate of new wood, so the
+     stem has time to rise and the crowded outer canopy doesn't all burst
+     out in one second.
 
      Here it plays on every visit, so it can be looked at. For the home
      page the idea is once, on someone's first visit: BLOOM_EVERY_VISIT
      false, remembered in localStorage.
 
-     The finished tree is drawn once and never again, which is why it
-     costs nothing. While it opens it is redrawn every frame, so that has
-     to be cheap: the branches are drawn once to a canvas of their own,
-     and each soft blossom is a stamp of its colour drawn once and then
-     copied at its size, instead of a new gradient per blossom per frame.
-     When it has opened, the ordinary drawScene draws the finished tree.
+     Cost. The finished tree is drawn once and never again. While growing,
+     the tree is redrawn every frame, so that has to be cheap, and it was
+     not at first (11 frames a second mid-growth, stalls at both ends):
+     - twigs that have finished growing are drawn once, onto a layer of
+       their own, and never again; each frame draws that layer, the thick
+       wood (a couple of hundred pieces, so the trunk thickens smoothly),
+       and only the twigs still growing, one path per depth and age;
+     - layers are copied only where the tree is, not the whole screen;
+     - the blossoms' pictures are made a few at a time while the sapling
+       waits and grows, not all at once when it starts (a 0.4s stall);
+     - the last frame is the finished tree. Drawing it afresh at the end
+       took 60-90ms on a laptop and 400ms or more on a slow phone.
+     The blossoms open by patches (below).
   ================================================================ */
   const BLOOM_EVERY_VISIT = true;
-  let bloom = null;                 // { t0 } while opening; t0 null while waiting to be seen
+  let bloom = null;                 // { t0 } while growing; t0 null while waiting to be seen
   function bloomWanted() {
     try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false; } catch (e) {}
     if (BLOOM_EVERY_VISIT) return true;
@@ -1192,91 +1217,205 @@
     try { localStorage.setItem('pcafe:bloomed', '1'); } catch (e) {}
   }
   function endBloom() {
-    // The finished tree is drawn in its usual order (all blossoms, then all
-    // flowers); the opening one laid blossoms down in the order they opened,
-    // so a few tones differ. A copy of the last opening frame fades out over
-    // the finished tree instead of being swapped for it.
-    let veil = null;
-    try {
-      veil = document.createElement('canvas');
-      veil.width = scEl.width; veil.height = scEl.height;
-      veil.getContext('2d').drawImage(scEl, 0, 0);
-      veil.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:2;width:' + W + 'px;height:' + H + 'px;transition:opacity 0.7s ease;';
-      veil.style.transform = scEl.style.transform; veil.style.transformOrigin = scEl.style.transformOrigin;
-      scEl.after(veil);
-    } catch (e) { veil = null; }
+    // The last frame, every blossom open, is the finished tree: it stays
+    // on the canvas. (Drawing the tree afresh here stalled the page; if the
+    // window changes size later, drawScene draws it the usual way.)
+    drawSceneBlooming(1e9);
     bloom = null;
-    drawScene();
-    if (veil) requestAnimationFrame(() => { veil.style.opacity = '0'; setTimeout(() => veil.remove(), 800); });
     // the first petals let go
     const room = Math.max(0, 260 - airPetals.length);
     for (let i = 0; i < Math.min(14, room); i++) spawnPetal(true);
   }
-  function drawBranchesTo(c) {
+
+  // bark as the finished tree has it, by depth, and young wood
+  const BARK = (d) => d === 0 ? [107, 85, 96] : d < 3 ? [88, 70, 81] : [70, 54, 66];
+  const YOUNG_WOOD = [150, 104, 100];
+  const woodColor = (d, age) => {
+    const b = BARK(d), k = age;
+    return `rgb(${Math.round(YOUNG_WOOD[0] + (b[0] - YOUNG_WOOD[0]) * k)},${Math.round(YOUNG_WOOD[1] + (b[1] - YOUNG_WOOD[1]) * k)},${Math.round(YOUNG_WOOD[2] + (b[2] - YOUNG_WOOD[2]) * k)})`;
+  };
+  const youngWidth = (age) => 0.35 + 0.65 * age;   // new wood is a third as thick
+
+  // The wood, grown as far as F (a distance along the branches). A piece
+  // the growth is still inside is drawn part of the way along its curve; a
+  // piece it has passed is young until the growth is Y further on, then it
+  // is ordinary bark. Thick wood is drawn whole every frame, its width
+  // times wg, so the trunk and limbs thicken smoothly as the tree grows.
+  // Thin wood that has finished is drawn once onto the blossoms' layer,
+  // underneath what is already there (destination-over), so the layer
+  // holds finished wood under finished blossoms and costs one copy.
+  function woodShape(b, F) {
+    const frac = Math.min(1, (F - b.d0) / Math.max(1e-6, b.d1 - b.d0));
+    if (frac >= 1) return [b.cx, b.cy, b.x2, b.y2];
+    // the first part of the curve, up to frac: de Casteljau
+    const ax = b.x1 + (b.cx - b.x1) * frac, ay = b.y1 + (b.cy - b.y1) * frac;
+    const bx = b.cx + (b.x2 - b.cx) * frac, by = b.cy + (b.y2 - b.cy) * frac;
+    return [ax, ay, ax + (bx - ax) * frac, ay + (by - ay) * frac];
+  }
+  const AGES = 8;   // young wood thickens and darkens in this many steps
+  function strokeBuckets(c, buckets, wg) {
+    for (const q of buckets.values()) {
+      const age = q.L / (AGES - 1);
+      c.strokeStyle = woodColor(q.d, age);
+      c.lineWidth = q.w * wg * youngWidth(age);
+      c.globalAlpha = q.alpha;
+      c.stroke(q.path);
+    }
+    c.globalAlpha = 1;
+  }
+  function addToBucket(buckets, b, L, sh) {
+    const key = b.d * AGES + L;
+    let q = buckets.get(key);
+    if (!q) buckets.set(key, q = { path: new Path2D(), d: b.d, w: b.w, L, alpha: 0.86 + Math.min(b.d * 0.01, 0.12) });
+    q.path.moveTo(b.x1, b.y1); q.path.quadraticCurveTo(sh[0], sh[1], sh[2], sh[3]);
+  }
+  function drawWood(c, F, wg) {
+    const g = bloom.g, Y = g.Y;
     c.lineCap = 'round'; c.lineJoin = 'round';
-    for (const b of sortedBranches) {
-      c.strokeStyle = b.d === 0 ? '#6b5560' : b.d < 3 ? '#584651' : '#463642';
-      c.lineWidth = b.w;
+    // thick wood, whole, every frame
+    for (const b of g.thick) {
+      if (F <= b.d0) break;                      // sorted by where they start
+      const frac = (F - b.d0) / Math.max(1e-6, b.d1 - b.d0);
+      if (frac < 0.02) continue;
+      const age = frac < 1 ? 0 : Math.min(1, (F - b.d1) / Y);
+      const sh = woodShape(b, F);
+      c.strokeStyle = woodColor(b.d, age);
+      // slimmer while the tree is young, but never slimmer than the twigs
+      // growing out of it (they are drawn at their full width)
+      c.lineWidth = Math.max(Math.min(b.w, 4.5), b.w * wg) * youngWidth(age);
       c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
-      c.beginPath(); c.moveTo(b.x1, b.y1); c.quadraticCurveTo(b.cx, b.cy, b.x2, b.y2); c.stroke();
-      if (b.w > 5) {
-        c.lineWidth = b.w * 0.20; c.globalAlpha = 0.06; c.strokeStyle = '#3a2c36';
+      c.beginPath(); c.moveTo(b.x1, b.y1); c.quadraticCurveTo(sh[0], sh[1], sh[2], sh[3]); c.stroke();
+      if (b.w > 5 && age >= 1) {
+        c.lineWidth = Math.max(Math.min(b.w, 4.5), b.w * wg) * 0.20; c.globalAlpha = 0.06; c.strokeStyle = '#3a2c36';
         c.beginPath(); c.moveTo(b.x1 + b.jx, b.y1 + b.jy);
         c.quadraticCurveTo(b.cx + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2, b.y2); c.stroke();
       }
-      c.globalAlpha = 1;
     }
+    c.globalAlpha = 1;
+    // thin wood that has just finished: onto the layer, under the rest
+    const thin = g.thin, done = new Map();
+    while (g.baked < g.byDone.length && g.byDone[g.baked].d1 + Y <= F) {
+      const b = g.byDone[g.baked++]; b.baked = true;
+      addToBucket(done, b, AGES - 1, [b.cx, b.cy, b.x2, b.y2]);
+    }
+    if (done.size) {
+      const lc = bloom.lc;
+      lc.globalCompositeOperation = 'destination-over';
+      lc.lineCap = 'round'; lc.lineJoin = 'round';
+      strokeBuckets(lc, done, 1);
+      lc.globalCompositeOperation = 'source-over';
+      bloom.hasL = true;
+    }
+    // thin wood still growing, one path per depth and age
+    while (g.lo < thin.length && thin[g.lo].baked) g.lo++;
+    const live = new Map();
+    for (let i = g.lo; i < thin.length; i++) {
+      const b = thin[i];
+      if (F <= b.d0) break;                      // sorted by where they start
+      if (b.baked) continue;
+      if ((F - b.d0) / Math.max(1e-6, b.d1 - b.d0) < 0.02) continue;
+      const age = F < b.d1 ? 0 : Math.min(1, (F - b.d1) / Y);
+      addToBucket(live, b, Math.min(AGES - 2, Math.round(age * (AGES - 1))), woodShape(b, F));
+    }
+    strokeBuckets(c, live, 1);
   }
+
   // Redrawing all ~5000 blossoms and ~700 flowers every frame took 60-90ms
   // on a laptop and 400+ on a slow phone; drawing each one as a stamp still
-  // left ~2000 opening at once mid-bloom. So the canopy is cut into small
-  // patches, each drawn once, exactly as the finished tree draws its
-  // blossoms and flowers, and it is the patches that open (a clump of
-  // blossoms at a time, ~300-600 of them). A patch that has finished opening
-  // is drawn once onto a layer over the branches and never again; each frame
-  // draws that layer and only the patches still opening.
-  const PATCH = 26;   // css px
+  // left ~2000 opening at once. So the canopy is cut into small patches,
+  // each drawn once, exactly as the finished tree draws its blossoms and
+  // flowers, and it is the patches that open (a clump of blossoms at a
+  // time, ~300-600 of them). A patch that has finished opening is drawn
+  // once onto a layer and never again; each frame draws that layer and
+  // only the patches still opening.
+  const PATCH = 34;   // css px
   function bloomLayers() {
     if (bloom.layer && bloom.layer.width === scEl.width && bloom.layer.height === scEl.height && bloom.n === blossoms.length) return;
+    const G = REVEAL.grow;
+    // how the growth runs: F(u) is how far along the branches it has
+    // reached at u (0..1 of the growing), partly at an even pace and
+    // partly at an even rate of new wood
+    const ds = sortedBranches.map(b => b.d1).sort((a, b) => a - b);
+    const Fmax = ds[ds.length - 1] || 1;
+    const F0 = Fmax * 0.25;       // the sapling: its stem and first twigs
+    const Y = Fmax * 0.035;       // how long wood stays young behind the growth
+    const inOut = curve('inOut');
+    const smooth = (u) => u * u * (3 - 2 * u);
+    const Fat = (u) => {
+      const v = inOut(u);
+      const q = ds[Math.min(ds.length - 1, Math.floor(v * (ds.length - 1)))];
+      const w = 0.45 * v + 0.55 * clamp((q - F0) / (Fmax - F0), 0, 1);
+      return F0 + (Fmax + Y - F0) * w;
+    };
+    const s0 = clamp(G.sapling, 0.02, 1);
+    for (const b of sortedBranches) b.baked = false;
+    const byStart = (a, b) => a.d0 - b.d0;
+    const thin = sortedBranches.filter(b => b.w <= 4).sort(byStart);
+    // where the tree is, with room for its blossoms: layers are copied
+    // only there
+    let bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
+    for (const b of sortedBranches) {
+      bx0 = Math.min(bx0, b.x1, b.x2); by0 = Math.min(by0, b.y1, b.y2);
+      bx1 = Math.max(bx1, b.x1, b.x2); by1 = Math.max(by1, b.y1, b.y2);
+    }
+    const pad = 60;
+    bx0 = Math.max(0, Math.floor(bx0 - pad)); by0 = Math.max(0, Math.floor(by0 - pad));
+    bx1 = Math.min(W, Math.ceil(bx1 + pad)); by1 = Math.min(H, Math.ceil(by1 + pad));
+    bloom.g = {
+      Fat, Y, thin, lo: 0, baked: 0,
+      thick: sortedBranches.filter(b => b.w > 4).sort(byStart),
+      byDone: thin.slice().sort((a, b) => a.d1 - b.d1),
+      box: { x: bx0, y: by0, w: Math.max(1, bx1 - bx0), h: Math.max(1, by1 - by0) },
+      // its size, from sapling to grown a little before the growing ends,
+      // so most blossoms open on the grown tree
+      sAt: (u) => s0 + (1 - s0) * smooth(Math.min(1, u / 0.85)),
+      wgAt: (u) => 0.55 + 0.45 * smooth(u),               // and its girth, which lags
+    };
+    // when the growth reaches a distance d, in seconds
+    const tReach = (d) => {
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (Fat(m) >= d) hi = m; else lo = m; }
+      return hi * G.seconds;
+    };
+
     // two layers, as the finished tree has two: every blossom, then every
     // flower on top. With one, a patch's flowers could sit under the next
     // patch's blossoms, and popped into view when the finished tree took over.
-    const layer = (withBranches) => {
+    const layer = () => {
       const L = document.createElement('canvas');
       L.width = scEl.width; L.height = scEl.height;
       const lc = L.getContext('2d'); lc.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (withBranches) drawBranchesTo(lc);
       return [L, lc];
     };
-    [bloom.layer, bloom.lc] = layer(true);
-    [bloom.flayer, bloom.flc] = layer(false);
+    [bloom.layer, bloom.lc] = layer();
+    [bloom.flayer, bloom.flc] = layer();
     bloom.n = blossoms.length;
+    bloom.hasL = bloom.hasF = false;   // nothing on either layer yet
     // gather blossoms and flowers into patches
     const byKey = new Map();
     const patchOf = (x, y) => {
       const k = Math.floor(x / PATCH) + ',' + Math.floor(y / PATCH);
       let p = byKey.get(k);
-      if (!p) byKey.set(k, p = { b: [], f: [], x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9, sx: 0, sy: 0, n: 0 });
+      if (!p) byKey.set(k, p = { b: [], f: [], x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9, sx: 0, sy: 0, sd: 0, n: 0 });
       return p;
     };
     for (const q of blossoms) {
       const p = patchOf(q.x, q.y); p.b.push(q);
       p.x0 = Math.min(p.x0, q.x - q.r); p.y0 = Math.min(p.y0, q.y - q.r); p.x1 = Math.max(p.x1, q.x + q.r); p.y1 = Math.max(p.y1, q.y + q.r);
-      p.sx += q.x; p.sy += q.y; p.n++;
+      p.sx += q.x; p.sy += q.y; p.sd += q.dist || 0; p.n++;
     }
     for (const q of flowers) {
       const p = patchOf(q.x, q.y); p.f.push(q);
       p.x0 = Math.min(p.x0, q.x - q.sz); p.y0 = Math.min(p.y0, q.y - q.sz); p.x1 = Math.max(p.x1, q.x + q.sz); p.y1 = Math.max(p.y1, q.y + q.sz);
-      p.sx += q.x; p.sy += q.y; p.n++;
+      p.sx += q.x; p.sy += q.y; p.sd += q.dist || 0; p.n++;
     }
-    // when each patch starts opening: from the heart of the canopy outwards
+    // each patch opens once the tree is far enough along and its branch
+    // has reached it, whichever is later, give or take a moment
     const B = REVEAL.bloom;
-    const ox = TREE_X, oy = H * 0.90 - (isMobile ? REVEAL.treeHeight : 0.72) * H * 0.42;
     const patches = [...byKey.values()];
-    let maxD = 1;
-    for (const p of patches) { p.cx = p.sx / p.n; p.cy = p.sy / p.n; maxD = Math.max(maxD, Math.hypot(p.cx - ox, p.cy - oy)); }
-    const spread = Math.max(0.1, B.seconds - B.each - 0.3);
+    let end = G.seconds;
     for (const p of patches) {
+      p.cx = p.sx / p.n; p.cy = p.sy / p.n;
       const x0 = p.x0 - 1, y0 = p.y0 - 1, w = p.x1 - p.x0 + 2, h = p.y1 - p.y0 + 2;
       const stamp = (draw) => {
         const cv = document.createElement('canvas');
@@ -1284,14 +1423,48 @@
         const pc = cv.getContext('2d'); pc.setTransform(dpr, 0, 0, dpr, -x0 * dpr, -y0 * dpr);
         draw(pc); return cv;
       };
-      p.cv = p.b.length ? stamp((pc) => { for (const q of p.b) drawBlossomBlob(pc, q.x, q.y, q.r, q.color, q.alpha, q.ph); }) : null;
-      p.fcv = p.f.length ? stamp((pc) => { for (const q of p.f) drawFlower(pc, q.x, q.y, q.sz, q.angle, q.color, q.alpha); }) : null;
+      // its pictures are made later, a few patches a frame (makeStamps)
+      p.make = () => {
+        p.cv = p.b.length ? stamp((pc) => { for (const q of p.b) drawBlossomBlob(pc, q.x, q.y, q.r, q.color, q.alpha, q.ph); }) : null;
+        p.fcv = p.f.length ? stamp((pc) => { for (const q of p.f) drawFlower(pc, q.x, q.y, q.sz, q.angle, q.color, q.alpha); }) : null;
+        p.b = p.f = null; p.make = null;
+      };
+      const hasB = p.b.length > 0, hasF = p.f.length > 0;
       p.x0 = x0; p.y0 = y0; p.w = w; p.h = h;
-      p.at = 0.1 + (Math.hypot(p.cx - ox, p.cy - oy) / maxD) * spread + Math.random() * 0.3;
-      p.fat = p.at + 0.15;   // its flowers open a moment after its blossoms
-      p.done = !p.cv; p.fdone = !p.fcv; p.b = p.f = null;
+      p.ready = Math.max(G.flowerAt * G.seconds, tReach(p.sd / p.n) + 0.25);
+      p.hasF = hasF;
+      p.done = !hasB; p.fdone = !hasF;
     }
+    // Most branches reach their blossoms within the same second, and left
+    // to that, ~400 patches opened at once. So they open at an even pace
+    // across the flowering, never before their branch has got there, in
+    // roughly the order they are ready: shuffled by up to a second and a
+    // half, or the flowering swept across the tree from one side instead
+    // of coming out all over it.
+    for (const p of patches) p.order = p.ready + Math.random() * 1.5;
+    patches.sort((a, b) => a.order - b.order);
+    const first = G.flowerAt * G.seconds, N = patches.length;
+    const span = Math.max(0.5, (N ? patches[N - 1].ready : first) - first + 0.8);
+    patches.forEach((p, i) => {
+      p.at = Math.max(p.ready, first + (i / Math.max(1, N - 1)) * span) + Math.random() * 0.3;
+      p.fat = p.at + 0.15;   // its flowers open a moment after its blossoms
+      end = Math.max(end, (p.hasF ? p.fat : p.at) + B.each);
+    });
+    // the first to open are made first
+    patches.sort((a, b) => a.at - b.at);
     bloom.patches = patches;
+    bloom.made = 0;
+    bloom.end = end;
+  }
+  // Make blossom pictures for up to `ms` milliseconds, soonest-opening
+  // first. Runs every frame while the sapling waits and grows.
+  function makeStamps(ms) {
+    if (!bloom || !bloom.patches) return;
+    const until = performance.now() + ms, P = bloom.patches;
+    while (bloom.made < P.length && performance.now() < until) {
+      const p = P[bloom.made++];
+      if (p.make) p.make();
+    }
   }
   function drawPatch(c, p, cv, prog, open) {
     const e = open(prog);
@@ -1302,31 +1475,44 @@
   function drawSceneBlooming(t) {
     const c = scC;
     bloomLayers();
+    const G = REVEAL.grow, g = bloom.g;
+    const u = clamp(t / G.seconds, 0, 1);
     const B = REVEAL.bloom, c1 = B.overshoot, c3 = c1 + 1;
     const open = (p) => p >= 1 ? 1 : 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);   // ease out, a little past and back
-    // anything that has just finished goes onto its layer for good
+    // a patch about to open has its pictures, made now if need be
+    for (const p of bloom.patches) if (p.make && t >= p.at - 0.05) p.make();
+    // anything that has just finished opening goes onto its layer for good
     for (const p of bloom.patches) {
-      if (!p.done && t >= p.at + B.each) { drawPatch(bloom.lc, p, p.cv, 1, open); p.done = true; }
-      if (!p.fdone && t >= p.fat + B.each) { drawPatch(bloom.flc, p, p.fcv, 1, open); p.fdone = true; }
+      if (!p.done && t >= p.at + B.each) { drawPatch(bloom.lc, p, p.cv, 1, open); p.done = true; bloom.hasL = true; }
+      if (!p.fdone && t >= p.fat + B.each) { drawPatch(bloom.flc, p, p.fcv, 1, open); p.fdone = true; bloom.hasF = true; }
     }
     bloom.lc.globalAlpha = 1; bloom.flc.globalAlpha = 1;
-    // then: branches and finished blossoms, blossoms still opening,
-    // finished flowers, flowers still opening
-    c.clearRect(0, 0, W, H);
-    c.drawImage(bloom.layer, 0, 0, W, H);
+
+    // the whole tree at its size now, grown from the foot of the trunk
+    const s = g.sAt(u), baseY = H * 0.90;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, scEl.width, scEl.height);
+    c.setTransform(dpr * s, 0, 0, dpr * s, dpr * TREE_X * (1 - s), dpr * baseY * (1 - s));
+    drawWood(c, g.Fat(u), g.wgAt(u));
+    // then: finished wood and blossoms, blossoms still opening, finished
+    // flowers, flowers still opening (a layer with nothing on it yet is
+    // not copied)
+    const box = g.box, blit = (L) => c.drawImage(L, box.x * dpr, box.y * dpr, box.w * dpr, box.h * dpr, box.x, box.y, box.w, box.h);
+    if (bloom.hasL) blit(bloom.layer);
     for (const p of bloom.patches) {
       if (p.done) continue;
       const prog = (t - p.at) / B.each;
       if (prog > 0) drawPatch(c, p, p.cv, prog, open);
     }
     c.globalAlpha = 1;
-    c.drawImage(bloom.flayer, 0, 0, W, H);
+    if (bloom.hasF) blit(bloom.flayer);
     for (const p of bloom.patches) {
       if (p.fdone) continue;
       const prog = (t - p.fat) / B.each;
       if (prog > 0) drawPatch(c, p, p.fcv, prog, open);
     }
     c.globalAlpha = 1;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   /* ================================================================
@@ -1498,9 +1684,11 @@
   let lastNow = performance.now(), acc = 0;
   function frame(now) {
     if (bloom && bloom.t0 !== null) {
-      if ((performance.now() - bloom.t0) / 1000 > REVEAL.bloom.seconds + 0.15) endBloom();
+      if ((performance.now() - bloom.t0) / 1000 > (bloom.end || 1e9) + 0.15) endBloom();
       else drawScene();
     }
+    // the blossoms' pictures, a few at a time, while the sapling waits and grows
+    if (bloom && bloom.patches && bloom.made < bloom.patches.length) makeStamps(4);
     if (now === undefined) now = performance.now();
     acc += Math.min(now - lastNow, 100); lastNow = now;
     let steps = 0;
