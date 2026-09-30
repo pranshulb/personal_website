@@ -5,7 +5,7 @@
 // history so a bad write or an accidental wipe is recoverable.
 
 import {
-  listVersions, restoreVersion, requireAdmin, adminCors, checkRate, clientIp,
+  listVersions, restoreVersion, requireAdmin, adminCors, checkRate, clientIp, fail,
   PLACES_KEY, PENDING_KEY,
 } from './_store.js';
 

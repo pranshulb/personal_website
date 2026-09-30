@@ -4,7 +4,10 @@
 //
 //   GET    /api/guestbook            → { entries: [...newest first], canRemove }
 //   POST   /api/guestbook            { name, strokes? }  → { ok, entry }
-//   DELETE /api/guestbook?id=...     admin only (the community admin login)
+//   GET    /api/guestbook?history=1  the last 30 copies of the book, newest first  } both need
+//   POST   /api/guestbook?restore=1  { pathname } → roll back to one of them       } the login below
+//   DELETE /api/guestbook?id=...     the private pages' login (/typeshit lists the
+//                                    book with remove buttons) or the community admin
 //
 // Storage is Vercel Blob through the community store's `mutate` / `readBlob`
 // (api/community/_store.js), so it gets the same write lock, check-after-write,
@@ -16,8 +19,14 @@
 // no more) and the admin can remove any entry from the book itself.
 
 import {
-  readBlob, mutate, fail, checkRate, clientIp, clean, newId, isAdmin, requireAdmin, adminCors,
+  readBlob, mutate, fail, checkRate, clientIp, clean, newId, isAdmin, sameOrigin, adminCors,
+  listVersions, restoreVersion,
 } from './community/_store.js';
+import { privateAuthed } from './_private.js';
+
+// Who may remove entries: whoever is logged in to the private pages (the
+// book is managed from /typeshit), or the community admin.
+const canManage = (req) => privateAuthed(req) || isAdmin(req);
 
 export const BOOK_KEY = 'guestbook.json';
 const MAX_ENTRIES = 3000;
@@ -54,11 +63,32 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   const ip = clientIp(req);
 
+  // Every signature and every removal leaves the book as it was before
+  // behind as a full copy (the store keeps the last 30): nothing signed is
+  // lost to a bad write or a slip, it can be rolled back from /typeshit.
+  const q = req.query || {};
+  if ((req.method === 'GET' && q.history) || (req.method === 'POST' && q.restore)) {
+    adminCors(res);
+    if (!checkRate(ip, 'guestbook-history', 30)) return res.status(429).json({ error: 'too many requests' });
+    if (!sameOrigin(req)) return res.status(403).json({ error: 'cross-origin request refused' });
+    if (!canManage(req)) return res.status(401).json({ error: 'unauthorized' });
+    try {
+      if (req.method === 'GET') return res.status(200).json({ versions: await listVersions(BOOK_KEY) });
+      const pathname = req.body && req.body.pathname;
+      if (typeof pathname !== 'string' || !pathname) return res.status(400).json({ error: 'which copy?' });
+      const restored = await restoreVersion(BOOK_KEY, pathname);
+      if (restored === null) return res.status(404).json({ error: 'no such copy' });
+      return res.status(200).json({ ok: true, count: restored.length });
+    } catch (e) {
+      return fail(res, e, 'failed to reach the book\'s history');
+    }
+  }
+
   if (req.method === 'GET') {
     if (!checkRate(ip, 'guestbook-read', 60)) return res.status(429).json({ error: 'too many requests' });
     try {
       const book = await readBlob(BOOK_KEY, []);
-      return res.status(200).json({ entries: book.slice().reverse(), canRemove: isAdmin(req) });
+      return res.status(200).json({ entries: book.slice().reverse(), canRemove: canManage(req) });
     } catch (e) {
       return fail(res, e, 'failed to read the visitors\' book');
     }
@@ -105,7 +135,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     adminCors(res);
-    if (!requireAdmin(req, res)) return;
+    if (!sameOrigin(req)) return res.status(403).json({ error: 'cross-origin request refused' });
+    if (!canManage(req)) return res.status(401).json({ error: 'unauthorized' });
     const id = String((req.query && req.query.id) || '');
     if (!id) return res.status(400).json({ error: 'which entry?' });
     try {

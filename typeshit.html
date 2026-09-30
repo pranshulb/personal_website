@@ -16,6 +16,23 @@
     a { color: #3a2f2f; text-decoration: none; }
     a:hover { color: #c47a7a; }
     ul { list-style: none; padding: 0; line-height: 2.2; font-size: 1.1rem; }
+    /* the visitors' book: every signature, to remove; its history, to undo */
+    .book { margin-top: 2.6rem; font-size: 1rem; }
+    .book h2 { font-size: 1.25rem; font-weight: 400; margin-bottom: 0.2rem; }
+    .book .aside { color: #9a7a60; font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.9rem; }
+    .book-row { display: flex; align-items: center; gap: 0.7rem; padding: 0.45rem 0; border-bottom: 1px solid rgba(212,160,128,0.3); }
+    .book-row svg { height: 2.2rem; width: auto; max-width: 9rem; flex: none; }
+    .book-row svg path { fill: none; stroke: #3a2f2f; stroke-linecap: round; stroke-linejoin: round; }
+    .book-who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .book-when { display: block; color: #b8a090; font-size: 0.78rem; }
+    .book button { background: none; border: 0; color: #c47a7a; cursor: pointer; font-size: 0.85rem; padding: 0.2rem 0; text-decoration: underline; text-decoration-color: rgba(196,122,122,0.35); text-underline-offset: 3px; }
+    .book button:hover { text-decoration-color: #c47a7a; }
+    .book button[disabled] { opacity: 0.4; cursor: default; }
+    .book .quiet { color: #9a7a60; text-decoration-color: rgba(154,122,96,0.35); }
+    .book-tools { display: flex; gap: 1.2rem; margin-top: 0.9rem; }
+    .book-status { min-height: 1.4em; color: #9a7a60; font-size: 0.85rem; margin-top: 0.5rem; }
+    .book-history { margin-top: 0.6rem; font-size: 0.88rem; }
+    .book-history div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.25rem 0; }
   </style>
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
@@ -34,6 +51,124 @@
     <li><a href="/monica">monica (people)</a></li>
     <li><a href="/pdfs">enola's pdfs</a></li>
   </ul>
+
+  <section class="book" aria-labelledby="book-h">
+    <h2 id="book-h">visitors' book</h2>
+    <p class="aside">everyone who signed the guestbook (home page and /garden), newest first. a removal can be undone from its history.</p>
+    <div id="book-list">opening the book…</div>
+    <div class="book-tools">
+      <button type="button" class="quiet" id="book-history-btn">history</button>
+      <button type="button" class="quiet" id="book-download">download a copy</button>
+    </div>
+    <div class="book-history" id="book-history" hidden></div>
+    <p class="book-status" id="book-status" aria-live="polite"></p>
+  </section>
 </div>
+<script>
+(() => {
+  // The guestbook (api/guestbook.js). This page is behind the private login,
+  // and that same login is what lets it remove entries and roll them back.
+  const API = '/api/guestbook';
+  const $ = (id) => document.getElementById(id);
+  const list = $('book-list'), status = $('book-status'), hist = $('book-history');
+  const NS = 'http://www.w3.org/2000/svg';
+  let entries = [];
+  const say = (t) => { status.textContent = t; };
+  async function api(method, qs, body) {
+    const res = await fetch(API + qs, { method, cache: 'no-store', credentials: 'same-origin',
+      headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.error || ('HTTP ' + res.status)), { status: res.status });
+    return data;
+  }
+  // the saved pen strokes, smoothed the way the book draws them
+  function signature(e) {
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + (e.w + 8) + ' ' + (e.h + 8));
+    svg.setAttribute('aria-hidden', 'true');
+    let d = '';
+    for (const s of e.strokes) {
+      const n = s.length / 2;
+      if (n < 2) continue;
+      d += 'M' + s[0] + ' ' + s[1];
+      for (let i = 1; i < n - 1; i++) d += 'Q' + s[2 * i] + ' ' + s[2 * i + 1] + ' ' + (s[2 * i] + s[2 * i + 2]) / 2 + ' ' + (s[2 * i + 1] + s[2 * i + 3]) / 2;
+      d += 'L' + s[2 * n - 2] + ' ' + s[2 * n - 1];
+    }
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d); path.setAttribute('stroke-width', String(Math.max(2.2, (e.h + 8) / 34)));
+    svg.appendChild(path);
+    return svg;
+  }
+  function render(canRemove) {
+    list.textContent = '';
+    if (!entries.length) { list.textContent = 'no one has signed yet.'; return; }
+    if (!canRemove) say('you can see the book but not change it: the server has no PRIVATE_SECRET set yet.');
+    for (const e of entries) {
+      const row = document.createElement('div');
+      row.className = 'book-row';
+      if (e.strokes) row.appendChild(signature(e));
+      const who = document.createElement('span');
+      who.className = 'book-who'; who.textContent = e.name;
+      const when = document.createElement('span');
+      when.className = 'book-when'; when.textContent = (e.date || '') + (e.strokes ? '' : ' · typed');
+      who.appendChild(when);
+      row.appendChild(who);
+      if (canRemove) {
+        const x = document.createElement('button');
+        x.type = 'button'; x.textContent = 'remove';
+        x.setAttribute('aria-label', 'remove ' + e.name);
+        x.addEventListener('click', async () => {
+          x.disabled = true; say('');
+          try {
+            const r = await api('DELETE', '?id=' + encodeURIComponent(e.id));
+            say('removed "' + e.name + '". ' + r.count + ' left. (history can bring it back.)');
+            load();
+          } catch (err) { x.disabled = false; say(err.status === 404 ? 'already gone.' : 'couldn\'t remove that: ' + err.message); if (err.status === 404) load(); }
+        });
+        row.appendChild(x);
+      }
+      list.appendChild(row);
+    }
+  }
+  async function load() {
+    try { const data = await api('GET', ''); entries = data.entries || []; render(!!data.canRemove); if (!hist.hidden) showHistory(); }
+    catch (err) { list.textContent = 'couldn\'t open the book (' + err.message + ').'; }
+  }
+  async function showHistory() {
+    hist.hidden = false; hist.textContent = 'looking…';
+    try {
+      const { versions } = await api('GET', '?history=1');
+      hist.textContent = '';
+      for (const v of versions) {
+        const row = document.createElement('div');
+        const label = document.createElement('span');
+        label.textContent = new Date(v.uploadedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+          + ' · ' + (v.count == null ? '?' : v.count) + (v.count === 1 ? ' signature' : ' signatures') + (v.current ? ' (now)' : '');
+        row.appendChild(label);
+        if (!v.current) {
+          const b = document.createElement('button');
+          b.type = 'button'; b.textContent = 'go back to this';
+          b.addEventListener('click', async () => {
+            if (!confirm('put the book back the way it was then? (this can be undone too.)')) return;
+            b.disabled = true;
+            try { const r = await api('POST', '?restore=1', { pathname: v.pathname }); say('book restored: ' + r.count + ' signatures.'); load(); }
+            catch (err) { b.disabled = false; say('couldn\'t restore: ' + err.message); }
+          });
+          row.appendChild(b);
+        }
+        hist.appendChild(row);
+      }
+    } catch (err) { hist.textContent = err.status === 401 ? 'history needs PRIVATE_SECRET set on the server.' : 'couldn\'t load the history (' + err.message + ').'; }
+  }
+  $('book-history-btn').addEventListener('click', () => { if (hist.hidden) showHistory(); else hist.hidden = true; });
+  $('book-download').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' }));
+    a.download = 'visitors-book-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  load();
+})();
+</script>
 </body>
 </html>

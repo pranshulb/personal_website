@@ -895,4 +895,54 @@ test('guestbook: its blobs never show up as community data (and vice versa)', as
   assert.equal((await readBook()).entries.length, 1);
 });
 
+// The private pages' login cookie, signed the way api/login.js signs it.
+const { createHmac } = await import('node:crypto');
+const privateCookie = (secret, e = Math.floor(Date.now() / 1000) + 3600) => {
+  const payload = Buffer.from(JSON.stringify({ u: 'pman', e })).toString('base64url');
+  return 'pcafe_auth=' + payload + '.' + createHmac('sha256', secret).update(payload).digest('hex');
+};
+const DEFAULT_PRIVATE_SECRET = 'pranshul-cafe-cherry-blossoms-2026-fallback-secret-please-override';
+
+test('guestbook: the /typeshit login can remove, but never with the public default secret', async () => {
+  await sign({ name: 'stays', strokes: ink() });
+  await sign({ name: 'goes', strokes: ink() });
+  const goes = (await readBook()).entries.find((e) => e.name === 'goes').id;
+  const del = (cookie) => call(guestbook, { method: 'DELETE', query: { id: goes }, headers: { cookie, ...ip() } });
+  const saved = process.env.PRIVATE_SECRET;
+  try {
+    // no PRIVATE_SECRET set: the default secret is in this public repo, so a
+    // cookie signed with it (anyone can make one) proves nothing
+    delete process.env.PRIVATE_SECRET;
+    assert.equal((await del(privateCookie(DEFAULT_PRIVATE_SECRET))).statusCode, 401);
+    assert.equal((await readBook({ cookie: privateCookie(DEFAULT_PRIVATE_SECRET) })).canRemove, false);
+    process.env.PRIVATE_SECRET = 'a real secret';
+    assert.equal((await del(privateCookie(DEFAULT_PRIVATE_SECRET))).statusCode, 401);
+    assert.equal((await del(privateCookie('a real secret', 1000))).statusCode, 401);           // expired
+    assert.equal((await del(privateCookie('a real secret').slice(0, -2) + 'zz')).statusCode, 401); // tampered
+    assert.equal((await call(guestbook, { method: 'DELETE', query: { id: goes },
+      headers: { cookie: privateCookie('a real secret'), origin: 'https://evil.example', host: 'pranshul.cafe', ...ip() } })).statusCode, 403);
+    assert.equal((await readBook({ cookie: privateCookie('a real secret') })).canRemove, true);
+    assert.equal((await del(privateCookie('a real secret'))).statusCode, 200);
+    assert.deepEqual((await readBook()).entries.map((e) => e.name), ['stays']);
+  } finally {
+    if (saved === undefined) delete process.env.PRIVATE_SECRET; else process.env.PRIVATE_SECRET = saved;
+  }
+});
+
+test('guestbook: a removed signature comes back from history, and history is private', async () => {
+  await sign({ name: 'Ada', strokes: ink() });
+  await sign({ name: 'Grace', strokes: ink() });
+  const grace = (await readBook()).entries.find((e) => e.name === 'Grace').id;
+  assert.equal((await call(guestbook, { method: 'DELETE', query: { id: grace }, headers: admin() })).statusCode, 200);
+  assert.equal((await call(guestbook, { method: 'GET', query: { history: '1' }, headers: ip() })).statusCode, 401);
+  const { versions } = (await call(guestbook, { method: 'GET', query: { history: '1' }, headers: admin() })).body;
+  assert.deepEqual(versions.map((v) => v.count).slice(0, 3), [1, 2, 1]);   // newest first
+  assert.equal((await call(guestbook, { method: 'POST', query: { restore: '1' }, body: { pathname: versions[1].pathname }, headers: ip() })).statusCode, 401);
+  const r = await call(guestbook, { method: 'POST', query: { restore: '1' }, body: { pathname: versions[1].pathname }, headers: admin() });
+  assert.equal(r.statusCode, 200);
+  assert.deepEqual((await readBook()).entries.map((e) => e.name), ['Grace', 'Ada']);
+  // only the book's own copies can be restored into it
+  assert.equal((await call(guestbook, { method: 'POST', query: { restore: '1' }, body: { pathname: 'community-places-x.json' }, headers: admin() })).statusCode, 404);
+});
+
 await run();

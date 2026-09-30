@@ -321,8 +321,17 @@ vercel.json                 routing, headers, proxies
   (`api/guestbook.js`, Blob key `guestbook.json`, through the community
   store's `mutate`), so everyone sees the same signature. Names the
   network can't write (other scripts) go in as typed, in the page font.
-  **Removing an entry**: log in at `/community/admin` (same password),
-  then open the book — each entry has a "remove" link. The server can't
+  **Managing it**: `/typeshit` (behind the private login) lists every
+  signature with "remove", a "history" of the last 30 copies of the book
+  with "go back to this", and "download a copy". Nothing signed is lost
+  to a slip: every signature and removal leaves the book as it was behind
+  as a full copy. The server accepts the private login (`api/_private.js`)
+  only when `PRIVATE_SECRET` is set in Vercel — without it, middleware and
+  login fall back to a default secret that is in this public repo, so
+  anyone could forge that cookie. It was unset until September 2026; keep
+  it set (changing it logs everyone out of the private pages and the
+  community admin, whose cookie also uses it). The community admin login
+  can remove entries too (from the book itself). The server can't
   tell that the strokes spell the name, so it caps them at a name's worth
   of ink. The network alone is glitchy the way calligrapher.ai is
   (skipped letters, scribbles, never lifting the pen); what fixed it was
