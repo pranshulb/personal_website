@@ -1723,7 +1723,7 @@
       peers.clear();
       if (Array.isArray(m.peers)) for (const q of m.peers) {
         const x = fin(q.x), y = fin(q.y), p = x !== null && y !== null && typeof q.id === 'string' && peer(q.id);
-        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; p.want = ringOf(q.h); }
+        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; p.x = undefined; p.want = ringOf(q.h); }
       }
       setCompany(m.n);
       awaySent = true; sentU = null;   // say where we are straight away
@@ -1731,7 +1731,7 @@
     }
     if (m.t === 'n') { setCompany(m.n); return; }
     if (typeof m.id !== 'string') return;
-    if (m.t === 'gone') { const p = peers.get(m.id); if (p) p.here = false; return; }
+    if (m.t === 'gone') { const p = peers.get(m.id); if (p) { p.here = false; p.gone = true; } return; }
     if (m.t === 'away') { const p = peers.get(m.id); if (p) p.here = false; return; }
     if (m.t === 'shake') { shakeFromPeer(m.d < 0 ? -1 : 1); return; }
     const x = fin(m.x), y = fin(m.y);
@@ -1786,7 +1786,10 @@
       if (!p.here && p.held.length) releaseHand(p, false);   // gone or off the page: the ring spins out
       if (!p.here && p.a < 0.01) {
         p.placed = false;
-        if (!sock || sock.readyState !== 1) peers.delete(id);
+        // someone who has left is forgotten once faded (kept, the cap of 40
+        // filled up with people long gone and new arrivals went unseen);
+        // someone whose pointer is only off the page is kept for their return
+        if (p.gone || !sock || sock.readyState !== 1) peers.delete(id);
         continue;
       }
       if (!p.placed) continue;
@@ -1890,7 +1893,9 @@
   }
   function drawPeers(c) {
     for (const p of peers.values()) {
-      for (const q of p.held) drawMoving(c, q.p, q.p.alpha);   // the petals in their ring
+      // the petals in their ring, paler over the words like any petal, so
+      // someone else's ring never hides what the page says
+      for (const q of p.held) drawMoving(c, q.p, q.p.alpha * (overText(q.p.x, q.p.y, q.p.r) ? TEXT_VEIL : 1));
       drawTrail(c, p);
       if (p.a < 0.01 || !p.placed || p.x === undefined) continue;
       drawFirefly(c, p.x, p.y + Math.sin(p.swp) * 2, p.a, p.swp);
