@@ -166,6 +166,12 @@
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
 <style>
+  /* the pointer is a rose firefly drawn on the page (see COMPANY in the
+     script): the arrow is hidden, except over what can be clicked or typed in */
+  html.firefly, html.firefly body { cursor: none; }
+  html.firefly :is(a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb, .vb *) { cursor: auto; }
+  html.firefly :is(a, button, [role="button"], .copy-hint-mobile) { cursor: pointer; }
+
   /* "someone else is here too": only there while someone is */
   .company {
     position: fixed; left: 0; right: 0; bottom: 0.9rem;
@@ -974,7 +980,7 @@
   // spin and fling the petals on this screen the way ours does, and any
   // hand moving fast through another's ring knocks its petals loose.
   function newHand() { return { x: -1e4, y: -1e4, vx: 0, vy: 0, held: [], phase: 0 }; }
-  const me = newHand();
+  const me = { ...newHand(), trail: [], trailDist: 0, swp: 0, overUI: false };   // (the trail and firefly: COMPANY)
 
   // one step of a hand going at `speed`: a flick lets its petals go, a
   // slow hand catches the petals it comes to (unless `catches` is false:
@@ -1757,14 +1763,26 @@
   // A visitor on this screen: eased toward where they are, faded in and
   // out, their hand catching and spinning petals, a trail behind them.
   const TRAIL_LIFE = 55;   // steps a glow in the trail lasts: about a second, like the stars it's after
+  function ageTrail(o) { for (let i = o.trail.length - 1; i >= 0; i--) if (++o.trail[i].age > TRAIL_LIFE) o.trail.splice(i, 1); }
+  // a glow is left every few pixels travelled
+  function extendTrail(o, x, y, moved) {
+    o.trailDist += moved;
+    if (o.trailDist < 8) return;
+    o.trailDist = 0;
+    o.trail.push({ x: x + rng(-1, 1), y: y + rng(-1, 1), age: 0 });
+    if (o.trail.length > 40) o.trail.shift();
+  }
   function updatePeers() {
+    // our own firefly: its trail, and its flicker
+    me.swp += 0.02; ageTrail(me);
+    if (px > -5000 && !me.overUI) extendTrail(me, px, py, Math.hypot(pvx, pvy));
     const hands = px > -5000 ? [[me, Math.hypot(pvx, pvy)]] : [];
     for (const [id, p] of peers) {
       p.u += (p.tu - p.u) * 0.14; p.v += (p.tv - p.v) * 0.14;
       p.a += ((p.here ? 1 : 0) - p.a) * 0.05;
       p.swp += 0.02;
       p.flick *= 0.8;
-      for (let i = p.trail.length - 1; i >= 0; i--) if (++p.trail[i].age > TRAIL_LIFE) p.trail.splice(i, 1);
+      ageTrail(p);
       if (!p.here && p.held.length) releaseHand(p, false);   // gone or off the page: the ring spins out
       if (!p.here && p.a < 0.01) {
         p.placed = false;
@@ -1777,12 +1795,7 @@
       p.x = x; p.y = y;
       if (!p.here) continue;
       const speed = Math.max(Math.hypot(p.vx, p.vy), p.flick);
-      p.trailDist += Math.hypot(p.vx, p.vy);
-      if (p.trailDist > 6) {
-        p.trailDist = 0;
-        p.trail.push({ x: x + rng(-2, 2), y: y + rng(-2, 2), r: rng(16, 24), age: 0 });
-        if (p.trail.length > 45) p.trail.shift();
-      }
+      extendTrail(p, x, y, Math.hypot(p.vx, p.vy));
       handStep(p, speed, p.want === null);
       if (p.want !== null) fillRing(p, speed);
       shakeBlossoms(p, speed);
@@ -1838,41 +1851,65 @@
     airPetals.push(q);
   }
 
-  // A rose firefly, drawn from two soft glows painted once. Pale pink
-  // vanished into the blossom and white into the paper, so the body is a
-  // deep rose, darker than any blossom, with a hot pale centre, and round
-  // it a wide haze of the same rose.
-  function paintGlow(stops) {
-    const n = 128, cv = document.createElement('canvas');
+  // A rose firefly, small: a deep-rose body with a pale hot centre in a
+  // soft rose haze, which flickers and floats a little; behind it, a trail
+  // of small rose glows that fade in about a second. After
+  // compassfellowship.app's fireflies and cursor stars. He chose it (and
+  // for his own pointer too) from six mockups: a pearl, a sakura, a
+  // sparkle, a haloed dot and a bubble were the others. The first try, a
+  // glow five times this size, was too much; before that a petal in a
+  // thin ring was too easy to miss. Three glows painted once and stamped.
+  function paintGlow(r, g, b, a) {
+    const n = 64, cv = document.createElement('canvas');
     cv.width = cv.height = n;
-    const g = cv.getContext('2d'), gr = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
-    for (const [at, col] of stops) gr.addColorStop(at, col);
-    g.fillStyle = gr; g.fillRect(0, 0, n, n);
+    const c = cv.getContext('2d'), gr = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    gr.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
+    gr.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${a * 0.4})`);
+    gr.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    c.fillStyle = gr; c.fillRect(0, 0, n, n);
     return cv;
   }
-  const GLOW = paintGlow([[0, 'rgba(255, 236, 242, 1)'], [0.14, 'rgba(246, 120, 160, 1)'], [0.34, 'rgba(200, 30, 90, 0.95)'],
-                          [0.6, 'rgba(190, 30, 85, 0.35)'], [1, 'rgba(190, 30, 85, 0)']]);
-  const HAZE = paintGlow([[0, 'rgba(214, 51, 108, 0.55)'], [0.45, 'rgba(214, 51, 108, 0.22)'], [1, 'rgba(214, 51, 108, 0)']]);
-  function glow(c, x, y, r, a, sprite = GLOW) {
+  const HAZE = paintGlow(214, 51, 108, 0.45), BODY = paintGlow(200, 30, 90, 1), CORE = paintGlow(255, 236, 242, 1);
+  function glow(c, x, y, r, a, sprite) {
     if (a < 0.01) return;
     c.globalAlpha = a; c.drawImage(sprite, x - r, y - r, 2 * r, 2 * r); c.globalAlpha = 1;
+  }
+  function drawTrail(c, o) {
+    for (const q of o.trail) {
+      const k = 1 - q.age / TRAIL_LIFE;
+      glow(c, q.x, q.y, 4 * (0.5 + 0.5 * k), 0.6 * k * k, BODY);
+    }
+  }
+  // a: how much it's there (fading in and out); swp: its own slow clock,
+  // for the flicker, brighter and a touch bigger every few seconds
+  function drawFirefly(c, x, y, a, swp) {
+    const f = 0.5 + 0.5 * Math.sin(swp * 1.6);
+    glow(c, x, y, 13 * (1 + 0.15 * f), (0.75 + 0.25 * f) * a, HAZE);
+    glow(c, x, y, 4.5, a, BODY);
+    glow(c, x, y, 1.8, a, CORE);
   }
   function drawPeers(c) {
     for (const p of peers.values()) {
       for (const q of p.held) drawMoving(c, q.p, q.p.alpha);   // the petals in their ring
-      for (const q of p.trail) {
-        const k = 1 - q.age / TRAIL_LIFE;
-        glow(c, q.x, q.y, q.r * (0.5 + 0.5 * k), 0.75 * k * k);
-      }
+      drawTrail(c, p);
       if (p.a < 0.01 || !p.placed || p.x === undefined) continue;
-      // it flickers and floats a little, like a firefly: brighter and a
-      // touch bigger, then dimmer, every few seconds
-      const f = 0.5 + 0.5 * Math.sin(p.swp * 1.6);
-      const y = p.y + Math.sin(p.swp) * 3;
-      glow(c, p.x, y, 64 * (1 + 0.15 * f), (0.55 + 0.35 * f) * p.a, HAZE);
-      glow(c, p.x, y, 26 * (1 + 0.12 * f), (0.85 + 0.15 * f) * p.a);
+      drawFirefly(c, p.x, p.y + Math.sin(p.swp) * 2, p.a, p.swp);
     }
+    // ours, where the pointer is now (not where the last step left it, so
+    // it keeps up with the hand); over anything to click or type in, the
+    // ordinary pointer comes back and the firefly steps aside
+    drawTrail(c, me);
+    if (px > -5000 && !me.overUI) drawFirefly(c, px, py, 1, me.swp);
   }
+
+  // On a mouse or trackpad our pointer is the firefly: the arrow is hidden
+  // (html.firefly in the styles) except over links, buttons, the email
+  // hint and the guestbook, where it is needed to see what can be clicked.
+  // A finger gets the firefly under it while it touches, and keeps its own
+  // everything else.
+  const UI = 'a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb';
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) document.documentElement.classList.add('firefly');
+  document.addEventListener('pointerover', (e) => { me.overUI = !!(e.target.closest && e.target.closest(UI)); });
 
   // one connection while the page is visible, closed while it's hidden (a
   // tab left open in the background isn't somebody under the tree), and

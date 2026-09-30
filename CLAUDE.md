@@ -174,10 +174,15 @@ vercel.json                 routing, headers, proxies
   makes rings anywhere along the bottom, and petals that land on water
   float, bob and drift instead of stopping.
 - **Company on the home page** (September 2026): other visitors show as a
-  rose firefly (a deep-rose glowing ball with a pale hot centre and a wide
-  haze, flickering; after compassfellowship.app's fireflies — pale pink
-  vanished into the blossom and white into the paper) with a comet trail
-  of small glows behind it, where their pointer or finger is. Every
+  small rose firefly (a deep-rose dot with a pale hot centre in a 13px
+  flickering haze; after compassfellowship.app's fireflies) with a trail
+  of small glows fading behind it, where their pointer or finger is. He
+  picked it ("A") from six mockups, and asked for **his own pointer to be
+  one too**: on a mouse or trackpad the arrow is hidden (`html.firefly`)
+  and the firefly drawn where it is, except over links, buttons, the email
+  hint and the guestbook, where the ordinary pointer comes back (`UI` in
+  the script, and the matching CSS). A glow five times the size was too
+  much; a petal in a thin ring was too easy to miss. Every
   pointer is a "hand" (`newHand` / `handStep` / `releaseHand`, POINTER):
   ours and each visitor's catch petals into the revolving ring, fling them
   on a flick, and a hand moving fast through another's ring knocks it
