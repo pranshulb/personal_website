@@ -888,6 +888,44 @@
     for (const q of perched.slice()) releasePetal(q, gust * rng(0.4, 1));
   }
 
+  // On a phone there is no hover, and a tap on the words is left alone (it
+  // is reading, or opening a link), so nothing used to get petals off the
+  // words. Now two things do.
+  //
+  // A swipe shakes them loose: each scroll step, every resting petal may
+  // slide off, more likely the further the words moved, so a flick clears
+  // them and a slow scroll leaves most. Let go, a petal stays where it was
+  // on the screen and falls, while the words carry on up without it.
+  let lastScrollTop = 0;
+  function scrollShake(dy) {
+    const move = Math.abs(dy);
+    if (move < 3 || !perched.length) return;
+    // per step, by how far the words moved in it: 5px 0.6%, 12px 7%,
+    // 40px 66%. Taking the title off the screen (about 150px) that leaves
+    // about 80% on at 5px a frame, 40% at 12px, none from a flick.
+    const chance = Math.min(1, Math.pow((move - 3) / 48, 1.6));
+    for (const q of perched.slice()) if (Math.random() < chance) releasePetal(q, rng(-0.35, 0.35));
+  }
+  // A finger on a word, or moving across one, brushes its petals off, the
+  // way the mouse does on a laptop, and none land on it while it is there.
+  // The box reaches a little above the letters, where the petals sit.
+  const touchHot = new Set();
+  function brushWords(x, y, dx) {
+    for (let k = 0; k < ledges.length; k++) {
+      const L = ledges[k];
+      if (x < L.left - 8 || x > L.left + L.width + 8 || y < L.top - 18 || y > L.top + L.height + 6) continue;
+      if (!touchHot.has(L.el)) { touchHot.add(L.el); hotEls.add(L.el); }
+      for (const q of perched.filter(q => q.l === k)) {
+        const dir = Math.abs(dx) > 0.5 ? Math.sign(dx) : Math.sign(L.left + q.ox - x) || 1;
+        releasePetal(q, dir * rng(0.5, 0.9));
+      }
+    }
+  }
+  function unbrush() {
+    for (const el of touchHot) hotEls.delete(el);
+    touchHot.clear();
+  }
+
   /* ================================================================
      WATER — the whole bottom of the page can be stirred
 
@@ -1426,6 +1464,8 @@
       placeScene();
       return;
     }
+    scrollShake(contentWrapEl.scrollTop - lastScrollTop);
+    lastScrollTop = contentWrapEl.scrollTop;
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
     const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
     // Everything here is driven by REVEAL at the top of the script.
@@ -1515,6 +1555,7 @@
   });
   document.addEventListener('touchmove', e => {
     const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
+    brushWords(tc.clientX, tc.clientY, tc.clientX - px);
     px = tc.clientX; py = tc.clientY;
   }, { passive: true });
   // A finger that lands and lifts without travelling is a tap: it shakes
@@ -1524,11 +1565,13 @@
   document.addEventListener('touchstart', e => {
     const tc = e.touches[0];
     px = ppx = tc.clientX; py = ppy = tc.clientY;   // a finger arrives with no speed
+    brushWords(tc.clientX, tc.clientY, 0);
     touchStart = e.target.closest('.container, .epigraph, .copy-toast') ? null
       : { x: tc.clientX, y: tc.clientY, at: performance.now() };
   }, { passive: true });
   document.addEventListener('touchend', e => {
     if (held.length) releaseHeld(true);
+    unbrush();
     px = -1e4; py = -1e4;
     // Finger lifted: the wind settles back to calm instead of blowing toward
     // wherever the last swipe ended, for as long as the page stays open.
@@ -1543,7 +1586,7 @@
     touchStart = null;
   }, { passive: true });
   // An interrupted touch (the browser taking over a gesture) lifts no finger.
-  document.addEventListener('touchcancel', () => { mx = 0; }, { passive: true });
+  document.addEventListener('touchcancel', () => { mx = 0; unbrush(); }, { passive: true });
 
   function copyEmail() {
     navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {

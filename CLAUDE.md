@@ -305,7 +305,13 @@ vercel.json                 routing, headers, proxies
   from above so none is seen appearing. Petals resting on the words are
   drawn on `#perch`, a canvas inside the card, so the browser scrolls
   them with the words; on the fixed overlay, moved from the scroll event,
-  they trailed behind on a phone and jumped. The rose lines at the end
+  they trailed behind on a phone and jumped. Held that firmly, nothing on a
+  phone could get them off (no hover; taps on the card are left alone, and
+  Safari doesn't even send them), so a swipe shakes them loose
+  (`scrollShake`: by how far the words moved each step, so a flick clears
+  them, a normal scroll leaves about half, a gentle one nearly all) and a
+  finger on or across a word brushes its petals off (`brushWords`), as the
+  mouse does on a laptop. The rose lines at the end
   ("please reach out…", the guestbook) get a paper halo and a deeper rose
   on phones, where the card has faded and the canopy sits behind them.
 
