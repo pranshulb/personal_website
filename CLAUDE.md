@@ -301,8 +301,9 @@ vercel.json                 routing, headers, proxies
   of check. Every reading links out (books to Goodreads, films to
   Letterboxd, people and cited works to Wikipedia via `PEOPLE_LINKS` /
   `SOURCE_LINKS`); a new entry needs its `url`.
-- **The visitors' book** (September 2026) opens from the home page's list
-  ("visitors' book (sign it!)") and from "sign the visitors' book" under
+- **The visitors' book** (September 2026) opens from "also sign the
+  guestbook!!" under "please reach out…" on the home page (he wanted it
+  there, not as a line in the list) and from "sign the visitors' book" under
   the title on `/garden`; `#visitors` on either opens it directly. All of
   it lives in `visitors/`: `book.js` adds its own page and stylesheet
   (`book.css`), so a page needs only `<script defer
