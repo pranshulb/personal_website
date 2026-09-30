@@ -296,6 +296,18 @@ vercel.json                 routing, headers, proxies
   finger everywhere so a swipe anywhere scrolls, and the touch handlers
   tell a tap from a swipe. It was tried at `/garden-home2` first
   (September 2026), which now redirects home.
+  New petals come off the tree only as much as it is in view
+  (`treeSeen`, 0 on the words, 1 once risen; always 1 on desktop), the
+  rest from above the screen: over the words, with the tree faint behind
+  the card, petals off it looked like they formed out of thin air. A
+  petal off the tree grows in from its blossom (`grow`: a second, a third
+  of one when shaken off), and the first frame's scattered petals come
+  from above so none is seen appearing. Petals resting on the words are
+  drawn on `#perch`, a canvas inside the card, so the browser scrolls
+  them with the words; on the fixed overlay, moved from the scroll event,
+  they trailed behind on a phone and jumped. The rose lines at the end
+  ("please reach out…", the guestbook) get a paper halo and a deeper rose
+  on phones, where the card has faded and the canopy sits behind them.
 
 - **examined** (`/examined`, the philosophy quiz) keeps its own look on
   purpose: pink by default with a dark toggle, set in an old-printed-book

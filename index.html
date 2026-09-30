@@ -19,6 +19,10 @@
     #bg { z-index: 1; }
     #scene { z-index: 2; }
     #overlay { z-index: 7; pointer-events: none; }
+    /* petals resting on the words: a canvas inside the words' card, so it
+       scrolls with them (see "perched" in the script) */
+    .container { position: relative; }
+    #perch { position: absolute; z-index: 2; pointer-events: none; }
 
     .grain {
       position: fixed; top: -50%; left: -50%;
@@ -144,6 +148,13 @@
       .social-links a { font-size: 0.95rem; padding: 0.2rem 0; }
       .copy-hint-desktop { display: none; }
       .copy-hint-mobile { display: none; }
+      /* By the end of the words the card has faded away and the tree has
+         risen behind them, and the rose lines ("please reach out…", the
+         guestbook) sat right on its pinks, unreadable. A soft halo of
+         paper and a deeper rose keep them legible without bringing the
+         card back. */
+      .socials { text-shadow: 0 0 2px #FAF5EF, 0 0 2px #FAF5EF, 0 0 3px #FAF5EF, 0 0 3px #FAF5EF, 0 0 6px #FAF5EF, 0 0 6px #FAF5EF, 0 0 12px #FAF5EF, 0 0 20px #FAF5EF; }
+      .socials .rose { color: #a8525e !important; }
       .epigraph {
         position: fixed; top: auto; bottom: 0.8rem;
         right: auto; left: 50%; transform: translateX(-50%);
@@ -213,12 +224,13 @@
         <a href="https://curius.app/pranshul-bohra">curius</a>
         <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
       </div>
-      <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
-      <p style="margin-top: -0.5rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">also <a href="#visitors" style="color: inherit;">sign the guestbook</a>!!</p>
+      <p class="rose" style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
+      <p class="rose" style="margin-top: -0.5rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">also <a href="#visitors" style="color: inherit;">sign the guestbook</a>!!</p>
       <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
       <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
     </div>
     <p class="scroll-hint" aria-hidden="true">the tree is below <span>&#8595;</span></p>
+    <canvas id="perch" aria-hidden="true"></canvas>
   </div>
 </div>
 
@@ -366,6 +378,12 @@
   // petals, rings, the water) lives in ground coordinates and is drawn
   // this much lower too, so it stays with the tree.
   let sceneShift = 0;
+  // How far the tree has come into view on phones: 0 while the words fill
+  // the screen, 1 once it has risen into place (always 1 on desktop). New
+  // petals come off the tree only in proportion; before, they did from the
+  // start, and over the words, with the tree faint and low behind the
+  // card, they looked like they were forming out of thin air.
+  let treeSeen = 1;
 
   let sortedBranches = [], blossoms = [], flowers = [], splatter = [];
   let airPetals = [], groundPetals = [];
@@ -737,11 +755,41 @@
      the tree is shaken. Wrapped elements (two line boxes) are skipped
      rather than guessed.
   ================================================================ */
-  const LEDGE_SEL = 'h1 a, ul li a';
+  const LEDGE_SEL = '.container h1 a, .container ul li a';   // the card's words: #perch only covers the card
   let ledges = [];    // { el, left, top, width, height, sky, cap }
   let perched = [];   // { l, ox, oy, r, rot, color, alpha, age }
   const hotEls = new Set();   // words under the pointer: petals slide off and don't come back while it stays
   const measC = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+
+  // Perched petals are drawn on #perch, a canvas inside the words' card, at
+  // their word's place in the card (cx, cy), so the browser scrolls them
+  // along with the words. They used to be drawn on the fixed overlay at the
+  // word's place on screen, moved from the scroll event; but a phone scrolls
+  // the words itself, ahead of the page's script, so the petals trailed a
+  // frame or more behind the words and then jumped to catch up.
+  const perchEl = document.getElementById('perch');
+  const perchC = perchEl.getContext('2d');
+  const perchHost = perchEl.parentElement;
+  let perchDirty = true, perchTick = 0;
+  function sizePerch() {
+    const k = dpr || 1, w = perchHost.clientWidth, h = perchHost.clientHeight;
+    perchEl.width = Math.ceil(w * k); perchEl.height = Math.ceil(h * k);
+    perchEl.style.width = w + 'px'; perchEl.style.height = h + 'px';
+    perchC.setTransform(k, 0, 0, k, 0, 0);
+    perchDirty = true;
+  }
+  function drawPerched() {
+    const c = perchC;
+    c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, perchEl.width, perchEl.height); c.restore();
+    for (const q of perched) {
+      const L = ledges[q.l];
+      const a = q.alpha * Math.max(0, 1 - q.age);
+      if (a > 0.015) drawPetalShape(c, L.cx + q.ox, L.cy + q.oy, q.r, q.rot, q.color, a);
+    }
+    perchDirty = false;
+  }
+  // the card can change height after load (the guestbook, a late font)
+  if (window.ResizeObserver) new ResizeObserver(() => { sizePerch(); layoutLedges(); }).observe(perchHost);
 
   function measureLedge(el) {
     const rects = el.getClientRects();
@@ -771,7 +819,9 @@
     } catch (e) { sky = null; }   // tainted or unsupported: fall back to a flat ledge
     // On phones the canopy hangs right over the title, so it fills fast; a
     // lower cap keeps it a dusting rather than a burial.
-    return { el, left: r.left, top: r.top, width: r.width, height: r.height, sky,
+    const hr = perchHost.getBoundingClientRect();
+    return { el, left: r.left, top: r.top, cx: r.left - hr.left, cy: r.top - hr.top,
+             width: r.width, height: r.height, sky,
              cap: el.closest('h1') ? (isMobile ? 5 : 10) : 3 };
   }
 
@@ -781,6 +831,7 @@
   function measureLedges() {
     perched = [];
     ledges = [];
+    sizePerch();
     document.querySelectorAll(LEDGE_SEL).forEach(el => {
       const L = measureLedge(el);
       if (L) ledges.push(L);
@@ -792,9 +843,13 @@
   // is all a scroll needs.
   function layoutLedges() {
     measureText();
+    const hr = perchHost.getBoundingClientRect();
     for (const L of ledges) {
       const r = L.el.getBoundingClientRect();
       L.left = r.left; L.top = r.top;
+      if (r.left - hr.left !== L.cx || r.top - hr.top !== L.cy) {
+        L.cx = r.left - hr.left; L.cy = r.top - hr.top; perchDirty = true;
+      }
     }
   }
 
@@ -810,12 +865,14 @@
     if (mine.length >= L.cap) releasePetal(mine[0], 0);   // the oldest slides off to make room
     perched.push({ l: k, ox: p.x - L.left, oy: s - p.r * 0.45, r: p.r,
       rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha * PERCHED_ALPHA, age: 0 });
+    perchDirty = true;
   }
 
   function releasePetal(q, gust) {
     const idx = perched.indexOf(q);
     if (idx < 0) return;
     perched.splice(idx, 1);
+    perchDirty = true;
     const L = ledges[q.l];
     airPetals.push(newAirPetal(L.left + q.ox, L.top + q.oy,
       rng(-0.3, 0.3) + gust, rng(-0.12, 0.06), q));
@@ -891,6 +948,7 @@
         if (p.letGo) { if (d > 14 + p.r + 8) p.letGo = false; continue; }
         if (d < 14 + p.r) {
           airPetals.splice(i, 1);
+          p.grow = 1;   // held petals aren't stepped, so one caught mid-grow would stay small
           held.push({ p, ox: p.x - px, oy: p.y - py, wob: Math.random() * PI2 });
         }
       }
@@ -967,17 +1025,27 @@
     };
   }
 
-  function spawnPetal(fromTree) {
+  // A petal off the tree grows in and strengthens from the blossom it
+  // leaves (`grow`, 0 to 1) rather than being there at full size in one
+  // frame: over a second when it simply falls, a third of one when a shake
+  // knocks it off (`quick`). One from above the screen needs neither.
+  function spawnPetal(fromTree, quick) {
     let px, py, vx, vy;
-    if (fromTree && blossoms.length) {
+    const onTree = fromTree && blossoms.length;
+    if (onTree) {
       const b = blossoms[Math.floor(Math.random() * blossoms.length)];
-      px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
+      // the scene canvas is drawn sceneShift lower on phones, so the
+      // blossom is that much lower on screen too
+      px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + sceneShift + rng(-5, 5);
       vx = rng(-0.5, 0.5); vy = rng(-0.06, 0.12);
     } else {
       px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
       vx = rng(-0.1, 0.1); vy = rng(0.03, 0.06);
     }
-    airPetals.push(newAirPetal(px, py, vx, vy));
+    const p = newAirPetal(px, py, vx, vy);
+    if (onTree) { p.grow = 0; p.growSpd = quick ? 1 / 20 : 1 / 60; }
+    airPetals.push(p);
+    return p;
   }
 
   // Gusts: a slow, uneven breeze that sweeps across the screen from left to
@@ -1000,6 +1068,7 @@
       // over the words it pales, so they can still be read through it
       const vt = overText(p.x, p.y, p.r) ? TEXT_VEIL : 1;
       p.veil = p.veil === undefined ? vt : p.veil + (vt - p.veil) * 0.12;
+      if (p.grow < 1) p.grow = Math.min(1, p.grow + p.growSpd);   // steps run at 60 a second
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055 * P.fall;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
@@ -1072,14 +1141,14 @@
     }
     for (let i = perched.length - 1; i >= 0; i--) {
       perched[i].age += 0.0001;
-      if (perched[i].age > 1) perched.splice(i, 1);
+      if (perched[i].age > 1) { perched.splice(i, 1); perchDirty = true; }
     }
     // The cap counts the steady fall only. A click's burst (35 at once) used
     // to fill it, and nothing new fell — from the tree or from above the
     // screen — until the whole burst had come down.
     let steady = 0;
     for (const p of airPetals) if (!p.burst) steady++;
-    if (steady < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
+    if (steady < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65 * treeSeen);
   }
 
   function updateShake() {
@@ -1161,8 +1230,10 @@
   let ip = 1;
   function remember(p) { p._x = p.x; p._y = p.y; p._rot = p.rot; p._tum = p.tumble; }
   function drawMoving(c, p, alpha) {
-    if (p._x === undefined) { drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, alpha, p.tumble); return; }
-    drawPetalShape(c, p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, p.r,
+    let r = p.r;
+    if (p.grow < 1) { const g = 1 - (1 - p.grow) * (1 - p.grow); r *= 0.35 + 0.65 * g; alpha *= g; }
+    if (p._x === undefined) { drawPetalShape(c, p.x, p.y, r, p.rot, p.color, alpha, p.tumble); return; }
+    drawPetalShape(c, p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, r,
       p._rot + (p.rot - p._rot) * ip, p.color, alpha, p._tum + (p.tumble - p._tum) * ip);
   }
 
@@ -1208,13 +1279,10 @@
       const bob = p.float ? Math.sin(p.bob) * 0.7 : 0;
       if (a > 0.015) drawPetalShape(c, p.x, p.y + sceneShift + bob, p.r, p.rot, p.color, a);
     }
-    // Petals resting on the words. The overlay sits above the text, so these
-    // draw on top of the letters they landed on.
-    for (const q of perched) {
-      const L = ledges[q.l];
-      const a = q.alpha * Math.max(0, 1 - q.age);
-      if (a > 0.015) drawPetalShape(c, L.left + q.ox, L.top + q.oy, q.r, q.rot, q.color, a);
-    }
+    // Petals resting on the words are on their own canvas in the card, above
+    // the letters (drawPerched); redrawn when one lands or leaves, and a few
+    // times a second for their slow fade.
+    if (perchDirty || ++perchTick % 10 === 0) drawPerched();
     for (const p of airPetals) drawMoving(c, p, p.alpha * (p.veil === undefined ? 1 : p.veil));
     for (const h of held) drawMoving(c, h.p, h.p.alpha);
     drawPeers(c);
@@ -1354,7 +1422,7 @@
       containerEl.style.removeProperty('--hint-a');
       epigraphEl.style.opacity = ''; epigraphEl.style.pointerEvents = '';
       bgEl.style.transform = ''; scEl.style.opacity = '';
-      sceneShift = 0;
+      sceneShift = 0; treeSeen = 1;
       placeScene();
       return;
     }
@@ -1370,6 +1438,7 @@
     epigraphEl.style.opacity = ea.toFixed(3);
     epigraphEl.style.pointerEvents = ea > 0.05 ? '' : 'none';
     const k = prog(progress, REVEAL.tree);
+    treeSeen = k;
     sceneShift = (1 - k) * H * REVEAL.tree.dropFrom;
     const tf = `translateY(${sceneShift.toFixed(1)}px)`;
     bgEl.style.transform = tf; placeScene();
@@ -1404,7 +1473,7 @@
     releaseAll(Math.sign(shakeV) * 0.6);
     // cap total petals so rapid repeated taps can't grow this unbounded
     const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(35, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
+    for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true, true).burst = true;
     shareShake(Math.sign(shakeV));
   }
   // Somebody else shook it: the same shake, gentler, a few petals, and at
@@ -1416,7 +1485,7 @@
     lastPeerShakeAt = now;
     shakeV = d * rng(5, 8);
     const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(12, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
+    for (let i = 0; i < Math.min(12, room); i++) spawnPetal(true, true).burst = true;
   }
   // The words' column is wider than its words, and on desktop its right edge
   // runs into the tree's left-hand blossoms. A click there shakes the tree
@@ -1679,10 +1748,10 @@
     });
     el.addEventListener('mouseleave', () => hotEls.delete(el));
   });
-  // Pre-scatter hearts so it feels alive on load
+  // Pre-scatter hearts so it feels alive on load: there from the first
+  // frame, at full strength, so none is seen appearing
   for (let i = 0; i < 26; i++) {
-    spawnPetal(true);
-    const p = airPetals[airPetals.length - 1];
+    const p = spawnPetal(false);
     p.y = rng(0, H * 0.85); p.x = rng(0, W);
   }
   // Hearts resting on ground — concentrated around the puddle, scattered elsewhere
