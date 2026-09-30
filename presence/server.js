@@ -9,11 +9,12 @@
    leaves, the room is empty and forgets everything.
 
    Messages, all JSON, all small:
-     visitor -> here   { t: 'm', x, y }       pointer moved (tree units, see index.html)
+     visitor -> here   { t: 'm', x, y, h }    pointer moved (tree units, see index.html);
+                                            h: petals in its ring (0-60), optional
                        { t: 'away' }          pointer left / finger lifted
                        { t: 'tap', x, y }     tapped the water
                        { t: 'shake', d }      shook the tree (d = -1 or 1)
-     here -> visitors  { t: 'hi', id, peers: [{ id, x, y }], n }   on arrival
+     here -> visitors  { t: 'hi', id, peers: [{ id, x, y, h }], n }   on arrival
                        the above, with the sender's id added
                        { t: 'gone', id }      someone left
                        { t: 'n', n }          how many are in the room now
@@ -44,7 +45,12 @@ export function clean(msg) {
   switch (msg.t) {
     case 'm': case 'tap': {
       const x = num(msg.x, 4), y = num(msg.y, 4);
-      return x === null || y === null ? null : { t: msg.t, x, y };
+      if (x === null || y === null) return null;
+      const out = { t: msg.t, x, y };
+      // how many petals the visitor's pointer holds, so other screens can
+      // show the same ring round it
+      if (msg.t === 'm' && Number.isInteger(msg.h)) out.h = Math.max(0, Math.min(60, msg.h));
+      return out;
     }
     case 'shake': return { t: 'shake', d: msg.d < 0 ? -1 : 1 };
     case 'away': return { t: 'away' };
@@ -68,9 +74,9 @@ export default class Presence {
     // counted from our own list: a connection that is closing may still be
     // in the room's while it goes
     if (this.state.size >= MAX_IN_ROOM) { conn.close(1013, 'full'); return; }
-    this.state.set(conn.id, { x: null, y: null, win: 0, count: 0, shakeAt: 0, tapAt: 0 });
+    this.state.set(conn.id, { x: null, y: null, h: 0, win: 0, count: 0, shakeAt: 0, tapAt: 0 });
     const peers = [];
-    for (const [id, s] of this.state) if (id !== conn.id && s.x !== null) peers.push({ id, x: s.x, y: s.y });
+    for (const [id, s] of this.state) if (id !== conn.id && s.x !== null) peers.push({ id, x: s.x, y: s.y, h: s.h });
     const n = this.state.size;
     conn.send(JSON.stringify({ t: 'hi', id: conn.id, peers, n }));
     this.room.broadcast(JSON.stringify({ t: 'n', n }), [conn.id]);
@@ -88,8 +94,8 @@ export default class Presence {
     if (!msg) return;
     if (msg.t === 'shake') { if (now - s.shakeAt < SHAKE_EVERY_MS) return; s.shakeAt = now; }
     if (msg.t === 'tap') { if (now - s.tapAt < TAP_EVERY_MS) return; s.tapAt = now; }
-    if (msg.t === 'm') { s.x = msg.x; s.y = msg.y; }
-    if (msg.t === 'away') { s.x = null; s.y = null; }
+    if (msg.t === 'm') { s.x = msg.x; s.y = msg.y; s.h = msg.h || 0; }
+    if (msg.t === 'away') { s.x = null; s.y = null; s.h = 0; }
     msg.id = sender.id;
     this.room.broadcast(JSON.stringify(msg), [sender.id]);
   }

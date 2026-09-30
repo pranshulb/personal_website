@@ -366,8 +366,6 @@
   // The pointer, for catching petals and stirring the water. Off-screen
   // until the first move; its speed is measured once per frame.
   let px = -1e4, py = -1e4, ppx = -1e4, ppy = -1e4, pvx = 0, pvy = 0;
-  let held = [];        // petals in the halo round the pointer: { p, ox, oy, wob }
-  let haloPhase = 0;    // where the halo has revolved to
   let rings = [];       // rings on the water: { x, y, r, maxR, age, life, a }
   let wakeDist = 0;
   let shakeX = 0, shakeV = 0;
@@ -971,41 +969,63 @@
   const HALO_MAX = 60;
   function haloSpin(n) { return Math.min(0.24, 0.02 + 0.009 * n); }   // radians per frame
   function haloRadius(n) { return Math.min(64, 15 + 2.4 * n); }
-  function updatePointer() {
-    pvx = px - ppx; pvy = py - ppy; ppx = px; ppy = py;
-    if (px < -5000) { pvx = 0; pvy = 0; return; }
-    const speed = Math.hypot(pvx, pvy);
-    if (held.length && speed > 22) releaseHeld(true);
-    if (held.length < HALO_MAX && speed < 6) {
-      for (let i = airPetals.length - 1; i >= 0 && held.length < HALO_MAX; i--) {
+  // A hand: a pointer and the ring of petals it holds. `me` is ours; every
+  // other visitor gets one too (COMPANY, below), so their pointers catch,
+  // spin and fling the petals on this screen the way ours does, and any
+  // hand moving fast through another's ring knocks its petals loose.
+  function newHand() { return { x: -1e4, y: -1e4, vx: 0, vy: 0, held: [], phase: 0 }; }
+  const me = newHand();
+
+  // one step of a hand going at `speed`: a flick lets its petals go, a
+  // slow hand catches the petals it comes to (unless `catches` is false:
+  // another visitor's ring is filled to what it holds on their screen), and
+  // the ring turns
+  function handStep(h, speed, catches = true) {
+    if (h.held.length && speed > 22) releaseHand(h, true);
+    if (catches && h.held.length < HALO_MAX && speed < 6) {
+      for (let i = airPetals.length - 1; i >= 0 && h.held.length < HALO_MAX; i--) {
         const p = airPetals[i];
-        const d = Math.hypot(p.x - px, p.y - py);
+        const d = Math.hypot(p.x - h.x, p.y - h.y);
         // a petal just let go isn't caught again until it has left the
         // pointer's reach — let go beside a still pointer, it used to be
-        // caught straight back, so letting go did nothing you could see
-        if (p.letGo) { if (d > 14 + p.r + 8) p.letGo = false; continue; }
+        // caught straight back, so letting go did nothing you could see.
+        // Another hand leaves it be for a second, so a ring knocked loose
+        // isn't caught straight up by the hand that knocked it.
+        if (p.letGo) {
+          if (p.letGo === h) { if (d > 14 + p.r + 8) p.letGo = null; continue; }
+          if (t - p.letGoAt < 1) continue;
+          p.letGo = null;
+        }
         if (d < 14 + p.r) {
           airPetals.splice(i, 1);
           p.grow = 1;   // held petals aren't stepped, so one caught mid-grow would stay small
-          held.push({ p, ox: p.x - px, oy: p.y - py, wob: Math.random() * PI2 });
+          h.held.push({ p, ox: p.x - h.x, oy: p.y - h.y, wob: Math.random() * PI2 });
         }
       }
     }
-    const n = held.length;
+    const n = h.held.length;
     if (n) {
-      haloPhase += haloSpin(n);
+      h.phase += haloSpin(n);
       const R = haloRadius(n);
-      held.forEach((h, i) => {
-        const a = haloPhase + i * PI2 / n;
-        const wob = Math.sin(t * 2 + h.wob) * 3;               // each petal breathes in and out a little
+      h.held.forEach((q, i) => {
+        const a = h.phase + i * PI2 / n;
+        const wob = Math.sin(t * 2 + q.wob) * 3;               // each petal breathes in and out a little
         const tx = Math.cos(a) * (R + wob), ty = Math.sin(a) * (R + wob) * 0.85;   // a slightly flattened ring
-        h.ox += (tx - h.ox) * 0.14; h.oy += (ty - h.oy) * 0.14;   // a new petal slides into its place
-        remember(h.p);
-        h.p.x = px + h.ox; h.p.y = py + h.oy;
-        h.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + h.wob) * 0.25;   // side-on to the ring, like a wheel
-        h.p.tumble += 0.02;
+        q.ox += (tx - q.ox) * 0.14; q.oy += (ty - q.oy) * 0.14;   // a new petal slides into its place
+        remember(q.p);
+        q.p.x = h.x + q.ox; q.p.y = h.y + q.oy;
+        q.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + q.wob) * 0.25;   // side-on to the ring, like a wheel
+        q.p.tumble += 0.02;
       });
     }
+  }
+
+  function updatePointer() {
+    pvx = px - ppx; pvy = py - ppy; ppx = px; ppy = py;
+    if (px < -5000) { pvx = 0; pvy = 0; return; }
+    me.x = px; me.y = py; me.vx = pvx; me.vy = pvy;
+    const speed = Math.hypot(pvx, pvy);
+    handStep(me, speed);
     // stirring the water leaves a wake
     if (speed > 2 && onWater(px, py - sceneShift)) {
       wakeDist += speed;
@@ -1013,23 +1033,27 @@
     }
   }
 
-  function releaseHeld(flick) {
-    const speed = Math.hypot(pvx, pvy);
-    const n = held.length, w = haloSpin(n), R = haloRadius(n);
-    held.forEach((h, i) => {
-      const p = h.p;
-      const a = haloPhase + i * PI2 / n;
+  // Lets a hand's petals go: flung at a share of (vx, vy) — the hand's own
+  // speed, or the speed of the hand that knocked them — plus the spin they
+  // already had, or, not flung, spinning out gently.
+  function releaseHand(h, flick, vx = h.vx, vy = h.vy) {
+    const speed = Math.hypot(vx, vy);
+    const n = h.held.length, w = haloSpin(n), R = haloRadius(n);
+    h.held.forEach((q, i) => {
+      const p = q.p;
+      const a = h.phase + i * PI2 / n;
       // the spin it already had, along the ring's tangent
       const sx = -Math.sin(a) * w * R, sy = Math.cos(a) * w * R * 0.85;
       const k = flick ? Math.min(0.32, 7 / Math.max(speed, 1)) : 0;
-      p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
-      p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
-      p.drag = flick ? 90 : 40; p.noLand = 20; p.letGo = true;
+      p.vx = vx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
+      p.vy = vy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
+      p.drag = flick ? 90 : 40; p.noLand = 20; p.letGo = h; p.letGoAt = t;
       p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.06, 0.11);
       airPetals.push(p);
     });
-    held = [];
+    h.held = [];
   }
+  function releaseHeld(flick) { releaseHand(me, flick); }
 
   /* ================================================================
      PETAL PHYSICS — gentle illustrated drift
@@ -1322,7 +1346,7 @@
     // times a second for their slow fade.
     if (perchDirty || ++perchTick % 10 === 0) drawPerched();
     for (const p of airPetals) drawMoving(c, p, p.alpha * (p.veil === undefined ? 1 : p.veil));
-    for (const h of held) drawMoving(c, h.p, h.p.alpha);
+    for (const q of me.held) drawMoving(c, q.p, q.p.alpha);
     drawPeers(c);
   }
 
@@ -1499,7 +1523,7 @@
     px = e.clientX; py = e.clientY;
   });
   document.addEventListener('mouseleave', () => {
-    if (held.length) releaseHeld(false);
+    if (me.held.length) releaseHeld(false);
     px = -1e4; py = -1e4;
   });
   // A single tap fires touchstart AND a synthetic click right after — without this
@@ -1547,7 +1571,7 @@
     // A click lets caught petals go and still shakes the tree. It used to
     // only let go, but a resting pointer catches a petal within moments, so
     // most clicks on the tree did nothing else.
-    if (held.length) releaseHeld(false);
+    if (me.held.length) releaseHeld(false);
     if (e.target.closest('.epigraph, .copy-toast')) return;
     if (e.target.closest('.container') && besideWords(e.clientX)) return;
     if (onWater(e.clientX, e.clientY - sceneShift)) { tapWater(e.clientX, e.clientY - sceneShift); return; }
@@ -1570,7 +1594,7 @@
       : { x: tc.clientX, y: tc.clientY, at: performance.now() };
   }, { passive: true });
   document.addEventListener('touchend', e => {
-    if (held.length) releaseHeld(true);
+    if (me.held.length) releaseHeld(true);
     unbrush();
     px = -1e4; py = -1e4;
     // Finger lifted: the wind settles back to calm instead of blowing toward
@@ -1605,11 +1629,20 @@
      COMPANY — other people under the tree
 
      Everyone with the page open joins one room on a small presence
-     server (presence/server.js, on PartyKit). Each other visitor shows
-     as a rose petal in a thin breathing ring, drifting where their
-     pointer or finger is; their taps on the water ripple here too, and
-     when one of them shakes the tree it trembles and lets a few petals
-     go. A quiet line at the bottom says when someone else is here.
+     server (presence/server.js, on PartyKit). Each other visitor is a
+     rose firefly where their pointer or finger is — a soft glowing ball
+     that flickers (after compassfellowship.app's fireflies, in the
+     tree's pinks) — with a trail of small glows fading behind it as it
+     moves. Their pointer is a hand here, like ours (POINTER, above): it
+     catches petals into a revolving ring and flings them on a flick, and
+     a hand moving fast through another's ring knocks its petals loose —
+     ours through theirs, theirs through ours. Only pointers travel: the
+     petals are each screen's own, so everyone sees rings round everyone
+     without the petals themselves being sent. Moving through the
+     blossoms shakes a petal loose now and then. Their taps on the water
+     ripple here too, and when one of them shakes the tree it trembles
+     and lets a few petals go. A quiet line at the bottom says when
+     someone else is here.
 
      Positions travel relative to the tree — across from the trunk and
      up from the ground, in tree-heights — so a pointer by the canopy on
@@ -1622,12 +1655,10 @@
      local server for testing (localhost only).
   ================================================================ */
   const PRESENCE_HOST = 'pranshul-cafe-presence.pranshulb.partykit.dev';   // presence/, on PartyKit
-  // the tree's own mid pinks: pale ones vanished against the paper
-  const PEER_COLORS = ['#E8889E', '#EE92AB', '#E25075', '#F08FAB'];
-  const peers = new Map();    // id -> { u, v, tu, tv, a, here, r, rot, tumble, tumSpd, swp, color }
+  const peers = new Map();    // id -> { u, v, tu, tv, a, here, placed, swp, flick, heard, trail, ...a hand }
   const companyEl = document.getElementById('company');
   let sock = null, sockTries = 0, sockTimer = 0, sockWanted = true;
-  let sentAt = 0, sentU = null, sentV = null, awaySent = true;
+  let sentAt = 0, sentU = null, sentV = null, sentH = 0, awaySent = true;
 
   function presenceURL() {
     try {
@@ -1649,6 +1680,7 @@
   function shareShake(d) { send({ t: 'shake', d }); }
 
   // our pointer, ten times a second at most, and only when it has moved
+  // or its ring has gained or lost a petal
   function presenceTick(now) {
     if (!sock || sock.readyState !== 1) return;
     if (px < -5000) {
@@ -1657,9 +1689,10 @@
     }
     if (now - sentAt < 100) return;
     const [u, v] = toTree(px, py - sceneShift);
-    if (sentU !== null && Math.abs(u - sentU) < 0.003 && Math.abs(v - sentV) < 0.003) return;
-    sentAt = now; sentU = u; sentV = v; awaySent = false;
-    send({ t: 'm', x: +u.toFixed(3), y: +v.toFixed(3) });
+    const h = me.held.length;   // the petals in our ring, so other screens show the same ring
+    if (sentU !== null && Math.abs(u - sentU) < 0.003 && Math.abs(v - sentV) < 0.003 && h === sentH) return;
+    sentAt = now; sentU = u; sentV = v; sentH = h; awaySent = false;
+    send({ t: 'm', x: +u.toFixed(3), y: +v.toFixed(3), h });
   }
 
   function peer(id) {
@@ -1667,22 +1700,24 @@
     if (!p) {
       if (peers.size >= 40) return null;
       p = { u: 0, v: 0, tu: 0, tv: 0, a: 0, here: false, placed: false,
-            r: rng(9, 11), rot: rng(-0.6, 0.6), tumble: Math.random() * PI2, tumSpd: rng(0.008, 0.016),
-            swp: Math.random() * PI2, color: pick(PEER_COLORS) };
+            swp: Math.random() * PI2, flick: 0, heard: 0, trail: [], trailDist: 0, treeWait: 0, want: null, fillWait: 0,
+            ...newHand() };
       peers.set(id, p);
     }
     return p;
   }
   const fin = (v) => typeof v === 'number' && Number.isFinite(v) ? clamp(v, -4, 4) : null;
+  const ringOf = (h) => Number.isInteger(h) ? clamp(h, 0, HALO_MAX) : null;   // null: an older server, which doesn't say
   function onPresence(ev) {
     let m;
     try { m = JSON.parse(ev.data); } catch (e) { return; }
     if (!m || typeof m !== 'object') return;
     if (m.t === 'hi') {
+      for (const p of peers.values()) releaseHand(p, false);
       peers.clear();
       if (Array.isArray(m.peers)) for (const q of m.peers) {
         const x = fin(q.x), y = fin(q.y), p = x !== null && y !== null && typeof q.id === 'string' && peer(q.id);
-        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; }
+        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; p.want = ringOf(q.h); }
       }
       setCompany(m.n);
       awaySent = true; sentU = null;   // say where we are straight away
@@ -1698,8 +1733,16 @@
     if (m.t === 'm') {
       const p = peer(m.id);
       if (!p) return;
-      p.tu = x; p.tv = y; p.here = true;
-      if (!p.placed) { p.u = x; p.v = y; p.placed = true; }   // appear where they are, not slide in from the trunk
+      // how fast their pointer really went, from one report to the next:
+      // the eased position below never moves fast enough to show a flick
+      const now = performance.now();
+      if (p.placed && p.here && now - p.heard < 400) {
+        const [ax, ay] = fromTree(p.tu, p.tv), [bx, by] = fromTree(x, y);
+        p.flick = Math.max(p.flick, Math.hypot(bx - ax, by - ay) / Math.max(1, (now - p.heard) / STEP));
+      }
+      p.heard = now;
+      p.tu = x; p.tv = y; p.here = true; p.want = ringOf(m.h);
+      if (!p.placed) { p.u = x; p.v = y; p.placed = true; p.x = undefined; }   // appear where they are, not slide in from the trunk
     } else if (m.t === 'tap') {
       const [gx, gy] = fromTree(x, y);
       if (onWater(gx, gy)) tapWater(gx, gy, true);
@@ -1711,32 +1754,123 @@
     companyEl.classList.toggle('on', others > 0);
   }
 
-  // eased toward where they are, faded in and out, drifting a little so a
-  // still pointer still reads as alive
+  // A visitor on this screen: eased toward where they are, faded in and
+  // out, their hand catching and spinning petals, a trail behind them.
+  const TRAIL_LIFE = 55;   // steps a glow in the trail lasts: about a second, like the stars it's after
   function updatePeers() {
+    const hands = px > -5000 ? [[me, Math.hypot(pvx, pvy)]] : [];
     for (const [id, p] of peers) {
       p.u += (p.tu - p.u) * 0.14; p.v += (p.tv - p.v) * 0.14;
       p.a += ((p.here ? 1 : 0) - p.a) * 0.05;
-      p.tumble += p.tumSpd; p.swp += 0.02;
-      if (!p.here && p.a < 0.01) { p.placed = false; if (!sock || sock.readyState !== 1) peers.delete(id); }
+      p.swp += 0.02;
+      p.flick *= 0.8;
+      for (let i = p.trail.length - 1; i >= 0; i--) if (++p.trail[i].age > TRAIL_LIFE) p.trail.splice(i, 1);
+      if (!p.here && p.held.length) releaseHand(p, false);   // gone or off the page: the ring spins out
+      if (!p.here && p.a < 0.01) {
+        p.placed = false;
+        if (!sock || sock.readyState !== 1) peers.delete(id);
+        continue;
+      }
+      if (!p.placed) continue;
+      const [x, gy] = fromTree(p.u, p.v), y = gy + sceneShift;
+      p.vx = p.x === undefined ? 0 : x - p.x; p.vy = p.y === undefined ? 0 : y - p.y;
+      p.x = x; p.y = y;
+      if (!p.here) continue;
+      const speed = Math.max(Math.hypot(p.vx, p.vy), p.flick);
+      p.trailDist += Math.hypot(p.vx, p.vy);
+      if (p.trailDist > 6) {
+        p.trailDist = 0;
+        p.trail.push({ x: x + rng(-2, 2), y: y + rng(-2, 2), r: rng(16, 24), age: 0 });
+        if (p.trail.length > 45) p.trail.shift();
+      }
+      handStep(p, speed, p.want === null);
+      if (p.want !== null) fillRing(p, speed);
+      shakeBlossoms(p, speed);
+      hands.push([p, speed]);
     }
+    // a hand going fast through another's ring knocks its petals loose,
+    // flung the way the knocking hand was going
+    for (const [a, sa] of hands) {
+      if (sa < 7) continue;
+      for (const [b] of hands) {
+        if (a === b || !b.held.length) continue;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < haloRadius(b.held.length) + 24) {
+          const k = sa / Math.max(1, Math.hypot(a.vx, a.vy));
+          releaseHand(b, true, a.vx * k, a.vy * k);
+          b.knockedAt = t;
+        }
+      }
+    }
+  }
+
+  // Their ring holds what it holds on their screen: petals are drawn in
+  // from the air round them until it does, a few a second, and let go
+  // when they let go of theirs.
+  function fillRing(p, speed) {
+    const n = p.held.length;
+    if (t - (p.knockedAt || -9) < 1.5) return;   // knocked loose here: theirs is being knocked too, give it time to say so
+    if (p.want === 0 && n) { releaseHand(p, speed > 12); return; }
+    if (n > p.want + 2) {
+      const extra = { ...newHand(), x: p.x, y: p.y, vx: p.vx, vy: p.vy, phase: p.phase, held: p.held.splice(p.want) };
+      releaseHand(extra, false);
+      return;
+    }
+    if (n >= p.want || speed > 6 || --p.fillWait > 0) return;
+    p.fillWait = 4;
+    const a = Math.random() * PI2, d = haloRadius(n + 1) + rng(30, 70);
+    const q = newAirPetal(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 0, 0);
+    p.held.push({ p: q, ox: q.x - p.x, oy: q.y - p.y, wob: Math.random() * PI2 });
+  }
+
+  // Through the blossoms, now and then a petal comes loose where they are.
+  function shakeBlossoms(p, speed) {
+    if (speed < 1.2 || --p.treeWait > 0 || airPetals.length > 240) return;
+    p.treeWait = 4;
+    let near = null, best = 34 * 34;
+    for (const b of blossoms) {
+      const dx = b.x - p.x, dy = b.y + sceneShift - p.y, d = dx * dx + dy * dy;
+      if (d < best) { best = d; near = b; }
+    }
+    if (!near || Math.random() > Math.min(0.6, speed * 0.12)) return;
+    const q = newAirPetal(near.x + sw(near.y, near.x, near.swPh) + rng(-6, 6), near.y + sceneShift + rng(-4, 4),
+      p.vx * 0.06 + rng(-0.4, 0.4), rng(-0.06, 0.1));
+    q.grow = 0; q.growSpd = 1 / 20;
+    airPetals.push(q);
+  }
+
+  // A rose firefly, drawn from two soft glows painted once. Pale pink
+  // vanished into the blossom and white into the paper, so the body is a
+  // deep rose, darker than any blossom, with a hot pale centre, and round
+  // it a wide haze of the same rose.
+  function paintGlow(stops) {
+    const n = 128, cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    const g = cv.getContext('2d'), gr = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    for (const [at, col] of stops) gr.addColorStop(at, col);
+    g.fillStyle = gr; g.fillRect(0, 0, n, n);
+    return cv;
+  }
+  const GLOW = paintGlow([[0, 'rgba(255, 236, 242, 1)'], [0.14, 'rgba(246, 120, 160, 1)'], [0.34, 'rgba(200, 30, 90, 0.95)'],
+                          [0.6, 'rgba(190, 30, 85, 0.35)'], [1, 'rgba(190, 30, 85, 0)']]);
+  const HAZE = paintGlow([[0, 'rgba(214, 51, 108, 0.55)'], [0.45, 'rgba(214, 51, 108, 0.22)'], [1, 'rgba(214, 51, 108, 0)']]);
+  function glow(c, x, y, r, a, sprite = GLOW) {
+    if (a < 0.01) return;
+    c.globalAlpha = a; c.drawImage(sprite, x - r, y - r, 2 * r, 2 * r); c.globalAlpha = 1;
   }
   function drawPeers(c) {
     for (const p of peers.values()) {
-      if (p.a < 0.01 || !p.placed) continue;
-      const [x, gy] = fromTree(p.u, p.v);
-      const y = gy + sceneShift + Math.sin(p.swp) * 3;
-      // a person, not another falling petal: a thin ring that breathes,
-      // in the ink of the rings on the water, round a petal that turns
-      // a pale disc behind it lifts it off the blossom; on paper it vanishes
-      c.fillStyle = `rgba(255, 252, 250, ${0.5 * p.a})`;
-      c.beginPath(); c.arc(x, y, 16, 0, PI2); c.fill();
-      c.lineWidth = 1.3;
-      c.strokeStyle = `rgba(110, 80, 96, ${0.55 * p.a})`;
-      c.beginPath(); c.arc(x, y, 17 + Math.sin(p.swp * 1.3) * 2, 0, PI2); c.stroke();
-      c.strokeStyle = `rgba(196, 122, 122, ${0.22 * p.a})`;
-      c.beginPath(); c.arc(x, y, 23 + Math.sin(p.swp * 1.3 + 1) * 2.5, 0, PI2); c.stroke();
-      drawPetalShape(c, x, y, p.r, p.rot + Math.sin(p.swp * 0.7) * 0.3, p.color, 0.85 * p.a, p.tumble);
+      for (const q of p.held) drawMoving(c, q.p, q.p.alpha);   // the petals in their ring
+      for (const q of p.trail) {
+        const k = 1 - q.age / TRAIL_LIFE;
+        glow(c, q.x, q.y, q.r * (0.5 + 0.5 * k), 0.75 * k * k);
+      }
+      if (p.a < 0.01 || !p.placed || p.x === undefined) continue;
+      // it flickers and floats a little, like a firefly: brighter and a
+      // touch bigger, then dimmer, every few seconds
+      const f = 0.5 + 0.5 * Math.sin(p.swp * 1.6);
+      const y = p.y + Math.sin(p.swp) * 3;
+      glow(c, p.x, y, 64 * (1 + 0.15 * f), (0.55 + 0.35 * f) * p.a, HAZE);
+      glow(c, p.x, y, 26 * (1 + 0.12 * f), (0.85 + 0.15 * f) * p.a);
     }
   }
 

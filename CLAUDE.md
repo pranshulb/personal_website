@@ -174,8 +174,20 @@ vercel.json                 routing, headers, proxies
   makes rings anywhere along the bottom, and petals that land on water
   float, bob and drift instead of stopping.
 - **Company on the home page** (September 2026): other visitors show as a
-  rose petal in a thin breathing ring (a pale disc behind it lifts it off
-  the blossom), drifting where their pointer or finger is; their taps on
+  rose firefly (a deep-rose glowing ball with a pale hot centre and a wide
+  haze, flickering; after compassfellowship.app's fireflies — pale pink
+  vanished into the blossom and white into the paper) with a comet trail
+  of small glows behind it, where their pointer or finger is. Every
+  pointer is a "hand" (`newHand` / `handStep` / `releaseHand`, POINTER):
+  ours and each visitor's catch petals into the revolving ring, fling them
+  on a flick, and a hand moving fast through another's ring knocks it
+  loose. Each page sends how many petals its ring holds (`h` on `m`), and
+  other screens fill that visitor's ring to it with petals drawn in from
+  the air, so everyone sees everyone's ring; the petals themselves are
+  each screen's own. Moving through the blossoms shakes petals loose
+  (`shakeBlossoms`). garden-home still runs the older company code in the
+  same room; it ignores `h`, and its visitors' rings on the home page
+  form from petals they pass. Their taps on
   the water ripple here, their shakes tremble the tree and let a few
   petals go (at most one per 1.5s), and "someone else is here too" /
   "N others are here too" sits at the bottom (at the top on phones, where
@@ -194,7 +206,11 @@ vercel.json                 routing, headers, proxies
   (even to an echo server), so test the page through a local relay and
   `?presence=ws://localhost:…`, and the server from Node. `npm run test:presence`; see
   `presence/README.md`. The first try drew visitors as pale petals with a
-  white glow, which were invisible on the paper.
+  white glow, which were invisible on the paper; then a petal in a ring,
+  which he found too easy to miss. **The server must be redeployed after a
+  change to `presence/server.js`** (`cd presence && npx partykit deploy`,
+  logged in as pranshulb): until it is, the live room strips fields it
+  doesn't know, like `h`.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, every word bumping every other, rings on a

@@ -30,6 +30,13 @@ test('only well-formed messages get through, clamped', () => {
   assert.equal(clean({ t: 'hello' }), null);
   assert.deepEqual(clean({ t: 'shake', d: -5, extra: 'x' }), { t: 'shake', d: -1 });
   assert.deepEqual(clean({ t: 'away', x: 1 }), { t: 'away' });
+  // the petals in a visitor's ring: whole numbers 0-60, only on moves
+  assert.deepEqual(clean({ t: 'm', x: 0, y: 0, h: 12 }), { t: 'm', x: 0, y: 0, h: 12 });
+  assert.deepEqual(clean({ t: 'm', x: 0, y: 0, h: 999 }), { t: 'm', x: 0, y: 0, h: 60 });
+  assert.deepEqual(clean({ t: 'm', x: 0, y: 0, h: -3 }), { t: 'm', x: 0, y: 0, h: 0 });
+  assert.deepEqual(clean({ t: 'm', x: 0, y: 0, h: 2.5 }), { t: 'm', x: 0, y: 0 });
+  assert.deepEqual(clean({ t: 'm', x: 0, y: 0, h: '7' }), { t: 'm', x: 0, y: 0 });
+  assert.deepEqual(clean({ t: 'tap', x: 0, y: 0, h: 5 }), { t: 'tap', x: 0, y: 0 });
 });
 
 test('other sites are turned away, the site and local testing are let in', async () => {
@@ -44,11 +51,11 @@ test('other sites are turned away, the site and local testing are let in', async
 test('arrivals hear who is here; everyone hears the count; leaving is heard', () => {
   const { server, join, leave } = makeRoom();
   const a = join();
-  server.onMessage(JSON.stringify({ t: 'm', x: 0.5, y: -0.5 }), a);
+  server.onMessage(JSON.stringify({ t: 'm', x: 0.5, y: -0.5, h: 7 }), a);
   const b = join();
   const hi = b.got.find((m) => m.t === 'hi');
   assert.equal(hi.n, 2);
-  assert.deepEqual(hi.peers, [{ id: a.id, x: 0.5, y: -0.5 }]);
+  assert.deepEqual(hi.peers, [{ id: a.id, x: 0.5, y: -0.5, h: 7 }]);   // with the petals in its ring
   assert.deepEqual(a.got.at(-1), { t: 'n', n: 2 });
   leave(b);
   assert.ok(a.got.some((m) => m.t === 'gone' && m.id === b.id));
