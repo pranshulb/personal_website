@@ -269,7 +269,7 @@
     // (garden-home experiment, September 2026): seconds it grows for; how
     // big the sapling is, as a share of the grown tree; how far through
     // the growing the first blossoms open
-    grow: { seconds: 6, sapling: 0.35, flowerAt: 0.6 },
+    grow: { seconds: 5.5, sapling: 0.35, flowerAt: 0.6 },
     // seconds for each blossom to open, and how far it swells past its
     // size before settling (0 = not at all)
     bloom: { each: 0.9, overshoot: 1.2 },
@@ -1688,7 +1688,22 @@
       else drawScene();
     }
     // the blossoms' pictures, a few at a time, while the sapling waits and grows
-    if (bloom && bloom.patches && bloom.made < bloom.patches.length) makeStamps(4);
+    // A patch due to open that hasn't its pictures yet has them made there
+    // and then, and on a first visit (fonts arriving, fewer frames) that
+    // backlog all fell due as the flowering began: one long stall at the
+    // moment everyone is watching. So once the tree is growing, the making
+    // speeds up whenever it is behind: whatever is left, spread over the
+    // time until the next of them opens.
+    if (bloom && bloom.patches && bloom.made < bloom.patches.length) {
+      let ms = 4;
+      if (bloom.t0 !== null) {
+        const next = bloom.patches[bloom.made];
+        const secsLeft = next.at - (performance.now() - bloom.t0) / 1000;
+        const left = bloom.patches.length - bloom.made;
+        ms = secsLeft <= 0.2 ? 14 : clamp(4 + left / Math.max(1, secsLeft * 60) * 2, 4, 12);
+      }
+      makeStamps(ms);
+    }
     if (now === undefined) now = performance.now();
     acc += Math.min(now - lastNow, 100); lastNow = now;
     let steps = 0;
@@ -2060,7 +2075,22 @@
     });
     el.addEventListener('mouseleave', () => hotEls.delete(el));
   });
-  if (blooming && !isMobile) setTimeout(startBloom, 350);   // a moment after the words, then the tree opens
+  // A moment after the words, the tree opens. On a first visit the words
+  // are late: the fonts are `font-display: block`, so nothing is drawn
+  // until they arrive, and then the page stalls ~300-400ms repainting in
+  // them. Started at a fixed 350ms, the sapling's first second fell across
+  // those stalls and the tree jumped ahead. So it waits for the fonts (or
+  // 1.5s at most) and starts a quarter of a second after; with the fonts
+  // cached, that is about when it always started.
+  if (blooming && !isMobile) {
+    let begun = false;
+    const begin = () => { if (!begun) { begun = true; setTimeout(startBloom, 250); } };
+    const fontsIn = document.fonts && document.fonts.load
+      ? Promise.all([document.fonts.load("16px 'Unkempt'"), document.fonts.load("16px 'Princess Sofia'")])
+      : Promise.resolve();
+    fontsIn.then(() => requestAnimationFrame(begin), begin);
+    setTimeout(begin, 1500);
+  }
   // Pre-scatter hearts so it feels alive on load (not while the tree has yet to flower)
   if (!blooming) for (let i = 0; i < 26; i++) {
     spawnPetal(true);
