@@ -35,6 +35,9 @@
 //   - ALL-CAPS names are written with a capital to each word (handCase).
 //   - words the network ran together are spaced (spaceWords); stray marks
 //     past the end dropped (trimStrays).
+//   - a t crossed or an i dotted after the pen lifted at the end is kept
+//     (CFG.mark): it used to stop at that lift, so "Mike Hunt" was signed
+//     "Hunl" (October 2026).
 //   - the pace limit is set for the warm-up's hand (maxStepsPerLetter).
 //     Picking the fastest of several attempts, or judging each letter's
 //     time against its usual, did no better than taking the first good one.
@@ -57,6 +60,9 @@ const HandChecks = (() => {
     maxStepsPerLetter: 36,
     stepsPerSpace: 20,
     stepsToStartAndFinish: 40,
+    // the one stroke after the end that is kept: a t's cross or an i's dot
+    // made after lifting the pen, network units (hand-core.js, opts.mark)
+    mark: { w: 140, h: 40 },
     maxPerChar: 60,         // the pen's whole budget per character
     // Give up on an attempt early (hand-core.js): clean warmed-up attempts
     // held one letter for up to 114 steps; stuck ones sit for 200 and more.
@@ -74,7 +80,7 @@ const HandChecks = (() => {
   // letters that don't come apart into base + accent
   const LATIN = { 'Ł': 'L', 'ł': 'l', 'Ø': 'O', 'ø': 'o', 'ß': 'ss', 'Æ': 'AE', 'æ': 'ae', 'Œ': 'OE', 'œ': 'oe',
     'Đ': 'D', 'đ': 'd', 'Þ': 'Th', 'þ': 'th', 'ı': 'i', 'Ħ': 'H', 'ħ': 'h', '&': ' and ',
-    '’': "'", '‘': "'", '“': '"', '”': '"', '–': '-', '—': '-' };
+    '’': "'", '‘': "'", '“': '"', '”': '"', '–': '-', '—': '-', '¡': '!', '¿': '?' };
   function fold(text) {
     return Array.from(text.normalize('NFKD').replace(/[̀-ͯ]/g, ''))
       .map((ch) => (CHARSET.includes(ch) ? ch : (LATIN[ch] ?? ' ')))
@@ -94,12 +100,19 @@ const HandChecks = (() => {
     if (/[a-z]/.test(text) || !/[A-Z]{2}/.test(text)) return text;
     return text.toLowerCase().replace(/(^|[\s\-'.])([a-z])/g, (m, a, b) => a + b.toUpperCase());
   }
-  // what the pen writes for a name
-  function penText(name) { return fold(handCase(name)); }
+  // What the pen writes for a name. A long run of one mark ("Miruna!¡!!!!!!!!!!",
+  // a real signature) came out as a row of wobbly strokes with their dots
+  // scattered. One ! or ? comes out clean, two or more drop their dots below
+  // the line, so a run of them is written as one; other marks (":))))") come
+  // out well up to three of a kind.
+  function penText(name) {
+    return fold(handCase(name)).replace(/([!?])\1+/g, '$1').replace(/([^A-Za-z0-9 ])\1{3,}/g, '$1$1$1');
+  }
 
   // '' when an attempt is good enough, else why not
   function check(text, out) {
-    const { pts, path, done } = out;
+    const { path, done } = out;
+    const pts = out.marks ? out.pts.slice(0, out.pts.length - out.marks) : out.pts;   // a late cross isn't pace
     const U = text.length;
     if (!done) return 'never finished';
     const counts = new Array(U).fill(0);
@@ -233,7 +246,7 @@ const HandChecks = (() => {
     for (let attempt = 0; attempt < CFG.ladder.length; attempt++) {
       if (hooks.cancelled && hooks.cancelled()) return null;
       const out = core.write(model, net, text, {
-        primed, bias: CFG.ladder[attempt], maxPerChar: CFG.maxPerChar, maxDwell: CFG.maxDwell, maxAfterEnd: CFG.maxAfterEnd,
+        primed, bias: CFG.ladder[attempt], maxPerChar: CFG.maxPerChar, maxDwell: CFG.maxDwell, maxAfterEnd: CFG.maxAfterEnd, mark: CFG.mark,
         seed: hooks.seed ? hooks.seed(attempt) : undefined,
         onPoint: hooks.onPoint ? (x, y, up) => hooks.onPoint(x, y, up, attempt) : undefined,
       });

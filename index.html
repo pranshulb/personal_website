@@ -1915,6 +1915,9 @@
   const UI = 'a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb';
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) document.documentElement.classList.add('firefly');
   document.addEventListener('pointerover', (e) => { me.overUI = !!(e.target.closest && e.target.closest(UI)); });
+  // closing the guestbook takes it out from under a pointer that may not move
+  // again for a while, and no pointerover comes until it does
+  document.addEventListener('vb-closed', () => { me.overUI = false; });
 
   // one connection while the page is visible, closed while it's hidden (a
   // tab left open in the background isn't somebody under the tree), and

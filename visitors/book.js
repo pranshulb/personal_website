@@ -68,6 +68,7 @@
     job++;                                  // stop any writing in progress
     if (location.hash === '#visitors') history.replaceState(null, '', location.pathname + location.search);
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    document.dispatchEvent(new Event('vb-closed'));   // the page under it may want to know (the home page's firefly)
   }
   // any link to #visitors opens the book
   document.addEventListener('click', (e) => {

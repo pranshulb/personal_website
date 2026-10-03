@@ -202,6 +202,16 @@ const HandCore = (() => {
   //
   // opts.primed (from primeState) writes `text` as the continuation of a
   // sample, in that hand; only the continuation is returned.
+  //
+  // opts.mark: after the last letter, a hand often lifts and then crosses a
+  // t or dots an i, and stopping at that lift lost them ("Mike Hunt" was
+  // signed "Hunl"). With it, the pen carries on for one more stroke and keeps
+  // it only if it is a small, flat mark over the name (opts.mark: { w, h },
+  // its largest size). Measured: a late cross started 25-42 units left of
+  // the name's end, at most 6 tall and 84 wide; whatever else the pen went on
+  // to was a new letter starting 220-300 units to the right, so a stroke
+  // starting past the end stops it at once. out.marks counts the points
+  // kept, which the checks leave out of the pen's pace.
   function write(model, net, text, opts = {}) {
     const bias = opts.bias ?? 2;
     const rand = opts.rand || rng(opts.seed ?? (Math.random() * 2 ** 32));
@@ -222,7 +232,7 @@ const HandCore = (() => {
     // a pen that has lost its way stays on one letter, or past the end without
     // lifting, for far longer than a clean one ever does: stop it early
     const maxDwell = opts.maxDwell ?? Infinity, maxAfterEnd = opts.maxAfterEnd ?? Infinity;
-    let dwell = 0, afterEnd = 0, stop = 'limit';
+    let dwell = 0, afterEnd = 0, stop = 'limit', endX = -Infinity, markFrom = -1, marks = 0;
     for (let t = 0; t < limit; t++) {
       const mix = net.step(x, codes, st, bias, phi);
       x = samplePoint(mix, rand);
@@ -236,12 +246,28 @@ const HandCore = (() => {
       X += x[0] * model.sd[0] + model.mu[0];
       Y += x[1] * model.sd[1] + model.mu[1];
       pts.push([X, Y, x[2], a]);
+      if (done) {   // the one stroke after the end (opts.mark)
+        if (markFrom < 0) { markFrom = pts.length - 1; if (X > endX) break; }
+        const n = pts.length - markFrom;
+        if (n > 20) break;
+        if (x[2]) {
+          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+          for (let i = markFrom; i < pts.length; i++) {
+            x0 = Math.min(x0, pts[i][0]); x1 = Math.max(x1, pts[i][0]); y0 = Math.min(y0, pts[i][1]); y1 = Math.max(y1, pts[i][1]);
+          }
+          if (x1 - x0 <= opts.mark.w && y1 - y0 <= opts.mark.h) marks = n;
+          break;
+        }
+        continue;
+      }
       if (opts.onPoint) opts.onPoint(X, Y, x[2]);
-      if (a >= U && x[2]) { done = true; stop = 'done'; break; }
+      if (X > endX) endX = X;
+      if (a >= U && x[2]) { done = true; stop = 'done'; if (!opts.mark) break; continue; }
       if (dwell > maxDwell) { stop = 'stuck'; break; }
       if (afterEnd > maxAfterEnd) { stop = 'ran on'; break; }
     }
-    return { pts, path, done, stop };
+    if (markFrom >= 0) pts.length = markFrom + marks;   // the mark if it was kept, else nothing after the end
+    return { pts, path, done, stop, marks };
   }
 
   return { parse, Network, write, primeState, rng, encode, matvec };
