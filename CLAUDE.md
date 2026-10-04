@@ -186,15 +186,20 @@ vercel.json                 routing, headers, proxies
   float, bob and drift instead of stopping.
 - **The pointer is a rose firefly on every page** (October 2026, "make the
   pointer uniform across all pages"): `/cafe.js` draws it (and its trail)
-  on every café page, the garden, `/typeshit`, the typewriter pages, and
-  hides the arrow (`html.firefly`, styles injected by the script). Over
-  anything with a pointer of its own — any element whose computed cursor
-  isn't `none`: links, buttons, fields, draggable words, the guestbook —
-  the ordinary pointer shows and the firefly steps aside. The home page
-  draws its own (with other visitors') and doesn't load `cafe.js`; keep
-  the two looks the same. A new page gets it with
-  `<script defer src="/cafe.js">`. Not on examined (its own repo),
-  gladiator or shrek.
+  on every café page, the home page, the garden, `/typeshit` and the
+  typewriter pages, on a canvas above everything (z-index 61: over the
+  petals and the guestbook), and hides the arrow everywhere
+  (`html.firefly, html.firefly * { cursor: none !important }`, injected by
+  the script). It never turns back into the arrow or a hand ("i dont want
+  it to convert to a cursor on links, but also it should be obvious when u
+  r on a link"): over anything clickable it swells, brightens and wears a
+  thin breathing rose ring that tightens when pressed. Clickable = links,
+  buttons, fields, summary, label, [role=button], or anything a page's own
+  styles give a pointer (read from the stylesheets: map places, filters,
+  the draggable words), unless it's page-sized. The home page draws only
+  other visitors' fireflies (`drawFirefly`, same look: keep them the same).
+  A new page gets it with `<script defer src="/cafe.js">`. Not on examined
+  (its own repo), gladiator or shrek.
 - **Company on the home page** (September 2026): other visitors show as a
   small rose firefly (a deep-rose dot with a pale hot centre in a 13px
   flickering haze; after compassfellowship.app's fireflies) with a trail

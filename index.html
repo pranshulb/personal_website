@@ -166,12 +166,6 @@
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
 <style>
-  /* the pointer is a rose firefly drawn on the page (see COMPANY in the
-     script): the arrow is hidden, except over what can be clicked or typed in */
-  html.firefly, html.firefly body { cursor: none; }
-  html.firefly :is(a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb, .vb *) { cursor: auto; }
-  html.firefly :is(a, button, [role="button"], .copy-hint-mobile) { cursor: pointer; }
-
   /* "someone else is here too": only there while someone is */
   .company {
     position: fixed; left: 0; right: 0; bottom: 0.9rem;
@@ -193,6 +187,7 @@
 <link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/cafe.css">
+<script defer src="/cafe.js"></script>
 <script>
   // pictures with class "fade-in" wait for this before they fade in (cafe.css, part 4)
   document.documentElement.classList.add('js');
@@ -980,7 +975,7 @@
   // spin and fling the petals on this screen the way ours does, and any
   // hand moving fast through another's ring knocks its petals loose.
   function newHand() { return { x: -1e4, y: -1e4, vx: 0, vy: 0, held: [], phase: 0 }; }
-  const me = { ...newHand(), trail: [], trailDist: 0, swp: 0, overUI: false };   // (the trail and firefly: COMPANY)
+  const me = newHand();   // our pointer as a hand (the firefly drawn where it is: /cafe.js, as on every page)
 
   // one step of a hand going at `speed`: a flick lets its petals go, a
   // slow hand catches the petals it comes to (unless `catches` is false:
@@ -1773,9 +1768,6 @@
     if (o.trail.length > 40) o.trail.shift();
   }
   function updatePeers() {
-    // our own firefly: its trail, and its flicker
-    me.swp += 0.02; ageTrail(me);
-    if (px > -5000 && !me.overUI) extendTrail(me, px, py, Math.hypot(pvx, pvy));
     const hands = px > -5000 ? [[me, Math.hypot(pvx, pvy)]] : [];
     for (const [id, p] of peers) {
       p.u += (p.tu - p.u) * 0.14; p.v += (p.tv - p.v) * 0.14;
@@ -1900,24 +1892,11 @@
       if (p.a < 0.01 || !p.placed || p.x === undefined) continue;
       drawFirefly(c, p.x, p.y + Math.sin(p.swp) * 2, p.a, p.swp);
     }
-    // ours, where the pointer is now (not where the last step left it, so
-    // it keeps up with the hand); over anything to click or type in, the
-    // ordinary pointer comes back and the firefly steps aside
-    drawTrail(c, me);
-    if (px > -5000 && !me.overUI) drawFirefly(c, px, py, 1, me.swp);
   }
-
-  // On a mouse or trackpad our pointer is the firefly: the arrow is hidden
-  // (html.firefly in the styles) except over links, buttons, the email
-  // hint and the guestbook, where it is needed to see what can be clicked.
-  // A finger gets the firefly under it while it touches, and keeps its own
-  // everything else.
-  const UI = 'a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb';
-  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) document.documentElement.classList.add('firefly');
-  document.addEventListener('pointerover', (e) => { me.overUI = !!(e.target.closest && e.target.closest(UI)); });
-  // closing the guestbook takes it out from under a pointer that may not move
-  // again for a while, and no pointerover comes until it does
-  document.addEventListener('vb-closed', () => { me.overUI = false; });
+  // Our own pointer is the same firefly, drawn by /cafe.js as on every café
+  // page, on a canvas above everything (so it shows over the guestbook too),
+  // with the way it lights up over a link. Keep drawFirefly's look the same
+  // as cafe.js's.
 
   // one connection while the page is visible, closed while it's hidden (a
   // tab left open in the background isn't somebody under the tree), and
