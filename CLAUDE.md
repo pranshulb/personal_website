@@ -31,7 +31,7 @@ gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
 cafe.css                    what every café page shares: fonts, page changes, arrivals, back link, link hovers
-cafe.js                     the one script they share: the back link slips away while scrolling down
+cafe.js                     the one script they share: the firefly pointer, and the back link slipping away on scroll
 fonts/                      Unkempt and Princess Sofia, self-hosted (see fonts/README.md)
 tune.js                     sliders and curves for a page's motion (?tune)
 middleware.js               edge auth gate for private pages
@@ -177,6 +177,17 @@ vercel.json                 routing, headers, proxies
   water's top edge and off the island", so a tap, a stir or a landing petal
   makes rings anywhere along the bottom, and petals that land on water
   float, bob and drift instead of stopping.
+- **The pointer is a rose firefly on every page** (October 2026, "make the
+  pointer uniform across all pages"): `/cafe.js` draws it (and its trail)
+  on every café page, the garden, `/typeshit`, the typewriter pages, and
+  hides the arrow (`html.firefly`, styles injected by the script). Over
+  anything with a pointer of its own — any element whose computed cursor
+  isn't `none`: links, buttons, fields, draggable words, the guestbook —
+  the ordinary pointer shows and the firefly steps aside. The home page
+  draws its own (with other visitors') and doesn't load `cafe.js`; keep
+  the two looks the same. A new page gets it with
+  `<script defer src="/cafe.js">`. Not on examined (its own repo),
+  gladiator or shrek.
 - **Company on the home page** (September 2026): other visitors show as a
   small rose firefly (a deep-rose dot with a pale hot centre in a 13px
   flickering haze; after compassfellowship.app's fireflies) with a trail
