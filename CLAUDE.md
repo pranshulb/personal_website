@@ -31,6 +31,7 @@ gladiator/                  a self-contained satirical site at /gladiator
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
 cafe.css                    what every café page shares: fonts, page changes, arrivals, back link, link hovers
+cafe.js                     the one script they share: the back link slips away while scrolling down
 fonts/                      Unkempt and Princess Sofia, self-hosted (see fonts/README.md)
 tune.js                     sliders and curves for a page's motion (?tune)
 middleware.js               edge auth gate for private pages
@@ -65,7 +66,11 @@ vercel.json                 routing, headers, proxies
     never prerender, which would run analytics for pages nobody opened.
     Private and proxied paths are excluded; add any new ones.
   - **One layout**: "← back" is a fixed paper pill top-left on every page
-    (`a.back, a.back-link`); every title's top is 80px on laptops, 72px on
+    (`a.back, a.back-link`). On a short window a page scrolled its title
+    under it, so scrolling down slides it away and scrolling up (or the
+    top) brings it back (`/cafe.js`, `html.back-away`; October 2026) — a
+    page with a back link loads `<script defer src="/cafe.js">` after
+    `cafe.css`; every title's top is 80px on laptops, 72px on
     phones (each page's own padding does it — check with a measurement if
     you touch a page's top). On phones the epigraph sits top-right beside
     the pill. The home page's sky is the same paper, #faf5ef, as every
