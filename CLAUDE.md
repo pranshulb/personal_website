@@ -151,14 +151,27 @@ vercel.json                 routing, headers, proxies
   the turtle records which piece grows from which (`parent`; the tree's
   shape is untouched, no random numbers are added), each branch is one
   continuous filled shape along a smoothed line following its thickest
-  child, thickness by da Vinci's rule (a piece is as thick as everything
-  beyond it, exponent 2.4, scaled so the trunk keeps its width), the trunk
-  bows a little and broadens into its roots with buttresses into the mound
-  and a soft contact shadow, one warm red-brown bark lit from the upper
-  left (all bodies first, then all light and shade, or a limb painted a
-  seam over its parent's shading), shade under the canopy, and sparse
-  horizontal lenticels, the light dashes real cherry bark has (packed
-  close they read as stitching). Drawn once; the scene is static.
+  child, running out to a fine point, thickness by da Vinci's rule (a
+  piece is as thick as everything beyond it, exponent 2 — 2.4 left twigs
+  like pencils — scaled so the trunk keeps its width), the trunk bows a
+  little and broadens into roots that bow down into the mound, and the
+  foot fades into the ground (destination-out) with grass in front and a
+  contact shadow behind; one warm red-brown bark lit from the upper left,
+  shading built from thin overlapping bands so it runs off smoothly, shade
+  under the canopy, and sparse horizontal lenticels, the light dashes real
+  cherry bark has (packed close they read as stitching). Joins, after a
+  round of debugging: each branch is painted whole (body, shading, bark),
+  thickest first. Painting all bodies and then all shading laid the
+  trunk's shadow across the limbs of its three-way fork, which read as two
+  stems twisted together. A side branch starts inside its parent, offset
+  to its own side so its outer edge lines up with the parent's
+  (`sideOff`, eased away along the line), and fades in over it (`fade`);
+  the stem carrying on past a big sibling keeps the parent's width to the
+  fork and leans to its own side after it. Edge normals are taken across
+  about the wood's own width (`outline`, cached), or a sharp bend in thick
+  wood folds its inside edge into a notch. It draws in about the old
+  tree's time: two smoothing passes (one for twigs) rather than three,
+  which made 59,000 points. Drawn once; the scene is static.
 - **The home page's ground is water** along the whole bottom (September
   2026), with the tree's mound an island in it; `onWater` is "below the
   water's top edge and off the island", so a tap, a stir or a landing petal

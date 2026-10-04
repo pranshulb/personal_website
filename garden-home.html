@@ -1251,15 +1251,17 @@
      What illustrators and tree generators do instead (Disney's Tangled
      trees, Weber & Penn, da Vinci's notebooks), done here:
      - each branch is one continuous shape from where it leaves its parent
-       to its tip, along a smoothed line, so there is nothing to see at the
-       joins;
+       to a fine point, along a smoothed line; it starts inside its parent,
+       on its own side of it, and fades in over it, so it grows out of it;
      - thickness follows da Vinci's rule: a branch is as thick as all the
        branches beyond it put together (cross-section kept), so it thins
        smoothly towards the tips, and a fork's two halves add up to the limb;
-     - the trunk broadens into its roots, with two or three buttresses
-       running into the mound, bows a little, and has a contact shadow;
+     - the trunk broadens into its roots, which bow down into the mound, and
+       fades into the ground below its foot, with grass in front; it bows a
+       little, and has a contact shadow;
      - one warm red-brown bark, lit from the upper left: a soft highlight
-       down one side, shadow down the other, darker under the canopy;
+       down one side, shadow down the other (each built up from thin bands,
+       so it runs off smoothly), darker under the canopy;
      - on the trunk and big limbs, the horizontal light dashes (lenticels)
        real cherry bark has, and a few faint vertical fissures.
      Computed once per tree (WOOD), drawn once: the scene is static.
@@ -1273,8 +1275,9 @@
     const n = segs.length;
     for (const s of segs) s.kids = [];
     segs.forEach((s, i) => { if (s.parent >= 0) segs[s.parent].kids.push(i); });
-    // da Vinci: what a piece carries, from the tips down
-    const E = 2.4;
+    // da Vinci: what a piece carries, from the tips down. 2 is his rule (the
+    // cross-section is kept); 2.4 left every twig as thick as a pencil
+    const E = 2;
     const load = new Float64Array(n);
     for (let i = n - 1; i >= 0; i--) {
       const s = segs[i];
@@ -1285,7 +1288,7 @@
     const root = segs.findIndex((s) => s.parent < 0);
     const trunkW = segs[root].w * 1.15;
     const k = trunkW / load[root];
-    const width = (i) => Math.max(0.7, load[i] * k);
+    const width = (i) => Math.max(0.6, load[i] * k);
     // the trunk's height: up the line of thickest pieces until the first big fork
     let trunkTop = baseY, j = root;
     while (j >= 0) { trunkTop = segs[j].y2; const ks = segs[j].kids; if (ks.length !== 1) break; j = ks[0]; }
@@ -1293,30 +1296,77 @@
     // a gentle S in the trunk, back to straight where the crown begins
     const bow = trunkW * 0.22;
     const bend = (x, y) => { const h = (baseY - y) / trunkH; return h <= 0 ? x : h >= 1 ? x : x + bow * Math.sin(h * Math.PI) * (1 - h * 0.3); };
+    // where a branch leaves a fork: to its own side of the parent's middle
+    // line, its outer edge in line with the parent's (one going straight on
+    // stays in the middle). Leaving from the middle line, the limbs of a
+    // fork covered each other's bases and read as two stems twisted together
+    const sideOff = (p, s, joinW, w) => {
+      const pl = Math.hypot(p.x2 - p.x1, p.y2 - p.y1) || 1, px = (p.x2 - p.x1) / pl, py = (p.y2 - p.y1) / pl;
+      const cl = Math.hypot(s.x2 - s.x1, s.y2 - s.y1) || 1, cx = (s.x2 - s.x1) / cl, cy = (s.y2 - s.y1) / cl;
+      const cross = px * cy - py * cx;
+      const off = Math.max(0, joinW - w) * 0.48 * Math.min(1, Math.abs(cross) * 3) * Math.sign(cross);
+      return [-py * off, px * off, px, py, cx, cy];
+    };
+    // that offset, held for a while and then eased away along the line
+    const ease = (P, from, ox, oy, hold, D) => {
+      let d = 0;
+      for (let j = from; j < P.length; j++) {
+        if (j > from) d += Math.hypot(P[j][0] - P[j - 1][0], P[j][1] - P[j - 1][1]);
+        const t = 1 - Math.max(0, d - hold) / D;
+        if (t <= 0) break;
+        P[j][0] += ox * t; P[j][1] += oy * t;
+      }
+    };
     // chains: each follows its thickest child; the others start chains of their own
     const chains = [];
     const start = (i, joinW) => {
-      const pts = [], ws = [];
+      const pts = [], ws = [], shifts = [];
       const s0 = segs[i];
-      pts.push([bend(s0.x1, s0.y1), s0.y1]); ws.push(joinW ? Math.min(joinW * 0.92, width(i) * 1.35) : width(i));
+      let fade = null;
+      if (joinW) {
+        // a side branch begins a little back inside its parent, and fades in
+        // over it (fade), so it grows out of the parent; started at the fork,
+        // its flat end stuck out as a notch
+        const wc = Math.min(joinW * 0.8, width(i) * 1.05);
+        const [ox, oy, px, py, cx, cy] = sideOff(segs[s0.parent], s0, joinW, wc);
+        const back = Math.min(joinW * 0.6, width(i));
+        pts.push([s0.x1 - px * back, s0.y1 - py * back]); ws.push(Math.min(joinW * 0.75, width(i) * 1.1));
+        pts.push([s0.x1, s0.y1]); ws.push(wc);
+        shifts.push([0, ox, oy, back, joinW * 1.5]);
+        fade = [s0.x1 - px * back + ox, s0.y1 - py * back + oy, s0.x1 + ox + cx * wc * 0.6, s0.y1 + oy + cy * wc * 0.6];
+      } else { pts.push([s0.x1, s0.y1]); ws.push(width(i)); }
       let cur = i;
       for (;;) {
         const s = segs[cur];
-        pts.push([bend(s.x2, s.y2), s.y2]);
+        pts.push([s.x2, s.y2]);
         let next = -1, best = -1;
         for (const kk of s.kids) if (load[kk] > best) { best = load[kk]; next = kk; }
-        ws.push(next >= 0 ? width(next) : width(cur) * 0.45);
-        for (const kk of s.kids) if (kk !== next) chains.push({ from: kk, joinW: width(cur) });
+        let sib = 0;
+        for (const kk of s.kids) if (kk !== next) { chains.push({ from: kk, joinW: width(cur) }); sib = Math.max(sib, load[kk]); }
+        const big = next >= 0 && sib > load[next] * 0.4;
+        ws.push(next < 0 ? width(cur) * 0.45 : big ? width(cur) : width(next));
         if (next < 0) break;
+        // beside a big sibling, the line going on keeps the parent's width
+        // to the fork and leans to its own side after it (narrowing at the
+        // fork itself left a notch in the trunk's edge)
+        if (big) {
+          const [ox, oy] = sideOff(s, segs[next], width(cur), width(next));
+          shifts.push([pts.length, ox, oy, 0, width(cur) * 1.5]);
+        }
         cur = next;
       }
-      return { pts, ws, trunk: i === root };
+      for (const [from, ox, oy, hold, D] of shifts) ease(pts, from, ox, oy, hold, D);
+      if (fade) fade = [bend(fade[0], fade[1]), fade[1], bend(fade[2], fade[3]), fade[3]];
+      return { pts: pts.map(([x, y]) => [bend(x, y), y]), ws, trunk: i === root, fade };
     };
     const out = [start(root)];
     for (let q = 0; q < chains.length; q++) out.push(start(chains[q].from, chains[q].joinW));
-    // smooth each line a little (the turtle turns in sharp 20-degree steps)
+    // smooth each line a little (the turtle turns in sharp 20-degree steps);
+    // two passes, one for a twig, as the lines are drawn as curves anyway:
+    // three made 59,000 points and a long first draw on a phone
     for (const ch of out) {
-      for (let pass = 0; pass < 3; pass++) {
+      if (ch.ws[0] < 2.5) ch.fade = null;   // too thin to see it fade in
+      for (let pass = 0, passes = ch.ws[0] < 2.5 ? 1 : 2; pass < passes; pass++) {
         const P = ch.pts, Wd = ch.ws;
         if (P.length < 3) break;
         const np = [P[0]], nw = [Wd[0]];
@@ -1328,22 +1378,43 @@
         ch.pts = np; ch.ws = nw;
       }
     }
+    for (const ch of out) {
+      // every branch runs out to a fine point over its last stretch (it ended
+      // blunt, at half a twig's width, and the short ones read as thorns)
+      const P = ch.pts, s = [0];
+      for (let i = 1; i < P.length; i++) s.push(s[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+      const len = s[s.length - 1], taper = Math.min(len * 0.45, 10 + ch.ws[0] * 2.5);
+      ch.ws = ch.ws.map((w, i) => { const d = (len - s[i]) / taper; return d >= 1 ? w : w * (0.12 + 0.88 * Math.pow(Math.max(0, d), 0.75)); });
+    }
     // the trunk broadens into its roots
     const tr = out[0];
     tr.pts.forEach((p, i) => { const h = (baseY - p[1]) / trunkH; tr.ws[i] *= 1 + 0.75 * Math.exp(-h / 0.09); });
     out.sort((a, b) => b.ws[0] - a.ws[0]);   // thick first, so thinner wood lies over it
     return { chains: out, trunkW, trunkH, baseY, x: bend(segs[root].x1, baseY) };
   }
-  // left and right edges of a chain
+  // left and right edges of a chain, worked out once. Each point's direction
+  // is taken across about the wood's own width: taken across a pixel or two,
+  // the inside edge of a sharp bend in thick wood folded over itself and
+  // left a notch
   function outline(ch) {
-    const P = ch.pts, n = P.length, L = [], R = [];
+    if (ch.edge) return ch.edge;
+    const P = ch.pts, n = P.length, L = [], R = [], s = [0];
+    for (let i = 1; i < n; i++) s.push(s[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+    let ia = 0, ib = 0;
     for (let i = 0; i < n; i++) {
-      const a = P[Math.max(0, i - 2)], b = P[Math.min(n - 1, i + 2)];
+      const r = Math.max(2, ch.ws[i] * 0.6);
+      // the window slides along with i (and only widens or narrows with the wood)
+      while (ia < i && s[i] - s[ia + 1] >= r) ia++;
+      while (ia > 0 && s[i] - s[ia] < r) ia--;
+      if (ib < i) ib = i;
+      while (ib < n - 1 && s[ib] - s[i] < r) ib++;
+      while (ib > i && s[ib - 1] - s[i] >= r) ib--;
+      const a = P[ia], b = P[ib];
       let dx = b[0] - a[0], dy = b[1] - a[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
       const w = ch.ws[i] / 2;
       L.push([P[i][0] + dy * w, P[i][1] - dx * w]); R.push([P[i][0] - dy * w, P[i][1] + dx * w]);
     }
-    return [L, R];
+    return (ch.edge = [L, R]);
   }
   function smoothPath(c, pts, move) {
     if (move) c.moveTo(pts[0][0], pts[0][1]); else c.lineTo(pts[0][0], pts[0][1]);
@@ -1361,94 +1432,124 @@
     c.quadraticCurveTo(tip[0] + (tip[0] - ch.pts[ch.pts.length - 2][0]) * 0.6, tip[1] + (tip[1] - ch.pts[ch.pts.length - 2][1]) * 0.6, B[0][0], B[0][1]);
     smoothPath(c, B, false); c.closePath();
   }
+  // bark on the trunk and the big limbs
+  function bark(c, ch) {
+    const [L, R] = outline(ch);
+    c.lineCap = 'round';
+    let gap = 0;
+    for (let i = 1; i < ch.pts.length - 1; i++) {
+      const w = ch.ws[i];
+      if (w < 7) break;
+      // lenticels: now and then a short light dash across the wood; packed
+      // close they read as stitching
+      gap += Math.hypot(ch.pts[i][0] - ch.pts[i - 1][0], ch.pts[i][1] - ch.pts[i - 1][1]);
+      if (gap > sRngR(20, 46)) {
+        gap = 0;
+        const t0 = sRngR(0.1, 0.55), t1 = t0 + sRngR(0.08, 0.3);
+        const a = [L[i][0] + (R[i][0] - L[i][0]) * t0, L[i][1] + (R[i][1] - L[i][1]) * t0];
+        const b = [L[i][0] + (R[i][0] - L[i][0]) * t1, L[i][1] + (R[i][1] - L[i][1]) * t1];
+        // a slight curve round the wood, as the bark wraps it
+        c.strokeStyle = rgba([200, 172, 164], sRngR(0.16, 0.3)); c.lineWidth = Math.max(0.9, w * 0.04);
+        const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + w * 0.04;
+        c.beginPath(); c.moveTo(a[0], a[1]); c.quadraticCurveTo(mx, my, b[0], b[1]); c.stroke();
+      }
+    }
+    // faint fissures along the trunk
+    if (ch.trunk) for (let f = 0; f < 4; f++) {
+      const t = sRngR(0.2, 0.85);
+      c.strokeStyle = rgba(BARK_DARK, 0.18); c.lineWidth = 1;
+      c.beginPath();
+      for (let i = 0; i < ch.pts.length; i++) {
+        const u = t + Math.sin(i * 0.12 + f * 2) * 0.05, x = L[i][0] + (R[i][0] - L[i][0]) * u, y = L[i][1] + (R[i][1] - L[i][1]) * u;
+        i ? c.lineTo(x, y) : c.moveTo(x, y);
+      }
+      c.stroke();
+    }
+  }
   function drawWood(c) {
     if (!WOOD) return;
     const { chains, trunkW, trunkH, baseY, x: tx } = WOOD;
-    // contact shadow and roots, under everything
-    c.save(); c.translate(tx, baseY + 3); c.scale(1, 0.22);
-    const sh = c.createRadialGradient(0, 0, 0, 0, 0, trunkW * 3);
-    sh.addColorStop(0, 'rgba(50, 36, 44, 0.22)'); sh.addColorStop(0.5, 'rgba(50, 36, 44, 0.08)'); sh.addColorStop(1, 'rgba(50, 36, 44, 0)');
-    c.fillStyle = sh; c.beginPath(); c.arc(0, 0, trunkW * 3, 0, PI2); c.fill(); c.restore();
     srand(77);
-    // roots: swellings that run out from the foot and sink into the mound,
-    // rounded at the end, the far one fainter
+    // roots: the foot's flare swells a little further on each side and bows
+    // down into the mound, round-shouldered, with no point to it (they ran
+    // out flat along the ground and read as feet); the far one smaller and
+    // darker. Their lower half fades into the ground with the foot (below)
     for (const [side, far] of [[-1, 0], [1, 0], [sRng() < 0.5 ? -1 : 1, 1]]) {
-      const len = trunkW * sRngR(0.75, 1.1) * (far ? 0.7 : 1), h = trunkW * sRngR(0.28, 0.38), x0 = tx + side * trunkW * 0.35;
-      const g = c.createLinearGradient(x0, 0, x0 + side * len, 0);
-      g.addColorStop(0, rgba(BARK, far ? 0.75 : 1)); g.addColorStop(0.75, rgba(BARK, far ? 0.6 : 0.95)); g.addColorStop(1, rgba(BARK, 0));
+      const len = trunkW * sRngR(0.3, 0.45) * (far ? 0.6 : 1), up = trunkW * sRngR(0.5, 0.65) * (far ? 0.7 : 1);
+      const x0 = tx + side * trunkW * (far ? 0.15 : 0.35), x1 = tx + side * (trunkW * 0.7 + len);
+      const g = c.createLinearGradient(x0, 0, x1, 0);
+      const col = far ? mixc(BARK, BARK_DARK, 0.45) : side < 0 ? mixc(BARK, BARK_LIGHT, 0.2) : mixc(BARK, BARK_DARK, 0.3);
+      g.addColorStop(0, rgba(col, 1)); g.addColorStop(0.7, rgba(col, 0.9)); g.addColorStop(1, rgba(col, 0.5));
       c.fillStyle = g;
       c.beginPath();
-      c.moveTo(x0 - side * trunkW * 0.25, baseY - trunkW * 0.85);
-      c.bezierCurveTo(x0 + side * len * 0.2, baseY - h * 1.2, x0 + side * len * 0.6, baseY - h * 0.45, x0 + side * len, baseY + 1);
-      c.bezierCurveTo(x0 + side * len * 0.7, baseY + h * 0.3, x0 + side * len * 0.3, baseY + h * 0.35, x0 - side * trunkW * 0.3, baseY + h * 0.25);
+      c.moveTo(x0, baseY - up);
+      c.bezierCurveTo(x0 + side * trunkW * 0.15, baseY - up * 0.3, x1 - side * len * 0.3, baseY - trunkW * 0.12, x1, baseY + trunkW * 0.1);
+      c.bezierCurveTo(x1 + side * len * 0.1, baseY + trunkW * 0.22, x1 - side * len * 0.3, baseY + trunkW * 0.3, x0 - side * trunkW * 0.3, baseY + trunkW * 0.3);
       c.closePath(); c.fill();
     }
-    // all the wood first, then all its light and shade, so a limb's body
-    // never paints over the shading of the wood it grows from (a seam at
-    // every fork)
+    // each piece of wood whole (its body, then its light and shade, then its
+    // bark), thickest first, so a branch lies over the wood it grows from.
+    // Painting all the bodies first and all the shading after laid the
+    // trunk's shadow straight across the limbs growing out of it, and a
+    // three-way fork read as two stems twisted round each other
+    // a colour, faded in over the first stretch of a side branch
+    const paint = (ch, col, a) => {
+      if (!ch.fade) return rgba(col, a);
+      const g = c.createLinearGradient(...ch.fade);
+      g.addColorStop(0, rgba(col, 0)); g.addColorStop(1, rgba(col, a));
+      return g;
+    };
     for (const ch of chains) {
-      const k = Math.min(1, Math.max(0, (ch.ws[0] - 1.5) / 14));   // 0 for twigs, 1 for limbs
-      c.fillStyle = rgba(mixc(TWIG, BARK, k), 1);
+      const w0 = ch.ws[0], k = Math.min(1, Math.max(0, (w0 - 1.5) / 14));   // 0 for twigs, 1 for limbs
+      c.fillStyle = paint(ch, mixc(TWIG, BARK, k), 1);
       chainShape(c, ch); c.fill();
-    }
-    for (let ch of chains) {
-      const w0 = ch.ws[0];
-      const k = Math.min(1, Math.max(0, (w0 - 1.5) / 14));
-      if (w0 < 2.2) continue;
-      // shadow down the right side, light down the left; on a limb, starting
-      // a little way out from its parent, or the bands made a notch at the fork
-      if (!ch.trunk && ch.pts.length > 8) ch = { pts: ch.pts.slice(4), ws: ch.ws.slice(4), trunk: false };
-      c.fillStyle = rgba(BARK_DARK, 0.45 * (0.5 + k * 0.5));
-      chainShape(c, ch, 0.55, 1); c.fill();
-      c.fillStyle = rgba(BARK_LIGHT, 0.28 * k);
-      chainShape(c, ch, 0.08, 0.45); c.fill();
-      c.fillStyle = rgba(BARK_LIGHT, 0.3 * k);
-      chainShape(c, ch, 0.16, 0.34); c.fill();
-      c.fillStyle = rgba(BARK_DARK, 0.25 * (0.5 + k * 0.5));
-      chainShape(c, ch, 0.78, 1); c.fill();
-    }
-    // bark on the trunk and the big limbs
-    for (const ch of chains) {
-      if (ch.ws[0] < 9) continue;
-      const [L, R] = outline(ch);
-      c.lineCap = 'round';
-      let gap = 0;
-      for (let i = 1; i < ch.pts.length - 1; i++) {
-        const w = ch.ws[i];
-        if (w < 7) break;
-        // lenticels: now and then a short light dash across the wood, a dark
-        // line under it; packed close they read as stitching
-        gap += Math.hypot(ch.pts[i][0] - ch.pts[i - 1][0], ch.pts[i][1] - ch.pts[i - 1][1]);
-        if (gap > sRngR(14, 32)) {
-          gap = 0;
-          const t0 = sRngR(0.12, 0.5), t1 = t0 + sRngR(0.12, 0.35);
-          const a = [L[i][0] + (R[i][0] - L[i][0]) * t0, L[i][1] + (R[i][1] - L[i][1]) * t0];
-          const b = [L[i][0] + (R[i][0] - L[i][0]) * t1, L[i][1] + (R[i][1] - L[i][1]) * t1];
-          // a slight curve round the wood, as the bark wraps it
-          c.strokeStyle = rgba([200, 172, 164], sRngR(0.2, 0.35)); c.lineWidth = Math.max(0.9, w * 0.04);
-          const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + w * 0.04;
-          c.beginPath(); c.moveTo(a[0], a[1]); c.quadraticCurveTo(mx, my, b[0], b[1]); c.stroke();
-        }
+      if (w0 < 1.8) continue;
+      // shadow down the right side, light down the left, each built up from
+      // thin bands so it runs off smoothly across the wood (two or three hard
+      // bands looked like a cable's stripes)
+      const n = Math.max(1, Math.min(8, Math.round(w0 / 4)));
+      const each = (total) => 1 - Math.pow(1 - total, 1 / n);   // n of these overlapping make total
+      c.fillStyle = paint(ch, BARK_DARK, each(0.55 * (0.5 + k * 0.5)));
+      for (let j = 0; j < n; j++) { chainShape(c, ch, 0.45 + 0.5 * j / n, 1); c.fill(); }
+      if (w0 >= 5) {
+        c.fillStyle = paint(ch, BARK_LIGHT, each(0.42 * k));
+        for (let j = 0; j < n; j++) { const h = 0.24 * (1 - j / n) + 0.02; chainShape(c, ch, 0.26 - h, 0.26 + h); c.fill(); }
+        // a little light thrown back up the shadowed edge, so it reads round
+        c.fillStyle = paint(ch, BARK, 0.35 * k);
+        chainShape(c, ch, 0.93, 1); c.fill();
       }
-      // faint fissures along the trunk
-      if (ch.trunk) for (let f = 0; f < 4; f++) {
-        const t = sRngR(0.2, 0.85);
-        c.strokeStyle = rgba(BARK_DARK, 0.18); c.lineWidth = 1;
-        c.beginPath();
-        for (let i = 0; i < ch.pts.length; i++) {
-          const u = t + Math.sin(i * 0.12 + f * 2) * 0.05, x = L[i][0] + (R[i][0] - L[i][0]) * u, y = L[i][1] + (R[i][1] - L[i][1]) * u;
-          i ? c.lineTo(x, y) : c.moveTo(x, y);
-        }
-        c.stroke();
+      if (w0 >= 9) bark(c, ch);
+      // the canopy's shade over the top of the trunk
+      if (ch.trunk) {
+        const top = baseY - trunkH;
+        const g = c.createLinearGradient(0, top - trunkW, 0, top + trunkH * 0.45);
+        g.addColorStop(0, 'rgba(40, 26, 34, 0.35)'); g.addColorStop(1, 'rgba(40, 26, 34, 0)');
+        c.fillStyle = g; chainShape(c, ch); c.fill();
       }
     }
-    // the canopy's shade over the top of the trunk
-    const tr = chains.find((ch) => ch.trunk);
-    if (tr) {
-      const top = baseY - trunkH;
-      const g = c.createLinearGradient(0, top - trunkW, 0, top + trunkH * 0.45);
-      g.addColorStop(0, 'rgba(40, 26, 34, 0.35)'); g.addColorStop(1, 'rgba(40, 26, 34, 0)');
-      c.fillStyle = g; chainShape(c, tr); c.fill();
+    // the foot goes down into the ground rather than standing on it: the
+    // wood fades out just below the mound's surface (it ended in a hard
+    // flat edge, a peg on a table)
+    c.save();
+    c.globalCompositeOperation = 'destination-out';
+    const fy = baseY - trunkW * 0.25, fh = trunkW * 0.55;
+    const fade = c.createLinearGradient(0, fy, 0, fy + fh);
+    fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(0.55, 'rgba(0,0,0,0.55)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
+    c.fillStyle = fade; c.fillRect(tx - trunkW * 2.4, fy, trunkW * 4.8, fh + trunkW);
+    // and the contact shadow, behind the wood, showing where the foot has faded
+    c.globalCompositeOperation = 'destination-over';
+    c.translate(tx, baseY); c.scale(1, 0.26);
+    const sh = c.createRadialGradient(0, 0, 0, 0, 0, trunkW * 1.9);
+    sh.addColorStop(0, 'rgba(50, 36, 44, 0.22)'); sh.addColorStop(0.5, 'rgba(50, 36, 44, 0.08)'); sh.addColorStop(1, 'rgba(50, 36, 44, 0)');
+    c.fillStyle = sh; c.beginPath(); c.arc(0, 0, trunkW * 1.9, 0, PI2); c.fill();
+    c.restore();
+    // a few blades of grass in front of the foot, like those on the mound
+    c.lineCap = 'round';
+    for (let i = 0; i < 16; i++) {
+      const bx = tx + sRngR(-1.5, 1.5) * trunkW, by = baseY + sRngR(-1, 7), bh = sRngR(5, 13), lean = sRngR(-3, 3);
+      c.strokeStyle = sRng() < 0.5 ? 'rgba(94, 94, 104, 0.5)' : 'rgba(122, 118, 124, 0.42)';
+      c.lineWidth = sRngR(0.6, 1.2);
+      c.beginPath(); c.moveTo(bx, by); c.quadraticCurveTo(bx + lean * 0.5, by - bh * 0.6, bx + lean, by - bh); c.stroke();
     }
   }
 
