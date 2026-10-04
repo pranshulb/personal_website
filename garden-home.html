@@ -478,13 +478,15 @@
   // rounder and its blossom closer together; fill is the share of the outer
   // twigs that carry blossom along them as well as the clusters at their
   // tips, which left bare stretches of twig between them; height is how
-  // much of a laptop's screen the tree stands in (it was 0.72). Chosen from
-  // side-by-side renders: drawn in further (0.7) the crown became a block.
+  // much of a laptop's screen the tree stands in (it was 0.72). Gently:
+  // the first try (0.8 / 0.5 / 0.66) was "unnatural, overcorrected" - a
+  // narrow pink block with straight sides - and these were picked from
+  // side-by-side renders after it.
   // twigFlowers: the share of those twig blossoms with a five-petal flower
   // on top. Keep the flowers under about a thousand in all: each is eleven
   // fills, and at 1,400 Chrome drew the scene six times slower (2.3s against
   // 0.4s with the CPU slowed 4x); 900 cost nothing measurable
-  const CROWN = { squeeze: 0.8, fill: 0.5, height: 0.66, twigFlowers: 0.08 };
+  const CROWN = { squeeze: 0.92, fill: 0.25, height: 0.71, twigFlowers: 0.08 };
 
   function genTree() {
     srand(TREE_SEED);

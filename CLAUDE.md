@@ -173,10 +173,11 @@ vercel.json                 routing, headers, proxies
   tree's time: two smoothing passes (one for twigs) rather than three,
   which made 59,000 points. Drawn once; the scene is static.
   Then "it feels too long and sparse": `CROWN` at the top of the tree code
-  draws the limbs in to 0.8 of their spread, stands the tree in 0.66 of a
-  laptop screen (was 0.72; `treeUnit` follows), and puts blossom along
-  half the outer twigs (depth 8+) between the clusters at their tips.
-  Chosen from side-by-side renders (0.7 made the crown a block). Keep the
+  draws the limbs in to 0.92 of their spread, stands the tree in 0.71 of
+  a laptop screen (was 0.72; `treeUnit` follows), and puts blossom along a
+  quarter of the outer twigs (depth 8+) between the clusters at their
+  tips. Keep it gentle: 0.8 / 0.66 / half the twigs was "unnatural, u
+  overcorrected" — a narrow pink block with straight sides. Keep the
   five-petal flowers under about a thousand: at 1,400 Chrome drew the
   scene six times slower; 900 cost nothing measurable.
 - **The home page's ground is water** along the whole bottom (September
