@@ -473,6 +473,18 @@
     stemWidthReductionRatio: 0.75, angle: 20, angleDerivation: 6
   };
   const TREE_SEED = 101;
+  // the crown's shape and fullness (October 2026; "it feels too long and
+  // sparse"): squeeze draws the limbs in towards the trunk, so the crown is
+  // rounder and its blossom closer together; fill is the share of the outer
+  // twigs that carry blossom along them as well as the clusters at their
+  // tips, which left bare stretches of twig between them; height is how
+  // much of a laptop's screen the tree stands in (it was 0.72). Chosen from
+  // side-by-side renders: drawn in further (0.7) the crown became a block.
+  // twigFlowers: the share of those twig blossoms with a five-petal flower
+  // on top. Keep the flowers under about a thousand in all: each is eleven
+  // fills, and at 1,400 Chrome drew the scene six times slower (2.3s against
+  // 0.4s with the CPU slowed 4x); 900 cost nothing measurable
+  const CROWN = { squeeze: 0.8, fill: 0.5, height: 0.66, twigFlowers: 0.08 };
 
   function genTree() {
     srand(TREE_SEED);
@@ -516,7 +528,9 @@
       }
     }
 
-    // 3) fit the local geometry into the viewport
+    // 3) fit the local geometry into the viewport, the crown drawn in first
+    for (const b of rawB) { b.x1 *= CROWN.squeeze; b.x2 *= CROWN.squeeze; }
+    for (const l of leaves) l.x *= CROWN.squeeze;
     let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
     for (const b of rawB) for (const [x, y] of [[b.x1, b.y1], [b.x2, b.y2]]) {
       if (x < minX) minX = x; if (x > maxX) maxX = x;
@@ -526,7 +540,7 @@
     const treeX = TREE_X;
     const baseY = H * 0.90;
     // on phones the tree has a screen of its own (see applyScrollFade), so it can stand taller
-    const targetH = (isMobile ? REVEAL.treeHeight : 0.72) * H;
+    const targetH = (isMobile ? REVEAL.treeHeight : CROWN.height) * H;
     let scale = targetH / bboxH;
     // don't let the canopy overflow horizontally
     const maxW = (isMobile ? 0.92 : 0.60) * W;
@@ -579,6 +593,23 @@
       if (sRng() < 0.24) flowers.push({
         x: lx + sRngR(-8, 8), y: ly + sRngR(-8, 8),
         sz: sRngR(4, 8) * Math.max(0.9, bScale * 0.75),
+        angle: sRng() * PI2,
+        color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
+        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
+      });
+    }
+    // and along the outer twigs, between the clusters
+    for (const b of branches) {
+      if (b.d < 8 || sRng() >= CROWN.fill) continue;
+      const t = sRng(), x = b.x1 + (b.x2 - b.x1) * t, y = b.y1 + (b.y2 - b.y1) * t;
+      blossoms.push({
+        x: x + sRngR(-8, 8), y: y + sRngR(-8, 8),
+        r: sRngR(5, 12) * bScale * 0.7, color: pickBlossomColor(),
+        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2
+      });
+      if (sRng() < CROWN.twigFlowers) flowers.push({
+        x: x + sRngR(-6, 6), y: y + sRngR(-6, 6),
+        sz: sRngR(4, 7.5) * Math.max(0.9, bScale * 0.75),
         angle: sRng() * PI2,
         color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
         alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
@@ -1965,7 +1996,7 @@
   }
   // screen <-> tree units. y is taken in ground coordinates (without the
   // phone's scroll shift), so a tap and a pointer land the same way.
-  function treeUnit() { return (isMobile ? REVEAL.treeHeight : 0.72) * H; }
+  function treeUnit() { return (isMobile ? REVEAL.treeHeight : CROWN.height) * H; }
   function toTree(x, gy) { const s = treeUnit(); return [(x - TREE_X) / s, (gy - H * 0.90) / s]; }
   function fromTree(u, v) { const s = treeUnit(); return [TREE_X + u * s, H * 0.90 + v * s]; }
 
