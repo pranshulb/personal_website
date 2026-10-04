@@ -19,6 +19,10 @@
     #bg { z-index: 1; }
     #scene { z-index: 2; }
     #overlay { z-index: 7; pointer-events: none; }
+    /* petals resting on the words: a canvas inside the words' card, so it
+       scrolls with them (see "perched" in the script) */
+    .container { position: relative; }
+    #perch { position: absolute; z-index: 2; pointer-events: none; }
 
     .grain {
       position: fixed; top: -50%; left: -50%;
@@ -144,6 +148,13 @@
       .social-links a { font-size: 0.95rem; padding: 0.2rem 0; }
       .copy-hint-desktop { display: none; }
       .copy-hint-mobile { display: none; }
+      /* By the end of the words the card has faded away and the tree has
+         risen behind them, and the rose lines ("please reach out…", the
+         guestbook) sat right on its pinks, unreadable. A soft halo of
+         paper and a deeper rose keep them legible without bringing the
+         card back. */
+      .socials { text-shadow: 0 0 2px #FAF5EF, 0 0 2px #FAF5EF, 0 0 3px #FAF5EF, 0 0 3px #FAF5EF, 0 0 6px #FAF5EF, 0 0 6px #FAF5EF, 0 0 12px #FAF5EF, 0 0 20px #FAF5EF; }
+      .socials .rose { color: #a8525e !important; }
       .epigraph {
         position: fixed; top: auto; bottom: 0.8rem;
         right: auto; left: 50%; transform: translateX(-50%);
@@ -155,6 +166,12 @@
   <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
 
 <style>
+  /* the pointer is a rose firefly drawn on the page (see COMPANY in the
+     script): the arrow is hidden, except over what can be clicked or typed in */
+  html.firefly, html.firefly body { cursor: none; }
+  html.firefly :is(a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb, .vb *) { cursor: auto; }
+  html.firefly :is(a, button, [role="button"], .copy-hint-mobile) { cursor: pointer; }
+
   /* "someone else is here too": only there while someone is */
   .company {
     position: fixed; left: 0; right: 0; bottom: 0.9rem;
@@ -213,11 +230,13 @@
         <a href="https://curius.app/pranshul-bohra">curius</a>
         <a href="https://www.instagram.com/pranshul.bohra/">instagram</a>
       </div>
-      <p style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
+      <p class="rose" style="margin-top: 2rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">please reach out if you think it'd be fun to chat:)</p>
+      <p class="rose" style="margin-top: -0.5rem; font-size: 1.05rem; color: #c47a7a; font-style: italic;">also <a href="#visitors" style="color: inherit;">sign the guestbook</a>!!</p>
       <p class="copy-hint copy-hint-desktop">press <kbd>C</kbd> to copy my email!</p>
       <p class="copy-hint-mobile" id="mobileCopy">tap here to copy my email!</p>
     </div>
     <p class="scroll-hint" aria-hidden="true">the tree is below <span>&#8595;</span></p>
+    <canvas id="perch" aria-hidden="true"></canvas>
   </div>
 </div>
 
@@ -265,14 +284,6 @@
     // fast they drop (1.5 since September 2026: once every screen fell at
     // the same pace, it read as slow next to what 120Hz laptops had shown)
     petals: { flutter: 1, sway: 1, wind: 1, fall: 1.5 },
-    // the tree growing from a sapling and coming into flower
-    // (garden-home experiment, September 2026): seconds it grows for; how
-    // big the sapling is, as a share of the grown tree; how far through
-    // the growing the first blossoms open
-    grow: { seconds: 5.5, sapling: 0.35, flowerAt: 0.6 },
-    // seconds for each blossom to open, and how far it swells past its
-    // size before settling (0 = not at all)
-    bloom: { each: 0.9, overshoot: 1.2 },
   };
   const VALUES = REVEAL;
 
@@ -342,12 +353,6 @@
       { path: 'petals.sway',    label: 'how far they swing side to side', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.wind',    label: 'how strong the gusts are', kind: 'number', min: 0, max: 3, step: 0.05 },
       { path: 'petals.fall',    label: 'how fast they fall', kind: 'number', min: 0.25, max: 3, step: 0.05 },
-      { section: 'the tree growing and flowering (changing one plays it again)' },
-      { path: 'grow.seconds',   label: 'it grows for', kind: 'number', min: 1, max: 20, step: 0.5, unit: 's' },
-      { path: 'grow.sapling',   label: 'the sapling is this big (share of the grown tree)', kind: 'number', min: 0.05, max: 1, step: 0.01 },
-      { path: 'grow.flowerAt',  label: 'blossoms begin this far through the growing', kind: 'number', min: 0, max: 1, step: 0.01 },
-      { path: 'bloom.each',     label: 'each blossom takes', kind: 'number', min: 0.2, max: 3, step: 0.05, unit: 's' },
-      { path: 'bloom.overshoot',label: 'how much a blossom swells past its size', kind: 'number', min: 0, max: 3, step: 0.05 },
     ],
   };
 
@@ -367,8 +372,6 @@
   // The pointer, for catching petals and stirring the water. Off-screen
   // until the first move; its speed is measured once per frame.
   let px = -1e4, py = -1e4, ppx = -1e4, ppy = -1e4, pvx = 0, pvy = 0;
-  let held = [];        // petals in the halo round the pointer: { p, ox, oy, wob }
-  let haloPhase = 0;    // where the halo has revolved to
   let rings = [];       // rings on the water: { x, y, r, maxR, age, life, a }
   let wakeDist = 0;
   let shakeX = 0, shakeV = 0;
@@ -379,6 +382,12 @@
   // petals, rings, the water) lives in ground coordinates and is drawn
   // this much lower too, so it stays with the tree.
   let sceneShift = 0;
+  // How far the tree has come into view on phones: 0 while the words fill
+  // the screen, 1 once it has risen into place (always 1 on desktop). New
+  // petals come off the tree only in proportion; before, they did from the
+  // start, and over the words, with the tree faint and low behind the
+  // card, they looked like they were forming out of thin air.
+  let treeSeen = 1;
 
   let sortedBranches = [], blossoms = [], flowers = [], splatter = [];
   let airPetals = [], groundPetals = [];
@@ -481,14 +490,15 @@
 
     // 2) interpret with a turtle in LOCAL coords (base at 0,0, grows upward)
     const rawB = [], leaves = [];
-    // dist: how far along the branches from the ground, for growing it
-    let st = { x: 0, y: 0, angle: 0, len: P.stemLength, w: P.stemWidth, d: 0, dist: 0 };
+    // last: the piece the turtle drew last, so each new piece knows the one it grows from
+    let st = { x: 0, y: 0, angle: 0, len: P.stemLength, w: P.stemWidth, d: 0, last: -1 };
     const stack = [];
     const step = () => {
       const ex = st.x - st.len * Math.sin(Math.PI * st.angle / 180);
       const ey = st.y - st.len * Math.cos(Math.PI * st.angle / 180);
-      rawB.push({ x1: st.x, y1: st.y, x2: ex, y2: ey, w: st.w, d: st.d, d0: st.dist, d1: st.dist + st.len });
-      st.x = ex; st.y = ey; st.dist += st.len;
+      rawB.push({ x1: st.x, y1: st.y, x2: ex, y2: ey, w: st.w, d: st.d, parent: st.last });
+      st.last = rawB.length - 1;
+      st.x = ex; st.y = ey;
     };
     for (const cmd of expr) {
       switch (cmd) {
@@ -502,7 +512,7 @@
           if (st.len < 1) st.len = 1; st.d++;
           stack.push({ ...st }); break;
         case "]": { const p = stack.pop(); if (p) st = p; break; }
-        case "L": leaves.push({ x: st.x, y: st.y, d: st.d, dist: st.dist }); break;
+        case "L": leaves.push({ x: st.x, y: st.y, d: st.d }); break;
       }
     }
 
@@ -534,9 +544,10 @@
       const cx = (x1 + x2) / 2 + Math.cos(perp) * bend;
       const cy = (y1 + y2) / 2 + Math.sin(perp) * bend;
       const jAmt = Math.max(0.4, w * 0.055);
-      branches.push({ x1, y1, cx, cy, x2, y2, w, d: b.d, d0: b.d0, d1: b.d1,
+      branches.push({ x1, y1, cx, cy, x2, y2, w, d: b.d,
         jx: sRngR(-jAmt, jAmt), jy: sRngR(-jAmt, jAmt) });
     }
+    WOOD = buildWood(branches.map((b, i) => ({ ...b, parent: rawB[i].parent })), baseY, targetH);
     branches.sort((a, b) => (a.d - b.d) || (b.w - a.w)); // trunk/thick first
     sortedBranches = branches;
 
@@ -549,20 +560,20 @@
       blossoms.push({
         x: lx + sRngR(-6, 6), y: ly + sRngR(-6, 6),
         r: sRngR(6, 15) * bScale * 0.7, color: pickBlossomColor(),
-        alpha: sRngR(0.4, 0.68), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
+        alpha: sRngR(0.4, 0.68), ph: sRng() * PI2, swPh: sRng() * PI2
       });
       // extra fluff near the canopy
       if (sRng() < 0.5) blossoms.push({
         x: lx + sRngR(-14, 14), y: ly + sRngR(-14, 14),
         r: sRngR(4, 10) * bScale * 0.7, color: pickBlossomColor(),
-        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
+        alpha: sRngR(0.35, 0.6), ph: sRng() * PI2, swPh: sRng() * PI2
       });
       // saturated highlight dot
       if (sRng() < 0.28) blossoms.push({
         x: lx + sRngR(-10, 10), y: ly + sRngR(-10, 10),
         r: sRngR(2.5, 5.5) * bScale * 0.7,
         color: sRng() < 0.5 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
-        alpha: sRngR(0.7, 0.95), ph: sRng() * PI2, swPh: sRng() * PI2, dist: l.dist
+        alpha: sRngR(0.7, 0.95), ph: sRng() * PI2, swPh: sRng() * PI2
       });
       // HD 5-petal flower on some nodes
       if (sRng() < 0.24) flowers.push({
@@ -570,7 +581,7 @@
         sz: sRngR(4, 8) * Math.max(0.9, bScale * 0.75),
         angle: sRng() * PI2,
         color: sRng() < 0.55 ? sPick(BLOSSOM_HOT) : sPick(BLOSSOM_MID),
-        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2, dist: l.dist
+        alpha: sRngR(0.6, 0.92), swPh: sRng() * PI2
       });
     }
 
@@ -751,11 +762,41 @@
      the tree is shaken. Wrapped elements (two line boxes) are skipped
      rather than guessed.
   ================================================================ */
-  const LEDGE_SEL = 'h1 a, ul li a';
+  const LEDGE_SEL = '.container h1 a, .container ul li a';   // the card's words: #perch only covers the card
   let ledges = [];    // { el, left, top, width, height, sky, cap }
   let perched = [];   // { l, ox, oy, r, rot, color, alpha, age }
   const hotEls = new Set();   // words under the pointer: petals slide off and don't come back while it stays
   const measC = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+
+  // Perched petals are drawn on #perch, a canvas inside the words' card, at
+  // their word's place in the card (cx, cy), so the browser scrolls them
+  // along with the words. They used to be drawn on the fixed overlay at the
+  // word's place on screen, moved from the scroll event; but a phone scrolls
+  // the words itself, ahead of the page's script, so the petals trailed a
+  // frame or more behind the words and then jumped to catch up.
+  const perchEl = document.getElementById('perch');
+  const perchC = perchEl.getContext('2d');
+  const perchHost = perchEl.parentElement;
+  let perchDirty = true, perchTick = 0;
+  function sizePerch() {
+    const k = dpr || 1, w = perchHost.clientWidth, h = perchHost.clientHeight;
+    perchEl.width = Math.ceil(w * k); perchEl.height = Math.ceil(h * k);
+    perchEl.style.width = w + 'px'; perchEl.style.height = h + 'px';
+    perchC.setTransform(k, 0, 0, k, 0, 0);
+    perchDirty = true;
+  }
+  function drawPerched() {
+    const c = perchC;
+    c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, perchEl.width, perchEl.height); c.restore();
+    for (const q of perched) {
+      const L = ledges[q.l];
+      const a = q.alpha * Math.max(0, 1 - q.age);
+      if (a > 0.015) drawPetalShape(c, L.cx + q.ox, L.cy + q.oy, q.r, q.rot, q.color, a);
+    }
+    perchDirty = false;
+  }
+  // the card can change height after load (the guestbook, a late font)
+  if (window.ResizeObserver) new ResizeObserver(() => { sizePerch(); layoutLedges(); }).observe(perchHost);
 
   function measureLedge(el) {
     const rects = el.getClientRects();
@@ -785,7 +826,9 @@
     } catch (e) { sky = null; }   // tainted or unsupported: fall back to a flat ledge
     // On phones the canopy hangs right over the title, so it fills fast; a
     // lower cap keeps it a dusting rather than a burial.
-    return { el, left: r.left, top: r.top, width: r.width, height: r.height, sky,
+    const hr = perchHost.getBoundingClientRect();
+    return { el, left: r.left, top: r.top, cx: r.left - hr.left, cy: r.top - hr.top,
+             width: r.width, height: r.height, sky,
              cap: el.closest('h1') ? (isMobile ? 5 : 10) : 3 };
   }
 
@@ -795,6 +838,7 @@
   function measureLedges() {
     perched = [];
     ledges = [];
+    sizePerch();
     document.querySelectorAll(LEDGE_SEL).forEach(el => {
       const L = measureLedge(el);
       if (L) ledges.push(L);
@@ -806,9 +850,13 @@
   // is all a scroll needs.
   function layoutLedges() {
     measureText();
+    const hr = perchHost.getBoundingClientRect();
     for (const L of ledges) {
       const r = L.el.getBoundingClientRect();
       L.left = r.left; L.top = r.top;
+      if (r.left - hr.left !== L.cx || r.top - hr.top !== L.cy) {
+        L.cx = r.left - hr.left; L.cy = r.top - hr.top; perchDirty = true;
+      }
     }
   }
 
@@ -824,12 +872,14 @@
     if (mine.length >= L.cap) releasePetal(mine[0], 0);   // the oldest slides off to make room
     perched.push({ l: k, ox: p.x - L.left, oy: s - p.r * 0.45, r: p.r,
       rot: p.rot + rng(-0.5, 0.5), color: p.color, alpha: p.alpha * PERCHED_ALPHA, age: 0 });
+    perchDirty = true;
   }
 
   function releasePetal(q, gust) {
     const idx = perched.indexOf(q);
     if (idx < 0) return;
     perched.splice(idx, 1);
+    perchDirty = true;
     const L = ledges[q.l];
     airPetals.push(newAirPetal(L.left + q.ox, L.top + q.oy,
       rng(-0.3, 0.3) + gust, rng(-0.12, 0.06), q));
@@ -843,6 +893,44 @@
 
   function releaseAll(gust) {
     for (const q of perched.slice()) releasePetal(q, gust * rng(0.4, 1));
+  }
+
+  // On a phone there is no hover, and a tap on the words is left alone (it
+  // is reading, or opening a link), so nothing used to get petals off the
+  // words. Now two things do.
+  //
+  // A swipe shakes them loose: each scroll step, every resting petal may
+  // slide off, more likely the further the words moved, so a flick clears
+  // them and a slow scroll leaves most. Let go, a petal stays where it was
+  // on the screen and falls, while the words carry on up without it.
+  let lastScrollTop = 0;
+  function scrollShake(dy) {
+    const move = Math.abs(dy);
+    if (move < 3 || !perched.length) return;
+    // per step, by how far the words moved in it: 5px 0.6%, 12px 7%,
+    // 40px 66%. Taking the title off the screen (about 150px) that leaves
+    // about 80% on at 5px a frame, 40% at 12px, none from a flick.
+    const chance = Math.min(1, Math.pow((move - 3) / 48, 1.6));
+    for (const q of perched.slice()) if (Math.random() < chance) releasePetal(q, rng(-0.35, 0.35));
+  }
+  // A finger on a word, or moving across one, brushes its petals off, the
+  // way the mouse does on a laptop, and none land on it while it is there.
+  // The box reaches a little above the letters, where the petals sit.
+  const touchHot = new Set();
+  function brushWords(x, y, dx) {
+    for (let k = 0; k < ledges.length; k++) {
+      const L = ledges[k];
+      if (x < L.left - 8 || x > L.left + L.width + 8 || y < L.top - 18 || y > L.top + L.height + 6) continue;
+      if (!touchHot.has(L.el)) { touchHot.add(L.el); hotEls.add(L.el); }
+      for (const q of perched.filter(q => q.l === k)) {
+        const dir = Math.abs(dx) > 0.5 ? Math.sign(dx) : Math.sign(L.left + q.ox - x) || 1;
+        releasePetal(q, dir * rng(0.5, 0.9));
+      }
+    }
+  }
+  function unbrush() {
+    for (const el of touchHot) hotEls.delete(el);
+    touchHot.clear();
   }
 
   /* ================================================================
@@ -890,40 +978,63 @@
   const HALO_MAX = 60;
   function haloSpin(n) { return Math.min(0.24, 0.02 + 0.009 * n); }   // radians per frame
   function haloRadius(n) { return Math.min(64, 15 + 2.4 * n); }
-  function updatePointer() {
-    pvx = px - ppx; pvy = py - ppy; ppx = px; ppy = py;
-    if (px < -5000) { pvx = 0; pvy = 0; return; }
-    const speed = Math.hypot(pvx, pvy);
-    if (held.length && speed > 22) releaseHeld(true);
-    if (held.length < HALO_MAX && speed < 6) {
-      for (let i = airPetals.length - 1; i >= 0 && held.length < HALO_MAX; i--) {
+  // A hand: a pointer and the ring of petals it holds. `me` is ours; every
+  // other visitor gets one too (COMPANY, below), so their pointers catch,
+  // spin and fling the petals on this screen the way ours does, and any
+  // hand moving fast through another's ring knocks its petals loose.
+  function newHand() { return { x: -1e4, y: -1e4, vx: 0, vy: 0, held: [], phase: 0 }; }
+  const me = { ...newHand(), trail: [], trailDist: 0, swp: 0, overUI: false };   // (the trail and firefly: COMPANY)
+
+  // one step of a hand going at `speed`: a flick lets its petals go, a
+  // slow hand catches the petals it comes to (unless `catches` is false:
+  // another visitor's ring is filled to what it holds on their screen), and
+  // the ring turns
+  function handStep(h, speed, catches = true) {
+    if (h.held.length && speed > 22) releaseHand(h, true);
+    if (catches && h.held.length < HALO_MAX && speed < 6) {
+      for (let i = airPetals.length - 1; i >= 0 && h.held.length < HALO_MAX; i--) {
         const p = airPetals[i];
-        const d = Math.hypot(p.x - px, p.y - py);
+        const d = Math.hypot(p.x - h.x, p.y - h.y);
         // a petal just let go isn't caught again until it has left the
         // pointer's reach — let go beside a still pointer, it used to be
-        // caught straight back, so letting go did nothing you could see
-        if (p.letGo) { if (d > 14 + p.r + 8) p.letGo = false; continue; }
+        // caught straight back, so letting go did nothing you could see.
+        // Another hand leaves it be for a second, so a ring knocked loose
+        // isn't caught straight up by the hand that knocked it.
+        if (p.letGo) {
+          if (p.letGo === h) { if (d > 14 + p.r + 8) p.letGo = null; continue; }
+          if (t - p.letGoAt < 1) continue;
+          p.letGo = null;
+        }
         if (d < 14 + p.r) {
           airPetals.splice(i, 1);
-          held.push({ p, ox: p.x - px, oy: p.y - py, wob: Math.random() * PI2 });
+          p.grow = 1;   // held petals aren't stepped, so one caught mid-grow would stay small
+          h.held.push({ p, ox: p.x - h.x, oy: p.y - h.y, wob: Math.random() * PI2 });
         }
       }
     }
-    const n = held.length;
+    const n = h.held.length;
     if (n) {
-      haloPhase += haloSpin(n);
+      h.phase += haloSpin(n);
       const R = haloRadius(n);
-      held.forEach((h, i) => {
-        const a = haloPhase + i * PI2 / n;
-        const wob = Math.sin(t * 2 + h.wob) * 3;               // each petal breathes in and out a little
+      h.held.forEach((q, i) => {
+        const a = h.phase + i * PI2 / n;
+        const wob = Math.sin(t * 2 + q.wob) * 3;               // each petal breathes in and out a little
         const tx = Math.cos(a) * (R + wob), ty = Math.sin(a) * (R + wob) * 0.85;   // a slightly flattened ring
-        h.ox += (tx - h.ox) * 0.14; h.oy += (ty - h.oy) * 0.14;   // a new petal slides into its place
-        remember(h.p);
-        h.p.x = px + h.ox; h.p.y = py + h.oy;
-        h.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + h.wob) * 0.25;   // side-on to the ring, like a wheel
-        h.p.tumble += 0.02;
+        q.ox += (tx - q.ox) * 0.14; q.oy += (ty - q.oy) * 0.14;   // a new petal slides into its place
+        remember(q.p);
+        q.p.x = h.x + q.ox; q.p.y = h.y + q.oy;
+        q.p.rot = a + Math.PI / 2 + Math.sin(t * 3 + q.wob) * 0.25;   // side-on to the ring, like a wheel
+        q.p.tumble += 0.02;
       });
     }
+  }
+
+  function updatePointer() {
+    pvx = px - ppx; pvy = py - ppy; ppx = px; ppy = py;
+    if (px < -5000) { pvx = 0; pvy = 0; return; }
+    me.x = px; me.y = py; me.vx = pvx; me.vy = pvy;
+    const speed = Math.hypot(pvx, pvy);
+    handStep(me, speed);
     // stirring the water leaves a wake
     if (speed > 2 && onWater(px, py - sceneShift)) {
       wakeDist += speed;
@@ -931,23 +1042,27 @@
     }
   }
 
-  function releaseHeld(flick) {
-    const speed = Math.hypot(pvx, pvy);
-    const n = held.length, w = haloSpin(n), R = haloRadius(n);
-    held.forEach((h, i) => {
-      const p = h.p;
-      const a = haloPhase + i * PI2 / n;
+  // Lets a hand's petals go: flung at a share of (vx, vy) — the hand's own
+  // speed, or the speed of the hand that knocked them — plus the spin they
+  // already had, or, not flung, spinning out gently.
+  function releaseHand(h, flick, vx = h.vx, vy = h.vy) {
+    const speed = Math.hypot(vx, vy);
+    const n = h.held.length, w = haloSpin(n), R = haloRadius(n);
+    h.held.forEach((q, i) => {
+      const p = q.p;
+      const a = h.phase + i * PI2 / n;
       // the spin it already had, along the ring's tangent
       const sx = -Math.sin(a) * w * R, sy = Math.cos(a) * w * R * 0.85;
       const k = flick ? Math.min(0.32, 7 / Math.max(speed, 1)) : 0;
-      p.vx = pvx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
-      p.vy = pvy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
-      p.drag = flick ? 90 : 40; p.noLand = 20; p.letGo = true;
+      p.vx = vx * k + sx * (flick ? 0.8 : 0.45) + rng(-0.2, 0.2);
+      p.vy = vy * k + sy * (flick ? 0.8 : 0.45) + rng(-0.1, 0.05);
+      p.drag = flick ? 90 : 40; p.noLand = 20; p.letGo = h; p.letGoAt = t;
       p.rotV = rng(-0.02, 0.02); p.tumSpd = rng(0.06, 0.11);
       airPetals.push(p);
     });
-    held = [];
+    h.held = [];
   }
+  function releaseHeld(flick) { releaseHand(me, flick); }
 
   /* ================================================================
      PETAL PHYSICS — gentle illustrated drift
@@ -981,17 +1096,27 @@
     };
   }
 
-  function spawnPetal(fromTree) {
+  // A petal off the tree grows in and strengthens from the blossom it
+  // leaves (`grow`, 0 to 1) rather than being there at full size in one
+  // frame: over a second when it simply falls, a third of one when a shake
+  // knocks it off (`quick`). One from above the screen needs neither.
+  function spawnPetal(fromTree, quick) {
     let px, py, vx, vy;
-    if (fromTree && blossoms.length) {
+    const onTree = fromTree && blossoms.length;
+    if (onTree) {
       const b = blossoms[Math.floor(Math.random() * blossoms.length)];
-      px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + rng(-5, 5);
+      // the scene canvas is drawn sceneShift lower on phones, so the
+      // blossom is that much lower on screen too
+      px = b.x + sw(b.y, b.x, b.swPh) + rng(-8, 8); py = b.y + sceneShift + rng(-5, 5);
       vx = rng(-0.5, 0.5); vy = rng(-0.06, 0.12);
     } else {
       px = rng(-W * 0.1, W * 1.1); py = rng(-60, -10);
       vx = rng(-0.1, 0.1); vy = rng(0.03, 0.06);
     }
-    airPetals.push(newAirPetal(px, py, vx, vy));
+    const p = newAirPetal(px, py, vx, vy);
+    if (onTree) { p.grow = 0; p.growSpd = quick ? 1 / 20 : 1 / 60; }
+    airPetals.push(p);
+    return p;
   }
 
   // Gusts: a slow, uneven breeze that sweeps across the screen from left to
@@ -1014,6 +1139,7 @@
       // over the words it pales, so they can still be read through it
       const vt = overText(p.x, p.y, p.r) ? TEXT_VEIL : 1;
       p.veil = p.veil === undefined ? vt : p.veil + (vt - p.veil) * 0.12;
+      if (p.grow < 1) p.grow = Math.min(1, p.grow + p.growSpd);   // steps run at 60 a second
       p.vx += windX * 0.0012 + Math.sin(t * 0.22 + p.swp) * 0.0007;
       p.vy += 0.00055 * P.fall;   // was 0.0009, then 0.00065 — "just a tad slower still"
       p.swp += p.swSpd;
@@ -1086,14 +1212,14 @@
     }
     for (let i = perched.length - 1; i >= 0; i--) {
       perched[i].age += 0.0001;
-      if (perched[i].age > 1) perched.splice(i, 1);
+      if (perched[i].age > 1) { perched.splice(i, 1); perchDirty = true; }
     }
     // The cap counts the steady fall only. A click's burst (35 at once) used
     // to fill it, and nothing new fell — from the tree or from above the
     // screen — until the whole burst had come down.
     let steady = 0;
     for (const p of airPetals) if (!p.burst) steady++;
-    if (!bloom && steady < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65);
+    if (steady < 30 && Math.random() < 0.08) spawnPetal(Math.random() < 0.65 * treeSeen);
   }
 
   function updateShake() {
@@ -1116,40 +1242,225 @@
   }
 
   /* ================================================================
+     WOOD — trunk and branches as living wood (garden-home experiment)
+
+     The tree used to be drawn as thousands of short round-ended strokes in
+     three flat colours, the trunk twelve identical ones stacked: a straight
+     tube of one width standing on the mound like a peg, knobs and stubs
+     wherever two pieces met, every branch the same thickness all along.
+     What illustrators and tree generators do instead (Disney's Tangled
+     trees, Weber & Penn, da Vinci's notebooks), done here:
+     - each branch is one continuous shape from where it leaves its parent
+       to its tip, along a smoothed line, so there is nothing to see at the
+       joins;
+     - thickness follows da Vinci's rule: a branch is as thick as all the
+       branches beyond it put together (cross-section kept), so it thins
+       smoothly towards the tips, and a fork's two halves add up to the limb;
+     - the trunk broadens into its roots, with two or three buttresses
+       running into the mound, bows a little, and has a contact shadow;
+     - one warm red-brown bark, lit from the upper left: a soft highlight
+       down one side, shadow down the other, darker under the canopy;
+     - on the trunk and big limbs, the horizontal light dashes (lenticels)
+       real cherry bark has, and a few faint vertical fissures.
+     Computed once per tree (WOOD), drawn once: the scene is static.
+  ================================================================ */
+  let WOOD = null;
+  const BARK_LIGHT = [138, 104, 104], BARK = [96, 70, 76], BARK_DARK = [58, 40, 48], TWIG = [72, 54, 64];
+  const mixc = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  function buildWood(segs, baseY, treeH) {
+    // segs: in turtle order, each with .parent (index or -1)
+    const n = segs.length;
+    for (const s of segs) s.kids = [];
+    segs.forEach((s, i) => { if (s.parent >= 0) segs[s.parent].kids.push(i); });
+    // da Vinci: what a piece carries, from the tips down
+    const E = 2.4;
+    const load = new Float64Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      const s = segs[i];
+      let sum = s.kids.length ? 0 : 1;
+      for (const k of s.kids) sum += Math.pow(load[k], E);
+      load[i] = s.kids.length ? Math.pow(sum, 1 / E) : 1;
+    }
+    const root = segs.findIndex((s) => s.parent < 0);
+    const trunkW = segs[root].w * 1.15;
+    const k = trunkW / load[root];
+    const width = (i) => Math.max(0.7, load[i] * k);
+    // the trunk's height: up the line of thickest pieces until the first big fork
+    let trunkTop = baseY, j = root;
+    while (j >= 0) { trunkTop = segs[j].y2; const ks = segs[j].kids; if (ks.length !== 1) break; j = ks[0]; }
+    const trunkH = Math.max(1, baseY - trunkTop);
+    // a gentle S in the trunk, back to straight where the crown begins
+    const bow = trunkW * 0.22;
+    const bend = (x, y) => { const h = (baseY - y) / trunkH; return h <= 0 ? x : h >= 1 ? x : x + bow * Math.sin(h * Math.PI) * (1 - h * 0.3); };
+    // chains: each follows its thickest child; the others start chains of their own
+    const chains = [];
+    const start = (i, joinW) => {
+      const pts = [], ws = [];
+      const s0 = segs[i];
+      pts.push([bend(s0.x1, s0.y1), s0.y1]); ws.push(joinW ? Math.min(joinW * 0.92, width(i) * 1.35) : width(i));
+      let cur = i;
+      for (;;) {
+        const s = segs[cur];
+        pts.push([bend(s.x2, s.y2), s.y2]);
+        let next = -1, best = -1;
+        for (const kk of s.kids) if (load[kk] > best) { best = load[kk]; next = kk; }
+        ws.push(next >= 0 ? width(next) : width(cur) * 0.45);
+        for (const kk of s.kids) if (kk !== next) chains.push({ from: kk, joinW: width(cur) });
+        if (next < 0) break;
+        cur = next;
+      }
+      return { pts, ws, trunk: i === root };
+    };
+    const out = [start(root)];
+    for (let q = 0; q < chains.length; q++) out.push(start(chains[q].from, chains[q].joinW));
+    // smooth each line a little (the turtle turns in sharp 20-degree steps)
+    for (const ch of out) {
+      for (let pass = 0; pass < 3; pass++) {
+        const P = ch.pts, Wd = ch.ws;
+        if (P.length < 3) break;
+        const np = [P[0]], nw = [Wd[0]];
+        for (let i = 0; i < P.length - 1; i++) {
+          np.push([P[i][0] * 0.75 + P[i + 1][0] * 0.25, P[i][1] * 0.75 + P[i + 1][1] * 0.25]); nw.push(Wd[i] * 0.75 + Wd[i + 1] * 0.25);
+          np.push([P[i][0] * 0.25 + P[i + 1][0] * 0.75, P[i][1] * 0.25 + P[i + 1][1] * 0.75]); nw.push(Wd[i] * 0.25 + Wd[i + 1] * 0.75);
+        }
+        np.push(P[P.length - 1]); nw.push(Wd[Wd.length - 1]);
+        ch.pts = np; ch.ws = nw;
+      }
+    }
+    // the trunk broadens into its roots
+    const tr = out[0];
+    tr.pts.forEach((p, i) => { const h = (baseY - p[1]) / trunkH; tr.ws[i] *= 1 + 0.75 * Math.exp(-h / 0.09); });
+    out.sort((a, b) => b.ws[0] - a.ws[0]);   // thick first, so thinner wood lies over it
+    return { chains: out, trunkW, trunkH, baseY, x: bend(segs[root].x1, baseY) };
+  }
+  // left and right edges of a chain
+  function outline(ch) {
+    const P = ch.pts, n = P.length, L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const a = P[Math.max(0, i - 2)], b = P[Math.min(n - 1, i + 2)];
+      let dx = b[0] - a[0], dy = b[1] - a[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+      const w = ch.ws[i] / 2;
+      L.push([P[i][0] + dy * w, P[i][1] - dx * w]); R.push([P[i][0] - dy * w, P[i][1] + dx * w]);
+    }
+    return [L, R];
+  }
+  function smoothPath(c, pts, move) {
+    if (move) c.moveTo(pts[0][0], pts[0][1]); else c.lineTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) c.quadraticCurveTo(pts[i][0], pts[i][1], (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2);
+    c.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+  }
+  function chainShape(c, ch, from = 0, to = 1) {
+    // the band between two lines across the branch (0 = left edge, 1 = right)
+    const [L, R] = outline(ch);
+    const lerpE = (i, t) => [L[i][0] + (R[i][0] - L[i][0]) * t, L[i][1] + (R[i][1] - L[i][1]) * t];
+    const A = L.map((_, i) => lerpE(i, from)), B = R.map((_, i) => lerpE(i, to)).reverse();
+    c.beginPath(); smoothPath(c, A, true);
+    // a round tip
+    const tip = ch.pts[ch.pts.length - 1];
+    c.quadraticCurveTo(tip[0] + (tip[0] - ch.pts[ch.pts.length - 2][0]) * 0.6, tip[1] + (tip[1] - ch.pts[ch.pts.length - 2][1]) * 0.6, B[0][0], B[0][1]);
+    smoothPath(c, B, false); c.closePath();
+  }
+  function drawWood(c) {
+    if (!WOOD) return;
+    const { chains, trunkW, trunkH, baseY, x: tx } = WOOD;
+    // contact shadow and roots, under everything
+    c.save(); c.translate(tx, baseY + 3); c.scale(1, 0.22);
+    const sh = c.createRadialGradient(0, 0, 0, 0, 0, trunkW * 3);
+    sh.addColorStop(0, 'rgba(50, 36, 44, 0.22)'); sh.addColorStop(0.5, 'rgba(50, 36, 44, 0.08)'); sh.addColorStop(1, 'rgba(50, 36, 44, 0)');
+    c.fillStyle = sh; c.beginPath(); c.arc(0, 0, trunkW * 3, 0, PI2); c.fill(); c.restore();
+    srand(77);
+    // roots: swellings that run out from the foot and sink into the mound,
+    // rounded at the end, the far one fainter
+    for (const [side, far] of [[-1, 0], [1, 0], [sRng() < 0.5 ? -1 : 1, 1]]) {
+      const len = trunkW * sRngR(0.75, 1.1) * (far ? 0.7 : 1), h = trunkW * sRngR(0.28, 0.38), x0 = tx + side * trunkW * 0.35;
+      const g = c.createLinearGradient(x0, 0, x0 + side * len, 0);
+      g.addColorStop(0, rgba(BARK, far ? 0.75 : 1)); g.addColorStop(0.75, rgba(BARK, far ? 0.6 : 0.95)); g.addColorStop(1, rgba(BARK, 0));
+      c.fillStyle = g;
+      c.beginPath();
+      c.moveTo(x0 - side * trunkW * 0.25, baseY - trunkW * 0.85);
+      c.bezierCurveTo(x0 + side * len * 0.2, baseY - h * 1.2, x0 + side * len * 0.6, baseY - h * 0.45, x0 + side * len, baseY + 1);
+      c.bezierCurveTo(x0 + side * len * 0.7, baseY + h * 0.3, x0 + side * len * 0.3, baseY + h * 0.35, x0 - side * trunkW * 0.3, baseY + h * 0.25);
+      c.closePath(); c.fill();
+    }
+    // all the wood first, then all its light and shade, so a limb's body
+    // never paints over the shading of the wood it grows from (a seam at
+    // every fork)
+    for (const ch of chains) {
+      const k = Math.min(1, Math.max(0, (ch.ws[0] - 1.5) / 14));   // 0 for twigs, 1 for limbs
+      c.fillStyle = rgba(mixc(TWIG, BARK, k), 1);
+      chainShape(c, ch); c.fill();
+    }
+    for (let ch of chains) {
+      const w0 = ch.ws[0];
+      const k = Math.min(1, Math.max(0, (w0 - 1.5) / 14));
+      if (w0 < 2.2) continue;
+      // shadow down the right side, light down the left; on a limb, starting
+      // a little way out from its parent, or the bands made a notch at the fork
+      if (!ch.trunk && ch.pts.length > 8) ch = { pts: ch.pts.slice(4), ws: ch.ws.slice(4), trunk: false };
+      c.fillStyle = rgba(BARK_DARK, 0.45 * (0.5 + k * 0.5));
+      chainShape(c, ch, 0.55, 1); c.fill();
+      c.fillStyle = rgba(BARK_LIGHT, 0.28 * k);
+      chainShape(c, ch, 0.08, 0.45); c.fill();
+      c.fillStyle = rgba(BARK_LIGHT, 0.3 * k);
+      chainShape(c, ch, 0.16, 0.34); c.fill();
+      c.fillStyle = rgba(BARK_DARK, 0.25 * (0.5 + k * 0.5));
+      chainShape(c, ch, 0.78, 1); c.fill();
+    }
+    // bark on the trunk and the big limbs
+    for (const ch of chains) {
+      if (ch.ws[0] < 9) continue;
+      const [L, R] = outline(ch);
+      c.lineCap = 'round';
+      let gap = 0;
+      for (let i = 1; i < ch.pts.length - 1; i++) {
+        const w = ch.ws[i];
+        if (w < 7) break;
+        // lenticels: now and then a short light dash across the wood, a dark
+        // line under it; packed close they read as stitching
+        gap += Math.hypot(ch.pts[i][0] - ch.pts[i - 1][0], ch.pts[i][1] - ch.pts[i - 1][1]);
+        if (gap > sRngR(14, 32)) {
+          gap = 0;
+          const t0 = sRngR(0.12, 0.5), t1 = t0 + sRngR(0.12, 0.35);
+          const a = [L[i][0] + (R[i][0] - L[i][0]) * t0, L[i][1] + (R[i][1] - L[i][1]) * t0];
+          const b = [L[i][0] + (R[i][0] - L[i][0]) * t1, L[i][1] + (R[i][1] - L[i][1]) * t1];
+          // a slight curve round the wood, as the bark wraps it
+          c.strokeStyle = rgba([200, 172, 164], sRngR(0.2, 0.35)); c.lineWidth = Math.max(0.9, w * 0.04);
+          const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + w * 0.04;
+          c.beginPath(); c.moveTo(a[0], a[1]); c.quadraticCurveTo(mx, my, b[0], b[1]); c.stroke();
+        }
+      }
+      // faint fissures along the trunk
+      if (ch.trunk) for (let f = 0; f < 4; f++) {
+        const t = sRngR(0.2, 0.85);
+        c.strokeStyle = rgba(BARK_DARK, 0.18); c.lineWidth = 1;
+        c.beginPath();
+        for (let i = 0; i < ch.pts.length; i++) {
+          const u = t + Math.sin(i * 0.12 + f * 2) * 0.05, x = L[i][0] + (R[i][0] - L[i][0]) * u, y = L[i][1] + (R[i][1] - L[i][1]) * u;
+          i ? c.lineTo(x, y) : c.moveTo(x, y);
+        }
+        c.stroke();
+      }
+    }
+    // the canopy's shade over the top of the trunk
+    const tr = chains.find((ch) => ch.trunk);
+    if (tr) {
+      const top = baseY - trunkH;
+      const g = c.createLinearGradient(0, top - trunkW, 0, top + trunkH * 0.45);
+      g.addColorStop(0, 'rgba(40, 26, 34, 0.35)'); g.addColorStop(1, 'rgba(40, 26, 34, 0)');
+      c.fillStyle = g; chainShape(c, tr); c.fill();
+    }
+  }
+
+  /* ================================================================
      DRAW SCENE — ink branches + illustrated 5-petal blossoms
   ================================================================ */
   function drawScene() {
-    if (bloom) { drawSceneBlooming(bloom.t0 === null ? 0 : (performance.now() - bloom.t0) / 1000); return; }
     const c = scC; c.clearRect(0, 0, W, H);
     c.lineCap = 'round'; c.lineJoin = 'round';
 
-    // Branches — thick → thin (already sorted by d)
-    for (const b of sortedBranches) {
-      const s1 = sw(b.y1, b.x1) * 0.35;
-      const s2 = sw(b.y2, b.x2);
-      const sc = (s1 + s2) * 0.5;
-
-      // Watercolor bark — grey-purple trunk, darker maroon-grey thin branches (like the reference)
-      c.strokeStyle = b.d === 0 ? '#6b5560' : b.d < 3 ? '#584651' : '#463642';
-      c.lineWidth = b.w;
-      c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
-      c.beginPath();
-      c.moveTo(b.x1 + s1, b.y1);
-      c.quadraticCurveTo(b.cx + sc, b.cy, b.x2 + s2, b.y2);
-      c.stroke();
-
-      // Secondary pass on thick branches — slight pressure variation, hand-drawn feel
-      if (b.w > 5) {
-        c.lineWidth = b.w * 0.20;
-        c.globalAlpha = 0.06;
-        c.strokeStyle = '#3a2c36';
-        c.beginPath();
-        c.moveTo(b.x1 + s1 + b.jx, b.y1 + b.jy);
-        c.quadraticCurveTo(b.cx + sc + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2 + s2, b.y2);
-        c.stroke();
-      }
-      c.globalAlpha = 1;
-    }
+    // the trunk and branches (WOOD, below)
+    drawWood(c);
 
     // Blossoms — soft overlapping watercolor blobs (cloud canopy)
     for (const b of blossoms) {
@@ -1165,357 +1476,6 @@
   }
 
   /* ================================================================
-     THE TREE GROWING — an experiment on /garden-home
-
-     It starts as a sapling on the mound: a thin stem and its first few
-     twigs, a third of its size. Then it grows. Every branch lengthens out
-     of the one it forks from; new wood is thin and a lighter, redder
-     brown, and thickens and darkens as it ages; and the whole tree gains
-     height and girth as it goes (REVEAL.grow). Once the canopy has mostly
-     formed, blossoms open where the branches have reached, each swelling
-     a touch past its size and settling (REVEAL.bloom), and a branch still
-     growing flowers when it gets there. No petal falls until the tree is
-     in flower; then the first few let go. On a phone the sapling waits
-     until the tree scrolls into view. Nothing moves for anyone who has
-     asked for less motion.
-
-     How far the growth has reached is a distance along the branches from
-     the ground (each piece of wood knows its own, from genTree). It runs
-     partly at an even pace and partly at an even rate of new wood, so the
-     stem has time to rise and the crowded outer canopy doesn't all burst
-     out in one second.
-
-     Here it plays on every visit, so it can be looked at. For the home
-     page the idea is once, on someone's first visit: BLOOM_EVERY_VISIT
-     false, remembered in localStorage.
-
-     Cost. The finished tree is drawn once and never again. While growing,
-     the tree is redrawn every frame, so that has to be cheap, and it was
-     not at first (11 frames a second mid-growth, stalls at both ends):
-     - twigs that have finished growing are drawn once, onto a layer of
-       their own, and never again; each frame draws that layer, the thick
-       wood (a couple of hundred pieces, so the trunk thickens smoothly),
-       and only the twigs still growing, one path per depth and age;
-     - layers are copied only where the tree is, not the whole screen;
-     - the blossoms' pictures are made a few at a time while the sapling
-       waits and grows, not all at once when it starts (a 0.4s stall);
-     - the last frame is the finished tree. Drawing it afresh at the end
-       took 60-90ms on a laptop and 400ms or more on a slow phone.
-     The blossoms open by patches (below).
-  ================================================================ */
-  const BLOOM_EVERY_VISIT = true;
-  let bloom = null;                 // { t0 } while growing; t0 null while waiting to be seen
-  function bloomWanted() {
-    try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false; } catch (e) {}
-    if (BLOOM_EVERY_VISIT) return true;
-    try { return !localStorage.getItem('pcafe:bloomed'); } catch (e) { return false; }
-  }
-  function armBloom() { bloom = { t0: null }; drawScene(); }
-  function startBloom() {
-    if (!bloom) bloom = { t0: null };
-    bloom.t0 = performance.now();
-    try { localStorage.setItem('pcafe:bloomed', '1'); } catch (e) {}
-  }
-  function endBloom() {
-    // The last frame, every blossom open, is the finished tree: it stays
-    // on the canvas. (Drawing the tree afresh here stalled the page; if the
-    // window changes size later, drawScene draws it the usual way.)
-    drawSceneBlooming(1e9);
-    bloom = null;
-    // the first petals let go
-    const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(14, room); i++) spawnPetal(true);
-  }
-
-  // bark as the finished tree has it, by depth, and young wood
-  const BARK = (d) => d === 0 ? [107, 85, 96] : d < 3 ? [88, 70, 81] : [70, 54, 66];
-  const YOUNG_WOOD = [150, 104, 100];
-  const woodColor = (d, age) => {
-    const b = BARK(d), k = age;
-    return `rgb(${Math.round(YOUNG_WOOD[0] + (b[0] - YOUNG_WOOD[0]) * k)},${Math.round(YOUNG_WOOD[1] + (b[1] - YOUNG_WOOD[1]) * k)},${Math.round(YOUNG_WOOD[2] + (b[2] - YOUNG_WOOD[2]) * k)})`;
-  };
-  const youngWidth = (age) => 0.35 + 0.65 * age;   // new wood is a third as thick
-
-  // The wood, grown as far as F (a distance along the branches). A piece
-  // the growth is still inside is drawn part of the way along its curve; a
-  // piece it has passed is young until the growth is Y further on, then it
-  // is ordinary bark. Thick wood is drawn whole every frame, its width
-  // times wg, so the trunk and limbs thicken smoothly as the tree grows.
-  // Thin wood that has finished is drawn once onto the blossoms' layer,
-  // underneath what is already there (destination-over), so the layer
-  // holds finished wood under finished blossoms and costs one copy.
-  function woodShape(b, F) {
-    const frac = Math.min(1, (F - b.d0) / Math.max(1e-6, b.d1 - b.d0));
-    if (frac >= 1) return [b.cx, b.cy, b.x2, b.y2];
-    // the first part of the curve, up to frac: de Casteljau
-    const ax = b.x1 + (b.cx - b.x1) * frac, ay = b.y1 + (b.cy - b.y1) * frac;
-    const bx = b.cx + (b.x2 - b.cx) * frac, by = b.cy + (b.y2 - b.cy) * frac;
-    return [ax, ay, ax + (bx - ax) * frac, ay + (by - ay) * frac];
-  }
-  const AGES = 8;   // young wood thickens and darkens in this many steps
-  function strokeBuckets(c, buckets, wg) {
-    for (const q of buckets.values()) {
-      const age = q.L / (AGES - 1);
-      c.strokeStyle = woodColor(q.d, age);
-      c.lineWidth = q.w * wg * youngWidth(age);
-      c.globalAlpha = q.alpha;
-      c.stroke(q.path);
-    }
-    c.globalAlpha = 1;
-  }
-  function addToBucket(buckets, b, L, sh) {
-    const key = b.d * AGES + L;
-    let q = buckets.get(key);
-    if (!q) buckets.set(key, q = { path: new Path2D(), d: b.d, w: b.w, L, alpha: 0.86 + Math.min(b.d * 0.01, 0.12) });
-    q.path.moveTo(b.x1, b.y1); q.path.quadraticCurveTo(sh[0], sh[1], sh[2], sh[3]);
-  }
-  function drawWood(c, F, wg) {
-    const g = bloom.g, Y = g.Y;
-    c.lineCap = 'round'; c.lineJoin = 'round';
-    // thick wood, whole, every frame
-    for (const b of g.thick) {
-      if (F <= b.d0) break;                      // sorted by where they start
-      const frac = (F - b.d0) / Math.max(1e-6, b.d1 - b.d0);
-      if (frac < 0.02) continue;
-      const age = frac < 1 ? 0 : Math.min(1, (F - b.d1) / Y);
-      const sh = woodShape(b, F);
-      c.strokeStyle = woodColor(b.d, age);
-      // slimmer while the tree is young, but never slimmer than the twigs
-      // growing out of it (they are drawn at their full width)
-      c.lineWidth = Math.max(Math.min(b.w, 4.5), b.w * wg) * youngWidth(age);
-      c.globalAlpha = 0.86 + Math.min(b.d * 0.01, 0.12);
-      c.beginPath(); c.moveTo(b.x1, b.y1); c.quadraticCurveTo(sh[0], sh[1], sh[2], sh[3]); c.stroke();
-      if (b.w > 5 && age >= 1) {
-        c.lineWidth = Math.max(Math.min(b.w, 4.5), b.w * wg) * 0.20; c.globalAlpha = 0.06; c.strokeStyle = '#3a2c36';
-        c.beginPath(); c.moveTo(b.x1 + b.jx, b.y1 + b.jy);
-        c.quadraticCurveTo(b.cx + b.jx * 0.4, b.cy + b.jy * 0.4, b.x2, b.y2); c.stroke();
-      }
-    }
-    c.globalAlpha = 1;
-    // thin wood that has just finished: onto the layer, under the rest
-    const thin = g.thin, done = new Map();
-    while (g.baked < g.byDone.length && g.byDone[g.baked].d1 + Y <= F) {
-      const b = g.byDone[g.baked++]; b.baked = true;
-      addToBucket(done, b, AGES - 1, [b.cx, b.cy, b.x2, b.y2]);
-    }
-    if (done.size) {
-      const lc = bloom.lc;
-      lc.globalCompositeOperation = 'destination-over';
-      lc.lineCap = 'round'; lc.lineJoin = 'round';
-      strokeBuckets(lc, done, 1);
-      lc.globalCompositeOperation = 'source-over';
-      bloom.hasL = true;
-    }
-    // thin wood still growing, one path per depth and age
-    while (g.lo < thin.length && thin[g.lo].baked) g.lo++;
-    const live = new Map();
-    for (let i = g.lo; i < thin.length; i++) {
-      const b = thin[i];
-      if (F <= b.d0) break;                      // sorted by where they start
-      if (b.baked) continue;
-      if ((F - b.d0) / Math.max(1e-6, b.d1 - b.d0) < 0.02) continue;
-      const age = F < b.d1 ? 0 : Math.min(1, (F - b.d1) / Y);
-      addToBucket(live, b, Math.min(AGES - 2, Math.round(age * (AGES - 1))), woodShape(b, F));
-    }
-    strokeBuckets(c, live, 1);
-  }
-
-  // Redrawing all ~5000 blossoms and ~700 flowers every frame took 60-90ms
-  // on a laptop and 400+ on a slow phone; drawing each one as a stamp still
-  // left ~2000 opening at once. So the canopy is cut into small patches,
-  // each drawn once, exactly as the finished tree draws its blossoms and
-  // flowers, and it is the patches that open (a clump of blossoms at a
-  // time, ~300-600 of them). A patch that has finished opening is drawn
-  // once onto a layer and never again; each frame draws that layer and
-  // only the patches still opening.
-  const PATCH = 34;   // css px
-  function bloomLayers() {
-    if (bloom.layer && bloom.layer.width === scEl.width && bloom.layer.height === scEl.height && bloom.n === blossoms.length) return;
-    const G = REVEAL.grow;
-    // how the growth runs: F(u) is how far along the branches it has
-    // reached at u (0..1 of the growing), partly at an even pace and
-    // partly at an even rate of new wood
-    const ds = sortedBranches.map(b => b.d1).sort((a, b) => a - b);
-    const Fmax = ds[ds.length - 1] || 1;
-    const F0 = Fmax * 0.25;       // the sapling: its stem and first twigs
-    const Y = Fmax * 0.035;       // how long wood stays young behind the growth
-    const inOut = curve('inOut');
-    const smooth = (u) => u * u * (3 - 2 * u);
-    const Fat = (u) => {
-      const v = inOut(u);
-      const q = ds[Math.min(ds.length - 1, Math.floor(v * (ds.length - 1)))];
-      const w = 0.45 * v + 0.55 * clamp((q - F0) / (Fmax - F0), 0, 1);
-      return F0 + (Fmax + Y - F0) * w;
-    };
-    const s0 = clamp(G.sapling, 0.02, 1);
-    for (const b of sortedBranches) b.baked = false;
-    const byStart = (a, b) => a.d0 - b.d0;
-    const thin = sortedBranches.filter(b => b.w <= 4).sort(byStart);
-    // where the tree is, with room for its blossoms: layers are copied
-    // only there
-    let bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
-    for (const b of sortedBranches) {
-      bx0 = Math.min(bx0, b.x1, b.x2); by0 = Math.min(by0, b.y1, b.y2);
-      bx1 = Math.max(bx1, b.x1, b.x2); by1 = Math.max(by1, b.y1, b.y2);
-    }
-    const pad = 60;
-    bx0 = Math.max(0, Math.floor(bx0 - pad)); by0 = Math.max(0, Math.floor(by0 - pad));
-    bx1 = Math.min(W, Math.ceil(bx1 + pad)); by1 = Math.min(H, Math.ceil(by1 + pad));
-    bloom.g = {
-      Fat, Y, thin, lo: 0, baked: 0,
-      thick: sortedBranches.filter(b => b.w > 4).sort(byStart),
-      byDone: thin.slice().sort((a, b) => a.d1 - b.d1),
-      box: { x: bx0, y: by0, w: Math.max(1, bx1 - bx0), h: Math.max(1, by1 - by0) },
-      // its size, from sapling to grown a little before the growing ends,
-      // so most blossoms open on the grown tree
-      sAt: (u) => s0 + (1 - s0) * smooth(Math.min(1, u / 0.85)),
-      wgAt: (u) => 0.55 + 0.45 * smooth(u),               // and its girth, which lags
-    };
-    // when the growth reaches a distance d, in seconds
-    const tReach = (d) => {
-      let lo = 0, hi = 1;
-      for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (Fat(m) >= d) hi = m; else lo = m; }
-      return hi * G.seconds;
-    };
-
-    // two layers, as the finished tree has two: every blossom, then every
-    // flower on top. With one, a patch's flowers could sit under the next
-    // patch's blossoms, and popped into view when the finished tree took over.
-    const layer = () => {
-      const L = document.createElement('canvas');
-      L.width = scEl.width; L.height = scEl.height;
-      const lc = L.getContext('2d'); lc.setTransform(dpr, 0, 0, dpr, 0, 0);
-      return [L, lc];
-    };
-    [bloom.layer, bloom.lc] = layer();
-    [bloom.flayer, bloom.flc] = layer();
-    bloom.n = blossoms.length;
-    bloom.hasL = bloom.hasF = false;   // nothing on either layer yet
-    // gather blossoms and flowers into patches
-    const byKey = new Map();
-    const patchOf = (x, y) => {
-      const k = Math.floor(x / PATCH) + ',' + Math.floor(y / PATCH);
-      let p = byKey.get(k);
-      if (!p) byKey.set(k, p = { b: [], f: [], x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9, sx: 0, sy: 0, sd: 0, n: 0 });
-      return p;
-    };
-    for (const q of blossoms) {
-      const p = patchOf(q.x, q.y); p.b.push(q);
-      p.x0 = Math.min(p.x0, q.x - q.r); p.y0 = Math.min(p.y0, q.y - q.r); p.x1 = Math.max(p.x1, q.x + q.r); p.y1 = Math.max(p.y1, q.y + q.r);
-      p.sx += q.x; p.sy += q.y; p.sd += q.dist || 0; p.n++;
-    }
-    for (const q of flowers) {
-      const p = patchOf(q.x, q.y); p.f.push(q);
-      p.x0 = Math.min(p.x0, q.x - q.sz); p.y0 = Math.min(p.y0, q.y - q.sz); p.x1 = Math.max(p.x1, q.x + q.sz); p.y1 = Math.max(p.y1, q.y + q.sz);
-      p.sx += q.x; p.sy += q.y; p.sd += q.dist || 0; p.n++;
-    }
-    // each patch opens once the tree is far enough along and its branch
-    // has reached it, whichever is later, give or take a moment
-    const B = REVEAL.bloom;
-    const patches = [...byKey.values()];
-    let end = G.seconds;
-    for (const p of patches) {
-      p.cx = p.sx / p.n; p.cy = p.sy / p.n;
-      const x0 = p.x0 - 1, y0 = p.y0 - 1, w = p.x1 - p.x0 + 2, h = p.y1 - p.y0 + 2;
-      const stamp = (draw) => {
-        const cv = document.createElement('canvas');
-        cv.width = Math.max(1, Math.ceil(w * dpr)); cv.height = Math.max(1, Math.ceil(h * dpr));
-        const pc = cv.getContext('2d'); pc.setTransform(dpr, 0, 0, dpr, -x0 * dpr, -y0 * dpr);
-        draw(pc); return cv;
-      };
-      // its pictures are made later, a few patches a frame (makeStamps)
-      p.make = () => {
-        p.cv = p.b.length ? stamp((pc) => { for (const q of p.b) drawBlossomBlob(pc, q.x, q.y, q.r, q.color, q.alpha, q.ph); }) : null;
-        p.fcv = p.f.length ? stamp((pc) => { for (const q of p.f) drawFlower(pc, q.x, q.y, q.sz, q.angle, q.color, q.alpha); }) : null;
-        p.b = p.f = null; p.make = null;
-      };
-      const hasB = p.b.length > 0, hasF = p.f.length > 0;
-      p.x0 = x0; p.y0 = y0; p.w = w; p.h = h;
-      p.ready = Math.max(G.flowerAt * G.seconds, tReach(p.sd / p.n) + 0.25);
-      p.hasF = hasF;
-      p.done = !hasB; p.fdone = !hasF;
-    }
-    // Most branches reach their blossoms within the same second, and left
-    // to that, ~400 patches opened at once. So they open at an even pace
-    // across the flowering, never before their branch has got there, in
-    // roughly the order they are ready: shuffled by up to a second and a
-    // half, or the flowering swept across the tree from one side instead
-    // of coming out all over it.
-    for (const p of patches) p.order = p.ready + Math.random() * 1.5;
-    patches.sort((a, b) => a.order - b.order);
-    const first = G.flowerAt * G.seconds, N = patches.length;
-    const span = Math.max(0.5, (N ? patches[N - 1].ready : first) - first + 0.8);
-    patches.forEach((p, i) => {
-      p.at = Math.max(p.ready, first + (i / Math.max(1, N - 1)) * span) + Math.random() * 0.3;
-      p.fat = p.at + 0.15;   // its flowers open a moment after its blossoms
-      end = Math.max(end, (p.hasF ? p.fat : p.at) + B.each);
-    });
-    // the first to open are made first
-    patches.sort((a, b) => a.at - b.at);
-    bloom.patches = patches;
-    bloom.made = 0;
-    bloom.end = end;
-  }
-  // Make blossom pictures for up to `ms` milliseconds, soonest-opening
-  // first. Runs every frame while the sapling waits and grows.
-  function makeStamps(ms) {
-    if (!bloom || !bloom.patches) return;
-    const until = performance.now() + ms, P = bloom.patches;
-    while (bloom.made < P.length && performance.now() < until) {
-      const p = P[bloom.made++];
-      if (p.make) p.make();
-    }
-  }
-  function drawPatch(c, p, cv, prog, open) {
-    const e = open(prog);
-    if (e <= 0.01) return;
-    c.globalAlpha = Math.min(1, prog * 1.8);
-    c.drawImage(cv, p.cx + (p.x0 - p.cx) * e, p.cy + (p.y0 - p.cy) * e, p.w * e, p.h * e);
-  }
-  function drawSceneBlooming(t) {
-    const c = scC;
-    bloomLayers();
-    const G = REVEAL.grow, g = bloom.g;
-    const u = clamp(t / G.seconds, 0, 1);
-    const B = REVEAL.bloom, c1 = B.overshoot, c3 = c1 + 1;
-    const open = (p) => p >= 1 ? 1 : 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);   // ease out, a little past and back
-    // a patch about to open has its pictures, made now if need be
-    for (const p of bloom.patches) if (p.make && t >= p.at - 0.05) p.make();
-    // anything that has just finished opening goes onto its layer for good
-    for (const p of bloom.patches) {
-      if (!p.done && t >= p.at + B.each) { drawPatch(bloom.lc, p, p.cv, 1, open); p.done = true; bloom.hasL = true; }
-      if (!p.fdone && t >= p.fat + B.each) { drawPatch(bloom.flc, p, p.fcv, 1, open); p.fdone = true; bloom.hasF = true; }
-    }
-    bloom.lc.globalAlpha = 1; bloom.flc.globalAlpha = 1;
-
-    // the whole tree at its size now, grown from the foot of the trunk
-    const s = g.sAt(u), baseY = H * 0.90;
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.clearRect(0, 0, scEl.width, scEl.height);
-    c.setTransform(dpr * s, 0, 0, dpr * s, dpr * TREE_X * (1 - s), dpr * baseY * (1 - s));
-    drawWood(c, g.Fat(u), g.wgAt(u));
-    // then: finished wood and blossoms, blossoms still opening, finished
-    // flowers, flowers still opening (a layer with nothing on it yet is
-    // not copied)
-    const box = g.box, blit = (L) => c.drawImage(L, box.x * dpr, box.y * dpr, box.w * dpr, box.h * dpr, box.x, box.y, box.w, box.h);
-    if (bloom.hasL) blit(bloom.layer);
-    for (const p of bloom.patches) {
-      if (p.done) continue;
-      const prog = (t - p.at) / B.each;
-      if (prog > 0) drawPatch(c, p, p.cv, prog, open);
-    }
-    c.globalAlpha = 1;
-    if (bloom.hasF) blit(bloom.flayer);
-    for (const p of bloom.patches) {
-      if (p.fdone) continue;
-      const prog = (t - p.fat) / B.each;
-      if (prog > 0) drawPatch(c, p, p.fcv, prog, open);
-    }
-    c.globalAlpha = 1;
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  /* ================================================================
      DRAW OVERLAY — falling hearts + resting ground petals (animated)
   ================================================================ */
   /* Petals move in steps of a 60th of a second (see frame), so that they
@@ -1527,8 +1487,10 @@
   let ip = 1;
   function remember(p) { p._x = p.x; p._y = p.y; p._rot = p.rot; p._tum = p.tumble; }
   function drawMoving(c, p, alpha) {
-    if (p._x === undefined) { drawPetalShape(c, p.x, p.y, p.r, p.rot, p.color, alpha, p.tumble); return; }
-    drawPetalShape(c, p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, p.r,
+    let r = p.r;
+    if (p.grow < 1) { const g = 1 - (1 - p.grow) * (1 - p.grow); r *= 0.35 + 0.65 * g; alpha *= g; }
+    if (p._x === undefined) { drawPetalShape(c, p.x, p.y, r, p.rot, p.color, alpha, p.tumble); return; }
+    drawPetalShape(c, p._x + (p.x - p._x) * ip, p._y + (p.y - p._y) * ip, r,
       p._rot + (p.rot - p._rot) * ip, p.color, alpha, p._tum + (p.tumble - p._tum) * ip);
   }
 
@@ -1574,15 +1536,12 @@
       const bob = p.float ? Math.sin(p.bob) * 0.7 : 0;
       if (a > 0.015) drawPetalShape(c, p.x, p.y + sceneShift + bob, p.r, p.rot, p.color, a);
     }
-    // Petals resting on the words. The overlay sits above the text, so these
-    // draw on top of the letters they landed on.
-    for (const q of perched) {
-      const L = ledges[q.l];
-      const a = q.alpha * Math.max(0, 1 - q.age);
-      if (a > 0.015) drawPetalShape(c, L.left + q.ox, L.top + q.oy, q.r, q.rot, q.color, a);
-    }
+    // Petals resting on the words are on their own canvas in the card, above
+    // the letters (drawPerched); redrawn when one lands or leaves, and a few
+    // times a second for their slow fade.
+    if (perchDirty || ++perchTick % 10 === 0) drawPerched();
     for (const p of airPetals) drawMoving(c, p, p.alpha * (p.veil === undefined ? 1 : p.veil));
-    for (const h of held) drawMoving(c, h.p, h.p.alpha);
+    for (const q of me.held) drawMoving(c, q.p, q.p.alpha);
     drawPeers(c);
   }
 
@@ -1683,27 +1642,6 @@
   const STEP = 1000 / 60;
   let lastNow = performance.now(), acc = 0;
   function frame(now) {
-    if (bloom && bloom.t0 !== null) {
-      if ((performance.now() - bloom.t0) / 1000 > (bloom.end || 1e9) + 0.15) endBloom();
-      else drawScene();
-    }
-    // the blossoms' pictures, a few at a time, while the sapling waits and grows
-    // A patch due to open that hasn't its pictures yet has them made there
-    // and then, and on a first visit (fonts arriving, fewer frames) that
-    // backlog all fell due as the flowering began: one long stall at the
-    // moment everyone is watching. So once the tree is growing, the making
-    // speeds up whenever it is behind: whatever is left, spread over the
-    // time until the next of them opens.
-    if (bloom && bloom.patches && bloom.made < bloom.patches.length) {
-      let ms = 4;
-      if (bloom.t0 !== null) {
-        const next = bloom.patches[bloom.made];
-        const secsLeft = next.at - (performance.now() - bloom.t0) / 1000;
-        const left = bloom.patches.length - bloom.made;
-        ms = secsLeft <= 0.2 ? 14 : clamp(4 + left / Math.max(1, secsLeft * 60) * 2, 4, 12);
-      }
-      makeStamps(ms);
-    }
     if (now === undefined) now = performance.now();
     acc += Math.min(now - lastNow, 100); lastNow = now;
     let steps = 0;
@@ -1741,10 +1679,12 @@
       containerEl.style.removeProperty('--hint-a');
       epigraphEl.style.opacity = ''; epigraphEl.style.pointerEvents = '';
       bgEl.style.transform = ''; scEl.style.opacity = '';
-      sceneShift = 0;
+      sceneShift = 0; treeSeen = 1;
       placeScene();
       return;
     }
+    scrollShake(contentWrapEl.scrollTop - lastScrollTop);
+    lastScrollTop = contentWrapEl.scrollTop;
     const max = contentWrapEl.scrollHeight - contentWrapEl.clientHeight;
     const progress = max > 0 ? clamp(contentWrapEl.scrollTop / max, 0, 1) : 0;
     // Everything here is driven by REVEAL at the top of the script.
@@ -1757,7 +1697,7 @@
     epigraphEl.style.opacity = ea.toFixed(3);
     epigraphEl.style.pointerEvents = ea > 0.05 ? '' : 'none';
     const k = prog(progress, REVEAL.tree);
-    if (bloom && bloom.t0 === null && k > 0.15) startBloom();
+    treeSeen = k;
     sceneShift = (1 - k) * H * REVEAL.tree.dropFrom;
     const tf = `translateY(${sceneShift.toFixed(1)}px)`;
     bgEl.style.transform = tf; placeScene();
@@ -1778,7 +1718,7 @@
     px = e.clientX; py = e.clientY;
   });
   document.addEventListener('mouseleave', () => {
-    if (held.length) releaseHeld(false);
+    if (me.held.length) releaseHeld(false);
     px = -1e4; py = -1e4;
   });
   // A single tap fires touchstart AND a synthetic click right after — without this
@@ -1792,7 +1732,7 @@
     releaseAll(Math.sign(shakeV) * 0.6);
     // cap total petals so rapid repeated taps can't grow this unbounded
     const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(35, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
+    for (let i = 0; i < Math.min(35, room); i++) spawnPetal(true, true).burst = true;
     shareShake(Math.sign(shakeV));
   }
   // Somebody else shook it: the same shake, gentler, a few petals, and at
@@ -1804,7 +1744,7 @@
     lastPeerShakeAt = now;
     shakeV = d * rng(5, 8);
     const room = Math.max(0, 260 - airPetals.length);
-    for (let i = 0; i < Math.min(12, room); i++) { spawnPetal(true); airPetals[airPetals.length - 1].burst = true; }
+    for (let i = 0; i < Math.min(12, room); i++) spawnPetal(true, true).burst = true;
   }
   // The words' column is wider than its words, and on desktop its right edge
   // runs into the tree's left-hand blossoms. A click there shakes the tree
@@ -1826,7 +1766,7 @@
     // A click lets caught petals go and still shakes the tree. It used to
     // only let go, but a resting pointer catches a petal within moments, so
     // most clicks on the tree did nothing else.
-    if (held.length) releaseHeld(false);
+    if (me.held.length) releaseHeld(false);
     if (e.target.closest('.epigraph, .copy-toast')) return;
     if (e.target.closest('.container') && besideWords(e.clientX)) return;
     if (onWater(e.clientX, e.clientY - sceneShift)) { tapWater(e.clientX, e.clientY - sceneShift); return; }
@@ -1834,6 +1774,7 @@
   });
   document.addEventListener('touchmove', e => {
     const tc = e.touches[0]; mx = (tc.clientX / W - 0.5) * 2;
+    brushWords(tc.clientX, tc.clientY, tc.clientX - px);
     px = tc.clientX; py = tc.clientY;
   }, { passive: true });
   // A finger that lands and lifts without travelling is a tap: it shakes
@@ -1843,11 +1784,13 @@
   document.addEventListener('touchstart', e => {
     const tc = e.touches[0];
     px = ppx = tc.clientX; py = ppy = tc.clientY;   // a finger arrives with no speed
+    brushWords(tc.clientX, tc.clientY, 0);
     touchStart = e.target.closest('.container, .epigraph, .copy-toast') ? null
       : { x: tc.clientX, y: tc.clientY, at: performance.now() };
   }, { passive: true });
   document.addEventListener('touchend', e => {
-    if (held.length) releaseHeld(true);
+    if (me.held.length) releaseHeld(true);
+    unbrush();
     px = -1e4; py = -1e4;
     // Finger lifted: the wind settles back to calm instead of blowing toward
     // wherever the last swipe ended, for as long as the page stays open.
@@ -1862,7 +1805,7 @@
     touchStart = null;
   }, { passive: true });
   // An interrupted touch (the browser taking over a gesture) lifts no finger.
-  document.addEventListener('touchcancel', () => { mx = 0; }, { passive: true });
+  document.addEventListener('touchcancel', () => { mx = 0; unbrush(); }, { passive: true });
 
   function copyEmail() {
     navigator.clipboard.writeText('pranshulbohra@gmail.com').then(() => {
@@ -1881,11 +1824,20 @@
      COMPANY — other people under the tree
 
      Everyone with the page open joins one room on a small presence
-     server (presence/server.js, on PartyKit). Each other visitor shows
-     as a rose petal in a thin breathing ring, drifting where their
-     pointer or finger is; their taps on the water ripple here too, and
-     when one of them shakes the tree it trembles and lets a few petals
-     go. A quiet line at the bottom says when someone else is here.
+     server (presence/server.js, on PartyKit). Each other visitor is a
+     rose firefly where their pointer or finger is — a soft glowing ball
+     that flickers (after compassfellowship.app's fireflies, in the
+     tree's pinks) — with a trail of small glows fading behind it as it
+     moves. Their pointer is a hand here, like ours (POINTER, above): it
+     catches petals into a revolving ring and flings them on a flick, and
+     a hand moving fast through another's ring knocks its petals loose —
+     ours through theirs, theirs through ours. Only pointers travel: the
+     petals are each screen's own, so everyone sees rings round everyone
+     without the petals themselves being sent. Moving through the
+     blossoms shakes a petal loose now and then. Their taps on the water
+     ripple here too, and when one of them shakes the tree it trembles
+     and lets a few petals go. A quiet line at the bottom says when
+     someone else is here.
 
      Positions travel relative to the tree — across from the trunk and
      up from the ground, in tree-heights — so a pointer by the canopy on
@@ -1898,12 +1850,10 @@
      local server for testing (localhost only).
   ================================================================ */
   const PRESENCE_HOST = 'pranshul-cafe-presence.pranshulb.partykit.dev';   // presence/, on PartyKit
-  // the tree's own mid pinks: pale ones vanished against the paper
-  const PEER_COLORS = ['#E8889E', '#EE92AB', '#E25075', '#F08FAB'];
-  const peers = new Map();    // id -> { u, v, tu, tv, a, here, r, rot, tumble, tumSpd, swp, color }
+  const peers = new Map();    // id -> { u, v, tu, tv, a, here, placed, swp, flick, heard, trail, ...a hand }
   const companyEl = document.getElementById('company');
   let sock = null, sockTries = 0, sockTimer = 0, sockWanted = true;
-  let sentAt = 0, sentU = null, sentV = null, awaySent = true;
+  let sentAt = 0, sentU = null, sentV = null, sentH = 0, awaySent = true;
 
   function presenceURL() {
     try {
@@ -1925,6 +1875,7 @@
   function shareShake(d) { send({ t: 'shake', d }); }
 
   // our pointer, ten times a second at most, and only when it has moved
+  // or its ring has gained or lost a petal
   function presenceTick(now) {
     if (!sock || sock.readyState !== 1) return;
     if (px < -5000) {
@@ -1933,9 +1884,10 @@
     }
     if (now - sentAt < 100) return;
     const [u, v] = toTree(px, py - sceneShift);
-    if (sentU !== null && Math.abs(u - sentU) < 0.003 && Math.abs(v - sentV) < 0.003) return;
-    sentAt = now; sentU = u; sentV = v; awaySent = false;
-    send({ t: 'm', x: +u.toFixed(3), y: +v.toFixed(3) });
+    const h = me.held.length;   // the petals in our ring, so other screens show the same ring
+    if (sentU !== null && Math.abs(u - sentU) < 0.003 && Math.abs(v - sentV) < 0.003 && h === sentH) return;
+    sentAt = now; sentU = u; sentV = v; sentH = h; awaySent = false;
+    send({ t: 'm', x: +u.toFixed(3), y: +v.toFixed(3), h });
   }
 
   function peer(id) {
@@ -1943,22 +1895,24 @@
     if (!p) {
       if (peers.size >= 40) return null;
       p = { u: 0, v: 0, tu: 0, tv: 0, a: 0, here: false, placed: false,
-            r: rng(9, 11), rot: rng(-0.6, 0.6), tumble: Math.random() * PI2, tumSpd: rng(0.008, 0.016),
-            swp: Math.random() * PI2, color: pick(PEER_COLORS) };
+            swp: Math.random() * PI2, flick: 0, heard: 0, trail: [], trailDist: 0, treeWait: 0, want: null, fillWait: 0,
+            ...newHand() };
       peers.set(id, p);
     }
     return p;
   }
   const fin = (v) => typeof v === 'number' && Number.isFinite(v) ? clamp(v, -4, 4) : null;
+  const ringOf = (h) => Number.isInteger(h) ? clamp(h, 0, HALO_MAX) : null;   // null: an older server, which doesn't say
   function onPresence(ev) {
     let m;
     try { m = JSON.parse(ev.data); } catch (e) { return; }
     if (!m || typeof m !== 'object') return;
     if (m.t === 'hi') {
+      for (const p of peers.values()) releaseHand(p, false);
       peers.clear();
       if (Array.isArray(m.peers)) for (const q of m.peers) {
         const x = fin(q.x), y = fin(q.y), p = x !== null && y !== null && typeof q.id === 'string' && peer(q.id);
-        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; }
+        if (p) { p.u = p.tu = x; p.v = p.tv = y; p.here = p.placed = true; p.x = undefined; p.want = ringOf(q.h); }
       }
       setCompany(m.n);
       awaySent = true; sentU = null;   // say where we are straight away
@@ -1966,7 +1920,7 @@
     }
     if (m.t === 'n') { setCompany(m.n); return; }
     if (typeof m.id !== 'string') return;
-    if (m.t === 'gone') { const p = peers.get(m.id); if (p) p.here = false; return; }
+    if (m.t === 'gone') { const p = peers.get(m.id); if (p) { p.here = false; p.gone = true; } return; }
     if (m.t === 'away') { const p = peers.get(m.id); if (p) p.here = false; return; }
     if (m.t === 'shake') { shakeFromPeer(m.d < 0 ? -1 : 1); return; }
     const x = fin(m.x), y = fin(m.y);
@@ -1974,8 +1928,16 @@
     if (m.t === 'm') {
       const p = peer(m.id);
       if (!p) return;
-      p.tu = x; p.tv = y; p.here = true;
-      if (!p.placed) { p.u = x; p.v = y; p.placed = true; }   // appear where they are, not slide in from the trunk
+      // how fast their pointer really went, from one report to the next:
+      // the eased position below never moves fast enough to show a flick
+      const now = performance.now();
+      if (p.placed && p.here && now - p.heard < 400) {
+        const [ax, ay] = fromTree(p.tu, p.tv), [bx, by] = fromTree(x, y);
+        p.flick = Math.max(p.flick, Math.hypot(bx - ax, by - ay) / Math.max(1, (now - p.heard) / STEP));
+      }
+      p.heard = now;
+      p.tu = x; p.tv = y; p.here = true; p.want = ringOf(m.h);
+      if (!p.placed) { p.u = x; p.v = y; p.placed = true; p.x = undefined; }   // appear where they are, not slide in from the trunk
     } else if (m.t === 'tap') {
       const [gx, gy] = fromTree(x, y);
       if (onWater(gx, gy)) tapWater(gx, gy, true);
@@ -1987,34 +1949,164 @@
     companyEl.classList.toggle('on', others > 0);
   }
 
-  // eased toward where they are, faded in and out, drifting a little so a
-  // still pointer still reads as alive
+  // A visitor on this screen: eased toward where they are, faded in and
+  // out, their hand catching and spinning petals, a trail behind them.
+  const TRAIL_LIFE = 55;   // steps a glow in the trail lasts: about a second, like the stars it's after
+  function ageTrail(o) { for (let i = o.trail.length - 1; i >= 0; i--) if (++o.trail[i].age > TRAIL_LIFE) o.trail.splice(i, 1); }
+  // a glow is left every few pixels travelled
+  function extendTrail(o, x, y, moved) {
+    o.trailDist += moved;
+    if (o.trailDist < 8) return;
+    o.trailDist = 0;
+    o.trail.push({ x: x + rng(-1, 1), y: y + rng(-1, 1), age: 0 });
+    if (o.trail.length > 40) o.trail.shift();
+  }
   function updatePeers() {
+    // our own firefly: its trail, and its flicker
+    me.swp += 0.02; ageTrail(me);
+    if (px > -5000 && !me.overUI) extendTrail(me, px, py, Math.hypot(pvx, pvy));
+    const hands = px > -5000 ? [[me, Math.hypot(pvx, pvy)]] : [];
     for (const [id, p] of peers) {
       p.u += (p.tu - p.u) * 0.14; p.v += (p.tv - p.v) * 0.14;
       p.a += ((p.here ? 1 : 0) - p.a) * 0.05;
-      p.tumble += p.tumSpd; p.swp += 0.02;
-      if (!p.here && p.a < 0.01) { p.placed = false; if (!sock || sock.readyState !== 1) peers.delete(id); }
+      p.swp += 0.02;
+      p.flick *= 0.8;
+      ageTrail(p);
+      if (!p.here && p.held.length) releaseHand(p, false);   // gone or off the page: the ring spins out
+      if (!p.here && p.a < 0.01) {
+        p.placed = false;
+        // someone who has left is forgotten once faded (kept, the cap of 40
+        // filled up with people long gone and new arrivals went unseen);
+        // someone whose pointer is only off the page is kept for their return
+        if (p.gone || !sock || sock.readyState !== 1) peers.delete(id);
+        continue;
+      }
+      if (!p.placed) continue;
+      const [x, gy] = fromTree(p.u, p.v), y = gy + sceneShift;
+      p.vx = p.x === undefined ? 0 : x - p.x; p.vy = p.y === undefined ? 0 : y - p.y;
+      p.x = x; p.y = y;
+      if (!p.here) continue;
+      const speed = Math.max(Math.hypot(p.vx, p.vy), p.flick);
+      extendTrail(p, x, y, Math.hypot(p.vx, p.vy));
+      handStep(p, speed, p.want === null);
+      if (p.want !== null) fillRing(p, speed);
+      shakeBlossoms(p, speed);
+      hands.push([p, speed]);
     }
+    // a hand going fast through another's ring knocks its petals loose,
+    // flung the way the knocking hand was going
+    for (const [a, sa] of hands) {
+      if (sa < 7) continue;
+      for (const [b] of hands) {
+        if (a === b || !b.held.length) continue;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < haloRadius(b.held.length) + 24) {
+          const k = sa / Math.max(1, Math.hypot(a.vx, a.vy));
+          releaseHand(b, true, a.vx * k, a.vy * k);
+          b.knockedAt = t;
+        }
+      }
+    }
+  }
+
+  // Their ring holds what it holds on their screen: petals are drawn in
+  // from the air round them until it does, a few a second, and let go
+  // when they let go of theirs.
+  function fillRing(p, speed) {
+    const n = p.held.length;
+    if (t - (p.knockedAt || -9) < 1.5) return;   // knocked loose here: theirs is being knocked too, give it time to say so
+    if (p.want === 0 && n) { releaseHand(p, speed > 12); return; }
+    if (n > p.want + 2) {
+      const extra = { ...newHand(), x: p.x, y: p.y, vx: p.vx, vy: p.vy, phase: p.phase, held: p.held.splice(p.want) };
+      releaseHand(extra, false);
+      return;
+    }
+    if (n >= p.want || speed > 6 || --p.fillWait > 0) return;
+    p.fillWait = 4;
+    const a = Math.random() * PI2, d = haloRadius(n + 1) + rng(30, 70);
+    const q = newAirPetal(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 0, 0);
+    p.held.push({ p: q, ox: q.x - p.x, oy: q.y - p.y, wob: Math.random() * PI2 });
+  }
+
+  // Through the blossoms, now and then a petal comes loose where they are.
+  function shakeBlossoms(p, speed) {
+    if (speed < 1.2 || --p.treeWait > 0 || airPetals.length > 240) return;
+    p.treeWait = 4;
+    let near = null, best = 34 * 34;
+    for (const b of blossoms) {
+      const dx = b.x - p.x, dy = b.y + sceneShift - p.y, d = dx * dx + dy * dy;
+      if (d < best) { best = d; near = b; }
+    }
+    if (!near || Math.random() > Math.min(0.6, speed * 0.12)) return;
+    const q = newAirPetal(near.x + sw(near.y, near.x, near.swPh) + rng(-6, 6), near.y + sceneShift + rng(-4, 4),
+      p.vx * 0.06 + rng(-0.4, 0.4), rng(-0.06, 0.1));
+    q.grow = 0; q.growSpd = 1 / 20;
+    airPetals.push(q);
+  }
+
+  // A rose firefly, small: a deep-rose body with a pale hot centre in a
+  // soft rose haze, which flickers and floats a little; behind it, a trail
+  // of small rose glows that fade in about a second. After
+  // compassfellowship.app's fireflies and cursor stars. He chose it (and
+  // for his own pointer too) from six mockups: a pearl, a sakura, a
+  // sparkle, a haloed dot and a bubble were the others. The first try, a
+  // glow five times this size, was too much; before that a petal in a
+  // thin ring was too easy to miss. Three glows painted once and stamped.
+  function paintGlow(r, g, b, a) {
+    const n = 64, cv = document.createElement('canvas');
+    cv.width = cv.height = n;
+    const c = cv.getContext('2d'), gr = c.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    gr.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
+    gr.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${a * 0.4})`);
+    gr.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    c.fillStyle = gr; c.fillRect(0, 0, n, n);
+    return cv;
+  }
+  const HAZE = paintGlow(214, 51, 108, 0.45), BODY = paintGlow(200, 30, 90, 1), CORE = paintGlow(255, 236, 242, 1);
+  function glow(c, x, y, r, a, sprite) {
+    if (a < 0.01) return;
+    c.globalAlpha = a; c.drawImage(sprite, x - r, y - r, 2 * r, 2 * r); c.globalAlpha = 1;
+  }
+  function drawTrail(c, o) {
+    for (const q of o.trail) {
+      const k = 1 - q.age / TRAIL_LIFE;
+      glow(c, q.x, q.y, 4 * (0.5 + 0.5 * k), 0.6 * k * k, BODY);
+    }
+  }
+  // a: how much it's there (fading in and out); swp: its own slow clock,
+  // for the flicker, brighter and a touch bigger every few seconds
+  function drawFirefly(c, x, y, a, swp) {
+    const f = 0.5 + 0.5 * Math.sin(swp * 1.6);
+    glow(c, x, y, 13 * (1 + 0.15 * f), (0.75 + 0.25 * f) * a, HAZE);
+    glow(c, x, y, 4.5, a, BODY);
+    glow(c, x, y, 1.8, a, CORE);
   }
   function drawPeers(c) {
     for (const p of peers.values()) {
-      if (p.a < 0.01 || !p.placed) continue;
-      const [x, gy] = fromTree(p.u, p.v);
-      const y = gy + sceneShift + Math.sin(p.swp) * 3;
-      // a person, not another falling petal: a thin ring that breathes,
-      // in the ink of the rings on the water, round a petal that turns
-      // a pale disc behind it lifts it off the blossom; on paper it vanishes
-      c.fillStyle = `rgba(255, 252, 250, ${0.5 * p.a})`;
-      c.beginPath(); c.arc(x, y, 16, 0, PI2); c.fill();
-      c.lineWidth = 1.3;
-      c.strokeStyle = `rgba(110, 80, 96, ${0.55 * p.a})`;
-      c.beginPath(); c.arc(x, y, 17 + Math.sin(p.swp * 1.3) * 2, 0, PI2); c.stroke();
-      c.strokeStyle = `rgba(196, 122, 122, ${0.22 * p.a})`;
-      c.beginPath(); c.arc(x, y, 23 + Math.sin(p.swp * 1.3 + 1) * 2.5, 0, PI2); c.stroke();
-      drawPetalShape(c, x, y, p.r, p.rot + Math.sin(p.swp * 0.7) * 0.3, p.color, 0.85 * p.a, p.tumble);
+      // the petals in their ring, paler over the words like any petal, so
+      // someone else's ring never hides what the page says
+      for (const q of p.held) drawMoving(c, q.p, q.p.alpha * (overText(q.p.x, q.p.y, q.p.r) ? TEXT_VEIL : 1));
+      drawTrail(c, p);
+      if (p.a < 0.01 || !p.placed || p.x === undefined) continue;
+      drawFirefly(c, p.x, p.y + Math.sin(p.swp) * 2, p.a, p.swp);
     }
+    // ours, where the pointer is now (not where the last step left it, so
+    // it keeps up with the hand); over anything to click or type in, the
+    // ordinary pointer comes back and the firefly steps aside
+    drawTrail(c, me);
+    if (px > -5000 && !me.overUI) drawFirefly(c, px, py, 1, me.swp);
   }
+
+  // On a mouse or trackpad our pointer is the firefly: the arrow is hidden
+  // (html.firefly in the styles) except over links, buttons, the email
+  // hint and the guestbook, where it is needed to see what can be clicked.
+  // A finger gets the firefly under it while it touches, and keeps its own
+  // everything else.
+  const UI = 'a, button, input, textarea, select, label, kbd, [role="button"], .copy-hint-mobile, .vb';
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) document.documentElement.classList.add('firefly');
+  document.addEventListener('pointerover', (e) => { me.overUI = !!(e.target.closest && e.target.closest(UI)); });
+  // closing the guestbook takes it out from under a pointer that may not move
+  // again for a while, and no pointerover comes until it does
+  document.addEventListener('vb-closed', () => { me.overUI = false; });
 
   // one connection while the page is visible, closed while it's hidden (a
   // tab left open in the background isn't somebody under the tree), and
@@ -2048,15 +2140,7 @@
   /* ================================================================
      INIT
   ================================================================ */
-  window.TUNE.apply = () => {
-    lastW = -1;
-    if (bloomWanted()) { armBloom(); if (!isMobile) startBloom(); }
-    resize(); measureLedges(); applyScrollFade();
-  };
-  // Waiting to flower from the first drawing, so the page draws the tree's
-  // patches instead of the finished tree at load, not both.
-  const blooming = bloomWanted();
-  if (blooming) bloom = { t0: null };
+  window.TUNE.apply = () => { lastW = -1; resize(); measureLedges(); applyScrollFade(); };
   resize();
   applyScrollFade();
   // The skyline is only right once the real fonts have loaded; until then
@@ -2075,31 +2159,15 @@
     });
     el.addEventListener('mouseleave', () => hotEls.delete(el));
   });
-  // A moment after the words, the tree opens. On a first visit the words
-  // are late: the fonts are `font-display: block`, so nothing is drawn
-  // until they arrive, and then the page stalls ~300-400ms repainting in
-  // them. Started at a fixed 350ms, the sapling's first second fell across
-  // those stalls and the tree jumped ahead. So it waits for the fonts (or
-  // 1.5s at most) and starts a quarter of a second after; with the fonts
-  // cached, that is about when it always started.
-  if (blooming && !isMobile) {
-    let begun = false;
-    const begin = () => { if (!begun) { begun = true; setTimeout(startBloom, 250); } };
-    const fontsIn = document.fonts && document.fonts.load
-      ? Promise.all([document.fonts.load("16px 'Unkempt'"), document.fonts.load("16px 'Princess Sofia'")])
-      : Promise.resolve();
-    fontsIn.then(() => requestAnimationFrame(begin), begin);
-    setTimeout(begin, 1500);
-  }
-  // Pre-scatter hearts so it feels alive on load (not while the tree has yet to flower)
-  if (!blooming) for (let i = 0; i < 26; i++) {
-    spawnPetal(true);
-    const p = airPetals[airPetals.length - 1];
+  // Pre-scatter hearts so it feels alive on load: there from the first
+  // frame, at full strength, so none is seen appearing
+  for (let i = 0; i < 26; i++) {
+    const p = spawnPetal(false);
     p.y = rng(0, H * 0.85); p.x = rng(0, W);
   }
   // Hearts resting on ground — concentrated around the puddle, scattered elsewhere
   const trX = isMobile ? W * 0.5 : W * 0.7;
-  if (!blooming) for (let i = 0; i < 35; i++) {
+  for (let i = 0; i < 35; i++) {
     const nearPuddle = Math.random() < 0.7;
     const px = nearPuddle ? trX + rng(-W * 0.25, W * 0.25) : rng(0, W);
     groundPetals.push({
@@ -2114,5 +2182,7 @@
   frame();
 })();
 </script>
+<!-- the visitors' book ("also sign the guestbook!!"): all of it is in visitors/ -->
+<script defer src="/visitors/book.js"></script>
 </body>
 </html>
