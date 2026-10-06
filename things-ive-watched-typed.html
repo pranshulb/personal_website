@@ -131,10 +131,11 @@
       letter-spacing: 0.04em;
     }
 
-    .filter-btn:hover {
-      border-color: var(--accent-soft);
-      color: var(--accent);
-      background: rgba(62,122,74,0.06);
+    /* Hover only tints the edge: it used to look like selected, so a tag
+       clicked off stayed looking on under the pointer, and on a phone (a
+       tap leaves the button "hovered") until the next tap elsewhere. */
+    @media (hover: hover) {
+      .filter-btn:not(.active):hover { border-color: var(--accent-soft); }
     }
 
     .filter-btn.active {
@@ -685,6 +686,7 @@
     { title: "Hum Tum", year: 2004, tags: ["movies", "hindi"], poster: "/u4ctCNPq6qfwnUyZzAfxEzdJ0Lq.jpg" },
     { title: "Everything Everywhere All at Once", year: 2022, tags: ["movies", "english"], poster: "/u68AjlvlutfEIcpmbYpKcdi09ut.jpg" },
     { title: "Love Aaj Kal", year: 2009, tags: ["movies", "hindi"], poster: "/6Q3pZ7pcEzHqr7ajmVRsxl5YeJq.jpg" },
+    { title: "Kingdom of Heaven", year: 2005, tags: ["movies", "english"], poster: "/2NaFdWy9hkM35vZB1hkqsnTcms8.jpg" },
   ];
 
   // ============================================================

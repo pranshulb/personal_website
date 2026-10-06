@@ -85,10 +85,17 @@
       white-space: nowrap;
     }
 
-    .filter-btn:hover, .filter-btn.active {
+    .filter-btn.active {
       background: rgba(196,122,122,0.1);
       border-color: #c47a7a;
       color: #c47a7a;
+    }
+    /* Hover only tints the edge. It used to look exactly like selected, so
+       a tag clicked off stayed looking on while the pointer was over it,
+       and on a phone (where a tap leaves the button "hovered") until you
+       tapped somewhere else. And only where there is a pointer to hover. */
+    @media (hover: hover) {
+      .filter-btn:not(.active):hover { border-color: #c47a7a; }
     }
 
     /* search bar */
@@ -633,6 +640,7 @@
     { title: "Hum Tum", year: 2004, tags: ["movies", "hindi"], poster: "/u4ctCNPq6qfwnUyZzAfxEzdJ0Lq.jpg" },
     { title: "Everything Everywhere All at Once", year: 2022, tags: ["movies", "english"], poster: "/u68AjlvlutfEIcpmbYpKcdi09ut.jpg" },
     { title: "Love Aaj Kal", year: 2009, tags: ["movies", "hindi"], poster: "/6Q3pZ7pcEzHqr7ajmVRsxl5YeJq.jpg" },
+    { title: "Kingdom of Heaven", year: 2005, tags: ["movies", "english"], poster: "/2NaFdWy9hkM35vZB1hkqsnTcms8.jpg" },
 
   ];
 
