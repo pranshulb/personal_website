@@ -1301,11 +1301,12 @@
      Computed once per tree (WOOD), drawn once: the scene is static.
   ================================================================ */
   let WOOD = null;
-  // the home page's wood as it shows on the paper (its strokes are a little
-  // see-through): trunk, limbs, twigs; and the light and dark for shading
-  const TRUNK = [112, 91, 100], BARK = [92, 75, 85], TWIG = [72, 56, 69];
+  // the home page's three wood colours as they show on the paper, and which
+  // wood gets which, as there: the trunk, the first two levels of limbs,
+  // and everything further out (by depth, d). Coloured by thickness instead,
+  // most of the crown came out paler than the home page's
+  const TRUNK = [112, 91, 100], BARK = [90, 72, 83], TWIG = [72, 56, 69];
   const BARK_LIGHT = [150, 128, 137], BARK_DARK = [54, 40, 50];
-  const mixc = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
   const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   function buildWood(segs, baseY, treeH) {
     // segs: in turtle order, each with .parent (index or -1)
@@ -1361,7 +1362,7 @@
     const start = (i, joinW) => {
       const pts = [], ws = [], shifts = [];
       const s0 = segs[i];
-      let fade = null, behind = false;
+      let fade = null, behind = false, tw = null;
       if (joinW && segs[s0.parent].d === 0) {
         // a limb off the top of the trunk leaves from its middle at its full
         // width, as on the home page, where the limbs overlap for a while and
@@ -1387,7 +1388,7 @@
         fade = [s0.x1 - px * back + ox, s0.y1 - py * back + oy, s0.x1 + ox + cx * wc * 0.6, s0.y1 + oy + cy * wc * 0.6];
       } else {
         // the trunk goes on a little below the ground, as the home page's does
-        pts.push([s0.x1, s0.y1 + width(i) * 0.45], [s0.x1, s0.y1]); ws.push(width(i), width(i));
+        pts.push([s0.x1, s0.y1 + width(i) * 0.6], [s0.x1, s0.y1]); ws.push(width(i), width(i));
       }
       let cur = i;
       for (;;) {
@@ -1397,6 +1398,7 @@
         for (const kk of s.kids) if (load[kk] > best) { best = load[kk]; next = kk; }
         let sib = 0;
         for (const kk of s.kids) if (kk !== next) { chains.push({ from: kk, joinW: width(cur) }); sib = Math.max(sib, load[kk]); }
+        if (!tw && s0.d < 3 && next >= 0 && segs[next].d >= 3) tw = [segs[next].x1, segs[next].y1, segs[next].x2, segs[next].y2];
         const big = next >= 0 && sib > load[next] * 0.4;
         ws.push(next < 0 ? width(cur) * 0.45 : big ? width(cur) : width(next));
         if (next < 0) break;
@@ -1410,7 +1412,7 @@
         cur = next;
       }
       for (const [from, ox, oy, hold, D] of shifts) ease(pts, from, ox, oy, hold, D);
-      return { pts, ws, trunk: i === root, fade, behind };
+      return { pts, ws, trunk: i === root, fade, behind, d: s0.d, tw };
     };
     const out = [start(root)];
     for (let q = 0; q < chains.length; q++) out.push(start(chains[q].from, chains[q].joinW));
@@ -1432,12 +1434,13 @@
       }
     }
     for (const ch of out) {
-      // every branch runs out to a fine point over its last stretch (it ended
-      // blunt, at half a twig's width, and the short ones read as thorns)
+      // every branch narrows over its last stretch to a rounded end of a
+      // third of its width (as a point, the twigs read as thorns; as on the
+      // home page, at full width, blunt)
       const P = ch.pts, s = [0];
       for (let i = 1; i < P.length; i++) s.push(s[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
       const len = s[s.length - 1], taper = Math.min(len * 0.45, 10 + ch.ws[0] * 2.5);
-      ch.ws = ch.ws.map((w, i) => { const d = (len - s[i]) / taper; return d >= 1 ? w : w * (0.12 + 0.88 * Math.pow(Math.max(0, d), 0.75)); });
+      ch.ws = ch.ws.map((w, i) => { const d = (len - s[i]) / taper; return d >= 1 ? w : w * (0.35 + 0.65 * Math.pow(Math.max(0, d), 0.75)); });
     }
     // the trunk keeps the home page's width all the way down, swelling only a
     // touch at the foot so it doesn't stand like a peg
@@ -1513,21 +1516,28 @@
         const g = c.createLinearGradient(0, top + trunkW * 1.2, 0, top - trunkW * 0.4);
         g.addColorStop(0, rgba(TRUNK, 1)); g.addColorStop(1, rgba(BARK, 1));
         c.fillStyle = g;
-      } else c.fillStyle = paint(ch, mixc(TWIG, BARK, k), 1);
+      } else c.fillStyle = paint(ch, ch.d < 3 ? BARK : TWIG, 1);
       chainShape(c, ch); c.fill();
+      if (ch.tw) {
+        // and the twigs' colour from where it reaches the third level out
+        const g = c.createLinearGradient(...ch.tw);
+        g.addColorStop(0, rgba(TWIG, 0)); g.addColorStop(1, rgba(TWIG, 1));
+        c.fillStyle = g; chainShape(c, ch); c.fill();
+      }
       if (w0 < 1.8) continue;
       // shadow down the right side, light down the left, each built up from
       // thin bands so it runs off smoothly across the wood (two or three hard
-      // bands looked like a cable's stripes)
+      // bands looked like a cable's stripes); gentle, as the home page's wood
+      // is flat, and a strong highlight paled the whole crown
       const n = Math.max(1, Math.min(8, Math.round(w0 / 4)));
       const each = (total) => 1 - Math.pow(1 - total, 1 / n);   // n of these overlapping make total
-      c.fillStyle = paint(ch, BARK_DARK, each(0.55 * (0.5 + k * 0.5)));
+      c.fillStyle = paint(ch, BARK_DARK, each(0.4 * (0.5 + k * 0.5)));
       for (let j = 0; j < n; j++) { chainShape(c, ch, 0.45 + 0.5 * j / n, 1); c.fill(); }
       if (w0 >= 5) {
-        c.fillStyle = paint(ch, BARK_LIGHT, each(0.42 * k));
+        c.fillStyle = paint(ch, BARK_LIGHT, each(0.22 * k));
         for (let j = 0; j < n; j++) { const h = 0.24 * (1 - j / n) + 0.02; chainShape(c, ch, 0.26 - h, 0.26 + h); c.fill(); }
         // a little light thrown back up the shadowed edge, so it reads round
-        c.fillStyle = paint(ch, BARK, 0.35 * k);
+        c.fillStyle = paint(ch, ch.d < 3 ? BARK : TWIG, 0.3 * k);
         chainShape(c, ch, 0.93, 1); c.fill();
       }
       // the canopy's shade over the top of the trunk
@@ -1542,7 +1552,7 @@
     // page's trunk ends (it ended in a hard flat edge, a peg on a table)
     c.save();
     c.globalCompositeOperation = 'destination-out';
-    const fy = baseY - trunkW * 0.05, fh = trunkW * 0.5;
+    const fy = baseY + trunkW * 0.1, fh = trunkW * 0.48;
     const fade = c.createLinearGradient(0, fy, 0, fy + fh);
     fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(0.55, 'rgba(0,0,0,0.55)'); fade.addColorStop(1, 'rgba(0,0,0,1)');
     c.fillStyle = fade; c.fillRect(tx - trunkW * 2.4, fy, trunkW * 4.8, fh + trunkW);

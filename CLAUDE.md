@@ -151,9 +151,11 @@ vercel.json                 routing, headers, proxies
   the turtle records which piece grows from which (`parent`; the tree's
   shape is untouched, no random numbers are added), each branch is one
   continuous filled shape along a smoothed line following its thickest
-  child (by da Vinci's rule, `load`), running out to a fine point, lit
-  from the upper left with shading built from thin overlapping bands, and
-  shade under the canopy. Each branch is painted whole (body, then
+  child (by da Vinci's rule, `load`), narrowing at its end to a rounded
+  third of its width (to a point, the twigs read as thorns), lit from the
+  upper left with gentle shading built from thin overlapping bands (a
+  strong highlight paled the whole crown next to the home page's flat
+  wood), and shade under the canopy. Each branch is painted whole (body, then
   shading), thickest first: painting all bodies and then all shading laid
   the trunk's shadow across the limbs of its fork, which read as two stems
   twisted together. A side branch starts inside its parent, offset to its
@@ -171,12 +173,15 @@ vercel.json                 routing, headers, proxies
   home page draws it (`width` is the segment's own `w`), straight, the
   home page's colours as they show on the paper (`TRUNK` lighter than
   `BARK`, then `TWIG`; sampled from a render, since its strokes are a
-  little see-through), and the limbs off the top of the trunk leave from
+  little see-through) given out as it does, by depth: trunk, the first
+  two levels of limbs, everything further out (a chain that starts above
+  depth 3 turns to `TWIG` where it gets there, `tw`; coloured by
+  thickness, the crown came out paler than the home page's), and the limbs off the top of the trunk leave from
   its middle at full width and are drawn *behind* it (`behind`), so they
   come out from behind a solid column as on the home page; drawn over it
   their ends and shading crossed it, faded in they left shoulders. The
-  trunk goes on a little below the ground as the home page's does, then
-  fades into it (destination-out) with grass in front and a contact
+  trunk goes on below the ground about as far as the home page's round
+  end (measured at five screen sizes), then fades into it (destination-out) with grass in front and a contact
   shadow behind. `CROWN` (squeeze / fill / height) was tried for "too
   long and sparse" and is back at the home page's tree (1 / 0 / 0.72):
   0.8 / 0.5 / 0.66 was "unnatural, u overcorrected". Keep the five-petal
