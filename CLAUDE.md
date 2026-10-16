@@ -151,35 +151,38 @@ vercel.json                 routing, headers, proxies
   the turtle records which piece grows from which (`parent`; the tree's
   shape is untouched, no random numbers are added), each branch is one
   continuous filled shape along a smoothed line following its thickest
-  child, running out to a fine point, thickness by da Vinci's rule (a
-  piece is as thick as everything beyond it, exponent 2 — 2.4 left twigs
-  like pencils — scaled so the trunk keeps its width), the trunk bows a
-  little and broadens into roots that bow down into the mound, and the
-  foot fades into the ground (destination-out) with grass in front and a
-  contact shadow behind; one warm red-brown bark lit from the upper left,
-  shading built from thin overlapping bands so it runs off smoothly, shade
-  under the canopy, and sparse horizontal lenticels, the light dashes real
-  cherry bark has (packed close they read as stitching). Joins, after a
-  round of debugging: each branch is painted whole (body, shading, bark),
-  thickest first. Painting all bodies and then all shading laid the
-  trunk's shadow across the limbs of its three-way fork, which read as two
-  stems twisted together. A side branch starts inside its parent, offset
-  to its own side so its outer edge lines up with the parent's
-  (`sideOff`, eased away along the line), and fades in over it (`fade`);
-  the stem carrying on past a big sibling keeps the parent's width to the
-  fork and leans to its own side after it. Edge normals are taken across
-  about the wood's own width (`outline`, cached), or a sharp bend in thick
-  wood folds its inside edge into a notch. It draws in about the old
-  tree's time: two smoothing passes (one for twigs) rather than three,
-  which made 59,000 points. Drawn once; the scene is static.
-  Then "it feels too long and sparse": `CROWN` at the top of the tree code
-  draws the limbs in to 0.92 of their spread, stands the tree in 0.71 of
-  a laptop screen (was 0.72; `treeUnit` follows), and puts blossom along a
-  quarter of the outer twigs (depth 8+) between the clusters at their
-  tips. Keep it gentle: 0.8 / 0.66 / half the twigs was "unnatural, u
-  overcorrected" — a narrow pink block with straight sides. Keep the
-  five-petal flowers under about a thousand: at 1,400 Chrome drew the
-  scene six times slower; 900 cost nothing measurable.
+  child (by da Vinci's rule, `load`), running out to a fine point, lit
+  from the upper left with shading built from thin overlapping bands, and
+  shade under the canopy. Each branch is painted whole (body, then
+  shading), thickest first: painting all bodies and then all shading laid
+  the trunk's shadow across the limbs of its fork, which read as two stems
+  twisted together. A side branch starts inside its parent, offset to its
+  own side so its outer edge lines up with the parent's (`sideOff`, eased
+  away along the line), and fades in over it (`fade`). Edge normals are
+  taken across about the wood's own width (`outline`, cached), or a sharp
+  bend in thick wood folds its inside edge into a notch. Two smoothing
+  passes (one for twigs) rather than three, which made 59,000 points.
+  **The trunk is the home page's** (October 2026: "i dont like the tree
+  trunk redo it… keep size etc just like it is on main page"). The first
+  versions bowed it in an S, flared it into roots, made it 15% thicker and
+  warm red-brown with bark dashes, and thickened by da Vinci's rule the
+  three limbs above it came out 21px against the home page's 28, so it
+  read as thin the moment it split. Now: every piece is as thick as the
+  home page draws it (`width` is the segment's own `w`), straight, the
+  home page's colours as they show on the paper (`TRUNK` lighter than
+  `BARK`, then `TWIG`; sampled from a render, since its strokes are a
+  little see-through), and the limbs off the top of the trunk leave from
+  its middle at full width and are drawn *behind* it (`behind`), so they
+  come out from behind a solid column as on the home page; drawn over it
+  their ends and shading crossed it, faded in they left shoulders. The
+  trunk goes on a little below the ground as the home page's does, then
+  fades into it (destination-out) with grass in front and a contact
+  shadow behind. `CROWN` (squeeze / fill / height) was tried for "too
+  long and sparse" and is back at the home page's tree (1 / 0 / 0.72):
+  0.8 / 0.5 / 0.66 was "unnatural, u overcorrected". Keep the five-petal
+  flowers under about a thousand: at 1,400 Chrome drew the scene six
+  times slower; 900 cost nothing measurable. Drawn once; the scene is
+  static.
 - **The home page's ground is water** along the whole bottom (September
   2026), with the tree's mound an island in it; `onWater` is "below the
   water's top edge and off the island", so a tap, a stir or a landing petal
