@@ -1,5 +1,5 @@
 // Serves the repo like Vercel would (cleanUrls + the community rewrites) and
-// routes /api/community/* to the real handlers, backed by the blob stub.
+// routes /api/community/* (and /api/guestbook, /api/compatibility) to the real handlers, backed by the blob stub.
 //   node --import ./test/register.mjs test/server.mjs [port]
 import http from 'node:http';
 import fs from 'node:fs';
@@ -28,6 +28,7 @@ const handlers = {
   reject: await imp('api/community/reject/[id].js'),
   edit: await imp('api/community/edit/[id].js'),
   guestbook: await imp('api/guestbook.js'),
+  compatibility: await imp('api/compatibility.js'),
 };
 
 let ipSeq = 1;
@@ -60,6 +61,7 @@ function wrap(res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + req.headers.host);
   const m = url.pathname === '/api/guestbook' ? [null, 'guestbook']
+    : url.pathname === '/api/compatibility' ? [null, 'compatibility']
     : url.pathname.match(/^\/api\/community\/([a-z-]+)(?:\/([^/]+))?$/);
   if (m) {
     if (process.env.LOG) console.log('REQ', req.method, url.pathname + url.search);

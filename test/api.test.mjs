@@ -945,4 +945,93 @@ test('guestbook: a removed signature comes back from history, and history is pri
   assert.equal((await call(guestbook, { method: 'POST', query: { restore: '1' }, body: { pathname: 'community-places-x.json' }, headers: admin() })).statusCode, 404);
 });
 
+// ======================================================================
+// the compatibility form (api/compatibility.js)
+// ======================================================================
+
+const compat = await imp('api/compatibility.js');
+const sendForm = (answers, headers = {}, extra = {}) => call(compat, { method: 'POST', body: { answers, ...extra }, headers: { ...ip(), ...headers } });
+const withSecret = async (fn) => {
+  const saved = process.env.PRIVATE_SECRET;
+  process.env.PRIVATE_SECRET = 'a real secret';
+  try { await fn(); } finally { if (saved === undefined) delete process.env.PRIVATE_SECRET; else process.env.PRIVATE_SECRET = saved; }
+};
+const readForms = (cookie) => call(compat, { method: 'GET', headers: { ...(cookie ? { cookie } : {}), ...ip() } });
+
+test('compatibility: a response is stored encrypted, never as readable text', () => withSecret(async () => {
+  const r = await sendForm({ name: 'Sam', email: 'sam@example.com', drugs: 7, blurb: 'likes kierkegaard' });
+  assert.equal(r.statusCode, 200);
+  const bodies = T.bodies().filter(([p]) => p.startsWith('compatibility/'));
+  assert.equal(bodies.length, 1);
+  assert.match(bodies[0][0], /^compatibility\/response-.+\.json$/);
+  for (const word of ['Sam', 'sam@example.com', 'kierkegaard', 'drugs']) assert.ok(!bodies[0][1].includes(word), 'leaked ' + word);
+}));
+
+test('compatibility: only the private login reads answers back, decrypted, newest first', () => withSecret(async () => {
+  await sendForm({ name: 'First', email: 'a@b.co', age: 24 });
+  await sendForm({ name: 'Second', email: 'c@d.co', soulmates: 3 });
+  assert.equal((await readForms()).statusCode, 401);
+  assert.equal((await readForms(privateCookie(DEFAULT_PRIVATE_SECRET))).statusCode, 401);
+  const r = await readForms(privateCookie('a real secret'));
+  assert.equal(r.statusCode, 200);
+  assert.deepEqual(r.body.responses.map((x) => x.answers.name), ['Second', 'First']);
+  assert.equal(r.body.responses[1].answers.age, 24);
+}));
+
+test('compatibility: needs a name and email, strips junk, honeypot keeps nothing', () => withSecret(async () => {
+  assert.equal((await sendForm({ name: 'NoEmail' })).statusCode, 400);
+  assert.equal((await sendForm({ name: 'Bot', email: 'b@b.co' }, {}, { website: 'spam.example' })).statusCode, 200);
+  await sendForm({ name: '<b>Ada</b>', email: 'ada@x.co', 'Bad Key': 'x', nested: { a: 1 }, blurb: 'y'.repeat(5000) });
+  const [only] = (await readForms(privateCookie('a real secret'))).body.responses;
+  assert.equal(only.answers.name, 'bAda/b');
+  assert.equal(only.answers.blurb.length, 2000);
+  assert.ok(!('Bad Key' in only.answers) && !('nested' in only.answers));
+}));
+
+test('compatibility: nothing is saved without PRIVATE_SECRET, and sending is rate limited', async () => {
+  const saved = process.env.PRIVATE_SECRET;
+  delete process.env.PRIVATE_SECRET;
+  try { assert.equal((await sendForm({ name: 'x', email: 'x@y.co' })).statusCode, 503); }
+  finally { if (saved !== undefined) process.env.PRIVATE_SECRET = saved; }
+  await withSecret(async () => {
+    const h = { 'x-forwarded-for': freshIp() };
+    const codes = [];
+    for (let i = 0; i < 6; i++) codes.push((await sendForm({ name: 'n' + i, email: 'e@e.co' }, h)).statusCode);
+    assert.deepEqual(codes, [200, 200, 200, 200, 200, 429]);
+  });
+});
+
+test('compatibility: a list failure is a 503, not an empty list', () => withSecret(async () => {
+  await sendForm({ name: 'Kept', email: 'k@k.co' });
+  T.fail.list = true;
+  assert.equal((await readForms(privateCookie('a real secret'))).statusCode, 503);
+}));
+
+test('compatibility: answers saved under another secret show as unreadable, not lost', () => withSecret(async () => {
+  await sendForm({ name: 'Old', email: 'o@o.co' });
+  process.env.PRIVATE_SECRET = 'a different secret';
+  const r = await readForms(privateCookie('a different secret'));
+  assert.equal(r.body.responses.length, 1);
+  assert.equal(r.body.responses[0].unreadable, true);
+}));
+
+test('compatibility: only the private login can delete, same-origin, by its own id', () => withSecret(async () => {
+  await sendForm({ name: 'Goes', email: 'g@g.co' });
+  const cookie = privateCookie('a real secret');
+  const id = (await readForms(cookie)).body.responses[0].id;
+  const del = (headers, qid = id) => call(compat, { method: 'DELETE', query: { id: qid }, headers: { ...ip(), ...headers } });
+  assert.equal((await del({})).statusCode, 401);
+  assert.equal((await del({ cookie, origin: 'https://evil.example' })).statusCode, 403);
+  assert.equal((await del({ cookie }, 'community-places-x.json')).statusCode, 400);
+  assert.equal((await del({ cookie })).statusCode, 200);
+  assert.equal((await del({ cookie })).statusCode, 404);
+  assert.equal((await readForms(cookie)).body.responses.length, 0);
+}));
+
+test('compatibility: its blobs never show up as community data or in the guestbook', () => withSecret(async () => {
+  await sendForm({ name: 'Sam', email: 's@s.co' });
+  assert.deepEqual(await getPending(), []);
+  assert.deepEqual((await readBook()).entries, []);
+}));
+
 await run();

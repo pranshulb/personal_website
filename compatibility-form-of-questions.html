@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+<title>would we get on? — pranshul's cafe</title>
+<style>
+/* The compatibility form for dating-app matches. One question per screen, like the Typeform it
+   was copied from; the only flourish is a hand-drawn ink loop around whatever you pick.
+   Answers go to /api/compatibility (encrypted there) and are read at /compatibility-responses.
+   The questions themselves live in /compatibility-questions.js. */
+:root {
+  --paper: #faf5ef;
+  --ink: #3a2f2f;
+  --ink-soft: #6a5545;
+  --rule: #d4c4b4;
+  --wash: #f2e9de;
+  --rose: #c47a7a;
+  --err: #a24b3e;
+  --font: 'EB Garamond', Georgia, serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.bar {
+  position: fixed; inset: 0 0 auto;
+  height: 3px; background: var(--wash); z-index: 5;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.bar span { display: block; height: 3px; width: 0; background: var(--ink); transition: width .3s ease; }
+main {
+  min-height: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 12vh 18vh;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.screen { display: flex; flex-direction: column; gap: 1.4rem; animation: in .35s ease both; }
+@keyframes in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .screen { animation: none; } .bar span { transition: none; } }
+
+.count { font-size: .9rem; color: var(--ink-soft); letter-spacing: .04em; font-variant-numeric: lining-nums tabular-nums; }
+h1, h2 { font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 6vw, 2.6rem); line-height: 1.15; }
+h2 { font-size: clamp(1.4rem, 4.4vw, 1.75rem); line-height: 1.3; }
+.note { margin: -.6rem 0 0; color: var(--ink-soft); font-size: 1rem; }
+p { margin: 0; max-width: 34em; }
+.lede { display: flex; flex-direction: column; gap: .9rem; color: var(--ink); }
+
+/* text inputs */
+input[type=text], input[type=email], input[type=number], textarea {
+  width: 100%;
+  font: inherit; font-size: 1.35rem; color: var(--ink);
+  background: transparent; border: 0; border-bottom: 1px solid var(--ink-soft);
+  border-radius: 0; padding: .2rem 0 .35rem; outline: none;
+}
+input:focus, textarea:focus { border-bottom-color: var(--ink); box-shadow: 0 1px 0 var(--ink); }
+input::placeholder, textarea::placeholder { color: #b3a697; }
+textarea { resize: vertical; min-height: 6.5rem; line-height: 1.5; font-size: 1.2rem; }
+input[type=number] { font-variant-numeric: lining-nums; -moz-appearance: textfield; max-width: 8rem; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* choices */
+.options { display: flex; flex-direction: column; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+.opt {
+  display: grid; grid-template-columns: 2rem 1fr; align-items: baseline; gap: .4rem;
+  width: 100%; text-align: left; font: inherit; color: var(--ink);
+  background: none; border: 0; padding: .45rem .2rem; cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.opt:hover .label { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 4px; }
+.opt .key { position: relative; font-size: .85rem; color: var(--ink-soft); text-transform: uppercase; justify-self: center; width: 1.6rem; text-align: center; }
+.opt[aria-checked=true] .key { color: var(--ink); }
+.opt[aria-checked=true] .label { text-decoration: none; }
+
+/* 0-10 scale */
+.scale { display: grid; grid-template-columns: repeat(11, 1fr); gap: 2px; max-width: 520px; }
+.num {
+  position: relative; font: inherit; font-size: 1.2rem; color: var(--ink);
+  font-variant-numeric: lining-nums tabular-nums;
+  background: none; border: 0; padding: .55rem 0; cursor: pointer;
+}
+.num:hover { color: var(--ink); background: var(--wash); }
+.ends { display: flex; justify-content: space-between; max-width: 520px; font-size: .9rem; color: var(--ink-soft); margin-top: -.9rem; }
+
+/* the ink circle */
+.ring { position: absolute; pointer-events: none; overflow: visible; }
+.num .ring { inset: -2px -1px; width: calc(100% + 2px); height: calc(100% + 4px); }
+.opt .key .ring { inset: -9px -8px; width: calc(100% + 16px); height: calc(100% + 18px); }
+.ring path { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; animation: draw .45s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .ring path { animation: none; stroke-dashoffset: 0; } }
+
+/* actions: plain words, not buttons */
+.actions { display: flex; align-items: baseline; gap: 1.6rem; flex-wrap: wrap; margin-top: .4rem; }
+.go {
+  font: inherit; font-size: 1.15rem; color: var(--ink); background: none; border: 0; padding: .2rem 0; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px;
+}
+.go:disabled { color: var(--ink-soft); cursor: default; text-decoration-color: var(--rule); }
+.hint { font-size: .9rem; color: var(--ink-soft); }
+.prev { position: fixed; z-index: 9; left: max(14px, env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); font: inherit; font-size: .95rem; color: var(--ink-soft); background: none; border: 0; cursor: pointer; padding: .3rem; }
+.prev:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.err { color: var(--err); font-size: .95rem; min-height: 1.4em; margin-top: -.6rem; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px dashed var(--rose); outline-offset: 4px; }
+@media (hover: none) { .hint { display: none; } }
+
+.epigraph { position: fixed; top: 1.5rem; right: 1.5rem; font-size: .85rem; color: #c4a0a0; letter-spacing: .03em; margin: 0; z-index: 10; }
+@media (max-width: 600px) {
+  .epigraph { position: relative; top: auto; right: auto; text-align: center; padding: 1rem 1.2rem 0; font-size: .8rem; }
+  main { padding-block: 6vh 14vh; }
+}
+/* the home page's paper grain */
+.grain { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 8; opacity: 0.12; }
+</style>
+<script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+
+<style id="enola-font-override">
+  body, body *{font-family:'Unkempt',cursive !important;}
+  body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
+</style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script defer src="/cafe.js"></script>
+</head>
+<body>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+<div class="bar" aria-hidden="true"><span id="bar"></span></div>
+<main id="app" aria-live="polite"></main>
+<button class="prev" id="back" type="button" hidden>&larr; previous</button>
+<div class="hp" aria-hidden="true"><label for="website">leave this empty</label><input id="website" type="text" tabindex="-1" autocomplete="off"></div>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<script src="/compatibility-questions.js"></script>
+<script>
+(function () {
+  const Q = window.QUESTIONS;
+  const KEY = "wwgo-draft-v1";
+  const app = document.getElementById("app");
+  const bar = document.getElementById("bar");
+  const backBtn = document.getElementById("back");
+  let answers = {};
+  let step = -1; // -1 intro, 0..n-1 questions, n review/send, n+1 done
+  let advanceTimer = null;
+
+  try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && d.answers) { answers = d.answers; } } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ answers, step })); } catch (e) {} };
+  const clearDraft = () => { try { localStorage.removeItem(KEY); } catch (e) {} };
+
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+    }
+    kids.flat().forEach(k => k != null && n.append(k));
+    return n;
+  };
+
+  // a slightly wobbly hand-drawn loop, different each time
+  function ring() {
+    const r = () => (Math.random() - .5) * 6;
+    const d = `M ${8 + r()} ${30 + r()} C ${4 + r()} ${8 + r()}, ${50 + r()} ${2 + r()}, ${92 + r()} ${10 + r()} S ${98 + r()} ${50 + r()}, ${60 + r()} ${58 + r()} S ${0 + r()} ${52 + r()}, ${10 + r()} ${22 + r()}`;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "ring"); svg.setAttribute("viewBox", "0 0 100 60"); svg.setAttribute("preserveAspectRatio", "none");
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", d);
+    p.setAttribute("vector-effect", "non-scaling-stroke");
+    svg.append(p); return svg;
+  }
+
+  const answered = q => {
+    const v = answers[q.id];
+    if (q.optional) return true;
+    if (v === undefined || v === null) return false;
+    if (typeof v === "string") return v.trim().length > 0;
+    return true;
+  };
+  const firstUnanswered = () => Q.findIndex(q => !answered(q));
+
+  function progress() {
+    const done = Q.filter(q => answers[q.id] !== undefined && answers[q.id] !== "").length;
+    bar.style.width = (step >= Q.length ? 100 : Math.round(done / Q.length * 100)) + "%";
+  }
+
+  function go(n) {
+    clearTimeout(advanceTimer);
+    step = n;
+    if (step > Q.length) clearDraft(); else save();
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  function render() {
+    progress();
+    backBtn.hidden = !(step >= 0 && step <= Q.length);
+    app.replaceChildren();
+    if (step === -1) return intro();
+    if (step < Q.length) return question(Q[step]);
+    if (step === Q.length) return review();
+    return done();
+  }
+
+  function intro() {
+    const resumable = Object.keys(answers).length > 0;
+    const start = el("button", { class: "go", type: "button", text: resumable ? "carry on where you left off" : "start", onclick: () => go(resumable ? Math.max(0, firstUnanswered() === -1 ? Q.length : firstUnanswered()) : 0) });
+    const kids = [
+      el("h1", { text: "hi, i'm pranshul." }),
+      el("div", { class: "lede" },
+        el("p", { text: "if we matched, this is how I find out whether we'd actually get on. it's " + Q.length + " questions, about ten minutes." }),
+        el("p", { text: "most of them are statements you rate from 0 to 10: 0 means you disagree completely, 10 means you agree completely. there are no right answers, just honest ones." })
+      ),
+      el("div", { class: "actions" }, start, el("span", { class: "hint", text: "or press Enter" }))
+    ];
+    if (resumable) kids[2].append(el("button", { class: "go", type: "button", text: "start over", onclick: () => { answers = {}; clearDraft(); go(0); } }));
+    app.append(el("section", { class: "screen" }, kids));
+    start.focus();
+  }
+
+  function question(q) {
+    const idx = Q.indexOf(q);
+    const err = el("div", { class: "err", role: "alert" });
+    const ok = el("button", { class: "go", type: "button", text: "ok", onclick: () => next() });
+    const sec = el("section", { class: "screen" },
+      el("div", { class: "count", text: (idx + 1) + " / " + Q.length + (q.optional ? "  ·  optional" : "") }),
+      el("h2", { id: "qtext", text: q.q }),
+      q.note ? el("p", { class: "note", text: q.note }) : null
+    );
+
+    function next() {
+      if (q.type === "text" || q.type === "email" || q.type === "long" || q.type === "number") {
+        const inp = sec.querySelector("input, textarea");
+        let v = inp.value.trim();
+        if (q.type === "number") {
+          if (v === "" && !q.optional) return (err.textContent = "Type a number to carry on.");
+          const n = Number(v);
+          if (v !== "" && (!Number.isFinite(n) || n < q.min || n > q.max)) return (err.textContent = "Enter a number between " + q.min + " and " + q.max + ".");
+          answers[q.id] = v === "" ? undefined : n;
+        } else {
+          if (!v && !q.optional) return (err.textContent = "This one needs an answer.");
+          if (q.type === "email" && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return (err.textContent = "That email doesn't look right. Check it and try again.");
+          answers[q.id] = v;
+        }
+      } else if (!answered(q)) {
+        return (err.textContent = q.type === "scale" ? "Pick a number from 0 to 10." : "Pick one to carry on.");
+      }
+      go(idx + 1);
+    }
+    sec._next = next;
+
+    if (q.type === "choice") {
+      const list = el("div", { class: "options", role: "radiogroup", "aria-labelledby": "qtext" });
+      q.options.forEach((o, i) => {
+        const letter = String.fromCharCode(65 + i);
+        const key = el("span", { class: "key", text: letter });
+        const b = el("button", { class: "opt", type: "button", role: "radio", "aria-checked": answers[q.id] === o ? "true" : "false", "data-key": letter.toLowerCase() }, key, el("span", { class: "label", text: o }));
+        if (answers[q.id] === o) key.append(ring());
+        b.addEventListener("click", () => pick(o, b, key));
+        list.append(b);
+      });
+      function pick(o, b, key) {
+        answers[q.id] = o; save(); progress(); err.textContent = "";
+        list.querySelectorAll(".opt").forEach(x => { x.setAttribute("aria-checked", "false"); x.querySelector(".ring")?.remove(); });
+        b.setAttribute("aria-checked", "true"); key.append(ring());
+        clearTimeout(advanceTimer); advanceTimer = setTimeout(() => go(idx + 1), 520);
+      }
+      sec._pickKey = k => { const b = list.querySelector('[data-key="' + k + '"]'); if (b) b.click(); };
+      sec.append(list);
+    } else if (q.type === "scale") {
+      const row = el("div", { class: "scale", role: "radiogroup", "aria-labelledby": "qtext" });
+      for (let i = 0; i <= 10; i++) {
+        const b = el("button", { class: "num", type: "button", role: "radio", "aria-checked": answers[q.id] === i ? "true" : "false", "aria-label": String(i), text: String(i) });
+        if (answers[q.id] === i) b.append(ring());
+        b.addEventListener("click", () => {
+          answers[q.id] = i; save(); progress(); err.textContent = "";
+          row.querySelectorAll(".num").forEach(x => { x.setAttribute("aria-checked", "false"); x.querySelector(".ring")?.remove(); });
+          b.setAttribute("aria-checked", "true"); b.append(ring());
+          clearTimeout(advanceTimer); advanceTimer = setTimeout(() => go(idx + 1), 520);
+        });
+        row.append(b);
+      }
+      sec._pickNum = n => row.children[n]?.click();
+      sec.append(row, el("div", { class: "ends" }, el("span", { text: "0 · disagree" }), el("span", { text: "agree · 10" })));
+    } else {
+      const id = "f-" + q.id;
+      const attrs = { id, "aria-labelledby": "qtext", autocomplete: "off" };
+      if (q.placeholder) attrs.placeholder = q.placeholder;
+      let inp;
+      if (q.type === "long") inp = el("textarea", Object.assign(attrs, { rows: "4", maxlength: "1500" }));
+      else if (q.type === "number") inp = el("input", Object.assign(attrs, { type: "number", inputmode: "numeric", min: String(q.min), max: String(q.max) }));
+      else inp = el("input", Object.assign(attrs, { type: q.type === "email" ? "email" : "text", maxlength: "200", autocomplete: q.type === "email" ? "email" : (q.id === "name" ? "given-name" : "off") }));
+      if (answers[q.id] !== undefined) inp.value = answers[q.id];
+      inp.addEventListener("input", () => { err.textContent = ""; });
+      sec.append(inp);
+      setTimeout(() => inp.focus({ preventScroll: true }), 30);
+    }
+
+    const hint = q.type === "long" ? "Shift + Enter for a new line" : q.type === "choice" ? "or press a letter" : q.type === "scale" ? "or press 0–9" : "or press Enter";
+    sec.append(err, el("div", { class: "actions" }, ok, el("span", { class: "hint", text: hint })));
+    app.append(sec);
+  }
+
+  function review() {
+    const missing = Q.filter(q => !answered(q));
+    const err = el("div", { class: "err", role: "alert" });
+    const send = el("button", { class: "go", type: "button", text: "send it", onclick: submit });
+    const kids = [el("h2", { text: missing.length ? "almost. a few are still blank:" : "that's everything." })];
+    if (missing.length) {
+      send.disabled = true;
+      const list = el("div", { class: "options" });
+      missing.forEach(q => list.append(el("button", { class: "opt", type: "button", onclick: () => go(Q.indexOf(q)) }, el("span", { class: "key", text: String(Q.indexOf(q) + 1) }), el("span", { class: "label", text: q.q }))));
+      kids.push(list);
+    } else {
+      kids.push(el("p", { text: "your answers only go to me. send them over?" }));
+    }
+    kids.push(err, el("div", { class: "actions" }, send));
+    app.append(el("section", { class: "screen" }, kids));
+    if (!missing.length) send.focus();
+
+    async function submit() {
+      send.disabled = true; send.textContent = "sending…"; err.textContent = "";
+      try {
+        const res = await fetch("/api/compatibility", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ answers, website: document.getElementById("website").value })
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        clearDraft(); go(Q.length + 1);
+      } catch (e) {
+        send.disabled = false; send.textContent = "send it";
+        err.textContent = "That didn't go through. Your answers are still here, so check your connection and try again.";
+      }
+    }
+  }
+
+  function done() {
+    const name = (answers.name || "").trim();
+    app.append(el("section", { class: "screen" },
+      el("h1", { text: "thank you" + (name ? ", " + name.toLowerCase() : "") + "." }),
+      el("p", { text: "got it. I'll read through and get back to you." })
+    ));
+    answers = {};
+  }
+
+  backBtn.addEventListener("click", () => { if (step > -1) go(step - 1); });
+
+  document.addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const sec = app.querySelector(".screen");
+    const inField = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName);
+    if (e.key === "Enter") {
+      if (document.activeElement?.tagName === "TEXTAREA" && e.shiftKey) return;
+      if (document.activeElement?.tagName === "BUTTON" && !document.activeElement.classList.contains("go")) return;
+      if (step === -1) { e.preventDefault(); app.querySelector(".go")?.click(); return; }
+      if (sec?._next) { e.preventDefault(); sec._next(); }
+      return;
+    }
+    if (inField) return;
+    if (sec?._pickNum && /^[0-9]$/.test(e.key)) { sec._pickNum(Number(e.key)); }
+    else if (sec?._pickKey && /^[a-z]$/i.test(e.key)) { sec._pickKey(e.key.toLowerCase()); }
+  });
+
+  if (step === -1) render();
+})();
+</script>
+</body>
+</html>

@@ -442,6 +442,20 @@ vercel.json                 routing, headers, proxies
   the commit message. Bump the file name (`hand-v2.bin`) if the weights change:
   `vercel.json` caches it for a year.
 
+- **The compatibility form** (October 2026): `/compatibility-form-of-questions`
+  is a 62-question form, one question per screen, for people Pranshul
+  matches with on dating apps (copied from a matchmaker's Typeform, minus
+  the matchmaker-only questions). The questions live in
+  `/compatibility-questions.js`, shared with `/compatibility-responses`,
+  where he reads the answers (behind the private login: in the middleware
+  matcher, and `api/compatibility.js` checks `privateAuthed` itself). Each
+  response is its own blob under `compatibility/`, written once, and
+  **encrypted with a key derived from `PRIVATE_SECRET`** because the Blob
+  store is public and these answers are intimate. So changing
+  `PRIVATE_SECRET` makes every saved response unreadable (they show as
+  "couldn't be read", not lost). `noindex`, linked from nowhere on the site;
+  a half-filled form is kept in the visitor's localStorage.
+
 ### Routing and hosting
 
 - `vercel.json` holds 33 rewrites. `cleanUrls: true`, so `/foo.html` serves at
