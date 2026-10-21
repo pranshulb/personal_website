@@ -30,6 +30,33 @@
   background: none; border: 0; font-size: 1.7rem; line-height: 1; color: #b8a090; cursor: pointer; padding: 0.3rem 0.5rem;
 }
 .vb-close:hover, .vb-close:focus-visible { color: #c47a7a; }
+/* two ways to sign: the pen writes it, or you sign it yourself */
+.vb-tabs { display: flex; gap: 1.4rem; margin: 0 0 1.1rem; border-bottom: 1px solid rgba(212,160,128,0.35); }
+.vb .vb-tab {
+  background: none; border: 0; padding: 0.3rem 0 0.45rem; margin-bottom: -1px; font-size: 1.02rem;
+  color: #a08878; border-bottom: 2px solid transparent; transition: color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.vb .vb-tab[aria-selected="true"] { color: #3a2f2f; border-bottom-color: #c47a7a; }
+@media (hover: hover) { .vb .vb-tab:hover { color: #3a2f2f; } }
+.vb [role="tabpanel"][hidden] { display: none; }
+/* the pad: a sheet with a faint line to sign on; drawing on it never scrolls the page */
+.vb-pad-wrap {
+  position: relative; margin: 0 0 0.4rem;
+  background: #fffaf4 linear-gradient(to bottom, transparent 71%, rgba(212,160,128,0.45) 71%, rgba(212,160,128,0.45) calc(71% + 1px), transparent calc(71% + 1px));
+  border: 1px solid #d4b4a0; border-radius: 3px;
+}
+/* The pages under the book pin every canvas full-screen behind everything
+   for their own scenes (index.html, garden.html: canvas { position: fixed })
+   — this one stays in the book. */
+.vb canvas.vb-pad {
+  position: relative; inset: auto; z-index: auto; transform: none; opacity: 1; filter: none;
+  display: block; width: 100%; height: 190px; pointer-events: auto; touch-action: none;
+}
+.vb-pad-hint {
+  position: absolute; left: 0; right: 0; top: 40%; margin: 0; text-align: center;
+  color: #b8a090; font-size: 1.02rem; pointer-events: none;
+}
+.vb-pad-hint[hidden] { display: none; }
 .vb-form { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .vb-form input {
   flex: 1 1 14rem; min-width: 0; font-size: 1.1rem; padding: 0.55rem 0.8rem;
@@ -75,6 +102,7 @@
   .vb-page { margin: 0; width: 100%; min-height: 100%; border-radius: 0; border: 0; padding: 2.2rem 1.3rem 2.4rem; }
   .vb .vb-title { font-size: 2.2rem; }
   .vb-sig { height: 2.9rem; max-width: 70%; }
+  .vb canvas.vb-pad { height: 170px; }
   .vb-list { background-size: 100% 4rem; }
   .vb-list li { min-height: 4rem; }
 }

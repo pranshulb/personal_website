@@ -1034,4 +1034,34 @@ test('compatibility: its blobs never show up as community data or in the guestbo
   assert.deepEqual((await readBook()).entries, []);
 }));
 
+// a little drawing: a few strokes across the pad, in half-pixels
+const doodle = (n = 4) => Array.from({ length: n }, (_, i) => [10 + i * 60, 40, 40 + i * 60, 160, 70 + i * 60, 90]);
+
+test('guestbook: a signature drawn by hand needs no name, and is kept as drawn', async () => {
+  const r = await sign({ drawn: true, strokes: doodle() });
+  assert.equal(r.statusCode, 200);
+  assert.equal(r.body.entry.name, '');
+  assert.equal(r.body.entry.drawn, true);
+  assert.deepEqual(r.body.entry.strokes, doodle());
+  // a name with it is kept too
+  const named = await sign({ drawn: true, name: 'Ada', strokes: doodle(2) });
+  assert.equal(named.body.entry.name, 'Ada');
+  assert.deepEqual((await readBook()).entries.map((e) => [e.name, e.drawn]), [['Ada', true], ['', true]]);
+});
+
+test('guestbook: a drawing can be bigger than a name, but not unbounded, and must be there', async () => {
+  // a doodle across a whole pad is fine (a pen-written name of 2 letters couldn't be this wide)
+  const wide = [[0, 0, 1200, 380, 2390, 10]];
+  assert.equal((await sign({ drawn: true, strokes: wide })).statusCode, 200);
+  assert.equal((await sign({ name: 'Al', strokes: wide })).statusCode, 400);
+  for (const bad of [
+    undefined, [], 'lines', [[1, 2, 3]], [[-1, 0, 5, 5]], [[0, 0, 2401, 5]], [[0, 0, 5, 1201]], [[1.5, 2, 3, 4]],
+    [[0, 0, 3, 3]],                                                  // a stray tap, nothing drawn
+    Array.from({ length: 301 }, () => [0, 0, 40, 40]),               // too many strokes
+    [Array.from({ length: 8002 }, (_, i) => i % 2 ? 50 : i % 2000)], // too much ink
+  ]) assert.equal((await sign({ drawn: true, strokes: bad })).statusCode, 400, String(JSON.stringify(bad)).slice(0, 60));
+  // without drawn, a name is still needed
+  assert.equal((await sign({ strokes: doodle() })).statusCode, 400);
+});
+
 await run();

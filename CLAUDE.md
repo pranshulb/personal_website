@@ -412,6 +412,15 @@ vercel.json                 routing, headers, proxies
   (`api/guestbook.js`, Blob key `guestbook.json`, through the community
   store's `mutate`), so everyone sees the same signature. Names the
   network can't write (other scripts) go in as typed, in the page font.
+  **Two ways to sign** (October 2026): tabs, "write it for me" (the pen,
+  above) and "sign it myself", a pad (`#vb-pad`) for a mouse, a pen or a
+  finger — "sign your name or just draw a lil doodle :)", no name needed,
+  with undo and start again. Saved as `{ drawn: true, strokes }` in
+  half-pixels of the pad (bounds: `cleanDrawn` in `api/guestbook.js`),
+  smoothed like the pen's and drawn in the same ink; unnamed ones read
+  "a signature drawn by hand" / "drawn by hand" in /typeshit. The pad's
+  CSS is `.vb canvas.vb-pad` on purpose: the home page and the garden pin
+  every `canvas` full-screen, which collapsed the first pad to a line.
   **Managing it**: `/typeshit` (behind the private login) lists every
   signature with "remove", a "history" of the last 30 copies of the book
   with "go back to this", and "download a copy". Nothing signed is lost

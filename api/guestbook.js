@@ -4,6 +4,8 @@
 //
 //   GET    /api/guestbook            → { entries: [...newest first], canRemove }
 //   POST   /api/guestbook            { name, strokes? }  → { ok, entry }
+//                                    or { drawn: true, strokes, name? }: signed by
+//                                    hand on the pad, no name needed
 //   GET    /api/guestbook?history=1  the last 30 copies of the book, newest first  } both need
 //   POST   /api/guestbook?restore=1  { pathname } → roll back to one of them       } the login below
 //   DELETE /api/guestbook?id=...     the private pages' login (/typeshit lists the
@@ -17,6 +19,11 @@
 // sees the same signature. The server can't check that the strokes spell the
 // name — anyone can POST — so they are bounded tightly (a name's worth of ink,
 // no more) and the admin can remove any entry from the book itself.
+//
+// Or a guest signs it themselves ("sign it myself", October 2026): a signature
+// or a little doodle drawn with a mouse or a finger, no name needed (Pranshul:
+// "the drawing is enough"). Those are kept as drawn: { drawn: true, strokes }
+// in half-pixels of the pad, bounded by cleanDrawn.
 
 import {
   readBlob, mutate, fail, checkRate, clientIp, clean, newId, isAdmin, sameOrigin, adminCors,
@@ -55,6 +62,30 @@ export function cleanStrokes(strokes, name) {
     out.push(s.slice());
   }
   if (w < 5 || h < 5) return null;
+  return { strokes: out, w, h };
+}
+
+// A signature drawn by hand: flat integer arrays like the pen's, in
+// half-pixels of the pad (a pad is at most about 640 x 200 pixels), drawn
+// anywhere in it. Bounded to what a pad can hold, and a little over.
+export function cleanDrawn(strokes) {
+  if (!Array.isArray(strokes) || strokes.length < 1 || strokes.length > 300) return null;
+  const maxPoints = 4000, maxW = 2400, maxH = 1200;
+  let points = 0, w = 0, h = 0;
+  const out = [];
+  for (const s of strokes) {
+    if (!Array.isArray(s) || s.length < 2 || s.length % 2 !== 0 || s.length > 2 * maxPoints) return null;
+    for (let i = 0; i < s.length; i++) {
+      const v = s[i];
+      if (!Number.isInteger(v) || v < 0) return null;
+      if (i % 2 === 0) { if (v > maxW) return null; w = Math.max(w, v); }
+      else { if (v > maxH) return null; h = Math.max(h, v); }
+    }
+    points += s.length / 2;
+    if (points > maxPoints) return null;
+    out.push(s.slice());
+  }
+  if (Math.max(w, h) < 8) return null;   // nothing there: a stray tap
   return { strokes: out, w, h };
 }
 
@@ -101,21 +132,30 @@ export default async function handler(req, res) {
     if (!checkRate(ip, 'guestbook-sign', 3) || !checkRate(ip, 'guestbook-sign-day', 20, 86400000)) {
       return res.status(429).json({ error: 'you have signed a lot already — try again later' });
     }
-    const name = clean(body.name, MAX_NAME + 20).replace(/\n/g, ' ');
-    if (!name || !/[\p{L}\p{N}]/u.test(name)) return res.status(400).json({ error: 'a name, please' });
+    const drawn = body.drawn === true;
+    const name = clean(body.name == null ? '' : body.name, MAX_NAME + 20).replace(/\n/g, ' ');
     if ([...name].length > MAX_NAME) return res.status(400).json({ error: 'that name is too long' });
-    // No strokes is allowed: the network only writes the Latin alphabet, so a
-    // name in another script is shown as typed, in the page's own font.
     let ink = null;
-    if (body.strokes != null) {
-      ink = cleanStrokes(body.strokes, name);
-      if (!ink) return res.status(400).json({ error: 'the handwriting did not come through — try writing it again' });
+    if (drawn) {
+      // signed by hand: the drawing is the signature, a name is optional
+      if (name && !/[\p{L}\p{N}]/u.test(name)) return res.status(400).json({ error: 'a name, please' });
+      ink = cleanDrawn(body.strokes);
+      if (!ink) return res.status(400).json({ error: 'the drawing did not come through — try again' });
+    } else {
+      if (!name || !/[\p{L}\p{N}]/u.test(name)) return res.status(400).json({ error: 'a name, please' });
+      // No strokes is allowed: the network only writes the Latin alphabet, so a
+      // name in another script is shown as typed, in the page's own font.
+      if (body.strokes != null) {
+        ink = cleanStrokes(body.strokes, name);
+        if (!ink) return res.status(400).json({ error: 'the handwriting did not come through — try writing it again' });
+      }
     }
 
     const now = new Date();
     const entry = {
       id: newId(),
       name,
+      ...(drawn ? { drawn: true } : {}),
       ...(ink ? { strokes: ink.strokes, w: ink.w, h: ink.h } : {}),
       date: now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
       ts: now.getTime(),

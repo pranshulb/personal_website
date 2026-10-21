@@ -110,20 +110,20 @@
       row.className = 'book-row';
       if (e.strokes) row.appendChild(signature(e));
       const who = document.createElement('span');
-      who.className = 'book-who'; who.textContent = e.name;
+      who.className = 'book-who'; who.textContent = e.name || 'drawn by hand';
       const when = document.createElement('span');
-      when.className = 'book-when'; when.textContent = (e.date || '') + (e.strokes ? '' : ' · typed');
+      when.className = 'book-when'; when.textContent = (e.date || '') + (e.drawn ? ' · signed by hand' : e.strokes ? '' : ' · typed');
       who.appendChild(when);
       row.appendChild(who);
       if (canRemove) {
         const x = document.createElement('button');
         x.type = 'button'; x.textContent = 'remove';
-        x.setAttribute('aria-label', 'remove ' + e.name);
+        x.setAttribute('aria-label', 'remove ' + (e.name || 'this drawn signature'));
         x.addEventListener('click', async () => {
           x.disabled = true; say('');
           try {
             const r = await api('DELETE', '?id=' + encodeURIComponent(e.id));
-            say('removed "' + e.name + '". ' + r.count + ' left. (history can bring it back.)');
+            say('removed ' + (e.name ? '"' + e.name + '"' : 'the drawn signature') + '. ' + r.count + ' left. (history can bring it back.)');
             load();
           } catch (err) { x.disabled = false; say(err.status === 404 ? 'already gone.' : 'couldn\'t remove that: ' + err.message); if (err.status === 404) load(); }
         });

@@ -8,6 +8,9 @@
    are kept (api/guestbook.js) so everyone sees the same signature. The
    ~3.8 MB network loads only when someone starts writing; reading the book
    is just the saved strokes, drawn as SVG.
+   Or "sign it myself" (October 2026): a pad to sign on, or draw a little
+   doodle, with a mouse, a pen or a finger, no name needed; the drawing is
+   smoothed into the same ink as the pen's and kept as drawn.
 ====================================================================== */
 (() => {
   // its stylesheet and its page, added once to whichever page loads this
@@ -23,6 +26,11 @@
       <div class="vb-page">
         <button type="button" class="vb-close" id="vb-close" aria-label="close the guestbook">&times;</button>
         <h2 class="vb-title" id="vb-title">guestbook</h2>
+        <div class="vb-tabs" role="tablist" aria-label="how to sign">
+          <button type="button" class="vb-tab" role="tab" id="vb-tab-pen" aria-selected="true" aria-controls="vb-pen">write it for me</button>
+          <button type="button" class="vb-tab" role="tab" id="vb-tab-hand" aria-selected="false" aria-controls="vb-hand" tabindex="-1">sign it myself</button>
+        </div>
+        <div id="vb-pen" role="tabpanel" aria-labelledby="vb-tab-pen">
         <form class="vb-form" id="vb-form" autocomplete="off">
           <label class="vb-hp" for="vb-name">your name</label>
           <input id="vb-name" name="name" maxlength="40" placeholder="your name" required enterkeyhint="go">
@@ -35,6 +43,19 @@
           <div class="vb-actions" id="vb-actions" hidden>
             <button type="button" class="vb-btn" id="vb-sign">sign the guestbook</button>
             <button type="button" class="vb-btn quiet" id="vb-again">write it again</button>
+          </div>
+        </div>
+        </div>
+        <div id="vb-hand" role="tabpanel" aria-labelledby="vb-tab-hand" hidden>
+          <div class="vb-pad-wrap">
+            <canvas class="vb-pad" id="vb-pad" role="img" aria-label="a space to sign your name, or draw a little doodle, with a mouse, a pen or a finger"></canvas>
+            <p class="vb-pad-hint" id="vb-pad-hint" aria-hidden="true">sign your name or just draw a lil doodle :)</p>
+          </div>
+          <p class="vb-status" id="vb-hand-status" aria-live="polite"></p>
+          <div class="vb-actions">
+            <button type="button" class="vb-btn" id="vb-hand-sign" disabled>sign the guestbook</button>
+            <button type="button" class="vb-btn quiet" id="vb-hand-undo" disabled>undo</button>
+            <button type="button" class="vb-btn quiet" id="vb-hand-clear" disabled>start again</button>
           </div>
         </div>
         <p class="vb-count" id="vb-count" aria-live="polite"></p>
@@ -60,7 +81,7 @@
     lastFocus = document.activeElement;
     vb.hidden = false;
     if (location.hash !== '#visitors') history.replaceState(null, '', '#visitors');
-    setTimeout(() => nameIn.focus({ preventScroll: true }), 50);
+    setTimeout(() => { if (!penPanel.hidden) nameIn.focus({ preventScroll: true }); else sizePad(); }, 50);
     if (!entries) loadBook();
   }
   function close() {
@@ -101,6 +122,8 @@
     }
     return d;
   }
+  // a signature drawn by hand needn't come with a name
+  const who = (e) => e.name || 'a signature drawn by hand';
   function signature(e) {
     if (!e.strokes) {
       const span = document.createElement('span');
@@ -111,8 +134,8 @@
     svg.setAttribute('class', 'vb-sig');
     svg.setAttribute('viewBox', '0 0 ' + (e.w + 8) + ' ' + (e.h + 8));
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', e.name);
-    const t = document.createElementNS(NS, 'title'); t.textContent = e.name; svg.appendChild(t);
+    svg.setAttribute('aria-label', who(e));
+    const t = document.createElementNS(NS, 'title'); t.textContent = who(e); svg.appendChild(t);
     const path = document.createElementNS(NS, 'path');
     path.setAttribute('d', pathData(e.strokes));
     path.setAttribute('pathLength', '1');
@@ -134,7 +157,7 @@
     if (canRemove) {
       const x = document.createElement('button');
       x.type = 'button'; x.className = 'vb-remove'; x.textContent = 'remove';
-      x.setAttribute('aria-label', 'remove ' + e.name);
+      x.setAttribute('aria-label', 'remove ' + who(e));
       x.addEventListener('click', () => removeEntry(e, li));
       li.appendChild(x);
     }
@@ -178,7 +201,7 @@
     }
   }
   async function removeEntry(e, li) {
-    if (!confirm('remove "' + e.name + '" from the guestbook?')) return;
+    if (!confirm(e.name ? 'remove "' + e.name + '" from the guestbook?' : 'remove this drawn signature from the guestbook?')) return;
     const res = await fetch(API + '?id=' + encodeURIComponent(e.id), { method: 'DELETE' });
     if (res.ok) { entries = entries.filter((x) => x.id !== e.id); li.remove(); showCount(); }
     else alert('could not remove it (' + res.status + ')');
@@ -290,30 +313,153 @@
   // "write it".
   nameIn.addEventListener('input', () => { if (!worker) { ensureWorker(); worker.postMessage({ type: 'load', url: MODEL }); } }, { once: true });
 
+  // Sends a signature to the book; true once it's in.
+  async function sendSignature(body) {
+    const res = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, website: $('vb-website').value }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    if (data.entry) {
+      store.set('vb-mine', mine().concat(data.entry.id).join(','));
+      entries = [data.entry].concat(entries || []);
+      renderBook();
+    }
+    countEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    countEl.textContent = 'thank you for signing ✿ ' + countEl.textContent;
+  }
+
   signBtn.addEventListener('click', async () => {
     if (!result) return;
     signBtn.disabled = true; againBtn.disabled = true;
     setStatus('signing…');
     try {
-      const res = await fetch(API, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: typedName, strokes: result.strokes, website: $('vb-website').value }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-      if (data.entry) {
-        store.set('vb-mine', mine().concat(data.entry.id).join(','));
-        entries = [data.entry].concat(entries || []);
-        renderBook();
-      }
+      await sendSignature({ name: typedName, strokes: result.strokes });
       preview.hidden = true; nameIn.value = ''; result = null;
-      countEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       setStatus('');
-      countEl.textContent = 'thank you for signing ✿ ' + countEl.textContent;
     } catch (e) {
       setStatus(String(e.message || e));
     } finally {
       signBtn.disabled = false; againBtn.disabled = false;
+    }
+  });
+
+  // ---- two ways to sign: tabs ----
+  const penTab = $('vb-tab-pen'), handTab = $('vb-tab-hand'), penPanel = $('vb-pen'), handPanel = $('vb-hand');
+  function pickTab(hand, focus) {
+    penTab.setAttribute('aria-selected', String(!hand)); handTab.setAttribute('aria-selected', String(hand));
+    penTab.tabIndex = hand ? -1 : 0; handTab.tabIndex = hand ? 0 : -1;
+    penPanel.hidden = hand; handPanel.hidden = !hand;
+    if (hand) sizePad();
+    if (focus) (hand ? handTab : penTab).focus();
+  }
+  penTab.addEventListener('click', () => pickTab(false));
+  handTab.addEventListener('click', () => pickTab(true));
+  for (const t of [penTab, handTab]) t.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pickTab(t === penTab, true); }
+  });
+
+  // ---- signing by hand ----
+  // The pad keeps what's drawn in its own pixels; it's saved in half-pixels,
+  // each stroke simplified a little (the same as the pen's) and drawn in the
+  // book with the same smoothing and the same ink.
+  const pad = $('vb-pad'), padHint = $('vb-pad-hint'), handStatus = $('vb-hand-status');
+  const handSign = $('vb-hand-sign'), handUndo = $('vb-hand-undo'), handClear = $('vb-hand-clear');
+  const pc = pad.getContext('2d');
+  const MAX_INK = 3500;   // points; the server takes 4000
+  let drawing = [], stroke = null, padW = 0, padH = 0;
+  const inkUsed = () => drawing.reduce((n, s) => n + s.length, 0);
+  function sizePad() {
+    const r = pad.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    padW = r.width; padH = r.height;
+    pad.width = Math.round(padW * dpr); pad.height = Math.round(padH * dpr);
+    pc.setTransform(dpr, 0, 0, dpr, 0, 0);
+    redrawPad();
+  }
+  window.addEventListener('resize', () => { if (!handPanel.hidden && !vb.hidden) sizePad(); });
+  function redrawPad() {
+    pc.clearRect(0, 0, padW, padH);
+    pc.strokeStyle = '#3a2f2f'; pc.lineWidth = 2.6; pc.lineCap = 'round'; pc.lineJoin = 'round';
+    for (const s of drawing) {
+      if (!s.length) continue;
+      pc.beginPath(); pc.moveTo(s[0][0], s[0][1]);
+      if (s.length < 3) { const e = s[s.length - 1]; pc.lineTo(e[0] + 0.01, e[1]); }   // a dot
+      for (let i = 1; i < s.length - 1; i++) pc.quadraticCurveTo(s[i][0], s[i][1], (s[i][0] + s[i + 1][0]) / 2, (s[i][1] + s[i + 1][1]) / 2);
+      if (s.length >= 3) pc.lineTo(s[s.length - 1][0], s[s.length - 1][1]);
+      pc.stroke();
+    }
+    const any = drawing.length > 0;
+    padHint.hidden = any;
+    handSign.disabled = !any; handUndo.disabled = !any; handClear.disabled = !any;
+  }
+  function padPoint(e) {
+    const r = pad.getBoundingClientRect();
+    return [Math.max(0, Math.min(padW, e.clientX - r.left)), Math.max(0, Math.min(padH, e.clientY - r.top))];
+  }
+  pad.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    if (inkUsed() >= MAX_INK) { handStatus.textContent = 'that\'s all the ink this page holds: sign it, or start again'; return; }
+    e.preventDefault();
+    try { pad.setPointerCapture(e.pointerId); } catch (err) {}
+    stroke = [padPoint(e)];
+    drawing.push(stroke);
+    handStatus.textContent = '';
+    redrawPad();
+  });
+  pad.addEventListener('pointermove', (e) => {
+    if (!stroke) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (evs.length ? evs : [e])) {
+      const p = padPoint(ev), q = stroke[stroke.length - 1];
+      if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 0.8) continue;
+      if (inkUsed() >= MAX_INK) break;
+      stroke.push(p);
+    }
+    redrawPad();
+  });
+  const endStroke = () => { stroke = null; };
+  pad.addEventListener('pointerup', endStroke);
+  pad.addEventListener('pointercancel', endStroke);
+  pad.addEventListener('lostpointercapture', endStroke);
+  handUndo.addEventListener('click', () => { drawing.pop(); handStatus.textContent = ''; redrawPad(); });
+  handClear.addEventListener('click', () => { drawing = []; handStatus.textContent = ''; redrawPad(); });
+
+  // Ramer–Douglas–Peucker, as the pen's: keep the shape, drop what adds nothing
+  function simplify(p, eps) {
+    if (p.length < 3) return p;
+    const [ax, ay] = p[0], [bx, by] = p[p.length - 1];
+    const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1;
+    let far = 0, idx = 0;
+    for (let i = 1; i < p.length - 1; i++) {
+      const d = Math.abs(dy * p[i][0] - dx * p[i][1] + bx * ay - by * ax) / len;
+      if (d > far) { far = d; idx = i; }
+    }
+    if (far <= eps) return [p[0], p[p.length - 1]];
+    return simplify(p.slice(0, idx + 1), eps).slice(0, -1).concat(simplify(p.slice(idx), eps));
+  }
+  // the drawing -> strokes as the book keeps them: half-pixels, from near 0,0
+  function drawnStrokes() {
+    let minX = Infinity, minY = Infinity;
+    for (const s of drawing) for (const [x, y] of s) { minX = Math.min(minX, x); minY = Math.min(minY, y); }
+    return drawing.filter((s) => s.length).map((s) => {
+      const pts = s.length === 1 ? [s[0], s[0]] : simplify(s, 0.5);
+      return pts.flatMap(([x, y]) => [Math.round((x - minX) * 2) + 4, Math.round((y - minY) * 2) + 4]);
+    });
+  }
+  handSign.addEventListener('click', async () => {
+    if (!drawing.length) return;
+    handSign.disabled = true; handUndo.disabled = true; handClear.disabled = true;
+    handStatus.textContent = 'signing…';
+    try {
+      await sendSignature({ drawn: true, strokes: drawnStrokes() });
+      drawing = []; redrawPad();
+      handStatus.textContent = '';
+    } catch (e) {
+      handStatus.textContent = String(e.message || e);
+      redrawPad();
     }
   });
 })();
