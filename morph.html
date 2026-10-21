@@ -58,16 +58,12 @@
   @keyframes pageIn { from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
   @keyframes floaty { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-13px);} }
   @media (prefers-reduced-motion: reduce){ .page, .page * { animation:none!important; } html { scroll-behavior:auto; } }
-  @media (max-width:940px){
-    .m-aside { position:static!important; right:auto!important; top:auto!important; max-width:360px!important; transform:rotate(2deg)!important; margin:18px 0 4px!important; }
-  }
   @media (max-width:680px){
     header, section, footer { padding-left:22px!important; padding-right:22px!important; }
     .m-nav { flex-wrap:wrap!important; padding-left:22px!important; padding-right:22px!important; gap:4px 14px!important; }
     .m-navlinks { flex-wrap:wrap!important; gap:6px 14px!important; font-size:16px!important; }
     header h1 { font-size:clamp(46px,15vw,64px)!important; line-height:0.95!important; }
     header .m-vine { display:none!important; }
-    .m-aside { position:static!important; right:auto!important; top:auto!important; max-width:none!important; transform:none!important; margin:14px 0 0!important; font-size:21px!important; }
     .m-stack, .m-stack-2 { grid-template-columns:1fr!important; gap:28px!important; }
     .m-stack-2 { gap:0!important; }
   }
@@ -114,10 +110,6 @@
 
 
     <p style="max-width:620px; font-size:clamp(21px,2.4vw,28px); line-height:1.5; margin-top:46px;">for three weeks this winter, a regular house on the edge of london turned into a <span style="background:linear-gradient(transparent 58%, var(--hi) 58%); padding:0 2px;">soft studio for ideas</span>. eight of us, one kitchen, no real plan.</p>
-    <div class="scr m-aside" style="position:absolute; right:34px; top:300px; max-width:215px; color:var(--pen-deep); font-size:25px; line-height:1.2; transform:rotate(2.5deg);">
-      <span style="display:block; width:56px; color:var(--pen); transform:rotate(-18deg); margin:0 0 -2px 30px;"><svg aria-hidden="true" viewBox="0 0 70 50" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M58 40 C40 40 16 32 8 12"></path><path d="M6 26 L7 9 L22 14"></path></svg></span>
-      ok it's literally my parents' house — they were away, don't tell them
-    </div>
     <p style="font-family:'Homemade Apple',cursive; font-size:22px; line-height:1.7; color:var(--pen-deep); margin-top:18px; max-width:560px;">this is me trying to remember what actually happened. ↓</p>
     <div style="margin-top:28px; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; font-family:'IM Fell English',serif; font-style:italic; font-size:24px; color:var(--pen-deep);">
       <span><span style="font-family:'Playfair Display',serif; font-style:italic; font-weight:500; font-size:34px; color:var(--ink);">eight</span> of us</span>
