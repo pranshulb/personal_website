@@ -1,4 +1,4 @@
-// Edge middleware: cookie-based auth gate for /typeshit, /pdfs, /london-events, /compatibility-responses.
+// Edge middleware: cookie-based auth gate for /typeshit, /pdfs, /london-events, /compatibility-responses, /morph-notes.
 // Cookie is signed (HMAC-SHA256) and lasts 1 year. Login form lives at /login.
 // Set PRIVATE_PASS and PRIVATE_SECRET env vars in Vercel to override defaults.
 
@@ -11,6 +11,8 @@ export const config = {
     '/london-events/:path*',
     '/compatibility-responses',
     '/compatibility-responses.html',
+    '/morph-notes',
+    '/morph-notes.html',
   ],
 };
 

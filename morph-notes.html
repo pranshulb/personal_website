@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+<title>morphhouse notes — pranshul's cafe</title>
+<style>
+/* Private (middleware.js + the API both check the /login cookie). Lists the notes left under
+   "wanna come next time?" on /morph, newest first. Same look as /compatibility-responses. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'EB Garamond', Georgia, serif; color: #3a2f2f; line-height: 1.7; background: #faf5ef; overflow-x: hidden; min-height: 100vh; }
+.container { max-width: 640px; margin: 0 0 0 2rem; padding: 5rem 1.5rem 4rem; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1.4rem; }
+h1 { font-size: 1.8rem; font-weight: 400; letter-spacing: 0.02em; }
+.meta { color: #6a5545; font-size: .95rem; }
+.err { color: #a24b3e; min-height: 1.4em; }
+a { color: #c47a7a; text-decoration: none; border-bottom: 1px solid #d4a0a0; }
+.list { display: flex; flex-direction: column; border-top: 1px solid #e3d5c6; }
+details { border-bottom: 1px solid #e3d5c6; }
+summary { cursor: pointer; padding: .9rem 0; display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary .who { font-size: 1.2rem; min-width: 0; overflow-wrap: anywhere; }
+summary .when { color: #b8a090; font-size: .9rem; white-space: nowrap; }
+summary:hover .who { color: #c47a7a; }
+.body { padding: .2rem 0 1.4rem; display: flex; flex-direction: column; gap: 1.1rem; }
+.blurb { font-style: italic; max-width: 34em; }
+dl { display: grid; grid-template-columns: 1fr auto; gap: .35rem 1.4rem; }
+dt { color: #6a5545; font-size: .95rem; min-width: 0; }
+dd { text-align: right; max-width: 16rem; overflow-wrap: anywhere; }
+.row-actions { display: flex; gap: 1.4rem; align-items: baseline; flex-wrap: wrap; }
+.go { font: inherit; font-size: .95rem; color: #3a2f2f; background: none; border: 0; cursor: pointer; padding: .1rem 0; border-bottom: 1px solid #d4a0a0; }
+.go.quiet { color: #b8a090; border-bottom-color: transparent; }
+.go:hover { color: #c47a7a; }
+.epigraph { position: fixed; top: 1.5rem; right: 1.5rem; font-size: .85rem; color: #c4a0a0; letter-spacing: .03em; z-index: 10; }
+@media (max-width: 600px) {
+  .container { margin: 0; padding: 4.5rem 1.2rem 3rem; max-width: 100%; }
+  .epigraph { position: relative; top: auto; right: auto; text-align: center; padding: 1rem 1.2rem 0; font-size: .8rem; }
+  dl { grid-template-columns: 1fr; gap: .05rem; }
+  dd { text-align: left; margin-bottom: .55rem; max-width: none; }
+  summary { flex-direction: column; gap: 0; }
+}
+.grain { position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; pointer-events: none; z-index: 8; opacity: 0.12; }
+</style>
+
+<style id="enola-font-override">
+  body, body *{font-family:'Unkempt',cursive !important;}
+  body h1, body h1 *, body .title{font-family:'Princess Sofia',cursive !important;font-weight:400 !important;font-size:2.2rem !important;}
+</style>
+<!-- shared by the café pages (fonts, page changes, arrivals, back link): see /cafe.css -->
+<link rel="preload" href="/fonts/unkempt-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/princess-sofia-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/cafe.css">
+<script defer src="/cafe.js"></script>
+</head>
+<body>
+<p class="epigraph"><em>cherry blossoms fall at 5 centimeters per second.</em></p>
+
+<div class="container">
+  <a href="/typeshit" class="back"><span class="arr">←</span> back</a>
+  <h1>morphhouse notes</h1>
+  <div class="err" id="err" role="alert"></div>
+  <div id="out"><p class="meta">loading…</p></div>
+</div>
+
+<svg class="grain" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noise)"/>
+</svg>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+    }
+    kids.flat().forEach(k => k != null && n.append(k));
+    return n;
+  };
+
+  async function load() {
+    try {
+      const r = await fetch('/api/morph-notes', { cache: 'no-store' });
+      if (r.status === 401) { location.href = '/login?next=' + encodeURIComponent('/morph-notes'); return; }
+      if (!r.ok) throw new Error(String(r.status));
+      show((await r.json()).notes || []);
+    } catch (e) {
+      $('out').replaceChildren();
+      $('err').textContent = "couldn't load the notes. refresh to try again.";
+    }
+  }
+
+  function show(items) {
+    const out = $('out');
+    out.replaceChildren(el('p', { class: 'meta', text: items.length === 1 ? '1 note so far' : items.length + ' notes so far' }));
+    if (!items.length) {
+      out.append(el('p', { class: 'meta', text: 'nobody has left one yet. notes from "wanna come next time?" on /morph show up here.' }));
+      return;
+    }
+    const list = el('div', { class: 'list' });
+    items.forEach(item => {
+      const when = new Date(item.submittedAt).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const body = el('div', { class: 'body' });
+      if (item.unreadable) {
+        body.append(el('p', { class: 'meta', text: "this one couldn't be read (it was saved under a different PRIVATE_SECRET)." }));
+      } else {
+        body.append(el('p', { class: 'blurb', text: '“' + item.bring + '”' }));
+        body.append(el('p', { class: 'meta' }, el('a', { href: 'mailto:' + item.email, text: item.email })));
+      }
+      const del = el('button', { class: 'go quiet', type: 'button', text: 'delete' });
+      const actions = el('div', { class: 'row-actions' }, del);
+      del.addEventListener('click', () => {
+        actions.replaceChildren(
+          el('span', { class: 'meta', text: 'delete ' + (item.name ? item.name + "'s" : 'this') + ' note for good?' }),
+          el('button', { class: 'go', type: 'button', text: 'yes, delete', onclick: async () => {
+            try {
+              const r = await fetch('/api/morph-notes?id=' + encodeURIComponent(item.id), { method: 'DELETE' });
+              if (!r.ok && r.status !== 404) throw new Error(String(r.status));
+              det.remove();
+            } catch (e) { $('err').textContent = "couldn't delete that. try again."; }
+          } }),
+          el('button', { class: 'go quiet', type: 'button', text: 'keep', onclick: () => actions.replaceChildren(del) })
+        );
+      });
+      body.append(actions);
+      const det = el('details', {},
+        el('summary', {}, el('span', { class: 'who', text: item.name || (item.unreadable ? 'unreadable' : '—') }), el('span', { class: 'when', text: when })),
+        body);
+      list.append(det);
+    });
+    out.append(list);
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

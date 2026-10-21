@@ -1063,5 +1063,70 @@ test('guestbook: a drawing can be bigger than a name, but not unbounded, and mus
   // without drawn, a name is still needed
   assert.equal((await sign({ strokes: doodle() })).statusCode, 400);
 });
+// ======================================================================
+// the notes under "wanna come next time?" on /morph (api/morph-notes.js)
+// ======================================================================
+
+const morphNotes = await imp('api/morph-notes.js');
+const leaveNote = (note, headers = {}) => call(morphNotes, { method: 'POST', body: note, headers: { ...ip(), ...headers } });
+const readNotes = (cookie) => call(morphNotes, { method: 'GET', headers: { ...(cookie ? { cookie } : {}), ...ip() } });
+
+test('morph notes: stored encrypted, read back only behind the private login, newest first', () => withSecret(async () => {
+  assert.equal((await leaveNote({ name: 'Ada', email: 'ada@example.com', bring: 'a pot of dal' })).statusCode, 200);
+  await leaveNote({ name: 'Grace', email: 'g@example.com', bring: 'a question about compilers' });
+  const bodies = T.bodies().filter(([p]) => p.startsWith('morph-notes/'));
+  assert.equal(bodies.length, 2);
+  assert.match(bodies[0][0], /^morph-notes\/note-.+\.json$/);
+  for (const [, b] of bodies) for (const word of ['Ada', 'ada@example.com', 'dal', 'compilers']) assert.ok(!b.includes(word), 'leaked ' + word);
+  assert.equal((await readNotes()).statusCode, 401);
+  assert.equal((await readNotes(privateCookie(DEFAULT_PRIVATE_SECRET))).statusCode, 401);
+  const r = await readNotes(privateCookie('a real secret'));
+  assert.equal(r.statusCode, 200);
+  assert.deepEqual(r.body.notes.map((n) => n.name), ['Grace', 'Ada']);
+  assert.equal(r.body.notes[1].bring, 'a pot of dal');
+  assert.equal(r.body.notes[1].email, 'ada@example.com');
+}));
+
+test('morph notes: needs all three, strips junk, honeypot keeps nothing, cross-origin refused', () => withSecret(async () => {
+  assert.equal((await leaveNote({ name: 'NoEmail', bring: 'x' })).statusCode, 400);
+  assert.equal((await leaveNote({ name: 'Nothing', email: 'n@n.co' })).statusCode, 400);
+  assert.equal((await leaveNote({ name: 'Bot', email: 'b@b.co', bring: 'spam', website: 'spam.example' })).statusCode, 200);
+  assert.equal((await leaveNote({ name: 'Far', email: 'f@f.co', bring: 'x' }, { origin: 'https://evil.example' })).statusCode, 403);
+  await leaveNote({ name: '<b>Ada</b>', email: 'ada@x.co', bring: 'y'.repeat(5000) });
+  const notes = (await readNotes(privateCookie('a real secret'))).body.notes;
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].name, 'bAda/b');
+  assert.equal(notes[0].bring.length, 2000);
+}));
+
+test('morph notes: nothing saved without PRIVATE_SECRET; rate limited; a list failure is a 503', async () => {
+  const saved = process.env.PRIVATE_SECRET;
+  delete process.env.PRIVATE_SECRET;
+  try { assert.equal((await leaveNote({ name: 'x', email: 'x@y.co', bring: 'z' })).statusCode, 503); }
+  finally { if (saved !== undefined) process.env.PRIVATE_SECRET = saved; }
+  await withSecret(async () => {
+    const h = { 'x-forwarded-for': freshIp() };
+    const codes = [];
+    for (let i = 0; i < 6; i++) codes.push((await leaveNote({ name: 'n' + i, email: 'e@e.co', bring: 'b' }, h)).statusCode);
+    assert.deepEqual(codes, [200, 200, 200, 200, 200, 429]);
+    T.fail.list = true;
+    assert.equal((await readNotes(privateCookie('a real secret'))).statusCode, 503);
+  });
+});
+
+test('morph notes: only the private login deletes, by its own id; notes stay out of the other stores', () => withSecret(async () => {
+  await leaveNote({ name: 'Goes', email: 'g@g.co', bring: 'b' });
+  const cookie = privateCookie('a real secret');
+  const id = (await readNotes(cookie)).body.notes[0].id;
+  const del = (headers, qid = id) => call(morphNotes, { method: 'DELETE', query: { id: qid }, headers: { ...ip(), ...headers } });
+  assert.deepEqual(await getPending(), []);
+  assert.deepEqual((await readBook()).entries, []);
+  assert.equal((await readForms(cookie)).body.responses.length, 0);
+  assert.equal((await del({})).statusCode, 401);
+  assert.equal((await del({ cookie }, 'compatibility/response-x.json')).statusCode, 400);
+  assert.equal((await del({ cookie })).statusCode, 200);
+  assert.equal((await del({ cookie })).statusCode, 404);
+  assert.equal((await readNotes(cookie)).body.notes.length, 0);
+}));
 
 await run();

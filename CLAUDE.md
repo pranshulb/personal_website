@@ -28,6 +28,7 @@ garden.html, garden-home.html
 examined/                   philosophy personality test (old versions in _archive/, not deployed)
 community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
+morph.html, morph/          morphhouse, a winter-in-a-house page at /morph (own look)
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
 cafe.css                    what every café page shares: fonts, page changes, arrivals, back link, link hovers
@@ -450,6 +451,28 @@ vercel.json                 routing, headers, proxies
   weak. A test harness (Node + TrOCR) isn't in the repo; the numbers are in
   the commit message. Bump the file name (`hand-v2.bin`) if the weights change:
   `vercel.json` caches it for a year.
+
+- **morphhouse** (`/morph`, October 2026): a page about three weeks one
+  winter (dec '25 → jan '26) when eight people made things in a house on
+  the edge of london. Its own look, green ink on squared paper (Playfair
+  Display / IM Fell English / Caveat), sharing nothing with the café pages,
+  like gladiator (no cafe.css, no firefly). Drawn by Pranshul in Claude
+  Design and sent as two exports: the new green design's front page, and an
+  older blue version holding "what even happened", the scrapbook, "the eight
+  of us" and "come next time", which were restyled green and put on the same
+  page (the nav links jump to them). The exports were self-unpacking
+  bundles running React and the design tool's runtime; `morph.html` is that
+  markup as plain HTML. `morph/mark.js` (the nav mark turning from
+  caterpillar to butterfly over two minutes) and `morph/creatures.js` are
+  the design's own scripts, unchanged. "write something in my hand" needed
+  calligrapher.ai's engine, which wasn't in the export: it is the guestbook's
+  pen instead, through `morph/pen-worker.js` (the legibility slider sets the
+  first attempts' neatness, then the guestbook's ladder). It is not his
+  handwriting, whatever the copy says. The photo frames are empty until he
+  sends the photos. "wanna come next time?" goes to `api/morph-notes.js`,
+  stored like the compatibility answers (one encrypted blob each under
+  `morph-notes/`, so changing `PRIVATE_SECRET` makes them unreadable), read
+  at `/morph-notes` behind the private login (linked from /typeshit).
 
 - **The compatibility form** (October 2026): `/compatibility-form-of-questions`
   is a 62-question form, one question per screen, for people Pranshul

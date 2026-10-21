@@ -29,6 +29,7 @@ const handlers = {
   edit: await imp('api/community/edit/[id].js'),
   guestbook: await imp('api/guestbook.js'),
   compatibility: await imp('api/compatibility.js'),
+  'morph-notes': await imp('api/morph-notes.js'),
 };
 
 let ipSeq = 1;
@@ -62,6 +63,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + req.headers.host);
   const m = url.pathname === '/api/guestbook' ? [null, 'guestbook']
     : url.pathname === '/api/compatibility' ? [null, 'compatibility']
+    : url.pathname === '/api/morph-notes' ? [null, 'morph-notes']
     : url.pathname.match(/^\/api\/community\/([a-z-]+)(?:\/([^/]+))?$/);
   if (m) {
     if (process.env.LOG) console.log('REQ', req.method, url.pathname + url.search);
