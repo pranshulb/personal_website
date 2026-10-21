@@ -45,6 +45,7 @@ function readBody(req) {
       if (!raw) return resolve(undefined);
       const ct = req.headers['content-type'] || '';
       if (ct.includes('application/json')) { try { return resolve(JSON.parse(raw)); } catch (e) { return resolve(raw); } }
+      if (ct.includes('application/x-www-form-urlencoded')) return resolve(Object.fromEntries(new URLSearchParams(raw)));   // as Vercel does
       resolve(raw);
     });
   });

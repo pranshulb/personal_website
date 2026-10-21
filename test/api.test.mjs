@@ -1115,6 +1115,21 @@ test('morph notes: nothing saved without PRIVATE_SECRET; rate limited; a list fa
   });
 });
 
+test('morph notes: the form posted without the page script (urlencoded) is kept and answered with a page', () => withSecret(async () => {
+  const form = (body) => morphNotes({ method: 'POST', body, headers: { ...ip(), 'content-type': 'application/x-www-form-urlencoded' } });
+  // Vercel hands urlencoded bodies over parsed; a raw string is read too
+  const parsed = await form({ name: 'Ada', email: 'a@a.co', bring: 'soup', website: '' });
+  assert.equal(parsed.statusCode, 200);
+  assert.match(parsed.headers['content-type'], /text\/html/);
+  assert.match(parsed.body, /got it/);
+  assert.equal((await form('name=Grace&email=g%40g.co&bring=bread+%26+jam&website=')).statusCode, 200);
+  const missing = await form('name=%3Cb%3E&email=&bring=');
+  assert.equal(missing.statusCode, 400);
+  assert.ok(!missing.body.includes('<b>'));
+  const notes = (await readNotes(privateCookie('a real secret'))).body.notes;
+  assert.deepEqual(notes.map((n) => [n.name, n.bring]).sort(), [['Ada', 'soup'], ['Grace', 'bread & jam']]);
+}));
+
 test('morph notes: only the private login deletes, by its own id; notes stay out of the other stores', () => withSecret(async () => {
   await leaveNote({ name: 'Goes', email: 'g@g.co', bring: 'b' });
   const cookie = privateCookie('a real secret');

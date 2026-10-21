@@ -468,8 +468,15 @@ vercel.json                 routing, headers, proxies
   the design's own scripts, unchanged. "write something in my hand" needed
   calligrapher.ai's engine, which wasn't in the export: it is the guestbook's
   pen instead, through `morph/pen-worker.js` (the legibility slider sets the
-  first attempts' neatness, then the guestbook's ladder). It is not his
-  handwriting, whatever the copy says. The photo frames are empty until he
+  first attempts' neatness, then the guestbook's ladder; it starts at the
+  guestbook's 2, since the design's 1.1 wrote "fox" as "foo"). It is not his
+  handwriting, whatever the copy says. The write button never greys out:
+  a disabled submit button also stops Enter, so a long line (24s) couldn't
+  be interrupted at all. The critters crawl *under* the words
+  (`creatures.js`, z-index -1; at 70 they hid words). The note form has
+  `method="post" action="/api/morph-notes"`: without its script it used to
+  submit as a GET to itself, name and email in the address bar; the API
+  answers such a post with a little page instead of JSON. The photo frames are empty until he
   sends the photos. "wanna come next time?" goes to `/api/morph-notes`,
   which vercel.json rewrites to `api/compatibility.js?form=morph-notes`
   (handled in `api/_morph-notes.js`): a function of its own made 13, and

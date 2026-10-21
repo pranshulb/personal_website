@@ -33,8 +33,23 @@ function key() {
 
 function parseBody(req) {
   let body = req.body;
-  if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch (e) { body = Object.fromEntries(new URLSearchParams(body)); }
+  }
   return body && typeof body === 'object' ? body : null;
+}
+
+// The page sends JSON. With its script off the form posts itself
+// (urlencoded): answer that with a page to read, not JSON.
+const isFormPost = (req) => /application\/x-www-form-urlencoded/.test((req.headers && req.headers['content-type']) || '');
+function reply(req, res, code, payload) {
+  if (!isFormPost(req)) return res.status(code).json(payload);
+  const text = payload.ok ? "got it — thank you, really. i'll be in touch if the next one comes together." : payload.error;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.status(code).send('<!DOCTYPE html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>morphhouse</title>'
+    + '<body style="font:21px/1.6 Georgia,serif;color:#163a2c;background:#f5f2e6;max-width:34em;margin:4rem auto;padding:0 22px">'
+    + '<p>' + esc(text) + '</p><p><a href="/morph" style="color:#1f8a4c">← back to morphhouse</a></p>');
 }
 
 async function listAll() {
@@ -49,29 +64,29 @@ async function listAll() {
 }
 
 async function submit(req, res) {
-  if (!sameOrigin(req)) return res.status(403).json({ error: 'cross-origin requests are refused' });
+  if (!sameOrigin(req)) return reply(req, res, 403, { error: 'cross-origin requests are refused' });
   if (!checkRate(clientIp(req), 'morph-notes', 5)) {
     res.setHeader('Retry-After', '60');
-    return res.status(429).json({ error: 'too many at once. wait a minute and send it again' });
+    return reply(req, res, 429, { error: 'too many at once. wait a minute and send it again' });
   }
   const body = parseBody(req);
-  if (!body) return res.status(400).json({ error: 'the note was empty' });
-  if (body.website) return res.status(200).json({ ok: true });    // honeypot: looks fine, keeps nothing
+  if (!body) return reply(req, res, 400, { error: 'the note was empty' });
+  if (body.website) return reply(req, res, 200, { ok: true });    // honeypot: looks fine, keeps nothing
 
   const note = { name: clean(body.name, 100), email: clean(body.email, 200), bring: clean(body.bring, 2000) };
-  if (!note.name || !note.email || !note.bring) return res.status(400).json({ error: 'a name, an email and what you’d bring, please' });
+  if (!note.name || !note.email || !note.bring) return reply(req, res, 400, { error: 'a name, an email and what you’d bring, please' });
 
   const k = key();
-  if (!k) return res.status(503).json({ error: "notes can't be saved right now. try again later?" });
+  if (!k) return reply(req, res, 503, { error: "notes can't be saved right now. try again later?" });
   try {
     await put(BASE, JSON.stringify(seal({ submittedAt: new Date().toISOString(), note }, k)), {
       access: 'public', addRandomSuffix: true, contentType: 'application/json',
     });
   } catch (e) {
     console.error('morph-notes put failed:', e);
-    return res.status(503).json({ error: "notes can't be saved right now. try again later?" });
+    return reply(req, res, 503, { error: "notes can't be saved right now. try again later?" });
   }
-  return res.status(200).json({ ok: true });
+  return reply(req, res, 200, { ok: true });
 }
 
 async function read(req, res) {

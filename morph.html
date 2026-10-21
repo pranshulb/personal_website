@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>morphhouse</title>
 <meta name="description" content="for three weeks one winter, a regular house on the edge of london turned into a soft studio for ideas.">
+<meta property="og:title" content="morphhouse">
+<meta property="og:description" content="for three weeks one winter, a regular house on the edge of london turned into a soft studio for ideas. eight of us, one kitchen, no real plan.">
+<meta property="og:url" content="https://pranshul.cafe/morph">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#f5f2e6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231f8a4c'/><g transform='translate(50,52)' fill='%23f5f2e6'><path d='M0 -8 C-13 -24 -33 -16 -31 1 C-29 12 -10 9 0 -1 Z'/><path d='M0 -8 C13 -24 33 -16 31 1 C29 12 10 9 0 -1 Z'/><path d='M0 1 C-11 11 -27 17 -23 29 C-19 36 -4 29 0 14 Z'/><path d='M0 1 C11 11 27 17 23 29 C19 36 4 29 0 14 Z'/></g><rect x='48.7' y='24' width='2.6' height='44' fill='%23f5f2e6'/></svg>">
 <!--
   morphhouse, at /morph: a page about three weeks one winter in a house on the
@@ -49,7 +54,6 @@
   .ph { display:flex; align-items:center; justify-content:center; text-align:center; background:repeating-linear-gradient(45deg,#eef0e6,#eef0e6 9px,#e7eadf 9px,#e7eadf 18px); }
   .ph span { font-size:20px; color:var(--soft); }
   #note-form input::placeholder, #note-form textarea::placeholder { color:var(--soft); opacity:0.75; }
-  #draw-button:disabled { opacity:0.6; cursor:default; }
   .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
   @keyframes pageIn { from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
   @keyframes floaty { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-13px);} }
@@ -75,19 +79,19 @@
 <div class="page" style="position:relative; min-height:100%; overflow-x:hidden; isolation:isolate; animation:pageIn .55s ease both;">
 
   <div aria-hidden="true" style="position:absolute; inset:0; z-index:-1; pointer-events:none; overflow:hidden; opacity:0.4;">
-    <span style="position:absolute; top:120px; left:3%; width:66px; color:var(--yellow); transform:rotate(-8deg); opacity:0.72;"><span style="display:block; animation:floaty 7s ease-in-out infinite;"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="40" cy="40" r="14"></circle><path d="M40 4v12M40 64v12M4 40h12M64 40h12M15 15l8 8M57 57l8 8M65 15l-8 8M23 57l-8 8"></path></svg></span></span>
-    <span style="position:absolute; top:230px; right:5%; width:58px; color:var(--orange); transform:rotate(6deg); opacity:0.7;"><span style="display:block; animation:floaty 9s ease-in-out infinite .6s;"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M40 40 C40 31 31 31 31 40 C31 53 49 53 49 38 C49 19 25 19 25 40 C25 64 59 64 59 36"></path></svg></span></span>
-    <span style="position:absolute; top:47%; left:5%; width:46px; color:var(--violet); transform:rotate(-12deg); opacity:0.6;"><span style="display:block; animation:floaty 8s ease-in-out infinite .3s;"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M30 8V52M10 18L50 42M50 18L10 42"></path></svg></span></span>
-    <span style="position:absolute; top:40%; right:4%; width:116px; color:var(--coral); transform:rotate(-4deg); opacity:0.6;"><span style="display:block; animation:floaty 10s ease-in-out infinite .9s;"><svg viewBox="0 0 120 30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 18 C16 4 24 4 36 18 C48 32 56 32 68 18 C80 4 88 4 100 18 C108 28 112 28 116 22"></path></svg></span></span>
-    <span style="position:absolute; bottom:20%; left:4%; width:74px; color:var(--orange); transform:rotate(10deg); opacity:0.66;"><span style="display:block; animation:floaty 8.5s ease-in-out infinite .4s;"><svg viewBox="0 0 90 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 30 C30 10 60 10 82 28"></path><path d="M68 18L84 28L70 40"></path></svg></span></span>
-    <span style="position:absolute; bottom:24%; right:5%; width:58px; color:var(--yellow); transform:rotate(-6deg); opacity:0.72;"><span style="display:block; animation:floaty 7.5s ease-in-out infinite .8s;"><svg viewBox="0 0 70 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M35 8L64 56L6 56Z"></path></svg></span></span>
-    <span style="position:absolute; bottom:7%; left:14%; width:52px; color:var(--pen); transform:rotate(8deg); opacity:0.5;"><span style="display:block; animation:floaty 9.5s ease-in-out infinite .2s;"><svg viewBox="0 0 70 70" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M35 6 C56 6 64 22 64 35 C64 52 50 64 35 64 C16 64 6 50 6 35 C6 18 18 6 35 6"></path></svg></span></span>
-    <span style="position:absolute; top:63%; right:13%; width:50px; color:var(--coral); transform:rotate(-10deg); opacity:0.5;"><span style="display:block; animation:floaty 8s ease-in-out infinite 1.1s;"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M16 10v10M11 15h10M44 26v10M39 31h10M26 44v8M22 48h8"></path></svg></span></span>
+    <span style="position:absolute; top:120px; left:3%; width:66px; color:var(--yellow); transform:rotate(-8deg); opacity:0.72;"><span style="display:block; animation:floaty 7s ease-in-out infinite;"><svg aria-hidden="true" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="40" cy="40" r="14"></circle><path d="M40 4v12M40 64v12M4 40h12M64 40h12M15 15l8 8M57 57l8 8M65 15l-8 8M23 57l-8 8"></path></svg></span></span>
+    <span style="position:absolute; top:230px; right:5%; width:58px; color:var(--orange); transform:rotate(6deg); opacity:0.7;"><span style="display:block; animation:floaty 9s ease-in-out infinite .6s;"><svg aria-hidden="true" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M40 40 C40 31 31 31 31 40 C31 53 49 53 49 38 C49 19 25 19 25 40 C25 64 59 64 59 36"></path></svg></span></span>
+    <span style="position:absolute; top:47%; left:5%; width:46px; color:var(--violet); transform:rotate(-12deg); opacity:0.6;"><span style="display:block; animation:floaty 8s ease-in-out infinite .3s;"><svg aria-hidden="true" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M30 8V52M10 18L50 42M50 18L10 42"></path></svg></span></span>
+    <span style="position:absolute; top:40%; right:4%; width:116px; color:var(--coral); transform:rotate(-4deg); opacity:0.6;"><span style="display:block; animation:floaty 10s ease-in-out infinite .9s;"><svg aria-hidden="true" viewBox="0 0 120 30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 18 C16 4 24 4 36 18 C48 32 56 32 68 18 C80 4 88 4 100 18 C108 28 112 28 116 22"></path></svg></span></span>
+    <span style="position:absolute; bottom:20%; left:4%; width:74px; color:var(--orange); transform:rotate(10deg); opacity:0.66;"><span style="display:block; animation:floaty 8.5s ease-in-out infinite .4s;"><svg aria-hidden="true" viewBox="0 0 90 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 30 C30 10 60 10 82 28"></path><path d="M68 18L84 28L70 40"></path></svg></span></span>
+    <span style="position:absolute; bottom:24%; right:5%; width:58px; color:var(--yellow); transform:rotate(-6deg); opacity:0.72;"><span style="display:block; animation:floaty 7.5s ease-in-out infinite .8s;"><svg aria-hidden="true" viewBox="0 0 70 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M35 8L64 56L6 56Z"></path></svg></span></span>
+    <span style="position:absolute; bottom:7%; left:14%; width:52px; color:var(--pen); transform:rotate(8deg); opacity:0.5;"><span style="display:block; animation:floaty 9.5s ease-in-out infinite .2s;"><svg aria-hidden="true" viewBox="0 0 70 70" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M35 6 C56 6 64 22 64 35 C64 52 50 64 35 64 C16 64 6 50 6 35 C6 18 18 6 35 6"></path></svg></span></span>
+    <span style="position:absolute; top:63%; right:13%; width:50px; color:var(--coral); transform:rotate(-10deg); opacity:0.5;"><span style="display:block; animation:floaty 8s ease-in-out infinite 1.1s;"><svg aria-hidden="true" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M16 10v10M11 15h10M44 26v10M39 31h10M26 44v8M22 48h8"></path></svg></span></span>
   </div>
 
-  <div class="m-nav" style="max-width:1080px; margin:0 auto; padding:26px 34px; display:flex; align-items:center; justify-content:space-between; gap:18px;">
+  <nav class="m-nav" aria-label="morphhouse" style="max-width:1080px; margin:0 auto; padding:26px 34px; display:flex; align-items:center; justify-content:space-between; gap:18px;">
     <a href="#top" style="display:flex; align-items:center; gap:8px; text-decoration:none;">
-      <span data-morph-mark="1" style="width:28px; height:28px; color:var(--pen); display:inline-flex;"><svg viewBox="0 0 60 60" style="width:100%; height:100%; overflow:visible;"><g class="cat" style="opacity:1; transition:opacity 1.1s linear;"><circle cx="51" cy="41" r="5.4" fill="currentColor" opacity="0.85"></circle><circle cx="42" cy="41" r="6.4" fill="currentColor"></circle><circle cx="33" cy="41" r="6.7" fill="currentColor" opacity="0.85"></circle><circle cx="24" cy="41" r="6.7" fill="currentColor"></circle><circle cx="15" cy="40" r="7" fill="currentColor"></circle><circle cx="12" cy="36" r="1.3" fill="#f5f2e6"></circle></g><g class="chry" style="opacity:0; transition:opacity 1.1s linear; transform-box:fill-box; transform-origin:50% 0;"><path d="M30 9 V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M30 10 C23 14 21 26 24 39 C26 49 34 49 36 39 C39 26 37 14 30 10 Z" fill="currentColor"></path></g><g class="fly" style="opacity:0; transition:opacity 1.1s linear;"><g class="wings" fill="currentColor" style="transform-box:fill-box; transform-origin:center; transform:scaleX(0); transition:transform 1.1s linear;"><path d="M30 23 C18 9 6 15 8 27 C9 34 22 31 30 25 Z"></path><path d="M30 23 C42 9 54 15 52 27 C51 34 38 31 30 25 Z"></path><path d="M30 30 C21 36 11 40 14 48 C17 54 28 48 30 38 Z"></path><path d="M30 30 C39 36 49 40 46 48 C43 54 32 48 30 38 Z"></path></g><path d="M30 18 V44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><circle cx="30" cy="16" r="2.2" fill="currentColor"></circle><path d="M30 16 C28 10 24 8 21 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><path d="M30 16 C32 10 36 8 39 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></g></svg></span>
+      <span data-morph-mark="1" style="width:28px; height:28px; color:var(--pen); display:inline-flex;"><svg aria-hidden="true" viewBox="0 0 60 60" style="width:100%; height:100%; overflow:visible;"><g class="cat" style="opacity:1; transition:opacity 1.1s linear;"><circle cx="51" cy="41" r="5.4" fill="currentColor" opacity="0.85"></circle><circle cx="42" cy="41" r="6.4" fill="currentColor"></circle><circle cx="33" cy="41" r="6.7" fill="currentColor" opacity="0.85"></circle><circle cx="24" cy="41" r="6.7" fill="currentColor"></circle><circle cx="15" cy="40" r="7" fill="currentColor"></circle><circle cx="12" cy="36" r="1.3" fill="#f5f2e6"></circle></g><g class="chry" style="opacity:0; transition:opacity 1.1s linear; transform-box:fill-box; transform-origin:50% 0;"><path d="M30 9 V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M30 10 C23 14 21 26 24 39 C26 49 34 49 36 39 C39 26 37 14 30 10 Z" fill="currentColor"></path></g><g class="fly" style="opacity:0; transition:opacity 1.1s linear;"><g class="wings" fill="currentColor" style="transform-box:fill-box; transform-origin:center; transform:scaleX(0); transition:transform 1.1s linear;"><path d="M30 23 C18 9 6 15 8 27 C9 34 22 31 30 25 Z"></path><path d="M30 23 C42 9 54 15 52 27 C51 34 38 31 30 25 Z"></path><path d="M30 30 C21 36 11 40 14 48 C17 54 28 48 30 38 Z"></path><path d="M30 30 C39 36 49 40 46 48 C43 54 32 48 30 38 Z"></path></g><path d="M30 18 V44" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><circle cx="30" cy="16" r="2.2" fill="currentColor"></circle><path d="M30 16 C28 10 24 8 21 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><path d="M30 16 C32 10 36 8 39 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></g></svg></span>
     <span style="font-family:var(--font-display),serif; font-style:italic; font-weight:500; font-size:23px; color:var(--ink);">morphhouse</span></a>
     <div class="m-navlinks" style="font-family:'IM Fell English',serif; display:flex; align-items:center; gap:22px; font-size:21px; color:var(--ink);">
       <a href="#what" style="text-decoration:none;">what happened</a>
@@ -95,23 +99,25 @@
       <a href="#cast" style="text-decoration:none;">who</a>
       <a href="#next" style="text-decoration:none; color:var(--pen);">come next time →</a>
     </div>
-  </div>
+  </nav>
+
+  <main>
 
   <header id="top" style="position:relative; max-width:1080px; margin:0 auto; padding:46px 34px 20px;">
-    <div class="scr" style="font-size:28px; color:var(--pen); transform:rotate(-1.5deg); margin-bottom:6px;">a little winter experiment ✶ dec '25 → jan '26 <span style="display:inline-block; width:74px; color:var(--pen); vertical-align:-3px;"><svg viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 30 C30 26 60 30 96 14"></path><path d="M28 28 C24 18 30 14 38 14 C34 22 32 26 28 28 Z"></path><path d="M52 27 C50 17 56 13 64 14 C59 21 57 25 52 27 Z"></path><path d="M76 22 C75 12 81 9 89 11 C84 17 81 20 76 22 Z"></path></svg></span></div>
+    <div class="scr" style="font-size:28px; color:var(--pen); transform:rotate(-1.5deg); margin-bottom:6px;">a little winter experiment ✶ dec '25 → jan '26 <span style="display:inline-block; width:74px; color:var(--pen); vertical-align:-3px;"><svg aria-hidden="true" viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 30 C30 26 60 30 96 14"></path><path d="M28 28 C24 18 30 14 38 14 C34 22 32 26 28 28 Z"></path><path d="M52 27 C50 17 56 13 64 14 C59 21 57 25 52 27 Z"></path><path d="M76 22 C75 12 81 9 89 11 C84 17 81 20 76 22 Z"></path></svg></span></div>
 
     <div style="position:relative; display:inline-block;">
       <h1 style="font-family:var(--font-display),serif; font-style:italic; font-weight:500; font-size:clamp(58px,11.5vw,150px); line-height:0.95; letter-spacing:-0.01em; color:var(--ink); margin:0;"><span>morphhouse</span><span class="mono" style="font-size:0.15em; vertical-align:0.85em; letter-spacing:0.12em; text-transform:uppercase; color:var(--soft); margin-left:0.1em;">est.&nbsp;'25</span></h1>
-      <span style="position:absolute; left:2%; bottom:-14px; width:78%; color:var(--pen); opacity:0.85;"><svg viewBox="0 0 400 16" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" preserveAspectRatio="none"><path d="M4 9 C70 2 110 14 180 7 C250 0 300 14 396 6"></path></svg></span>
-      <span class="m-vine" aria-hidden="true" style="position:absolute; left:-5%; bottom:-12%; width:clamp(30px,5.5vw,72px); pointer-events:none;"><svg viewBox="0 0 100 200" fill="none" style="width:100%; height:auto; display:block; overflow:visible;"><path d="M52 198 C50 160 64 150 54 120 C44 92 62 78 50 46 C42 24 54 14 52 2" stroke="var(--pen)" stroke-width="4" stroke-linecap="round"></path><path d="M54 120 C30 112 20 126 28 140 C46 142 58 134 54 120 Z" fill="#2aa35e"></path><path d="M50 150 C72 142 84 154 74 168 C56 168 46 160 50 150 Z" fill="var(--pen)"></path><path d="M50 92 C70 84 82 96 72 110 C54 110 46 102 50 92 Z" fill="var(--pen)"></path><path d="M52 60 C30 54 20 66 30 80 C48 80 58 72 52 60 Z" fill="#2aa35e"></path><path d="M52 30 C72 24 82 36 72 48 C56 48 48 40 52 30 Z" fill="#1f8a4c"></path><circle cx="52" cy="4" r="5" fill="var(--coral)"></circle></svg></span>
+      <span style="position:absolute; left:2%; bottom:-14px; width:78%; color:var(--pen); opacity:0.85;"><svg aria-hidden="true" viewBox="0 0 400 16" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" preserveAspectRatio="none"><path d="M4 9 C70 2 110 14 180 7 C250 0 300 14 396 6"></path></svg></span>
+      <span class="m-vine" aria-hidden="true" style="position:absolute; left:-5%; bottom:-12%; width:clamp(30px,5.5vw,72px); pointer-events:none;"><svg aria-hidden="true" viewBox="0 0 100 200" fill="none" style="width:100%; height:auto; display:block; overflow:visible;"><path d="M52 198 C50 160 64 150 54 120 C44 92 62 78 50 46 C42 24 54 14 52 2" stroke="var(--pen)" stroke-width="4" stroke-linecap="round"></path><path d="M54 120 C30 112 20 126 28 140 C46 142 58 134 54 120 Z" fill="#2aa35e"></path><path d="M50 150 C72 142 84 154 74 168 C56 168 46 160 50 150 Z" fill="var(--pen)"></path><path d="M50 92 C70 84 82 96 72 110 C54 110 46 102 50 92 Z" fill="var(--pen)"></path><path d="M52 60 C30 54 20 66 30 80 C48 80 58 72 52 60 Z" fill="#2aa35e"></path><path d="M52 30 C72 24 82 36 72 48 C56 48 48 40 52 30 Z" fill="#1f8a4c"></path><circle cx="52" cy="4" r="5" fill="var(--coral)"></circle></svg></span>
     </div>
 
-    <div class="scr m-aside" style="position:absolute; right:34px; top:300px; max-width:215px; color:var(--pen-deep); font-size:25px; line-height:1.2; transform:rotate(2.5deg);">
-      <span style="display:block; width:56px; color:var(--pen); transform:rotate(-18deg); margin:0 0 -2px 30px;"><svg viewBox="0 0 70 50" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M58 40 C40 40 16 32 8 12"></path><path d="M6 26 L7 9 L22 14"></path></svg></span>
-      ok it's literally my parents' house — they were away, don't tell them
-    </div>
 
     <p style="max-width:620px; font-size:clamp(21px,2.4vw,28px); line-height:1.5; margin-top:46px;">for three weeks this winter, a regular house on the edge of london turned into a <span style="background:linear-gradient(transparent 58%, var(--hi) 58%); padding:0 2px;">soft studio for ideas</span>. eight of us, one kitchen, no real plan.</p>
+    <div class="scr m-aside" style="position:absolute; right:34px; top:300px; max-width:215px; color:var(--pen-deep); font-size:25px; line-height:1.2; transform:rotate(2.5deg);">
+      <span style="display:block; width:56px; color:var(--pen); transform:rotate(-18deg); margin:0 0 -2px 30px;"><svg aria-hidden="true" viewBox="0 0 70 50" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M58 40 C40 40 16 32 8 12"></path><path d="M6 26 L7 9 L22 14"></path></svg></span>
+      ok it's literally my parents' house — they were away, don't tell them
+    </div>
     <p style="font-family:'Homemade Apple',cursive; font-size:22px; line-height:1.7; color:var(--pen-deep); margin-top:18px; max-width:560px;">this is me trying to remember what actually happened. ↓</p>
     <div style="margin-top:28px; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; font-family:'IM Fell English',serif; font-style:italic; font-size:24px; color:var(--pen-deep);">
       <span><span style="font-family:'Playfair Display',serif; font-style:italic; font-weight:500; font-size:34px; color:var(--ink);">eight</span> of us</span>
@@ -155,7 +161,7 @@
   <section id="what" style="max-width:1080px; margin:0 auto; padding:64px 34px 30px; scroll-margin-top:24px;">
     <div style="position:relative; display:inline-block; margin-bottom:26px;">
       <h2 class="h2" style="transform:rotate(-1.2deg);">what even happened</h2>
-      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg viewBox="0 0 300 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C60 1 90 13 150 6 C210 0 250 13 297 5"></path></svg></span>
+      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg aria-hidden="true" viewBox="0 0 300 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C60 1 90 13 150 6 C210 0 250 13 297 5"></path></svg></span>
     </div>
 
     <div class="m-stack" style="display:grid; grid-template-columns:1.4fr 0.9fr; gap:54px; align-items:start;">
@@ -166,7 +172,7 @@
       </div>
 
       <div class="scr" style="position:relative; color:var(--pen-deep); font-size:25px; line-height:1.25; padding-top:10px;">
-        <span style="display:block; width:54px; color:var(--pen); margin-bottom:2px;"><svg viewBox="0 0 70 50" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 C24 8 50 16 60 38"></path><path d="M48 34 L62 41 L62 26"></path></svg></span>
+        <span style="display:block; width:54px; color:var(--pen); margin-bottom:2px;"><svg aria-hidden="true" viewBox="0 0 70 50" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 C24 8 50 16 60 38"></path><path d="M48 34 L62 41 L62 26"></path></svg></span>
         i run bigger things than this — an unconference, hundreds of people. this is the one i actually think about.
         <span style="display:block; font-size:21px; color:var(--soft); margin-top:8px;">— me, after, still thinking about it</span>
       </div>
@@ -176,7 +182,7 @@
   <section id="scrapbook" style="max-width:1080px; margin:0 auto; padding:46px 34px 56px; scroll-margin-top:24px;">
     <div style="position:relative; display:inline-block; margin-bottom:8px;">
       <h2 class="h2" style="transform:rotate(1deg);">the scrapbook</h2>
-      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg viewBox="0 0 240 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C50 2 76 13 120 6 C168 0 200 13 237 5"></path></svg></span>
+      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg aria-hidden="true" viewBox="0 0 240 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C50 2 76 13 120 6 C168 0 200 13 237 5"></path></svg></span>
     </div>
     <p class="scr" style="font-size:23px; color:var(--soft); margin-bottom:36px;">everything i could remember, taped up. (more coming once people send me theirs)</p>
 
@@ -219,7 +225,7 @@
       </div>
 
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border:2px dashed var(--pen); padding:30px 26px; transform:rotate(1deg); align-self:center;">
-        <span style="width:26px; color:var(--pen); margin-bottom:8px;"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M30 6 C31 22 30 38 30 54"></path><path d="M6 30 C22 29 38 31 54 30"></path><path d="M13 13 C24 23 36 37 47 47"></path><path d="M47 13 C37 24 23 36 13 47"></path></svg></span>
+        <span style="width:26px; color:var(--pen); margin-bottom:8px;"><svg aria-hidden="true" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M30 6 C31 22 30 38 30 54"></path><path d="M6 30 C22 29 38 31 54 30"></path><path d="M13 13 C24 23 36 37 47 47"></path><path d="M47 13 C37 24 23 36 13 47"></path></svg></span>
         <span class="scr" style="font-size:23px; color:var(--pen); line-height:1.1;">your bit<br>goes here</span>
       </div>
 
@@ -229,7 +235,7 @@
   <section id="cast" style="max-width:1080px; margin:0 auto; padding:40px 34px 56px; scroll-margin-top:24px;">
     <div style="position:relative; display:inline-block; margin-bottom:14px;">
       <h2 class="h2" style="transform:rotate(-1deg);">the eight of us</h2>
-      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg viewBox="0 0 240 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C50 2 76 13 120 6 C168 0 200 13 237 5"></path></svg></span>
+      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg aria-hidden="true" viewBox="0 0 240 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C50 2 76 13 120 6 C168 0 200 13 237 5"></path></svg></span>
     </div>
     <p class="scr" style="font-size:23px; color:var(--soft); margin-bottom:30px;">everyone who said yes to a slightly strange idea ↓</p>
 
@@ -290,18 +296,18 @@
 
     <div style="margin-top:22px; background:#fbfaf4; border:1px solid var(--line); box-shadow:2px 5px 0 rgba(22,58,44,0.08); position:relative;">
       <span style="position:absolute; top:-11px; left:26px; width:78px; height:21px; background:var(--tape); transform:rotate(-4deg);"></span>
-      <div id="loading-indicator" style="position:absolute; top:14px; left:18px; font-family:'IM Fell English SC',serif; letter-spacing:0.08em; text-transform:uppercase; font-size:13px; color:var(--soft);"></div>
-      <div id="save-button" title="download this as an SVG" style="display:none; position:absolute; top:13px; right:14px; width:22px; height:22px; cursor:pointer; color:var(--soft);"><svg height="22" width="22" viewBox="0 0 512 512" fill="currentColor"><path d="m409.8 278.5-153.8 153.8-153.8-153.8 28.3-28.3 105.5 105.5v-355.7h40v355.7l105.5-105.5zm102.2 193.5h-512v40h512zm0 0"></path></svg></div>
-      <svg id="canvas" width="1240" height="300" viewBox="0 0 1240 300" style="width:100%; height:auto; display:block; background:linear-gradient(to bottom, transparent calc(56.6% - 1px), var(--line) calc(56.6% - 1px), var(--line) 56.6%, transparent 56.6%);"><path id="path" d="" fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <div id="loading-indicator" aria-live="polite" style="position:absolute; top:14px; left:18px; font-family:'IM Fell English SC',serif; letter-spacing:0.08em; text-transform:uppercase; font-size:13px; color:var(--soft);"></div>
+      <button type="button" id="save-button" title="download this as an SVG" aria-label="download this as an SVG" style="display:none; position:absolute; top:13px; right:14px; width:22px; height:22px; padding:0; border:0; background:none; cursor:pointer; color:var(--soft);"><svg height="22" width="22" viewBox="0 0 512 512" fill="currentColor" aria-hidden="true"><path d="m409.8 278.5-153.8 153.8-153.8-153.8 28.3-28.3 105.5 105.5v-355.7h40v355.7l105.5-105.5zm102.2 193.5h-512v40h512zm0 0"></path></svg></button>
+      <svg id="canvas" role="img" aria-label="the handwriting" width="1240" height="300" viewBox="0 0 1240 300" style="width:100%; height:auto; display:block; background:linear-gradient(to bottom, transparent calc(56.6% - 1px), var(--line) calc(56.6% - 1px), var(--line) 56.6%, transparent 56.6%);"><path id="path" d="" fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"></path></svg>
     </div>
 
     <form id="pen-form" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; align-items:stretch;">
-      <input id="text-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="type something…" maxlength="50" style="flex:1 1 260px; min-width:0; font-family:'Courier New',monospace; letter-spacing:2px; font-size:18px; padding:12px 16px; background:#fff; border:1px solid var(--line); color:var(--ink); outline:none;">
+      <input id="text-input" type="text" aria-label="something to write" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="type something…" maxlength="50" style="flex:1 1 260px; min-width:0; font-family:'Courier New',monospace; letter-spacing:2px; font-size:18px; padding:12px 16px; background:#fff; border:1px solid var(--line); color:var(--ink); outline:none;">
       <button id="draw-button" type="submit" style="font-family:var(--font-display),serif; font-style:italic; font-size:23px; padding:8px 28px; background:var(--pen); color:#f5f2e6; border:none; cursor:pointer; white-space:nowrap;">write →</button>
     </form>
 
     <div style="display:flex; flex-wrap:wrap; gap:16px 28px; margin-top:18px; align-items:center; font-family:'IM Fell English',serif; font-size:19px; color:var(--pen-deep);">
-      <label style="display:flex; align-items:center; gap:8px;">legibility<input id="bias-slider" type="range" min="0.15" max="2.5" value="1.1" step="0.02" style="width:92px; accent-color:var(--pen);"></label>
+      <label style="display:flex; align-items:center; gap:8px;">legibility<input id="bias-slider" type="range" min="0.15" max="2.5" value="2" step="0.02" style="width:92px; accent-color:var(--pen);"></label>
       <label style="display:flex; align-items:center; gap:8px;">speed<input id="speed-slider" type="range" min="0.6" max="9.51" value="2.5" step="0.1" style="width:92px; accent-color:var(--pen);"></label>
       <label style="display:flex; align-items:center; gap:8px;">stroke<input id="width-slider" type="range" min="0.1" max="1.5" value="0.76" step="0.02" style="width:92px; accent-color:var(--pen);"></label>
     </div>
@@ -311,19 +317,19 @@
   <section id="next" style="max-width:760px; margin:0 auto; padding:50px 34px 30px; scroll-margin-top:24px;">
     <div style="position:relative; display:inline-block; margin-bottom:14px;">
       <h2 class="h2" style="transform:rotate(-1deg);">wanna come next time?</h2>
-      <span style="position:absolute; left:0; bottom:-12px; width:100%; color:var(--pen);"><svg viewBox="0 0 300 14" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C60 1 90 13 150 6 C210 0 250 13 297 5"></path></svg></span>
+      <span style="position:absolute; left:0; bottom:-12px; width:100%; color:var(--pen);"><svg aria-hidden="true" viewBox="0 0 300 14" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C60 1 90 13 150 6 C210 0 250 13 297 5"></path></svg></span>
     </div>
     <p style="font-size:21px; line-height:1.7; margin-bottom:4px;">i think i want to do this again. nothing's planned yet — no dates, no promises. but if it sounds like your kind of thing, leave a note. not an application. just say hi and tell me what you'd bring.</p>
 
-      <form id="note-form" style="margin-top:30px; background:#fbfaf4; border:1.5px solid var(--ink); padding:32px 30px; box-shadow:4px 6px 0 rgba(22,58,44,0.1); transform:rotate(-0.4deg);">
+      <form id="note-form" method="post" action="/api/morph-notes" style="margin-top:30px; background:#fbfaf4; border:1.5px solid var(--ink); padding:32px 30px; box-shadow:4px 6px 0 rgba(22,58,44,0.1); transform:rotate(-0.4deg);">
         <p class="scr" style="font-size:24px; color:var(--ink); line-height:2.1;">
           hi, i'm
-          <input type="text" name="name" required maxlength="100" autocomplete="name" placeholder="your name" class="scr" style="max-width:100%; border:none; border-bottom:2px solid var(--pen); background:transparent; font-size:24px; color:var(--pen-deep); padding:0 6px; outline:none; min-width:180px;">
+          <input type="text" name="name" aria-label="your name" required maxlength="100" autocomplete="name" placeholder="your name" class="scr" style="max-width:100%; border:none; border-bottom:2px solid var(--pen); background:transparent; font-size:24px; color:var(--pen-deep); padding:0 6px; outline:none; min-width:180px;">
           — reach me at
-          <input type="email" name="email" required maxlength="200" autocomplete="email" placeholder="your@email" class="scr" style="max-width:100%; border:none; border-bottom:2px solid var(--pen); background:transparent; font-size:24px; color:var(--pen-deep); padding:0 6px; outline:none; min-width:200px;">.
+          <span style="white-space:nowrap;"><input type="email" name="email" aria-label="your email" required maxlength="200" autocomplete="email" placeholder="your@email" class="scr" style="max-width:calc(100% - 10px); border:none; border-bottom:2px solid var(--pen); background:transparent; font-size:24px; color:var(--pen-deep); padding:0 6px; outline:none; min-width:200px;">.</span>
         </p>
         <p class="scr" style="font-size:24px; color:var(--ink); margin-top:14px;">what i'd bring to the house:</p>
-        <textarea name="bring" required maxlength="2000" rows="3" placeholder="an idea, a skill, a pot of something, a question i can't stop thinking about…" class="scr" style="width:100%; margin-top:8px; border:none; background:repeating-linear-gradient(transparent,transparent 37px,var(--line) 37px,var(--line) 39px); font-size:23px; line-height:39px; color:var(--pen-deep); padding:0 4px; outline:none; resize:vertical;"></textarea>
+        <textarea name="bring" aria-label="what you'd bring to the house" required maxlength="2000" rows="3" placeholder="an idea, a skill, a pot of something, a question i can't stop thinking about…" class="scr" style="width:100%; margin-top:8px; border:none; background:repeating-linear-gradient(transparent,transparent 37px,var(--line) 37px,var(--line) 39px); font-size:23px; line-height:39px; color:var(--pen-deep); padding:0 4px; outline:none; resize:vertical;"></textarea>
         <label class="hp" aria-hidden="true">leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         <button type="submit" style="margin-top:22px; font-family:var(--font-display),serif; font-style:italic; font-size:23px; background:var(--pen); color:#f5f2e6; border:none; padding:8px 28px; cursor:pointer; transform:rotate(-1deg); box-shadow:3px 4px 0 rgba(22,58,44,0.25);">leave my note →</button>
         <p id="note-err" class="scr" role="alert" style="font-size:21px; color:var(--coral); margin-top:12px; min-height:1.2em;"></p>
@@ -335,12 +341,14 @@
       </div>
   </section>
 
+  </main>
+
   <footer style="max-width:1080px; margin:0 auto; padding:50px 34px 70px;">
     <div style="border-top:1px dashed var(--line); padding-top:26px; display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px;">
       <div class="hw" style="font-size:23px; color:var(--ink); line-height:1.4;">
         <span class="scr" style="display:inline-block; font-size:27px; color:var(--ink);">made by pranshul that winter</span><br>
         <span class="mono" style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--soft);">on the edge of london, dec '25 → jan '26</span>
-        <span style="display:block; width:96px; color:var(--pen); margin-top:10px; opacity:0.9;"><svg viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 30 C30 26 60 30 96 14"></path><path d="M28 28 C24 18 30 14 38 14 C34 22 32 26 28 28 Z"></path><path d="M52 27 C50 17 56 13 64 14 C59 21 57 25 52 27 Z"></path><path d="M76 22 C75 12 81 9 89 11 C84 17 81 20 76 22 Z"></path></svg></span>
+        <span style="display:block; width:96px; color:var(--pen); margin-top:10px; opacity:0.9;"><svg aria-hidden="true" viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 30 C30 26 60 30 96 14"></path><path d="M28 28 C24 18 30 14 38 14 C34 22 32 26 28 28 Z"></path><path d="M52 27 C50 17 56 13 64 14 C59 21 57 25 52 27 Z"></path><path d="M76 22 C75 12 81 9 89 11 C84 17 81 20 76 22 Z"></path></svg></span>
       </div>
       <div class="hw" style="display:flex; gap:24px; font-size:23px; color:var(--pen);">
         <a href="https://pranshul.cafe" style="text-decoration:underline; text-decoration-style:wavy; text-underline-offset:4px;">pranshul.cafe</a>
@@ -386,13 +394,15 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var svg = $('canvas'), path = $('path'), ind = $('loading-indicator'), save = $('save-button');
-  var input = $('text-input'), btn = $('draw-button'), form = $('pen-form');
+  var input = $('text-input'), form = $('pen-form');
   var neat = $('bias-slider'), speed = $('speed-slider'), width = $('width-slider');
   var MODEL = '/visitors/hand-v1.bin';
   var W = 1240, LINE = 170;            // the box's ruled line is 56.6% down its 300
   var REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var worker = null, job = 0, ready = false;
+  // the button never greys out: writing again mid-line starts the new line
+  // (a disabled submit button would also stop Enter from submitting)
+  var worker = null, job = 0, ready = false, busy = false;
   var pts = [], chars = 1, shown = 0, done = false, view = null, raf = 0, last = 0;
   var dots = 0, dotTimer = 0;
 
@@ -407,7 +417,7 @@
     try { worker = new Worker('/morph/pen-worker.js'); }
     catch (e) { say("the pen didn't load"); return; }
     worker.onmessage = onMessage;
-    worker.onerror = function () { say('the pen stopped working. reload to try again'); btn.disabled = false; };
+    worker.onerror = function () { say('the pen stopped working. reload to try again'); busy = false; };
   }
   function load() { ensure(); if (worker && !ready) { say('loading', true); worker.postMessage({ type: 'load', url: MODEL }); } }
 
@@ -417,7 +427,7 @@
     ensure(); if (!worker) return;
     job++; pts = []; shown = 0; done = false; chars = text.length; view = null;
     path.setAttribute('d', ''); save.style.display = 'none';
-    btn.disabled = true;
+    busy = true;
     say(ready ? 'writing' : 'loading', true);
     worker.postMessage({ type: 'write', id: job, text: text, neat: parseFloat(neat.value), url: MODEL });
     go();
@@ -425,7 +435,7 @@
 
   function onMessage(e) {
     var m = e.data;
-    if (m.type === 'ready') { ready = true; if (!btn.disabled) say(''); return; }
+    if (m.type === 'ready') { ready = true; if (!busy) say(''); return; }
     if (m.id !== job) return;
     if (m.type === 'ink') {
       if (!ready) { ready = true; say('writing', true); }
@@ -439,20 +449,21 @@
       m.strokes.forEach(function (s) {
         for (var i = 0; i < s.length; i += 2) out.push([s[i] * 4, s[i + 1] * 4, i + 2 >= s.length ? 1 : 0]);
       });
-      finish(out);
+      finish(out, job);
     } else if (m.type === 'typed') {
-      say('the pen only knows the latin alphabet so far'); btn.disabled = false;
+      say('the pen only knows the latin alphabet so far'); busy = false;
     } else if (m.type === 'fail') {
-      say("the pen couldn't manage that one. try again?"); btn.disabled = false;
+      say("the pen couldn't manage that one. try again?"); busy = false;
     } else if (m.type === 'error') {
-      ready = false; say("the pen couldn't be fetched. try again?"); btn.disabled = false;
+      ready = false; say("the pen couldn't be fetched. try again?"); busy = false;
     }
   }
   // wait until what has come so far is drawn, then put the clean strokes in
-  function finish(clean) {
-    if (shown < pts.length && !REDUCE) { setTimeout(function () { finish(clean); }, 60); return; }
+  function finish(clean, id) {
+    if (id !== job) return;               // a newer line was started meanwhile
+    if (shown < pts.length && !REDUCE) { setTimeout(function () { finish(clean, id); }, 60); return; }
     pts = clean; shown = clean.length; done = true;
-    say(''); btn.disabled = false; save.style.display = '';
+    say(''); busy = false; save.style.display = '';
     go();
   }
 
@@ -471,7 +482,7 @@
   function frame(now) {
     raf = 0;
     var dt = Math.min(0.1, (now - last) / 1000); last = now;
-    if (!pts.length) { path.setAttribute('d', ''); if (!done && btn.disabled) go(); return; }
+    if (!pts.length) { path.setAttribute('d', ''); if (!done && busy) go(); return; }
     var rate = 28 * parseFloat(speed.value);                     // pen points a second
     shown = REDUCE ? pts.length : Math.min(pts.length, shown + rate * dt);
     var t = target();

@@ -39,9 +39,11 @@
   document.head.appendChild(st);
 
   // layer flows WITH the document (absolute, not fixed), spanning the full page height
+  // (pranshul.cafe: behind the page's words and paper, z-index -1, not over them at 70:
+  // a critter wandering across a sentence hid its words)
   var layer = document.createElement('div');
   layer.setAttribute('aria-hidden','true');
-  layer.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:70;';
+  layer.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:-1;';
 
   function docW(){ return document.documentElement.clientWidth || innerWidth; }
   function docH(){ return Math.max(document.body ? document.body.scrollHeight : 0, document.documentElement.scrollHeight, innerHeight); }
