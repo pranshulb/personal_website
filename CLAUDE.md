@@ -477,7 +477,10 @@ vercel.json                 routing, headers, proxies
   `method="post" action="/api/morph-notes"`: without its script it used to
   submit as a GET to itself, name and email in the address bar; the API
   answers such a post with a little page instead of JSON. The photo frames are empty until he
-  sends the photos. "wanna come next time?" goes to `/api/morph-notes`,
+  sends the photos. "the host" (`#host`, before "the eight of us"; the
+  nav's "who" goes there) is his portrait (`/images/pranshul.jpg`, as on
+  who-am-i) taped up beside `.host-desc`, which holds a placeholder until
+  he writes his description: his words, not ours. "wanna come next time?" goes to `/api/morph-notes`,
   which vercel.json rewrites to `api/compatibility.js?form=morph-notes`
   (handled in `api/_morph-notes.js`): a function of its own made 13, and
   the Hobby plan refuses a deployment with more than 12 (the build passes,

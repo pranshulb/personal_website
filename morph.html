@@ -53,6 +53,15 @@
   /* an empty photo frame, until the photos come */
   .ph { display:flex; align-items:center; justify-content:center; text-align:center; background:repeating-linear-gradient(45deg,#eef0e6,#eef0e6 9px,#e7eadf 9px,#e7eadf 18px); }
   .ph span { font-size:20px; color:var(--soft); }
+  /* the host: his photo taped up like the others, and his description beside it */
+  .host { display:grid; grid-template-columns:auto 1fr; gap:44px; align-items:start; }
+  .host-photo { position:relative; background:#fbfaf4; border:1px solid var(--line); padding:10px 10px 8px; box-shadow:2px 5px 0 rgba(22,58,44,0.08); transform:rotate(-2.5deg); width:max-content; }
+  .host-photo img { display:block; width:240px; height:280px; object-fit:cover; object-position:52% 38%; }
+  .host-tape { position:absolute; top:-12px; left:50%; width:78px; height:22px; margin-left:-39px; background:var(--tape); transform:rotate(-4deg); }
+  .host-name { font-size:24px; color:var(--ink); margin-top:6px; text-align:center; }
+  .host-desc { max-width:560px; font-size:21px; line-height:1.7; padding-top:8px; }
+  .host-desc p + p { margin-top:18px; }
+  .host-placeholder { min-height:200px; display:flex; align-items:center; justify-content:center; border:2px dashed var(--line); color:var(--soft); font-size:23px; transform:rotate(0.6deg); }
   #note-form input::placeholder, #note-form textarea::placeholder { color:var(--soft); opacity:0.75; }
   .hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
   @keyframes pageIn { from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
@@ -66,6 +75,9 @@
     header .m-vine { display:none!important; }
     .m-stack, .m-stack-2 { grid-template-columns:1fr!important; gap:28px!important; }
     .m-stack-2 { gap:0!important; }
+    .host { grid-template-columns:1fr; gap:28px; }
+    .host-photo { margin:0 auto; }
+    .host-placeholder { min-height:120px; }
   }
 </style>
 <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
@@ -92,7 +104,7 @@
     <div class="m-navlinks" style="font-family:'IM Fell English',serif; display:flex; align-items:center; gap:22px; font-size:21px; color:var(--ink);">
       <a href="#what" style="text-decoration:none;">what happened</a>
       <a href="#scrapbook" style="text-decoration:none;">the scrapbook</a>
-      <a href="#cast" style="text-decoration:none;">who</a>
+      <a href="#host" style="text-decoration:none;">who</a>
       <a href="#next" style="text-decoration:none; color:var(--pen);">come next time →</a>
     </div>
   </nav>
@@ -221,6 +233,25 @@
         <span class="scr" style="font-size:23px; color:var(--pen); line-height:1.1;">your bit<br>goes here</span>
       </div>
 
+    </div>
+  </section>
+
+  <section id="host" style="max-width:1080px; margin:0 auto; padding:40px 34px 40px; scroll-margin-top:24px;">
+    <div style="position:relative; display:inline-block; margin-bottom:30px;">
+      <h2 class="h2" style="transform:rotate(1deg);">the host</h2>
+      <span style="position:absolute; left:0; bottom:-10px; width:100%; color:var(--pen);"><svg aria-hidden="true" viewBox="0 0 240 14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" preserveAspectRatio="none"><path d="M3 8 C50 2 76 13 120 6 C168 0 200 13 237 5"></path></svg></span>
+    </div>
+
+    <div class="host">
+      <div class="host-photo">
+        <span class="host-tape" aria-hidden="true"></span>
+        <img src="/images/pranshul.jpg" alt="pranshul" width="1200" height="797" loading="lazy" decoding="async">
+        <div class="scr host-name">pranshul</div>
+      </div>
+      <!-- the description: replace the placeholder <p> with his own words -->
+      <div class="host-desc">
+        <p class="host-placeholder scr">(a few lines about me, soon)</p>
+      </div>
     </div>
   </section>
 
