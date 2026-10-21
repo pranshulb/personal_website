@@ -8,9 +8,10 @@
    are kept (api/guestbook.js) so everyone sees the same signature. The
    ~3.8 MB network loads only when someone starts writing; reading the book
    is just the saved strokes, drawn as SVG.
-   Or "sign it myself" (October 2026): a pad to sign on, or draw a little
-   doodle, with a mouse, a pen or a finger, no name needed; the drawing is
-   smoothed into the same ink as the pen's and kept as drawn.
+   Or "sign it myself" (October 2026; the first tab, open when the book
+   opens): a pad to sign on, or draw a little doodle, with a mouse, a pen or
+   a finger, no name needed; the drawing is smoothed into the same ink as
+   the pen's and kept as drawn.
 ====================================================================== */
 (() => {
   // its stylesheet and its page, added once to whichever page loads this
@@ -27,10 +28,10 @@
         <button type="button" class="vb-close" id="vb-close" aria-label="close the guestbook">&times;</button>
         <h2 class="vb-title" id="vb-title">guestbook</h2>
         <div class="vb-tabs" role="tablist" aria-label="how to sign">
-          <button type="button" class="vb-tab" role="tab" id="vb-tab-pen" aria-selected="true" aria-controls="vb-pen">write it for me</button>
-          <button type="button" class="vb-tab" role="tab" id="vb-tab-hand" aria-selected="false" aria-controls="vb-hand" tabindex="-1">sign it myself</button>
+          <button type="button" class="vb-tab" role="tab" id="vb-tab-hand" aria-selected="true" aria-controls="vb-hand">sign it myself</button>
+          <button type="button" class="vb-tab" role="tab" id="vb-tab-pen" aria-selected="false" aria-controls="vb-pen" tabindex="-1">write it for me</button>
         </div>
-        <div id="vb-pen" role="tabpanel" aria-labelledby="vb-tab-pen">
+        <div id="vb-pen" role="tabpanel" aria-labelledby="vb-tab-pen" hidden>
         <form class="vb-form" id="vb-form" autocomplete="off">
           <label class="vb-hp" for="vb-name">your name</label>
           <input id="vb-name" name="name" maxlength="40" placeholder="your name" required enterkeyhint="go">
@@ -46,7 +47,7 @@
           </div>
         </div>
         </div>
-        <div id="vb-hand" role="tabpanel" aria-labelledby="vb-tab-hand" hidden>
+        <div id="vb-hand" role="tabpanel" aria-labelledby="vb-tab-hand">
           <div class="vb-pad-wrap">
             <canvas class="vb-pad" id="vb-pad" role="img" aria-label="a space to sign your name, or draw a little doodle, with a mouse, a pen or a finger"></canvas>
             <p class="vb-pad-hint" id="vb-pad-hint" aria-hidden="true">sign your name or just draw a lil doodle :)</p>
@@ -357,7 +358,7 @@
   penTab.addEventListener('click', () => pickTab(false));
   handTab.addEventListener('click', () => pickTab(true));
   for (const t of [penTab, handTab]) t.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pickTab(t === penTab, true); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pickTab(t === penTab, true); }   // the other one
   });
 
   // ---- signing by hand ----
@@ -368,7 +369,7 @@
   const handSign = $('vb-hand-sign'), handUndo = $('vb-hand-undo'), handClear = $('vb-hand-clear');
   const pc = pad.getContext('2d');
   const MAX_INK = 3500;   // points; the server takes 4000
-  let drawing = [], stroke = null, padW = 0, padH = 0;
+  let drawing = [], stroke = null, strokeId = null, padW = 0, padH = 0;
   const inkUsed = () => drawing.reduce((n, s) => n + s.length, 0);
   function sizePad() {
     const r = pad.getBoundingClientRect();
@@ -401,16 +402,17 @@
   }
   pad.addEventListener('pointerdown', (e) => {
     if (e.button > 0) return;
+    if (stroke && e.pointerId !== strokeId) return;   // a second finger: one line at a time (both used to feed one stroke, in zigzags)
     if (inkUsed() >= MAX_INK) { handStatus.textContent = 'that\'s all the ink this page holds: sign it, or start again'; return; }
     e.preventDefault();
     try { pad.setPointerCapture(e.pointerId); } catch (err) {}
-    stroke = [padPoint(e)];
+    stroke = [padPoint(e)]; strokeId = e.pointerId;
     drawing.push(stroke);
     handStatus.textContent = '';
     redrawPad();
   });
   pad.addEventListener('pointermove', (e) => {
-    if (!stroke) return;
+    if (!stroke || e.pointerId !== strokeId) return;
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     for (const ev of (evs.length ? evs : [e])) {
       const p = padPoint(ev), q = stroke[stroke.length - 1];
@@ -420,7 +422,7 @@
     }
     redrawPad();
   });
-  const endStroke = () => { stroke = null; };
+  const endStroke = (e) => { if (e.pointerId === strokeId) { stroke = null; strokeId = null; } };
   pad.addEventListener('pointerup', endStroke);
   pad.addEventListener('pointercancel', endStroke);
   pad.addEventListener('lostpointercapture', endStroke);
@@ -451,10 +453,14 @@
   }
   handSign.addEventListener('click', async () => {
     if (!drawing.length) return;
+    const strokes = drawnStrokes();
+    let w = 0, h = 0;
+    for (const s of strokes) for (let i = 0; i < s.length; i += 2) { w = Math.max(w, s[i]); h = Math.max(h, s[i + 1]); }
+    if (Math.max(w, h) < 8) { handStatus.textContent = 'that\'s just a speck: draw a little more'; return; }
     handSign.disabled = true; handUndo.disabled = true; handClear.disabled = true;
     handStatus.textContent = 'signing…';
     try {
-      await sendSignature({ drawn: true, strokes: drawnStrokes() });
+      await sendSignature({ drawn: true, strokes });
       drawing = []; redrawPad();
       handStatus.textContent = '';
     } catch (e) {

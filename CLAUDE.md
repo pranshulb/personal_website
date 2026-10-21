@@ -413,8 +413,9 @@ vercel.json                 routing, headers, proxies
   (`api/guestbook.js`, Blob key `guestbook.json`, through the community
   store's `mutate`), so everyone sees the same signature. Names the
   network can't write (other scripts) go in as typed, in the page font.
-  **Two ways to sign** (October 2026): tabs, "write it for me" (the pen,
-  above) and "sign it myself", a pad (`#vb-pad`) for a mouse, a pen or a
+  **Two ways to sign** (October 2026): tabs, "sign it myself" (first, and
+  open when the book opens — his call) and "write it for me" (the pen,
+  above); "sign it myself" is a pad (`#vb-pad`) for a mouse, a pen or a
   finger — "sign your name or just draw a lil doodle :)", no name needed,
   with undo and start again. Saved as `{ drawn: true, strokes }` in
   half-pixels of the pad (bounds: `cleanDrawn` in `api/guestbook.js`),

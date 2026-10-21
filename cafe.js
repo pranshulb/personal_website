@@ -197,14 +197,15 @@
     window.addEventListener('resize', resize);
     document.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse' && e.pointerType !== 'pen' && e.buttons === 0) return;
+      if (!e.isPrimary) return;   // a second finger doesn't pull the firefly back and forth
       look(e.target);
       moveTo(e.clientX, e.clientY);
     }, { passive: true });
     document.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch') { lastX = null; look(e.target); moveTo(e.clientX, e.clientY); }
+      if (e.pointerType === 'touch' && e.isPrimary) { lastX = null; look(e.target); moveTo(e.clientX, e.clientY); }
       if (hot) { press = 1; wake(); }
     }, { passive: true });
-    document.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') away(); }, { passive: true });
+    document.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch' && e.isPrimary) away(); }, { passive: true });
     document.addEventListener('pointercancel', away, { passive: true });
     document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) away(); });
     window.addEventListener('blur', away);
