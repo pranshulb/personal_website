@@ -6,7 +6,7 @@
 // back to a default secret written in this (public) repo, and a cookie signed
 // with a secret anyone can read proves nothing.
 
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 export const PRIVATE_COOKIE = 'pcafe_auth';
 
@@ -40,4 +40,22 @@ export function privateAuthed(req) {
   if (!payload || typeof payload !== 'object') return false;
   if (payload.e && Math.floor(Date.now() / 1000) > payload.e) return false;
   return true;
+}
+
+// Encryption for what people send through the private forms (api/compatibility.js,
+// api/_morph-notes.js): the Blob store is public, so each is sealed with
+// AES-256-GCM under a key the caller derives from PRIVATE_SECRET.
+export function seal(obj, k) {
+  const iv = randomBytes(12);
+  const c = createCipheriv('aes-256-gcm', k, iv);
+  const data = Buffer.concat([c.update(JSON.stringify(obj), 'utf8'), c.final()]);
+  return { v: 1, iv: iv.toString('base64'), tag: c.getAuthTag().toString('base64'), data: data.toString('base64') };
+}
+
+export function unseal(box, k) {
+  if (!box || box.v !== 1) throw new Error('not a sealed response');
+  const d = createDecipheriv('aes-256-gcm', k, Buffer.from(box.iv, 'base64'));
+  d.setAuthTag(Buffer.from(box.tag, 'base64'));
+  const plain = Buffer.concat([d.update(Buffer.from(box.data, 'base64')), d.final()]).toString('utf8');
+  return JSON.parse(plain);
 }

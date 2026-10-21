@@ -1067,9 +1067,10 @@ test('guestbook: a drawing can be bigger than a name, but not unbounded, and mus
 // the notes under "wanna come next time?" on /morph (api/morph-notes.js)
 // ======================================================================
 
-const morphNotes = await imp('api/morph-notes.js');
-const leaveNote = (note, headers = {}) => call(morphNotes, { method: 'POST', body: note, headers: { ...ip(), ...headers } });
-const readNotes = (cookie) => call(morphNotes, { method: 'GET', headers: { ...(cookie ? { cookie } : {}), ...ip() } });
+// served by api/compatibility.js, which vercel.json rewrites /api/morph-notes to
+const morphNotes = (req) => call(compat, { ...req, query: { ...(req.query || {}), form: 'morph-notes' } });
+const leaveNote = (note, headers = {}) => morphNotes({ method: 'POST', body: note, headers: { ...ip(), ...headers } });
+const readNotes = (cookie) => morphNotes({ method: 'GET', headers: { ...(cookie ? { cookie } : {}), ...ip() } });
 
 test('morph notes: stored encrypted, read back only behind the private login, newest first', () => withSecret(async () => {
   assert.equal((await leaveNote({ name: 'Ada', email: 'ada@example.com', bring: 'a pot of dal' })).statusCode, 200);
@@ -1118,7 +1119,7 @@ test('morph notes: only the private login deletes, by its own id; notes stay out
   await leaveNote({ name: 'Goes', email: 'g@g.co', bring: 'b' });
   const cookie = privateCookie('a real secret');
   const id = (await readNotes(cookie)).body.notes[0].id;
-  const del = (headers, qid = id) => call(morphNotes, { method: 'DELETE', query: { id: qid }, headers: { ...ip(), ...headers } });
+  const del = (headers, qid = id) => morphNotes({ method: 'DELETE', query: { id: qid }, headers: { ...ip(), ...headers } });
   assert.deepEqual(await getPending(), []);
   assert.deepEqual((await readBook()).entries, []);
   assert.equal((await readForms(cookie)).body.responses.length, 0);

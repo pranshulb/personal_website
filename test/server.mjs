@@ -29,7 +29,6 @@ const handlers = {
   edit: await imp('api/community/edit/[id].js'),
   guestbook: await imp('api/guestbook.js'),
   compatibility: await imp('api/compatibility.js'),
-  'morph-notes': await imp('api/morph-notes.js'),
 };
 
 let ipSeq = 1;
@@ -63,7 +62,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + req.headers.host);
   const m = url.pathname === '/api/guestbook' ? [null, 'guestbook']
     : url.pathname === '/api/compatibility' ? [null, 'compatibility']
-    : url.pathname === '/api/morph-notes' ? [null, 'morph-notes']
+    : url.pathname === '/api/morph-notes' ? [null, 'compatibility', undefined, 'morph-notes']   // the rewrite in vercel.json
     : url.pathname.match(/^\/api\/community\/([a-z-]+)(?:\/([^/]+))?$/);
   if (m) {
     if (process.env.LOG) console.log('REQ', req.method, url.pathname + url.search);
@@ -71,6 +70,7 @@ const server = http.createServer(async (req, res) => {
     if (!handler) { res.statusCode = 404; return res.end('no such function'); }
     req.query = Object.fromEntries(url.searchParams);
     if (m[2]) req.query.id = decodeURIComponent(m[2]);
+    if (m[3]) req.query.form = m[3];
     // Everything here comes from 127.0.0.1, which would put every test into
     // one rate-limit bucket. Each request gets its own IP unless a test pins
     // one (T.ip) to exercise the limiter on purpose.

@@ -19,9 +19,12 @@
 //     as "couldn't be read" on the responses page rather than vanishing.
 
 import { put, list, del } from '@vercel/blob';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { checkRate, clientIp, clean, sameOrigin } from './community/_store.js';
-import { privateAuthed } from './_private.js';
+import { privateAuthed, seal, unseal } from './_private.js';
+import morphNotes from './_morph-notes.js';
+
+export { seal, unseal };
 
 export const PREFIX = 'compatibility/';
 const BASE = PREFIX + 'response.json';           // stored as compatibility/response-<suffix>.json
@@ -35,20 +38,6 @@ function key() {
   return createHash('sha256').update('compatibility-form:' + secret).digest();
 }
 
-export function seal(obj, k) {
-  const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', k, iv);
-  const data = Buffer.concat([c.update(JSON.stringify(obj), 'utf8'), c.final()]);
-  return { v: 1, iv: iv.toString('base64'), tag: c.getAuthTag().toString('base64'), data: data.toString('base64') };
-}
-
-export function unseal(box, k) {
-  if (!box || box.v !== 1) throw new Error('not a sealed response');
-  const d = createDecipheriv('aes-256-gcm', k, Buffer.from(box.iv, 'base64'));
-  d.setAuthTag(Buffer.from(box.tag, 'base64'));
-  const plain = Buffer.concat([d.update(Buffer.from(box.data, 'base64')), d.final()]).toString('utf8');
-  return JSON.parse(plain);
-}
 
 // Keeps simple values under sane keys; text is stripped like every other form on the site.
 export function cleanAnswers(raw) {
@@ -150,6 +139,9 @@ async function remove(req, res) {
 }
 
 export default async function handler(req, res) {
+  // /api/morph-notes is served from here (a rewrite in vercel.json adds
+  // ?form=morph-notes): the Hobby plan allows 12 functions a deployment.
+  if (req.query && req.query.form === 'morph-notes') return morphNotes(req, res);
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'POST') return submit(req, res);
   if (req.method === 'GET') return read(req, res);

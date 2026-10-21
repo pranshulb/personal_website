@@ -469,8 +469,13 @@ vercel.json                 routing, headers, proxies
   pen instead, through `morph/pen-worker.js` (the legibility slider sets the
   first attempts' neatness, then the guestbook's ladder). It is not his
   handwriting, whatever the copy says. The photo frames are empty until he
-  sends the photos. "wanna come next time?" goes to `api/morph-notes.js`,
-  stored like the compatibility answers (one encrypted blob each under
+  sends the photos. "wanna come next time?" goes to `/api/morph-notes`,
+  which vercel.json rewrites to `api/compatibility.js?form=morph-notes`
+  (handled in `api/_morph-notes.js`): a function of its own made 13, and
+  the Hobby plan refuses a deployment with more than 12 (the build passes,
+  then the deploy fails with `exceeded_serverless_functions_per_deployment`,
+  and the site stays on the last good one). A new endpoint should ride on
+  an existing function the same way. Notes are stored like the compatibility answers (one encrypted blob each under
   `morph-notes/`, so changing `PRIVATE_SECRET` makes them unreadable), read
   at `/morph-notes` behind the private login (linked from /typeshit).
 

@@ -2,6 +2,10 @@
 // they'd bring to the house, and Pranshul reads them at /morph-notes (behind
 // the private login).
 //
+// Not a function of its own (the Hobby plan allows 12 a deployment):
+// vercel.json rewrites /api/morph-notes to /api/compatibility?form=morph-notes
+// and api/compatibility.js hands the request here.
+//
 //   POST   /api/morph-notes          { name, email, bring, website }  → { ok }  anyone
 //   GET    /api/morph-notes          → { notes: [...newest first] }           private login
 //   DELETE /api/morph-notes?id=...   remove one note                          private login
@@ -15,8 +19,7 @@
 import { put, list, del } from '@vercel/blob';
 import { createHash } from 'node:crypto';
 import { checkRate, clientIp, clean, sameOrigin } from './community/_store.js';
-import { privateAuthed } from './_private.js';
-import { seal, unseal } from './compatibility.js';
+import { privateAuthed, seal, unseal } from './_private.js';
 
 export const PREFIX = 'morph-notes/';
 const BASE = PREFIX + 'note.json';               // stored as morph-notes/note-<suffix>.json
