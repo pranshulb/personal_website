@@ -197,8 +197,8 @@ vercel.json                 routing, headers, proxies
 - **The pointer is a rose firefly on every page** (October 2026, "make the
   pointer uniform across all pages"): `/cafe.js` draws it (and its trail)
   on every café page, the home page, the garden, `/typeshit` and the
-  typewriter pages, on a canvas above everything (z-index 61: over the
-  petals and the guestbook), and hides the arrow everywhere
+  typewriter pages, as a few small elements in a layer above everything
+  (z-index 61: over the petals and the guestbook), and hides the arrow everywhere
   (`html.firefly, html.firefly * { cursor: none !important }`, injected by
   the script). It never turns back into the arrow or a hand ("i dont want
   it to convert to a cursor on links, but also it should be obvious when u
@@ -210,6 +210,15 @@ vercel.json                 routing, headers, proxies
   other visitors' fireflies (`drawFirefly`, same look: keep them the same).
   A new page gets it with `<script defer src="/cafe.js">`. Not on examined
   (its own repo), gladiator or shrek.
+  **Keep it off the main thread.** The first version drew it on a canvas
+  the size of the window, redrawn whole every frame even with the mouse
+  still, and the whole site felt slow on laptops and phones (November
+  2026; measured: books 60 → 47 frames a second, the garden 55 → 40, the
+  home page 40 → 31). Now nothing runs per frame: moving sets one
+  transform (once a frame at most), the flicker and the ring are CSS
+  animations of transform/opacity, the trail is a pool of 40 dots each
+  animated with `element.animate`, its position inside the keyframes.
+  Measure before adding anything that draws every frame on every page.
 - **Company on the home page** (September 2026): other visitors show as a
   small rose firefly (a deep-rose dot with a pale hot centre in a 13px
   flickering haze; after compassfellowship.app's fireflies) with a trail

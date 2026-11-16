@@ -35,48 +35,80 @@
 // brightens and wears a thin rose ring that breathes, and the ring tightens
 // for a moment when it is pressed. A finger gets the firefly under it while
 // it touches.
+//
+// It is a handful of small elements the browser only moves and fades (on
+// the graphics card), never repaints. The first version drew it on a canvas
+// the size of the window and redrew the whole of it every frame, even with
+// the mouse still; that was what made the site feel slow on laptops and
+// phones in November 2026 (the books list fell from 60 frames a second to
+// 47, the garden from 55 to 40). Nothing here runs per frame: the pointer
+// moving sets one transform, the flicker and the ring are CSS animations,
+// and each glow of the trail is a little animation of its own.
 (() => {
   const root = document.documentElement;
-  if (!window.requestAnimationFrame || !document.createElement('canvas').getContext) return;
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  let ownStyle = null;
-  if (fine) {
-    // the arrow hidden everywhere, whatever a page sets for its own buttons.
-    // Here rather than in cafe.css so that any page loading this gets it (the
-    // garden, the typewriter pages have no cafe.css).
-    ownStyle = document.createElement('style');
-    ownStyle.textContent = 'html.firefly, html.firefly * { cursor: none !important; }';
-    document.head.appendChild(ownStyle);
-    root.classList.add('firefly');
-  }
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // The firefly's look, and the arrow hidden everywhere, whatever a page sets
+  // for its own buttons. Here rather than in cafe.css so that any page
+  // loading this gets it (the garden, the typewriter pages have no cafe.css).
+  // The glows are the canvas version's: rgba(r, g, b, a) at the centre,
+  // 40% of a halfway out, nothing at the edge.
+  const glowCss = (r, g, b, a) => `radial-gradient(circle closest-side, rgba(${r},${g},${b},${a}) 0%, rgba(${r},${g},${b},${a * 0.4}) 50%, rgba(${r},${g},${b},0) 100%)`;
+  const ownStyle = document.createElement('style');
+  ownStyle.textContent = (fine ? 'html.firefly, html.firefly * { cursor: none !important; }\n' : '') + `
+.ff-layer { position: fixed; inset: 0; pointer-events: none; z-index: 61; overflow: hidden; contain: strict; }
+.ff-layer > div { position: absolute; left: 0; top: 0; }
+.ff { width: 0; height: 0; opacity: 0; transition: opacity 0.15s ease-out; will-change: transform; }
+.ff.on { opacity: 1; }
+.ff > i { position: absolute; display: block; border-radius: 50%; transition: scale 0.12s ease-out, opacity 0.12s ease-out; }
+.ff .ff-haze { left: -13px; top: -13px; width: 26px; height: 26px; }
+.ff .ff-haze > b { display: block; width: 100%; height: 100%; border-radius: 50%; background: ${glowCss(214, 51, 108, 0.45)}; }
+.ff .ff-body { left: -4.5px; top: -4.5px; width: 9px; height: 9px; background: ${glowCss(200, 30, 90, 1)}; }
+.ff .ff-core { left: -1.8px; top: -1.8px; width: 3.6px; height: 3.6px; background: ${glowCss(255, 236, 242, 1)}; }
+.ff .ff-ring { left: -14px; top: -14px; width: 28px; height: 28px; box-sizing: border-box; border: 1.3px solid rgb(196, 40, 96); opacity: 0; scale: 0.57; }
+.ff.hot .ff-haze { scale: 1.6; }
+.ff.hot .ff-body { scale: 1.3; }
+.ff.hot .ff-core { scale: 1.4; }
+.ff.hot .ff-ring { opacity: 0.85; scale: 1; }
+.ff.hot.press .ff-ring { scale: 0.7; transition-duration: 0.05s; }
+.ff-dot { width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; opacity: 0; background: ${glowCss(200, 30, 90, 1)}; }
+@keyframes ff-flicker { from { scale: 1; opacity: 0.75; } to { scale: 1.15; opacity: 1; } }
+@keyframes ff-ring { from { transform: scale(0.95); } to { transform: scale(1.05); } }
+.ff .ff-haze > b { animation: ff-flicker 1.65s ease-in-out infinite alternate; }
+.ff .ff-ring { animation: ff-ring 0.65s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .ff .ff-haze > b, .ff .ff-ring { animation: none; } }
+`;
+  document.head.appendChild(ownStyle);
+  if (fine) root.classList.add('firefly');
 
-  const cv = document.createElement('canvas');
-  cv.setAttribute('aria-hidden', 'true');
-  // above everything: the petals (petals.js, 60) and the guestbook (50)
-  cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:61';
-  const c = cv.getContext('2d');
-  let W = 0, H = 0, dpr = 1;
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  function paintGlow(r, g, b, a) {
-    const n = 64, s = document.createElement('canvas');
-    s.width = s.height = n;
-    const x = s.getContext('2d'), gr = x.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
-    gr.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
-    gr.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${a * 0.4})`);
-    gr.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-    x.fillStyle = gr; x.fillRect(0, 0, n, n);
-    return s;
-  }
-  const HAZE = paintGlow(214, 51, 108, 0.45), BODY = paintGlow(200, 30, 90, 1), CORE = paintGlow(255, 236, 242, 1);
-  function glow(x, y, r, a, sprite) {
-    if (a < 0.01) return;
-    c.globalAlpha = a; c.drawImage(sprite, x - r, y - r, 2 * r, 2 * r); c.globalAlpha = 1;
+  const layer = document.createElement('div');
+  layer.className = 'ff-layer';
+  layer.setAttribute('aria-hidden', 'true');
+  const ff = document.createElement('div');
+  ff.className = 'ff';
+  // the haze's flicker is on an inner layer, so being lit up can scale the outer one
+  ff.innerHTML = '<i class="ff-haze"><b></b></i><i class="ff-ring"></i><i class="ff-body"></i><i class="ff-core"></i>';
+  // the trail: forty glows, each used again in turn
+  const DOTS = 40, TRAIL_MS = 920;   // about a second, as the canvas version's 55 steps
+  const dots = [], anims = [];
+  for (let k = 0; k < DOTS; k++) { const d = document.createElement('div'); d.className = 'ff-dot'; dots.push(d); layer.appendChild(d); }
+  layer.appendChild(ff);
+  let nextDot = 0;
+  function dropDot(px, py) {
+    if (still) return;
+    const k = nextDot; nextDot = (nextDot + 1) % DOTS;
+    const d = dots[k];
+    if (anims[k]) anims[k].cancel();
+    // position and size in the animation itself, so nothing else is restyled
+    const at = 'translate(' + (px + (Math.random() * 2 - 1)).toFixed(1) + 'px, ' + (py + (Math.random() * 2 - 1)).toFixed(1) + 'px) scale(';
+    // opacity 0.6k² and size 0.5 + 0.5k as k runs from 1 to 0, as before
+    anims[k] = d.animate([
+      { opacity: 0.6, transform: at + '1)' },
+      { opacity: 0.6 * 0.5625, transform: at + '0.875)', offset: 0.25 },
+      { opacity: 0.6 * 0.25, transform: at + '0.75)', offset: 0.5 },
+      { opacity: 0.6 * 0.0625, transform: at + '0.625)', offset: 0.75 },
+      { opacity: 0, transform: at + '0.5)' },
+    ], { duration: TRAIL_MS, easing: 'linear' });
   }
 
   // What can be clicked. Links, buttons, fields and the like by what they
@@ -114,7 +146,7 @@
       }
     };
     for (const sh of document.styleSheets) {
-      if (ownStyle && sh.ownerNode === ownStyle) continue;
+      if (sh.ownerNode === ownStyle) continue;
       try { walk(sh.cssRules); } catch (e) { /* another site's stylesheet: can't be read, and needn't be */ }
     }
     pointerSel = sels.join(', ');
@@ -128,73 +160,31 @@
     try { m = el.closest(pointerSel); } catch (e) { pointerSel = ''; }
     if (!m || m === document.body || m === root) return false;
     const r = m.getBoundingClientRect();
-    return r.width * r.height < 0.25 * W * H;
+    return r.width * r.height < 0.25 * window.innerWidth * window.innerHeight;
   }
 
-  const TRAIL_LIFE = 55;   // steps of a 60th of a second: about a second
-  const trail = [];
-  let x = -1e4, y = -1e4, lastX = null, lastY = null, dist = 0, clock = 0;
-  let hot = false, hotK = 0, press = 0, under = null;
-  let running = false, prev = 0, acc = 0;
-
-  function frame(now) {
-    acc += Math.min(now - prev, 100); prev = now;
-    while (acc >= 1000 / 60) {   // steps of a 60th of a second, whatever the screen's rate
-      acc -= 1000 / 60; clock += 0.02;
-      hotK += ((hot ? 1 : 0) - hotK) * 0.22;   // lights up in about a tenth of a second
-      press *= 0.86;
-      for (let i = trail.length - 1; i >= 0; i--) if (++trail[i].age > TRAIL_LIFE) trail.splice(i, 1);
-    }
-    c.clearRect(0, 0, W, H);
-    for (const q of trail) {
-      const k = 1 - q.age / TRAIL_LIFE;
-      glow(q.x, q.y, 4 * (0.5 + 0.5 * k), 0.6 * k * k, BODY);
-    }
-    const shown = x > -5000;
-    if (shown) {
-      const f = 0.5 + 0.5 * Math.sin(clock * 1.6), k = hotK;
-      // on something clickable: a wider, brighter haze, a bigger body ...
-      glow(x, y, 13 * (1 + 0.15 * f) * (1 + 0.6 * k), (0.75 + 0.25 * f) * (1 - k) + 0.95 * k, HAZE);
-      glow(x, y, 4.5 * (1 + 0.3 * k), 1, BODY);
-      glow(x, y, 1.8 * (1 + 0.4 * k), 1, CORE);
-      // ... and a thin rose ring round it that breathes, tightening when pressed
-      if (k > 0.02) {
-        const r = (8 + 6 * k + Math.sin(clock * 4) * 0.8) * (1 - 0.3 * press);
-        c.globalAlpha = 0.85 * k;
-        c.strokeStyle = 'rgb(196, 40, 96)';
-        c.lineWidth = 1.3;
-        c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
-        c.globalAlpha = 1;
-      }
-    }
-    // nothing left to draw: stop until the pointer moves again
-    if (shown || trail.length || hotK > 0.01) requestAnimationFrame(frame); else running = false;
+  let x = -1e4, y = -1e4, lastX = null, lastY = null, dist = 0, under = null, queued = false, pressTimer = 0;
+  // the pointer's position is applied once a frame at most, whatever the
+  // mouse's own rate (some report 500 or 1000 times a second)
+  function place() {
+    queued = false;
+    if (x < -5000) return;
+    ff.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
-  function wake() {
-    if (running) return;
-    running = true; prev = performance.now(); acc = 0;
-    requestAnimationFrame(frame);
-  }
-
   function moveTo(nx, ny) {
     if (lastX !== null) {
       dist += Math.hypot(nx - lastX, ny - lastY);
-      if (dist >= 8) {    // a glow left every few pixels travelled
-        dist = 0;
-        trail.push({ x: nx + (Math.random() * 2 - 1), y: ny + (Math.random() * 2 - 1), age: 0 });
-        if (trail.length > 40) trail.shift();
-      }
+      if (dist >= 8) { dist = 0; dropDot(nx, ny); }   // a glow left every few pixels travelled
     }
     x = lastX = nx; y = lastY = ny;
-    wake();
+    ff.classList.add('on');
+    if (!queued) { queued = true; requestAnimationFrame(place); }
   }
-  function away() { x = y = -1e4; lastX = lastY = null; hot = false; under = null; }
-  function look(el) { if (el !== under) { under = el; hot = clickable(el); } }
+  function away() { x = y = -1e4; lastX = lastY = null; under = null; ff.classList.remove('on', 'hot'); }
+  function look(el) { if (el !== under) { under = el; ff.classList.toggle('hot', clickable(el)); } }
 
   function start() {
-    resize();
-    document.body.appendChild(cv);
-    window.addEventListener('resize', resize);
+    document.body.appendChild(layer);
     document.addEventListener('pointermove', (e) => {
       if (e.pointerType !== 'mouse' && e.pointerType !== 'pen' && e.buttons === 0) return;
       if (!e.isPrimary) return;   // a second finger doesn't pull the firefly back and forth
@@ -203,20 +193,23 @@
     }, { passive: true });
     document.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch' && e.isPrimary) { lastX = null; look(e.target); moveTo(e.clientX, e.clientY); }
-      if (hot) { press = 1; wake(); }
+      if (ff.classList.contains('hot')) {
+        ff.classList.add('press');
+        clearTimeout(pressTimer); pressTimer = setTimeout(() => ff.classList.remove('press'), 140);
+      }
     }, { passive: true });
     document.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch' && e.isPrimary) away(); }, { passive: true });
     document.addEventListener('pointercancel', away, { passive: true });
     document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) away(); });
     window.addEventListener('blur', away);
     // a page scrolling, or the guestbook closing, changes what is under a
-    // pointer that hasn't moved
-    // (any scroll: the home page's words scroll in a box of their own)
+    // pointer that hasn't moved (any scroll: the home page's words scroll in
+    // a box of their own)
     let relookQueued = false;
     const relook = () => {
       if (relookQueued || x < -5000) return;
       relookQueued = true;
-      requestAnimationFrame(() => { relookQueued = false; if (x > -5000) { under = null; look(document.elementFromPoint(x, y)); wake(); } });
+      requestAnimationFrame(() => { relookQueued = false; if (x > -5000) { under = null; look(document.elementFromPoint(x, y)); } });
     };
     document.addEventListener('scroll', relook, { passive: true, capture: true });
     document.addEventListener('vb-closed', relook);
