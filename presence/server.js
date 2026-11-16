@@ -1,7 +1,9 @@
 /* ================================================================
    PRESENCE — who else is under the tree
 
-   A PartyKit server (Cloudflare underneath). Each page is a room; every
+   The room itself, written to PartyKit's room interface (connections
+   with ids, broadcast); worker.js runs it on Cloudflare, since PartyKit's
+   hosting shut down in October 2026. Each page is a room; every
    open copy of the page keeps one WebSocket to it. The server only passes
    things along: where each visitor's pointer is, relative to the tree,
    a tap on the water, a shake of the tree, and how many are here. No

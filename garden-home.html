@@ -1965,12 +1965,14 @@
      a laptop is by the canopy on a phone, whatever the two screens.
      Nothing about a visitor is sent but that, and it isn't kept.
 
-     PRESENCE_HOST is the server in presence/ (deployed to PartyKit,
-     September 2026); empty, the page never connects and nothing here
+     PRESENCE_HOST is the server in presence/ (on Cloudflare since
+     November 2026: PartyKit's hosting, where it started, shut down on
+     23 October and its address went with it); empty, the page never
+     connects and nothing here
      does anything. ?presence=ws://localhost:…/party/home points it at a
      local server for testing (localhost only).
   ================================================================ */
-  const PRESENCE_HOST = 'pranshul-cafe-presence.pranshulb.partykit.dev';   // presence/, on PartyKit
+  const PRESENCE_HOST = 'pranshul-cafe-presence.pranshulb.workers.dev';   // presence/, on Cloudflare
   const peers = new Map();    // id -> { u, v, tu, tv, a, here, placed, swp, flick, heard, trail, ...a hand }
   const companyEl = document.getElementById('company');
   let sock = null, sockTries = 0, sockTimer = 0, sockWanted = true;

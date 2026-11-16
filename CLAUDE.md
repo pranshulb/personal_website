@@ -244,24 +244,33 @@ vercel.json                 routing, headers, proxies
   "N others are here too" sits at the bottom (at the top on phones, where
   the bottom holds the epigraph and "the tree is below"). Positions travel in tree
   units (across from the trunk, up from the ground, in tree-heights) so
-  laptop and phone agree. The server is `presence/` (PartyKit, since
-  Vercel can't hold WebSockets): it relays and forgets, checks Origin,
-  clamps every number, holds each visitor to 20 messages a second and
-  one shake per 1.2s, caps a room at 60. It went live on 29 September
-  2026 at `pranshul-cafe-presence.pranshulb.partykit.dev` (`PRESENCE_HOST`
-  in `index.html` and `garden-home.html`, one shared room); for weeks
-  before, PartyKit's shared domain was full and every deploy was refused.
-  Deploying needs the CLI logged in as pranshulb (GitHub). Empty
+  laptop and phone agree. The server is `presence/` (a Cloudflare Worker
+  with a Durable Object per room, since Vercel can't hold WebSockets): it
+  relays and forgets, checks Origin, clamps every number, holds each
+  visitor to 20 messages a second and one shake per 1.2s, caps a room at
+  60. It lives at `pranshul-cafe-presence.pranshulb.workers.dev`
+  (`PRESENCE_HOST` in `index.html` and `garden-home.html`, one shared
+  room), on Pranshul's own Cloudflare account, free plan. It went live on
+  PartyKit's hosted platform on 29 September 2026; **PartyKit shut that
+  platform down on 23 October 2026** and deleted its projects, so the old
+  `….partykit.dev` name stopped resolving and for three weeks nobody saw
+  anybody ("i cant see the other people on it live"), with no error on the
+  page — it just retried a door that wasn't there. Moved to Cloudflare on
+  16 November 2026: `server.js` (the room) is unchanged, `worker.js` gives
+  it rooms and broadcast as PartyKit did. Deploy: `cd presence && npx
+  wrangler deploy` with a Cloudflare API token ("Edit Cloudflare Workers");
+  in a Claude cloud session it is saved on the environment for
+  api.cloudflare.com, so `CLOUDFLARE_API_TOKEN` only needs a placeholder.
+  If visitors vanish again, first check the host still resolves. Empty
   `PRESENCE_HOST` means the page never connects. A hidden tab disconnects.
-  The sandbox's browser can't open any `wss://` through the agent proxy
-  (even to an echo server), so test the page through a local relay and
-  `?presence=ws://localhost:…`, and the server from Node. `npm run test:presence`; see
-  `presence/README.md`. The first try drew visitors as pale petals with a
+  Test the server locally with `npx wrangler dev` and the page with
+  `?presence=ws://127.0.0.1:8787/party/home` in two windows, and the live
+  server from Node (a WebSocket client through the proxy). `npm run
+  test:presence`; see `presence/README.md`. The first try drew visitors as pale petals with a
   white glow, which were invisible on the paper; then a petal in a ring,
   which he found too easy to miss. **The server must be redeployed after a
-  change to `presence/server.js`** (`cd presence && npx partykit deploy`,
-  logged in as pranshulb): until it is, the live room strips fields it
-  doesn't know, like `h`.
+  change to `presence/server.js`** (`cd presence && npx wrangler deploy`):
+  until it is, the live room strips fields it doesn't know, like `h`.
 - **things i like** is a field of draggable words moved by one animation
   loop (a resting place plus two slow sine waves, a spring-eased drag with
   a lean and a glide on release, every word bumping every other, rings on a
