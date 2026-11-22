@@ -29,6 +29,7 @@ examined/                   philosophy personality test (old versions in _archiv
 community/                  the community map (see §3)
 gladiator/                  a self-contained satirical site at /gladiator
 morph.html, morph/          morphhouse, a winter-in-a-house page at /morph (own look)
+piper.html, piper/          hermit crab land, a whimsical page for piper at /piper (own look)
 api/                        Vercel serverless functions
 petals.js                   the home page's falling petals, shared by the subpages
 cafe.css                    what every café page shares: fonts, page changes, arrivals, back link, link hovers
@@ -209,7 +210,7 @@ vercel.json                 routing, headers, proxies
   the draggable words), unless it's page-sized. The home page draws only
   other visitors' fireflies (`drawFirefly`, same look: keep them the same).
   A new page gets it with `<script defer src="/cafe.js">`. Not on examined
-  (its own repo), gladiator or shrek.
+  (its own repo), gladiator, shrek or piper.
   **Keep it off the main thread.** The first version drew it on a canvas
   the size of the window, redrawn whole every frame even with the mouse
   still, and the whole site felt slow on laptops and phones (November
@@ -470,6 +471,56 @@ vercel.json                 routing, headers, proxies
   weak. A test harness (Node + TrOCR) isn't in the repo; the numbers are in
   the commit message. Bump the file name (`hand-v2.bin`) if the weights change:
   `vercel.json` caches it for a year.
+
+- **hermit crab land** (`/piper`, November 2026): a whimsical page "for
+  piper", asked for as hermit crabs, lots of photos from the web, funny
+  sounds including a cow's moo, rainbow colours, a tree you pick
+  persimmons and fish (hanging on it) from, an ice-fishing rink with
+  hermit crabs skating, and a crab you control by hovering on it, "inspo
+  from the shrek website". The answers to the questions asked: everything on
+  one screen (no scrolling), drawn crabs on the rink, hover *and* the
+  arrow keys, "for piper" small in a corner. Linked from nowhere; its own
+  look (Bagel Fat One + Unkempt, no cafe.css, no firefly), like /shrek.
+  - **Photos**: 34 real hermit crabs from Wikimedia Commons, every one
+    CC BY / CC BY-SA / public domain, credited by name and licence under
+    "who took these?" (`CREDITS` in the script — a new photo needs a row).
+    `images/piper/` is 720px for laptops, `small/` 440px for anything
+    without a mouse (as /shrek learned, full-size piles stop iPhones
+    drawing). They're /shrek's pile: bob, jiggle, drag, and a tap makes
+    one lunge at you — here with a moo and a rainbow "MOO". Cut into
+    shapes with a rainbow rim (a conic gradient in the same clip, a
+    little bigger) and a flat offset shadow: a blurred drop-shadow filter
+    cost a quarter of the frame rate (36 → 45 fps in headless Chromium).
+    Placed on a jittered grid that skips cells the tree or rink would
+    hide, so they fill whatever sky is left. Commons rate-limits original
+    files hard (429); its thumbnails at standard widths (500, 960) come
+    down fine.
+  - **The moo** is the one recording, `piper/moo.mp3` (Mudchute city
+    farm, Secretlondon, CC BY-SA 3.0, trimmed and normalised); every
+    crab moos at its own pitch (`mooRate`). Every other noise is Web
+    Audio made on the spot (`sfx`), with /shrek's iPhone handling
+    (`audioSession` "playback", resume on every tap). Until the mp3 has
+    decoded a synthesised moo stands in (`fakeMoo`).
+  - **The rink** is three canvases sized to it: the ice, snow, bunting
+    and holes drawn once; skate marks drawn as they happen and faded a
+    little every 0.3s; and everything that moves, redrawn every frame.
+    Crabs are drawn side-on in code (`drawCrab`; units are a hundredth of
+    a crab), with googly pupils that lag behind every push (`googly`).
+    Hovering a crab drives it (a spring that overshoots, because ice);
+    another crab skating under the pointer only takes over after 120ms;
+    leaving the rink for 1.2s lets go. Arrow keys / WASD drive the last
+    one hovered, space is a backflip, M moos. On a phone you drag a crab
+    with a finger and a tap moos. A crab you're driving can fall into a
+    fishing hole (and comes out with a flip); to the others the holes are
+    solid. Hard crashes honk and both hide in their shells and spin.
+  - **The tree** is an SVG; the 10 persimmons and 4 fish are buttons laid
+    over it in the drawing's units. Picked ones fly as their own elements,
+    land on the ice as food (two crabs race for each) or bounce on the
+    grass and fade, and grow back in 5-9s. Clicking the leaves shakes
+    one loose. The crab with the bobble hat fishes: every 7-13s it pulls
+    a fish out of the hole.
+  - `?debug` puts the state on `window.__piper` for a test to read; the
+    tests used are in the commit message.
 
 - **morphhouse** (`/morph`, October 2026): a page about three weeks one
   winter (dec '25 → jan '26) when eight people made things in a house on

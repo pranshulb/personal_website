@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐚</text></svg>">
+  <title>hermit crab land — pranshul's cafe</title>
+  <meta name="description" content="hermit crabs on ice, a persimmon tree with fish on it, and a cow. for piper.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Unkempt:wght@400;700&display=block" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* nothing scrolls or zooms, as on /shrek: no rubber-banding when a swipe
+       misses a crab, no long-press menu, no grey flash on a tap */
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+    body {
+      font-family: 'Unkempt', cursive;
+      color: #3b2346;
+      background: #a8dcff;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* everything you can see lives in one stacking context, so the photos,
+       the tree, the rink and whatever is being carried can sit in front of
+       or behind each other by z-index alone */
+    #scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; touch-action: none; }
+
+    /* the sky: pale blue into pink, with a rainbow over it all */
+    .sky {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 125% 98% at 50% 108%, transparent 0 54%, #ff5d73 54.3% 57.6%, #ff9f43 57.8% 61%, #ffd23f 61.2% 64.4%, #5ad67d 64.6% 67.8%, #41c7f2 68% 71.2%, #6c7bff 71.4% 74.6%, #c86bfa 74.8% 78%, transparent 78.3%),
+        linear-gradient(180deg, #9fd8ff 0%, #c8ecff 42%, #ffe2f0 100%);
+    }
+
+    /* ---- the photos: real hermit crabs, cut into shapes, rainbow-rimmed,
+       bobbing. Three layers, as on /shrek, so no animation interrupts
+       another: .crabpic bobs, .shade jiggles and swells when held, the img
+       is cut to shape (the rim is .shade's ::before, the same shape a little
+       bigger) */
+    .crabpic {
+      position: absolute;
+      left: var(--x); top: var(--y);
+      width: var(--w);
+      transform: rotate(var(--r));
+      cursor: grab;
+      touch-action: none;
+      animation: bob var(--t) ease-in-out var(--d) infinite;
+      will-change: transform;
+    }
+    .shade { position: relative; transition: transform 0.15s ease; }
+    .shade::before {
+      content: ''; position: absolute; inset: 0;
+      clip-path: var(--clip);
+      background: conic-gradient(from var(--hue), #ff5d73, #ff9f43, #ffd23f, #5ad67d, #41c7f2, #6c7bff, #c86bfa, #ff5d73);
+    }
+    /* a flat cartoon shadow, the same shape a little lower. It was a blurred
+       drop-shadow filter, which cost a quarter of the frame rate with
+       everything else moving (36 → 45 frames a second in a test browser) */
+    .crabpic::before {
+      content: ''; position: absolute; inset: 0;
+      translate: 0 6px;
+      clip-path: var(--clip);
+      background: rgba(59, 35, 70, 0.22);
+      transition: translate 0.15s ease;
+    }
+    .crabpic.held::before { translate: 0 16px; background: rgba(59, 35, 70, 0.16); }
+    .crabpic img {
+      position: relative;
+      width: 100%; height: auto; display: block;
+      aspect-ratio: var(--ar, auto);
+      object-fit: cover;
+      clip-path: var(--clip-in);
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    .crabpic.jiggle .shade { animation: jiggle 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    .crabpic.held { cursor: grabbing; }
+    .crabpic.held .shade { transform: scale(1.07); }
+    @keyframes bob {
+      0%, 100% { transform: rotate(var(--r)) translateY(0); }
+      50%      { transform: rotate(calc(var(--r) + 4deg)) translateY(-12px); }
+    }
+    @keyframes jiggle {
+      10%, 90% { transform: rotate(-7deg) scale(1.04); }
+      30%, 70% { transform: rotate(9deg) scale(1.09); }
+      50%      { transform: rotate(-9deg) scale(1.12); }
+      100%     { transform: none; }
+    }
+
+    /* ---- the tree */
+    .tree, .fruits { position: absolute; }
+    .tree { z-index: 1000; pointer-events: none; }
+    .tree svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transform-origin: 50% 86%; }
+    .tree .canopy, .tree .wood { pointer-events: visiblePainted; cursor: pointer; }
+    .fruits { z-index: 1200; pointer-events: none; transform-origin: 50% 86%; }
+    .tree.shake svg, .fruits.shake { animation: shake-tree 0.55s ease-in-out; }
+    @keyframes shake-tree { 0%, 100% { rotate: 0deg; } 20% { rotate: -2.4deg; } 45% { rotate: 2deg; } 70% { rotate: -1deg; } }
+
+    .fruit {
+      all: unset;
+      position: absolute; display: block;
+      pointer-events: auto; cursor: grab; touch-action: none;
+      transform-origin: 50% 0;
+    }
+    .fruit svg { display: block; width: 100%; height: auto; pointer-events: none; transition: scale 0.15s ease; }
+    .fruit.persimmon { width: 10.5%; translate: -50% -14%; animation: sway var(--sw) ease-in-out var(--d) infinite alternate; }
+    .fruit.fish { width: 8%; translate: -50% 0; animation: swing var(--sw) ease-in-out var(--d) infinite alternate; }
+    .fruit .gasp { display: none; }
+    .fruit:focus-visible { outline: 3px dashed #c86bfa; outline-offset: 2px; border-radius: 50%; }
+    @media (hover: hover) and (pointer: fine) {
+      .fruit:hover svg { scale: 1.12; }
+      .fruit.fish:hover { animation-duration: 0.35s; }
+    }
+    .fruit.gone { visibility: hidden; pointer-events: none; }
+    .fruit.grow svg { animation: grow 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+    @keyframes sway { from { rotate: -6deg; } to { rotate: 6deg; } }
+    @keyframes swing { from { rotate: -10deg; } to { rotate: 10deg; } }
+    @keyframes grow { from { scale: 0; } to { scale: 1; } }
+
+    .tally {
+      position: absolute; left: 50%; top: 88.5%;
+      translate: -50% 0; rotate: -3deg;
+      background: #f2c48d; border: 2.5px solid #3b2346; border-radius: 8px;
+      padding: 0.15rem 0.55rem 0.2rem;
+      font-size: clamp(0.7rem, 1.1vw, 0.9rem); white-space: nowrap;
+      box-shadow: 0 3px 0 #3b2346;
+      pointer-events: none;
+    }
+
+    /* ---- the rink: a static canvas (ice, snow, bunting, holes), one for
+       skate marks, one redrawn every frame (crabs, food, splashes) */
+    .rink { position: absolute; z-index: 1100; pointer-events: none; }
+    .rink canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .rink-hit { position: absolute; z-index: 1150; border-radius: 50%; touch-action: none; }
+
+    .sign {
+      position: absolute; z-index: 1170;
+      background: #fffaf0; border: 2.5px solid #3b2346; border-radius: 10px;
+      padding: 0.3rem 0.6rem 0.35rem;
+      font-size: clamp(0.68rem, 1vw, 0.82rem); line-height: 1.3;
+      rotate: -3deg;
+      box-shadow: 0 3px 0 #3b2346;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .sign::after {
+      content: ''; position: absolute; left: 50%; top: 100%;
+      width: 7px; height: 22px; margin: 2px 0 0 -3.5px;
+      background: #c48a55; border: 2px solid #3b2346; border-radius: 0 0 3px 3px;
+    }
+    .sign b { font-family: 'Bagel Fat One', cursive; font-weight: 400; font-size: 1.1em; color: #6c7bff; letter-spacing: 0.02em; }
+    .sign ol { padding-left: 1.15em; }
+
+    /* ---- the title, a letter of each colour */
+    .title {
+      position: absolute; z-index: 1300; left: 0; right: 0;
+      top: max(1rem, 2.2vh);
+      text-align: center;
+      font-family: 'Bagel Fat One', cursive; font-weight: 400;
+      font-size: clamp(1.75rem, 5.2vw, 5rem);
+      line-height: 1.05;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .title span {
+      display: inline-block;
+      pointer-events: auto;
+      color: var(--c);
+      text-shadow:
+        2px 0 0 #3b2346, -2px 0 0 #3b2346, 0 2px 0 #3b2346, 0 -2px 0 #3b2346,
+        1.5px 1.5px 0 #3b2346, -1.5px 1.5px 0 #3b2346, 1.5px -1.5px 0 #3b2346, -1.5px -1.5px 0 #3b2346,
+        0 5px 0 #3b2346;
+      animation: letter 2.6s ease-in-out var(--d) infinite;
+    }
+    .title span.gap { width: 0.32em; }
+    .title span.hop { animation: hop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1); }
+    @keyframes letter { 0%, 100% { translate: 0 0; rotate: -3deg; } 50% { translate: 0 -0.08em; rotate: 3deg; } }
+    @keyframes hop { 0% { translate: 0 0; } 40% { translate: 0 -0.35em; rotate: 12deg; } 100% { translate: 0 0; } }
+    @media (max-aspect-ratio: 21/20) {
+      .title { top: 2.7rem; font-size: clamp(1.75rem, 8.4vw, 3.4rem); }
+      .sign { font-size: 0.66rem; padding: 0.2rem 0.45rem 0.25rem; }
+      .sign::after { height: 14px; }
+    }
+    .tagline {
+      position: absolute; z-index: 1300; left: 0; right: 0;
+      text-align: center;
+      font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+      text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 12px #fff, 0 0 18px #fff;
+      pointer-events: none;
+    }
+
+    /* fruit and fish in the air, and whatever is in your hand */
+    .flyers { position: absolute; inset: 0; z-index: 1400; pointer-events: none; }
+    .flyer { position: absolute; left: 0; top: 0; will-change: transform; }
+    .flyer svg { display: block; width: 100%; height: 100%; }
+    .flyer .smile { display: none; }
+    .flyer.rest { transition: opacity 0.8s ease; }
+
+    /* ---- the corners, plain ink with a soft white halo */
+    .corner {
+      position: fixed; z-index: 60;
+      font-family: inherit; font-size: 1.05rem; color: #3b2346;
+      text-decoration: none; background: none; border: 0; padding: 0;
+      line-height: 1.6;
+      text-shadow: 0 0 2px #fff, 0 0 5px #fff, 0 0 10px #fff, 0 0 16px #fff, 0 0 24px #fff;
+    }
+    .back { top: 1rem; left: 1.2rem; opacity: 0.9; }
+    .back:hover { opacity: 1; }
+    .note { top: 1rem; right: 1.2rem; pointer-events: none; }
+    .sound, .credits-btn { bottom: 0.9rem; cursor: pointer; opacity: 0.9; border-bottom: 1px solid rgba(59, 35, 70, 0.35); line-height: 1.3; }
+    .sound { right: 1.2rem; }
+    .credits-btn { left: 1.2rem; }
+    .sound:hover, .credits-btn:hover, .sound:focus-visible, .credits-btn:focus-visible { opacity: 1; }
+
+    /* paper grain, same as the rest of the site */
+    .grain {
+      position: fixed; inset: 0; z-index: 55; pointer-events: none; opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+      background-size: 220px;
+    }
+
+    /* the lunge, from /shrek: click a photo and it comes at you (and moos) */
+    .lunge {
+      position: fixed; inset: 0; z-index: 200; overflow: hidden;
+      background: #3b2346;
+      transform-origin: center;
+      will-change: transform;
+      transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.3, 1);
+    }
+    .lunge img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1); transition: transform 0.9s cubic-bezier(0.1, 0.8, 0.2, 1); }
+    .lunge.in img { transform: scale(1.35); }
+    .lunge.out { transition: transform 0.35s cubic-bezier(0.4, 0, 0.6, 1); }
+    .lunge-moo {
+      position: absolute; left: 50%; top: 50%;
+      translate: -50% -50%;
+      font-family: 'Bagel Fat One', cursive; font-weight: 400;
+      font-size: 17vw; line-height: 1;
+      background: linear-gradient(90deg, #ff5d73, #ff9f43, #ffd23f, #5ad67d, #41c7f2, #6c7bff, #c86bfa);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      -webkit-text-stroke: max(3px, 0.35vw) #3b2346;
+      animation: moo-in 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+      pointer-events: none;
+    }
+    .lunge.out .lunge-moo { opacity: 0; transition: opacity 0.15s; }
+    @keyframes moo-in { from { scale: 0.2; rotate: -20deg; } to { scale: 1; rotate: -6deg; } }
+    #scene.shook { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translate(-2px, 1px); }
+      20%, 80% { transform: translate(4px, -2px); }
+      30%, 50%, 70% { transform: translate(-7px, 3px); }
+      40%, 60% { transform: translate(7px, -3px); }
+    }
+
+    /* who took the photos */
+    .credits {
+      position: fixed; z-index: 300;
+      left: 50%; top: 50%; translate: -50% -50%;
+      width: min(34rem, calc(100vw - 2rem)); max-height: min(36rem, calc(100vh - 3rem));
+      overflow: auto; overscroll-behavior: contain; touch-action: pan-y;
+      background: #fffaf0; border: 3px solid #3b2346; border-radius: 16px;
+      box-shadow: 0 6px 0 #3b2346;
+      padding: 1.1rem 1.3rem 1.3rem;
+      user-select: text; -webkit-user-select: text;
+      font-size: 0.92rem; line-height: 1.45;
+    }
+    .credits[hidden] { display: none; }
+    .credits h2 { font-family: 'Bagel Fat One', cursive; font-weight: 400; font-size: 1.5rem; color: #6c7bff; margin-bottom: 0.3rem; }
+    .credits p { margin-bottom: 0.7rem; }
+    .credits ul { list-style: none; }
+    .credits li { padding: 0.18rem 0; border-top: 1px dashed rgba(59, 35, 70, 0.2); }
+    .credits a { color: #c2417a; }
+    .credits-close { position: sticky; top: 0; float: right; font: inherit; color: inherit; background: #fffaf0; border: 2px solid #3b2346; border-radius: 99px; padding: 0 0.6rem; cursor: pointer; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .crabpic, .crabpic.jiggle .shade, #scene.shook, .title span, .fruit { animation: none; }
+    }
+  </style>
+  <script defer src="https://analytics.pranshul.cafe/script.js" data-website-id="fd5100ed-c3c1-4ee0-a84c-9cdf3feaaf1f"></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="pg" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb347"/><stop offset=".6" stop-color="#ff8a1f"/><stop offset="1" stop-color="#ef611c"/></radialGradient>
+  </defs>
+</svg>
+
+<div id="scene">
+  <div class="sky"></div>
+
+  <div class="tree" id="tree">
+    <svg viewBox="0 0 400 500" aria-hidden="true">
+      <!-- two arms low down for the fish to hang from -->
+      <g class="wood" fill="none" stroke-linecap="round">
+        <path d="M180 372C150 356 110 340 54 326M76 330C70 320 70 310 78 300" stroke="#3b2346" stroke-width="15"/>
+        <path d="M224 360C258 344 300 330 350 316M330 322C334 310 332 300 324 292" stroke="#3b2346" stroke-width="15"/>
+        <path d="M180 372C150 356 110 340 54 326M76 330C70 320 70 310 78 300" stroke="#9b6440" stroke-width="9"/>
+        <path d="M224 360C258 344 300 330 350 316M330 322C334 310 332 300 324 292" stroke="#9b6440" stroke-width="9"/>
+      </g>
+      <path class="wood" d="M168 470C173 420 178 380 176 344C174 310 160 288 136 270L150 254C168 270 182 286 191 304C194 282 196 262 191 238L211 236C215 262 213 284 210 304C222 286 238 272 262 258L272 274C248 290 232 310 228 340C225 380 228 420 236 470Z" fill="#a0663f" stroke="#3b2346" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M190 448C192 420 190 392 192 372M214 430C212 410 214 390 212 368M200 340C198 326 201 316 204 306" fill="none" stroke="#7a4a2c" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+      <!-- the hill, with a flower of each colour -->
+      <path d="M-70 520C-10 438 110 418 200 420C292 418 410 438 470 520Z" fill="#79cf63" stroke="#3b2346" stroke-width="4.5"/>
+      <path d="M-10 470C40 446 100 436 150 436M260 438C312 440 360 450 400 470" fill="none" stroke="#9de07f" stroke-width="7" stroke-linecap="round"/>
+      <g stroke="#3b2346" stroke-width="2">
+        <circle cx="40" cy="464" r="6" fill="#ff5d73"/><circle cx="96" cy="448" r="6" fill="#ff9f43"/><circle cx="148" cy="446" r="6" fill="#ffd23f"/>
+        <circle cx="256" cy="447" r="6" fill="#5ad67d"/><circle cx="300" cy="452" r="6" fill="#41c7f2"/><circle cx="346" cy="462" r="6" fill="#6c7bff"/><circle cx="380" cy="478" r="6" fill="#c86bfa"/>
+      </g>
+      <g fill="#fff8b0"><circle cx="40" cy="464" r="2"/><circle cx="96" cy="448" r="2"/><circle cx="148" cy="446" r="2"/><circle cx="256" cy="447" r="2"/><circle cx="300" cy="452" r="2"/><circle cx="346" cy="462" r="2"/><circle cx="380" cy="478" r="2"/></g>
+      <!-- the canopy: every circle in ink a little bigger, then every circle in leaf on top, so only the outline of the whole cloud shows -->
+      <g class="canopy">
+        <g fill="#3b2346" stroke="#3b2346" stroke-width="9">
+          <circle cx="200" cy="140" r="92"/><circle cx="118" cy="178" r="70"/><circle cx="284" cy="176" r="72"/><circle cx="150" cy="100" r="64"/>
+          <circle cx="254" cy="96" r="66"/><circle cx="202" cy="64" r="58"/><circle cx="86" cy="236" r="52"/><circle cx="316" cy="232" r="54"/>
+          <circle cx="198" cy="222" r="78"/><circle cx="140" cy="246" r="58"/><circle cx="262" cy="248" r="58"/><circle cx="108" cy="128" r="46"/><circle cx="298" cy="122" r="48"/>
+        </g>
+        <g fill="#4fba5b">
+          <circle cx="200" cy="140" r="92"/><circle cx="118" cy="178" r="70"/><circle cx="284" cy="176" r="72"/><circle cx="150" cy="100" r="64"/>
+          <circle cx="254" cy="96" r="66"/><circle cx="202" cy="64" r="58"/><circle cx="86" cy="236" r="52"/><circle cx="316" cy="232" r="54"/>
+          <circle cx="198" cy="222" r="78"/><circle cx="140" cy="246" r="58"/><circle cx="262" cy="248" r="58"/><circle cx="108" cy="128" r="46"/><circle cx="298" cy="122" r="48"/>
+        </g>
+        <g fill="#6fd06b">
+          <circle cx="186" cy="58" r="34"/><circle cx="136" cy="94" r="38"/><circle cx="240" cy="86" r="40"/><circle cx="100" cy="122" r="26"/>
+          <circle cx="104" cy="170" r="40"/><circle cx="268" cy="164" r="42"/><circle cx="184" cy="132" r="50"/><circle cx="76" cy="228" r="26"/><circle cx="300" cy="222" r="28"/>
+        </g>
+        <g fill="#93e27f">
+          <circle cx="176" cy="48" r="16"/><circle cx="124" cy="84" r="18"/><circle cx="228" cy="76" r="20"/><circle cx="170" cy="118" r="22"/><circle cx="92" cy="160" r="16"/><circle cx="256" cy="152" r="18"/>
+        </g>
+        <g fill="none" stroke="#3a9a4c" stroke-width="3" stroke-linecap="round">
+          <path d="M150 160q8 8 16 0M226 200q8 8 16 0M110 214q7 7 14 0M300 190q7 7 14 0M196 250q8 8 16 0M250 120q7 7 14 0M138 270q7 7 14 0M268 274q7 7 14 0M210 176q6 6 12 0"/>
+        </g>
+        <!-- a few leaves already turning -->
+        <g stroke="#3b2346" stroke-width="1.6">
+          <ellipse cx="66" cy="200" rx="9" ry="5" fill="#ff9f43" transform="rotate(-30 66 200)"/>
+          <ellipse cx="338" cy="150" rx="9" ry="5" fill="#ff5d73" transform="rotate(25 338 150)"/>
+          <ellipse cx="226" cy="30" rx="9" ry="5" fill="#ffd23f" transform="rotate(-15 226 30)"/>
+          <ellipse cx="120" cy="56" rx="8" ry="4.5" fill="#ff5d73" transform="rotate(35 120 56)"/>
+          <ellipse cx="330" cy="268" rx="8" ry="4.5" fill="#ffd23f" transform="rotate(-40 330 268)"/>
+          <ellipse cx="60" cy="262" rx="8" ry="4.5" fill="#ff9f43" transform="rotate(20 60 262)"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="rink" id="rink">
+    <canvas id="ice"></canvas>
+    <canvas id="marks"></canvas>
+    <canvas id="live"></canvas>
+  </div>
+  <div class="rink-hit" id="rinkHit" aria-label="an ice rink with hermit crabs skating on it. hover over a crab to drive it, or use the arrow keys and space"></div>
+
+  <div class="fruits" id="fruits"><div class="tally" id="tally">help yourself</div></div>
+
+  <div class="sign" id="rules"></div>
+
+  <h1 class="title" id="title" aria-label="hermit crab land"></h1>
+  <p class="tagline" id="tagline">(the crabs moo. nobody knows why.)</p>
+
+  <div class="flyers" id="flyers"></div>
+</div>
+
+<div class="grain"></div>
+
+<a href="/" class="corner back">← back</a>
+<p class="corner note">for piper ♡</p>
+<button class="corner credits-btn" id="creditsBtn" type="button">who took these?</button>
+<button class="corner sound" id="sound" type="button">sound: on</button>
+
+<div class="credits" id="credits" hidden role="dialog" aria-label="photo credits">
+  <button class="credits-close" id="creditsClose" type="button">close ×</button>
+  <h2>who took these</h2>
+  <p>every hermit crab photo here is from <a href="https://commons.wikimedia.org/wiki/Category:Paguroidea">Wikimedia Commons</a>, shared freely by the people below. the moo is a real cow at Mudchute city farm in london, recorded by Secretlondon (CC BY-SA 3.0, <a href="https://commons.wikimedia.org/wiki/File:Mudchute_cow_1.ogg">source</a>). the crabs on the ice, the tree and every other noise were made for this page.</p>
+  <ul id="creditsList"></ul>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const rng = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const TAU = Math.PI * 2;
+  const INK = '#3b2346';
+  const RAINBOW = ['#ff5d73', '#ff9f43', '#ffd23f', '#5ad67d', '#41c7f2', '#6c7bff', '#c86bfa'];
+  const BODY = '#ff7b54', BODY_LIGHT = '#ffb08a', BODY_DARK = '#d9573a';
+  const scene = document.getElementById('scene');
+  const fine = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
+  const still = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function mix(a, b, t) {
+    const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const A = p(a), B = p(b);
+    return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+  }
+
+  // [file, photographer, licence, Commons file name]
+  const CREDITS = [
+    ['coconut-crab-in-hand', 'John Barkla', 'CC BY 4.0', 'Birgus_latro_50101305.jpg'],
+    ['crab-in-a-coconut', 'drew_avery', 'CC BY 4.0', 'Birgus_latro_6436.jpg'],
+    ['no-shell', 'Corbari & Poupin', 'CC BY 4.0', 'Calcinus_(MNHN-IU-2013-8624).jpeg'],
+    ['blue-legs-on-a-rock', 'Fafner', 'CC BY-SA 3.0', 'Calcinus_elegans_01.jpg'],
+    ['blue-legs-close', 'Srichakra Pranav Tamarapalli', 'CC BY-SA 4.0', 'Calcinus_elegans_340313607.jpg'],
+    ['tiger-shell-in-hand', 'Leonel Roget', 'CC BY-SA 4.0', 'Calcinus_explorator_cropped.jpg'],
+    ['stripy-shell', 'Peterwchen', 'CC BY-SA 4.0', 'Calcinus_seurati-crawling.jpg'],
+    ['blue-socks', 'Peterwchen', 'CC BY-SA 4.0', 'Calcinus_seurati-in_water.jpg'],
+    ['tiny-orange-shell', 'P. Martin-Lefèvre', 'CC BY 4.0', 'Clibanarius_(MNHN-IU-2014-8231).jpeg'],
+    ['crab-in-a-can', 'Naturalselections', 'CC BY-SA 4.0', 'Purple_hermit_crab_in_can.jpg'],
+    ['those-eyes', 'ZooFari', 'public domain', 'Caribbean_hermit_crab_eyes.JPG'],
+    ['peekaboo', 'Norman Salazar Arguedas', 'CC BY-SA 4.0', 'Coenobita_clypeatus_166468645.jpg'],
+    ['beach-day', 'unknown', 'public domain', "Bernard_l'hermite.JPG"],
+    ['strawberry-crab', 'Corbari & Poupin', 'CC BY 4.0', 'Coenobita_perlatus_(MNHN-IU-2013-6913).jpeg'],
+    ['coral-sofa', 'Diego Delso', 'CC BY-SA 4.0', 'Cangrejo_ermitaño_(Dardanus_lagopodes),_Zanzíbar,_Tanzania,_2024-05-30,_DD_71.jpg'],
+    ['orange-gang', 'Olivier Dugornay (Ifremer)', 'CC BY 4.0', 'Campagne_IBTS_2010_-_Bernard-l’ermite_communs_(Pagurus_bernhardus)_(Ifremer_00552-66430).jpg'],
+    ['crab-parade', 'Olivier Dugornay (Ifremer)', 'CC BY 4.0', 'Campagne_IBTS_2010_-_Epizoanthus_incrustatus_sur_un_bernard-l’ermite_commun_(Pagurus_bernhardus)_(Ifremer_00569-68110_-_49403).jpg'],
+    ['yellow-shell', 'Calum McLennan', 'CC BY 4.0', 'Pagurus_bernhardus_89793389.jpg'],
+    ['purple-shell', 'Manon.rivard', 'CC BY-SA 4.0', 'Pagurus_bernhardus_à_cuba.jpg'],
+    ['studio-portrait', 'Hans Hillewaert', 'CC BY-SA 4.0', 'Pagurus_bernhardus.jpg'],
+    ['red-shell-in-hand', 'Rene Cortin', 'CC BY-SA 4.0', 'Flat_clawed_hermit_crab.jpg'],
+    ['purple-crab', 'Harikrishnan S', 'CC BY-SA 4.0', 'Hermit_crab_from_Andaman.jpg'],
+    ['big-purple-legs', 'Coughdrop12', 'CC BY-SA 4.0', 'Hermit-Crab-Playstructure-Aquarium-of-the-Pacific.png'],
+    ['hello', 'National Marine Sanctuaries', 'public domain', 'Hermit_Crab_(43101683030).jpg'],
+    ['by-the-sea', 'CRC43', 'CC BY-SA 3.0', 'Hermit_Crab_3.jpg'],
+    ['blue-spiky-shell', 'Ray in Manila', 'CC BY 2.0', 'Hermit_Crab,_Philippines_(53046235022).jpg'],
+    ['between-fingers', 'Caitriana Nicholson', 'CC BY-SA 2.0', 'Hermit_crab_(342550207).jpg'],
+    ['hairy-red-in-hand', 'brittgow', 'CC BY 2.0', 'Hermit_crab_emerging_from_shell_(4781843431).jpg'],
+    ['red-on-the-beach', 'U.S. Fish and Wildlife Service', 'public domain', 'Howland_Island_NWR_and_hermit_crab_(5123997614).jpg'],
+    ['looking-out', 'Pseudopanax', 'public domain', 'Red_hermit_crab_looking_out_of_its_snail_shell_(Niue).jpg'],
+    ['small-land-crab', 'Stripey the crab', 'CC BY-SA 3.0', 'Small_Land_Hermit_Crab.jpg'],
+    ['thumb-ride', 'Afsarnayakkan', 'CC BY-SA 4.0', 'Coenobita_rugosus_(Tawny_hermit_crab).jpg'],
+    ['big-red-crab', 'Was a bee', 'public domain', 'Dardanus_megistos1.jpg'],
+    ['big-red-close', 'ZooFari', 'public domain', 'Hermit-Crab.jpg'],
+  ];
+
+  /* ================= sound =================
+     As on /shrek: made on the spot with Web Audio, nothing tried until the
+     page has been clicked or tapped, every tap wakes the sound again (iOS
+     pauses it as "interrupted"), and "playback" so an iPhone's silent switch
+     doesn't swallow it. The one recording is the moo. */
+  let ac = null, master = null, muted = false;
+  let mooBytes = null, mooBuf = null, mooDecoding = false;
+  try { muted = localStorage.getItem('piper-sound') === 'off'; } catch (e) {}
+  fetch('/piper/moo.mp3').then(r => r.ok ? r.arrayBuffer() : null).then(b => { mooBytes = b; if (ac) decodeMoo(); }).catch(() => {});
+  const allowed = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+  function session(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) {} }
+  function decodeMoo() {
+    if (!mooBytes || mooBuf || mooDecoding || !ac) return;
+    mooDecoding = true;
+    const done = b => { mooBuf = b; mooDecoding = false; }, fail = () => { mooDecoding = false; };
+    try { const p = ac.decodeAudioData(mooBytes.slice(0), done, fail); if (p && p.then) p.then(done, fail); } catch (e) { fail(); }
+  }
+  function audio() {
+    session('playback');
+    if (!ac || ac.state === 'closed') {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = muted ? 0 : 0.9; master.connect(ac.destination);
+      mooBuf = null; mooDecoding = false; decodeMoo();
+    }
+    if (ac.state !== 'running') { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); }
+    return ac;
+  }
+  for (const n of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
+    document.addEventListener(n, () => { if (!muted && allowed()) try { audio(); } catch (e) {} }, true);
+  }
+  function tone(type, f0, f1, dur, vol, at = 0) {
+    const c = audio(), o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + at;
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(master); o.start(t0); o.stop(t0 + dur + 0.03);
+    return o;
+  }
+  function vib(o, rate, depth, dur) {
+    const v = ac.createOscillator(), vg = ac.createGain();
+    v.frequency.value = rate; vg.gain.value = depth; v.connect(vg).connect(o.frequency);
+    v.start(); v.stop(ac.currentTime + dur + 0.05);
+  }
+  let noiseBuf = null;
+  function noise(dur, vol, type, f0, f1, q = 1, at = 0) {
+    const c = audio();
+    if (!noiseBuf || noiseBuf.sampleRate !== c.sampleRate) {
+      noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), t0 = c.currentTime + at;
+    s.buffer = noiseBuf; s.loop = true;
+    f.type = type; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + dur); f.Q.value = q;
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    s.connect(f).connect(g).connect(master); s.start(t0, Math.random() * 0.5); s.stop(t0 + dur + 0.03);
+  }
+  function fakeMoo(rate) {      // until the real one has loaded: a sawtooth through a vowel
+    const c = audio(), t0 = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), d = 1.1 / rate;
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(115 * rate, t0); o.frequency.linearRampToValueAtTime(150 * rate, t0 + d * 0.6); o.frequency.linearRampToValueAtTime(105 * rate, t0 + d);
+    f.type = 'lowpass'; f.Q.value = 5; f.frequency.setValueAtTime(380, t0); f.frequency.linearRampToValueAtTime(950, t0 + d * 0.45); f.frequency.linearRampToValueAtTime(480, t0 + d);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.15); g.gain.setValueAtTime(0.3, t0 + d * 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(f).connect(g).connect(master); o.start(t0); o.stop(t0 + d + 0.05);
+  }
+  const sfx = {
+    blip()   { tone('sine', 520, 940, 0.09, 0.08); },                          // a photo fidgets
+    pop()    { tone('sine', 330, 140, 0.07, 0.2); noise(0.03, 0.12, 'lowpass', 2000, 800); },
+    boing()  { vib(tone('triangle', 280, 110, 0.5, 0.26), 16, 45, 0.5); },     // a photo put down
+    squeak() {                                                               // you've got a crab: a rubber duck
+      const c = audio(), t0 = c.currentTime, o = c.createOscillator(), g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(950, t0); o.frequency.linearRampToValueAtTime(1800, t0 + 0.05); o.frequency.linearRampToValueAtTime(1250, t0 + 0.17);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.19);
+      o.connect(g).connect(master); vib(o, 30, 80, 0.2); o.start(t0); o.stop(t0 + 0.21);
+    },
+    whee()   { vib(tone('sine', 480, 1500, 0.42, 0.15), 7, 30, 0.42); },       // a slide whistle, up
+    whoops() { vib(tone('sine', 1400, 260, 0.55, 0.15), 7, 30, 0.55); },       // and down
+    splash() { noise(0.55, 0.45, 'bandpass', 2200, 400, 0.7); tone('sine', 700, 180, 0.14, 0.16); tone('sine', 900, 300, 0.1, 0.09, 0.12); },
+    plop()   { tone('sine', 1000, 180, 0.1, 0.2); },
+    nom()    { for (let i = 0; i < 3; i++) { noise(0.06, 0.22, 'highpass', 1800, 1200, 0.7, i * 0.13); tone('sine', 170, 110, 0.07, 0.15, i * 0.13); } },
+    flop()   { noise(0.07, 0.16, 'lowpass', 1100, 400, 0.8); tone('sine', 230, 110, 0.08, 0.1); },
+    bonk()   { tone('sine', 560, 250, 0.13, 0.2); noise(0.02, 0.12, 'highpass', 3000, 3000); },
+    honk()   {                                                               // a clown horn, twice
+      for (let i = 0; i < 2; i++) {
+        const c = audio(), t0 = c.currentTime + i * 0.2, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(i ? 300 : 345, t0);
+        f.type = 'lowpass'; f.frequency.value = 1500; f.Q.value = 6;
+        g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.02); g.gain.setValueAtTime(0.15, t0 + 0.12); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.17);
+        o.connect(f).connect(g).connect(master); o.start(t0); o.stop(t0 + 0.18);
+      }
+    },
+    thud()   { noise(0.12, 0.3, 'lowpass', 500, 120, 0.7); tone('sine', 120, 60, 0.12, 0.18); },
+    rustle() { noise(0.4, 0.16, 'bandpass', 4200, 2500, 0.5); noise(0.3, 0.11, 'bandpass', 3000, 2000, 0.5, 0.1); },
+    pluck()  { tone('sine', 760, 260, 0.07, 0.2); noise(0.025, 0.1, 'highpass', 2500, 2500); },
+    grow()   { tone('sine', 300, 900, 0.12, 0.05); },
+    yay()    { [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f * 1.01, 0.12, 0.11, i * 0.075)); },
+    tink()   { tone('sine', 2637, 2600, 0.18, 0.06); tone('sine', 3951, 3900, 0.12, 0.035); },
+    scrape() { noise(0.22, 0.08, 'highpass', 5000, 3000, 0.5); },
+    moo(rate = 1, vol = 0.85) {
+      if (!mooBuf) { decodeMoo(); return fakeMoo(rate); }
+      const c = audio(), s = c.createBufferSource(), g = c.createGain();
+      s.buffer = mooBuf; s.playbackRate.value = rate; g.gain.value = vol;
+      s.connect(g).connect(master); s.start();
+    },
+  };
+  // the busy ones are held to one every so often, or a pile-up is a buzz
+  const GAP = { blip: 60, bonk: 120, thud: 150, flop: 220, scrape: 250, honk: 450, splash: 150, tink: 60, squeak: 120, nom: 200, moo: 120 };
+  const lastAt = {};
+  function play(name, ...args) {
+    if (muted || !allowed()) return;
+    const now = performance.now();
+    if (GAP[name] && now - (lastAt[name] || 0) < GAP[name]) return;
+    lastAt[name] = now;
+    try {
+      const c = audio();
+      if (c.state === 'running') return sfx[name](...args);
+      c.resume().then(() => { if (performance.now() - now < 400) sfx[name](...args); }).catch(() => {});
+    } catch (e) {}
+  }
+  const soundBtn = document.getElementById('sound');
+  const showSound = () => { soundBtn.textContent = muted ? 'sound: off' : 'sound: on'; };
+  showSound();
+  soundBtn.addEventListener('click', () => {
+    muted = !muted;
+    try { localStorage.setItem('piper-sound', muted ? 'off' : 'on'); } catch (e) {}
+    if (master) master.gain.value = muted ? 0 : 0.9;
+    if (muted) session('auto');
+    showSound();
+    play('squeak');
+  });
+
+  /* ================= layout =================
+     Everything on one screen. Wide: the tree on the left on its hill, the
+     rink filling the rest of the bottom. Tall (phones): the tree on top, the
+     rink across the bottom. The photos fill whatever sky is left. */
+  const T = {}, R = {};
+  let W = 0, H = 0, portrait = false, S = 60, dpr = 1;
+  const kS = () => S / 64;           // speeds and sizes are tuned for a 64px crab
+  function computeLayout() {
+    W = scene.clientWidth; H = scene.clientHeight;
+    portrait = W / H < 1.05;
+    if (!portrait) {
+      const tw = Math.min(W * 0.36, H * 0.62), th = tw * 1.25;
+      Object.assign(T, { x: W * 0.015, y: H - th * 0.97, w: tw, h: th });
+      const left = T.x + tw * 0.9, avail = W - left;
+      R.rx = avail / 2 - W * 0.02;
+      R.ry = Math.min(H * 0.24, R.rx * 0.42);
+      R.cx = left + avail / 2;
+      R.cy = H - R.ry - Math.max(30, H * 0.075);
+    } else {
+      const th = Math.min(H * 0.43, W * 1.05), tw = th * 0.8;
+      Object.assign(T, { x: W / 2 - tw / 2, y: Math.max(84, H * 0.125), w: tw, h: th });
+      R.rx = W * 0.47;
+      R.ry = Math.min(H * 0.2, R.rx * 0.62);
+      R.cx = W / 2;
+      R.cy = H - R.ry - Math.max(34, H * 0.05);
+    }
+    S = clamp(R.rx * 0.2, 50, 96);
+    const mt = S * 1.3 + 46;
+    R.left = R.cx - R.rx - 36; R.top = R.cy - R.ry - mt;
+    R.w = R.rx * 2 + 72; R.h = R.ry * 2 + mt + 26;
+    // on a phone the rules sign takes the front left, so the holes sit further back
+    R.holes = portrait
+      ? [{ x: R.cx - R.rx * 0.36, y: R.cy - R.ry * 0.32 }, { x: R.cx + R.rx * 0.48, y: R.cy + R.ry * 0.12 }]
+      : [{ x: R.cx - R.rx * 0.38, y: R.cy - R.ry * 0.1 }, { x: R.cx + R.rx * 0.5, y: R.cy + R.ry * 0.32 }];
+    R.hrx = Math.max(17, R.rx * 0.085); R.hry = R.hrx * 0.44;
+  }
+  // how much nearer a thing is, by how far down the ice it stands
+  const depth = y => 0.74 + 0.42 * clamp((y - (R.cy - R.ry)) / (2 * R.ry), 0, 1);
+  const inEllipse = (x, y, cx, cy, rx, ry) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1;
+  function clampToIce(x, y, m = 0.9) {
+    const ux = (x - R.cx) / (R.rx * m), uy = (y - R.cy) / (R.ry * m), q = Math.hypot(ux, uy);
+    return q <= 1 ? [x, y] : [R.cx + (x - R.cx) / q, R.cy + (y - R.cy) / q];
+  }
+  const inHole = (x, y, h, m) => ((x - h.x) / (R.hrx * m)) ** 2 + ((y - h.y) / (R.hry * m)) ** 2 < 1;
+
+  /* ================= the photos (after /shrek) ================= */
+  const poly = pts => 'polygon(' + pts.map(([x, y]) => x.toFixed(1) + '% ' + y.toFixed(1) + '%').join(',') + ')';
+  const polar = (n, f) => { const pts = []; for (let i = 0; i < n; i++) { const a = i / n * TAU, r = f(a, i); pts.push([50 + 50 * r * Math.cos(a), 50 + 50 * r * Math.sin(a)]); } return pts; };
+  const SHAPES = {
+    heart: () => { const pts = []; for (let i = 0; i < 48; i++) { const t = i / 48 * TAU; const x = 16 * Math.sin(t) ** 3, y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t); pts.push([50 + x / 16 * 48, 50 - (y + 2.5) / 14.5 * 48]); } return { pts, square: true }; },
+    star: () => ({ pts: polar(10, (a, i) => i % 2 ? 0.5 : 1), square: true }),
+    scallop: () => {      // a seashell: a ridged fan on a little hinge
+      const pts = [], n = 64;
+      for (let i = 0; i <= n; i++) { const a = Math.PI * (1.08 + 0.84 * i / n), r = 0.95 - 0.07 * Math.abs(Math.sin(i / n * Math.PI * 9)); pts.push([50 + 50 * r * Math.cos(a), 80 + 78 * r * Math.sin(a)]); }
+      pts.push([62, 84], [66, 99], [34, 99], [38, 84]);
+      return { pts, square: true };
+    },
+    cloud: () => { const p = rng(0, 6.28); return { pts: polar(72, a => 0.78 + 0.22 * Math.abs(Math.sin(3 * a + p))), square: false }; },
+    splat: () => { const j = Array.from({ length: 16 }, () => rng(-0.1, 0.1)); return { pts: polar(16, (a, i) => (i % 2 ? 0.6 : 1) + j[i]), square: true }; },
+    flower: () => ({ pts: polar(96, a => 0.76 + 0.24 * Math.abs(Math.sin(4 * a))), square: true }),
+    bubble: () => ({ pts: [[14, 0], [86, 0], [100, 14], [100, 60], [86, 74], [42, 74], [18, 100], [30, 74], [14, 74], [0, 60], [0, 14]], square: false }),
+    wonky: () => ({ pts: polar(6, () => rng(0.84, 1)), square: true }),
+    wobble: () => { const p = rng(0, 6.28); return { pts: polar(60, a => 0.9 + 0.08 * Math.sin(3 * a + p) + 0.04 * Math.sin(5 * a - p)), square: false }; },
+  };
+  const SHAPE_NAMES = ['heart', 'star', 'scallop', 'cloud', 'splat', 'flower', 'bubble', 'wonky', 'wobble', 'heart', 'scallop', 'star'];
+  const inset = (pts, k) => pts.map(([x, y]) => [50 + (x - 50) * k, 50 + (y - 50) * k]);
+  const pics = [];
+  let zDrop = 1160;                 // photos put down after being carried sit above the rink
+  function nextDropZ() {
+    if (++zDrop > 1196) {           // ran out of room under the fruit: squeeze the order back down
+      const moved = pics.filter(p => +p.style.zIndex >= 1160).sort((a, b) => a.style.zIndex - b.style.zIndex);
+      zDrop = 1160; moved.forEach(p => { p.style.zIndex = zDrop++; });
+    }
+    return zDrop;
+  }
+  function buildPile() {
+    // anything without a mouse gets the small photos and fewer of them, as
+    // on /shrek, where forty full-size photos stopped iPhones drawing any
+    const light = portrait || !fine;
+    const dir = light ? '/images/piper/small/' : '/images/piper/';
+    const cols = portrait ? 3 : 7, rows = portrait ? 7 : 5;
+    const cells = [];
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const x = (i + 0.5 + rng(-0.3, 0.3)) / cols * W, y = (j + 0.5 + rng(-0.3, 0.3)) / rows * H;
+      if (inEllipse(x, y, R.cx, R.cy + R.ry * 0.1, R.rx * 0.9, R.ry * 0.95)) continue;          // mostly hidden by the rink
+      if (x > T.x + T.w * 0.2 && x < T.x + T.w * 0.8 && y > T.y + T.h * 0.08 && y < T.y + T.h * 0.6) continue;   // by the tree
+      cells.push([x, y]);
+    }
+    shuffle(cells);
+    const files = shuffle(CREDITS.map(c => c[0])).slice(0, cells.length);
+    files.forEach((f, i) => {
+      const [x, y] = cells[i];
+      const el = document.createElement('div');
+      el.className = 'crabpic';
+      const w = portrait ? rng(22, 30) : rng(8.5, 13.5);
+      const wpx = w / 100 * W;
+      el.style.setProperty('--w', w + 'vw');
+      el.style.setProperty('--x', ((x - wpx / 2) / W * 100) + 'vw');
+      el.style.setProperty('--y', ((y - wpx * 0.4) / H * 100) + '%');
+      el.style.setProperty('--r', rng(-18, 18).toFixed(1) + 'deg');
+      el.style.setProperty('--t', rng(4.5, 8.5).toFixed(2) + 's');
+      el.style.setProperty('--d', (-rng(0, 8)).toFixed(2) + 's');
+      el.style.setProperty('--hue', Math.round(rng(0, 360)) + 'deg');
+      const shape = SHAPES[pick(SHAPE_NAMES)]();
+      el.style.setProperty('--clip', poly(shape.pts));
+      el.style.setProperty('--clip-in', poly(inset(shape.pts, 0.88)));
+      if (shape.square) el.style.setProperty('--ar', '1');
+      el.style.zIndex = i + 1;
+      const img = document.createElement('img');
+      img.src = dir + f + '.jpg'; img.alt = 'a hermit crab'; img.draggable = false; img.decoding = 'async';
+      const shade = document.createElement('div');
+      shade.className = 'shade';
+      shade.appendChild(img);
+      el.appendChild(shade);
+      scene.appendChild(el);
+      if (img.complete) keepOnScreen(el); else img.addEventListener('load', () => keepOnScreen(el), { once: true });
+      pics.push(el);
+      wirePic(el);
+    });
+  }
+  // pull a photo in until at most a quarter of it hangs off an edge
+  function keepOnScreen(el) {
+    const r = el.getBoundingClientRect();
+    const mx = r.width / 4, my = r.height / 4;
+    const dx = r.left < -mx ? -mx - r.left : r.right > W + mx ? W + mx - r.right : 0;
+    const dy = r.top < -my ? -my - r.top : r.bottom > H + my ? H + my - r.bottom : 0;
+    if (dx) el.style.setProperty('--x', parseFloat(el.style.getPropertyValue('--x')) + dx / W * 100 + 'vw');
+    if (dy) el.style.setProperty('--y', parseFloat(el.style.getPropertyValue('--y')) + dy / H * 100 + '%');
+  }
+
+  function jiggle(el) { el.classList.remove('jiggle'); void el.offsetWidth; el.classList.add('jiggle'); }
+  setInterval(() => { if (!lunge && !dragEl && pics.length && !document.hidden) jiggle(pick(pics)); }, 2100);
+
+  // pick one up and move it; let go without moving it and it comes at you.
+  // All of this is /shrek's, bugs it fixed included: only the main button,
+  // a capture lost without a release puts it down, and a phone's tap is
+  // caught three ways because each phone fails a different one.
+  let dragEl = null, dragged = false, sx = 0, sy = 0, ox = 0, oy = 0, lastLunge = 0, heldZ = 0;
+  function putDown() {
+    if (!dragEl) return;
+    const el = dragEl; dragEl = null;
+    el.classList.remove('held');
+    el.style.zIndex = dragged ? nextDropZ() : heldZ;
+    if (dragged) play('boing');
+  }
+  window.addEventListener('blur', putDown);
+  function wirePic(el) {
+    el.addEventListener('animationend', e => { if (e.animationName === 'jiggle') el.classList.remove('jiggle'); });
+    if (fine) el.addEventListener('pointerenter', () => { if (!lunge && !dragEl && !held) { jiggle(el); play('blip'); } });
+    el.addEventListener('pointerdown', e => {
+      if (lunge || dragEl || held || e.button !== 0 || e.ctrlKey) return;
+      e.preventDefault();
+      dragEl = el; dragged = false;
+      sx = e.clientX; sy = e.clientY; ox = el.offsetLeft; oy = el.offsetTop;
+      heldZ = el.style.zIndex; el.style.zIndex = 1450;     // whatever you touch comes to the top
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', e => {
+      if (dragEl !== el) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragged && Math.hypot(dx, dy) > (e.pointerType === 'touch' ? 12 : 5)) { dragged = true; el.classList.remove('jiggle'); el.classList.add('held'); play('pop'); }
+      if (dragged) {
+        const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2;
+        el.style.left = Math.min(Math.max(ox + dx, -hw), W - hw) + 'px';
+        el.style.top = Math.min(Math.max(oy + dy, -hh), H - hh) + 'px';
+      }
+    });
+    const letGo = () => {
+      if (dragEl !== el) return;
+      if (dragged) putDown();
+      else { dragEl = null; el.style.zIndex = heldZ; lastLunge = performance.now(); comeAtMe(el); }
+    };
+    el.addEventListener('pointerup', letGo);
+    el.addEventListener('pointercancel', letGo);
+    el.addEventListener('lostpointercapture', () => { if (dragEl === el) putDown(); });
+    el.addEventListener('click', () => {
+      if (dragged || dragEl || performance.now() - lastLunge < 700) return;
+      lastLunge = performance.now(); comeAtMe(el);
+    });
+    let tid = null, tx = 0, ty = 0, tMoved = false;
+    const own = list => { for (const t of list) if (t.identifier === tid) return t; return null; };
+    el.addEventListener('touchstart', e => { if (tid !== null && e.touches.length > 1) return; const t = e.changedTouches[0]; tid = t.identifier; tx = t.clientX; ty = t.clientY; tMoved = false; }, { passive: true });
+    el.addEventListener('touchmove', e => { const t = own(e.changedTouches); if (t && Math.hypot(t.clientX - tx, t.clientY - ty) > 12) tMoved = true; }, { passive: true });
+    el.addEventListener('touchcancel', e => { if (own(e.changedTouches)) tid = null; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      if (!own(e.changedTouches)) return;
+      tid = null;
+      if (tMoved || dragged || (dragEl && dragEl !== el) || performance.now() - lastLunge < 700) return;
+      if (dragEl === el) { dragEl = null; el.style.zIndex = heldZ; }
+      lastLunge = performance.now(); comeAtMe(el);
+    }, { passive: true });
+  }
+
+  let lunge = null, retreatTimer = 0, closedAt = -1e9, closeLunge = () => {};
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLunge(false); closeCredits(); } });
+  function onto(r) {
+    return `translate(${r.left + r.width / 2 - innerWidth / 2}px, ${r.top + r.height / 2 - innerHeight / 2}px) scale(${r.width / innerWidth}, ${r.height / innerHeight})`;
+  }
+  function comeAtMe(pic) {
+    if (lunge || performance.now() - closedAt < 700) return;
+    const img = pic.querySelector('img');
+    lunge = document.createElement('div');
+    lunge.className = 'lunge';
+    const copy = document.createElement('img');
+    copy.src = img.src; copy.alt = '';
+    if (img.src.includes('/small/')) {     // a phone's pile is the small photos: fetch the big one to fill the screen
+      const big = new Image();
+      big.onload = () => { copy.src = big.src; };
+      big.src = img.src.replace('/small/', '/');
+    }
+    lunge.appendChild(copy);
+    const word = document.createElement('b');
+    word.className = 'lunge-moo'; word.textContent = pick(['MOOO', 'MOO.', 'moooo', 'MOO!']);
+    lunge.appendChild(word);
+    lunge.style.transform = onto(img.getBoundingClientRect());
+    document.body.appendChild(lunge);
+    void lunge.offsetWidth;
+    lunge.style.transform = 'translate(0px, 0px) scale(1, 1)';
+    lunge.classList.add('in');
+    play('moo', rng(0.68, 0.86), 1);
+    play('thud');
+    scene.classList.remove('shook'); void scene.offsetWidth; scene.classList.add('shook');
+    const thisLunge = lunge;
+    const back = byFinger => {
+      if (lunge !== thisLunge) return;
+      clearTimeout(retreatTimer);
+      const el = lunge; lunge = null;
+      el.classList.remove('in'); el.classList.add('out');
+      el.style.transform = onto(img.getBoundingClientRect());
+      setTimeout(() => { el.style.opacity = '0'; }, 380);
+      setTimeout(() => el.remove(), 800);
+      if (byFinger) closedAt = performance.now();
+      else el.style.pointerEvents = 'none';
+    };
+    const born = performance.now();
+    lunge.addEventListener('pointerdown', e => { e.preventDefault(); if (lunge === thisLunge && performance.now() - born > 300) back(e.pointerType !== 'mouse'); });
+    lunge.addEventListener('click', e => e.stopPropagation());
+    closeLunge = back;
+    retreatTimer = setTimeout(() => back(false), 1700);
+  }
+  scene.addEventListener('animationend', e => { if (e.animationName === 'shake') scene.classList.remove('shook'); });
+
+  /* ================= the persimmons and the fish ================= */
+  const persimmonSVG = standalone => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 44">${standalone ? '<defs><radialGradient id="pg" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb347"/><stop offset=".6" stop-color="#ff8a1f"/><stop offset="1" stop-color="#ef611c"/></radialGradient></defs><style>.gasp{display:none}</style>' : ''}<path d="M20 3v8" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><path d="M20 10C33 10 38.5 18 37.5 27C36.5 37 28.5 42.5 20 42.5C11.5 42.5 3.5 37 2.5 27C1.5 18 7 10 20 10Z" fill="url(#pg)" stroke="${INK}" stroke-width="2"/><ellipse cx="11.5" cy="19" rx="4.2" ry="2.4" fill="#fff" opacity=".6" transform="rotate(-35 11.5 19)"/><path d="M20 12.5C14 6 7.5 8.5 8.5 13.5C12.5 15.5 17 15 20 12.5ZM20 12.5C26 6 32.5 8.5 31.5 13.5C27.5 15.5 23 15 20 12.5ZM20 12.5C15.5 15.5 13.5 20 17 21C20 20 21 17 20 12.5ZM20 12.5C24.5 15.5 26.5 20 23 21C20 20 19 17 20 12.5Z" fill="#5fbf5a" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/><g fill="${INK}"><circle cx="14.5" cy="28" r="1.7"/><circle cx="25.5" cy="28" r="1.7"/></g><path class="smile" d="M17.6 31.4q2.4 2.6 4.8 0" fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round"/><ellipse class="gasp" cx="20" cy="32.6" rx="1.7" ry="2.1" fill="${INK}"/><g fill="#ff5d8a" opacity=".5"><ellipse cx="10.5" cy="31" rx="2.6" ry="1.5"/><ellipse cx="29.5" cy="31" rx="2.6" ry="1.5"/></g></svg>`;
+  const FISH = [['#ff5d73', '#ffd23f'], ['#ff9f43', '#41c7f2'], ['#ffd23f', '#c86bfa'], ['#5ad67d', '#ff9f43'], ['#41c7f2', '#ff5d73'], ['#6c7bff', '#5ad67d'], ['#c86bfa', '#ffd23f']];
+  const fishSVG = (v, withString, standalone) => {
+    const [a, b] = FISH[v % FISH.length];
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${withString ? '0 0 40 110' : '0 27 40 83'}">${standalone ? '<style>.gasp{display:none}</style>' : ''}${withString ? `<path d="M20 0V31" stroke="${INK}" stroke-width="1.4"/>` : ''}<path d="M20 88C26 94 34 99 35 108C29 105 24 103 20 98C16 103 11 105 5 108C6 99 14 94 20 88Z" fill="${b}" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M20 30C32 33 36.5 50 34 68C32 81 26 88 20 90C14 88 8 81 6 68C3.5 50 8 33 20 30Z" fill="${a}" stroke="${INK}" stroke-width="2"/><path d="M8.5 57Q20 51 31.5 57M7 69Q20 63 33 69" fill="none" stroke="${b}" stroke-width="4.5" stroke-linecap="round"/><path d="M34 58C40 60 40.5 68 33.5 71" fill="${b}" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="42" r="4.4" fill="#fff" stroke="${INK}" stroke-width="1.5"/><circle cx="13.4" cy="42.6" r="2.1" fill="${INK}"/><path class="smile" d="M23 37q2.5 1.8 4.5-.6" fill="none" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/><ellipse class="gasp" cx="20" cy="33.5" rx="1.8" ry="2.2" fill="${INK}"/><ellipse cx="25" cy="46" rx="3" ry="2" fill="#fff" opacity=".45"/></svg>`;
+  };
+  const toImg = svg => { const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; };
+  const PERSIMMON_IMG = toImg(persimmonSVG(true));
+  const FISH_IMGS = FISH.map((_, i) => toImg(fishSVG(i, false, true)));
+
+  // where each grows, in the tree drawing's own units (400 × 500)
+  const SPOTS = [
+    { k: 'p', x: 128, y: 168 }, { k: 'p', x: 252, y: 136 }, { k: 'p', x: 196, y: 210 }, { k: 'p', x: 304, y: 212 },
+    { k: 'p', x: 90, y: 232 }, { k: 'p', x: 214, y: 96 }, { k: 'p', x: 156, y: 262 }, { k: 'p', x: 270, y: 268 },
+    { k: 'p', x: 332, y: 158 }, { k: 'p', x: 150, y: 96 },
+    { k: 'f', x: 82, y: 331 }, { k: 'f', x: 130, y: 346 }, { k: 'f', x: 284, y: 334 }, { k: 'f', x: 330, y: 320 },
+  ];
+  const treeEl = document.getElementById('tree'), fruitsEl = document.getElementById('fruits'), tallyEl = document.getElementById('tally');
+  const tally = { p: 0, f: 0 };
+  function showTally() {
+    const parts = [];
+    if (tally.p) parts.push(tally.p + (tally.p === 1 ? ' persimmon' : ' persimmons'));
+    if (tally.f) parts.push(tally.f + ' fish');
+    tallyEl.textContent = parts.length ? 'picked: ' + parts.join(' · ') : 'help yourself';
+  }
+  SPOTS.forEach((s, i) => {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'fruit ' + (s.k === 'p' ? 'persimmon' : 'fish');
+    el.setAttribute('aria-label', s.k === 'p' ? 'pick a persimmon' : 'pick a fish');
+    el.style.left = s.x / 4 + '%'; el.style.top = s.y / 5 + '%';
+    el.style.setProperty('--d', (-rng(0, 3)).toFixed(2) + 's');
+    el.style.setProperty('--sw', rng(s.k === 'p' ? 2.4 : 1.6, s.k === 'p' ? 3.8 : 2.6).toFixed(2) + 's');
+    s.v = i % FISH.length;
+    el.innerHTML = s.k === 'p' ? persimmonSVG(false) : fishSVG(s.v, true, false);
+    el.addEventListener('animationend', e => { if (e.animationName === 'grow') el.classList.remove('grow'); }, true);
+    el.addEventListener('pointerdown', e => pickFruit(s, e));
+    el.addEventListener('click', e => { if (e.detail === 0) { const f = detach(s); if (f) toss(f); } });   // Enter on a focused one
+    fruitsEl.appendChild(el);
+    s.el = el;
+  });
+  function detach(s) {
+    if (s.el.classList.contains('gone')) return null;
+    const r = s.el.getBoundingClientRect();
+    let rect = r;
+    if (s.k === 'f') {    // the fish without its string
+      const w = r.width, h = w * 83 / 40, cy = r.top + r.height * (27 + 41) / 110;
+      rect = { left: r.left + r.width / 2 - w / 2, top: cy - h / 2, width: w, height: h };
+    }
+    const f = makeFlyer(s.k === 'p' ? 'persimmon' : 'fish', s.v, rect);
+    s.el.classList.add('gone');
+    play('pluck');
+    tally[s.k]++; showTally();
+    setTimeout(() => { s.el.classList.remove('gone'); s.el.classList.add('grow'); play('grow'); }, rng(5000, 9000));
+    return f;
+  }
+  let held = null;               // the fruit in your hand
+  function pickFruit(s, e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (held || dragEl) return;
+    e.preventDefault(); e.stopPropagation();
+    const f = detach(s);
+    if (!f) return;
+    const now = performance.now();
+    f.state = 'held';
+    f.hold = { id: e.pointerId, ox: e.clientX - f.x, oy: e.clientY - f.y, at: now, sx: e.clientX, sy: e.clientY, moved: false };
+    f.hist = [{ x: f.x, y: f.y, t: now }];
+    held = f;
+    try { document.documentElement.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+  window.addEventListener('pointermove', e => {
+    if (!held || e.pointerId !== held.hold.id) return;
+    const now = performance.now();
+    held.x = e.clientX - held.hold.ox; held.y = e.clientY - held.hold.oy;
+    held.hist.push({ x: held.x, y: held.y, t: now });
+    while (held.hist.length > 2 && now - held.hist[0].t > 90) held.hist.shift();
+    if (Math.hypot(e.clientX - held.hold.sx, e.clientY - held.hold.sy) > 7) held.hold.moved = true;
+  });
+  function letGoFruit(e, cancelled) {
+    if (!held || (e && e.pointerId !== held.hold.id)) return;
+    const f = held; held = null;
+    try { document.documentElement.releasePointerCapture(f.hold.id); } catch (err) {}
+    if (!f.hold.moved && !cancelled && performance.now() - f.hold.at < 400) return toss(f);
+    const a = f.hist[0], b = f.hist[f.hist.length - 1], dt = Math.max(0.016, (b.t - a.t) / 1000);
+    f.vx = clamp((b.x - a.x) / dt, -2200, 2200); f.vy = clamp((b.y - a.y) / dt, -2200, 2200);
+    fall(f);
+  }
+  window.addEventListener('pointerup', e => letGoFruit(e, false));
+  window.addEventListener('pointercancel', e => letGoFruit(e, true));
+  document.documentElement.addEventListener('lostpointercapture', e => { if (held && e.pointerId === held.hold.id) letGoFruit(null, true); });
+  window.addEventListener('blur', () => { if (held) letGoFruit(null, true); });
+
+  // shake the tree and something falls off
+  let lastShake = 0;
+  treeEl.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const now = performance.now();
+    if (now - lastShake < 450 || held || dragEl) return;
+    lastShake = now;
+    e.preventDefault();
+    for (const el of [treeEl, fruitsEl]) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+    play('rustle');
+    const ripe = SPOTS.filter(s => !s.el.classList.contains('gone'));
+    if (ripe.length) { const f = detach(pick(ripe)); if (f) toss(f); }
+  });
+  for (const el of [treeEl, fruitsEl]) el.addEventListener('animationend', e => { if (e.animationName === 'shake-tree') el.classList.remove('shake'); });
+
+  /* ================= things in the air =================
+     A picked persimmon or fish is an element of its own above everything
+     while it's carried or falling. Over the rink it comes down somewhere on
+     the ice (where you let go of it, if that was over the ice) and becomes
+     food there; anywhere else it bounces on the ground and fades. */
+  const flyLayer = document.getElementById('flyers');
+  const flyers = [];
+  function makeFlyer(kind, v, rect) {
+    const el = document.createElement('div');
+    el.className = 'flyer';
+    el.innerHTML = kind === 'persimmon' ? persimmonSVG(false) : fishSVG(v, false, false);
+    el.style.width = rect.width + 'px'; el.style.height = rect.height + 'px';
+    flyLayer.appendChild(el);
+    const f = { el, kind, v, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, w: rect.width, h: rect.height, vx: 0, vy: 0, rot: 0, vr: 0, state: 'fall', depth: 0.5, ground: 0, bounces: 0, t: 0, hist: [] };
+    flyers.push(f);
+    placeFlyer(f);
+    return f;
+  }
+  function toss(f) { f.vx = rng(-70, 70); f.vy = -rng(80, 200); fall(f); }
+  function fall(f) {
+    f.state = 'fall';
+    f.vr = rng(-5, 5) + f.vx * 0.004;
+    const bottom = f.y + f.h * 0.4;
+    if (inEllipse(f.x, bottom, R.cx, R.cy, R.rx, R.ry)) {
+      const e = Math.sqrt(Math.max(0, 1 - ((f.x - R.cx) / R.rx) ** 2)) * R.ry;
+      f.depth = clamp((bottom - (R.cy - e)) / (2 * e) + 0.04, 0.05, 0.95);
+    } else f.depth = rng(0.12, 0.85);
+    f.ground = H - rng(12, 36);
+  }
+  function landingY(f) {
+    if (Math.abs(f.x - R.cx) < R.rx * 0.96) {
+      const e = Math.sqrt(1 - ((f.x - R.cx) / R.rx) ** 2) * R.ry;
+      return R.cy - e + f.depth * 2 * e;
+    }
+    return f.ground;
+  }
+  function placeFlyer(f) { f.el.style.transform = `translate(${(f.x - f.w / 2).toFixed(1)}px, ${(f.y - f.h / 2).toFixed(1)}px) rotate(${f.rot.toFixed(3)}rad)`; }
+  function stepFlyer(f, dt) {
+    if (f.state === 'held') {
+      const h = f.hist, vx = h.length > 1 ? (h[h.length - 1].x - h[0].x) / Math.max(0.016, (h[h.length - 1].t - h[0].t) / 1000) : 0;
+      f.rot += (clamp(-vx * 0.0011, -0.8, 0.8) - f.rot) * Math.min(1, dt * 10);      // it dangles behind the hand
+    } else if (f.state === 'fall') {
+      f.vy += 2600 * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
+      if (f.x < -40 || f.x > W + 40) { f.vx = -f.vx * 0.5; f.x = clamp(f.x, -40, W + 40); }
+      const ly = landingY(f), bottom = f.y + f.h * 0.4;
+      if (f.vy > 0 && bottom >= ly) {
+        if (Math.abs(f.x - R.cx) < R.rx * 0.96) return onIce(f, ly);
+        f.y = ly - f.h * 0.4;
+        if (f.vy > 320 && f.bounces < 2) { f.vy = -f.vy * 0.32; f.vx *= 0.6; f.vr *= 0.5; f.bounces++; play('thud'); }
+        else { f.state = 'rest'; f.t = 0; f.vy = 0; f.el.classList.add('rest'); }
+      }
+    } else if (f.state === 'rest') {
+      f.t += dt;
+      if (f.t > 6 && !f.fading) { f.fading = true; f.el.style.opacity = '0'; }
+      if (f.t > 7) { f.el.remove(); flyers.splice(flyers.indexOf(f), 1); return; }
+    }
+    placeFlyer(f);
+  }
+  function onIce(f, ly) {
+    f.el.remove(); flyers.splice(flyers.indexOf(f), 1);
+    const food = addFood(f.kind, f.x, ly, f.v);
+    food.vx = f.vx * 0.45; food.vy = clamp(f.vy * 0.06, -60, 60);
+    food.vz = Math.min(f.vy * 0.14, 220 * kS());
+    food.rot = f.kind === 'fish' ? 0 : f.rot;
+    play(f.kind === 'fish' ? 'flop' : 'thud');
+    sprayAt(f.x, ly, 4);
+  }
+
+  /* ================= the rink ================= */
+  const rinkEl = document.getElementById('rink'), hitEl = document.getElementById('rinkHit'), rulesEl = document.getElementById('rules');
+  const iceC = document.getElementById('ice'), marksC = document.getElementById('marks'), liveC = document.getElementById('live');
+  const liveG = liveC.getContext('2d'), marksG = marksC.getContext('2d');
+  rulesEl.innerHTML = fine
+    ? '<b>rink rules</b><ol><li>hover over a crab to drive it</li><li>arrow keys + space work too</li><li>no mooing</li></ol>'
+    : '<b>rink rules</b><ol><li>drag a crab to drive it</li><li>tap one to say hi</li><li>no mooing</li></ol>';
+  function ell(g, x, y, rx, ry) { g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, TAU); }
+  function drawIce() {
+    const g = iceC.getContext('2d');
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, iceC.width, iceC.height);
+    g.setTransform(dpr, 0, 0, dpr, -R.left * dpr, -R.top * dpr);
+    const { cx, cy, rx, ry } = R, k = kS();
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    // bunting, strung between two posts across the back
+    const postH = ry * 0.35 + S * 1.05;
+    const pl = { x: cx - rx - 4, y: cy - ry * 0.1 }, pr = { x: cx + rx + 4, y: cy - ry * 0.1 };
+    const top = pl.y - postH, sag = cy - ry - S * 0.35, ctrl = 2 * sag - top;
+    const at = t => ({ x: (1 - t) * (1 - t) * pl.x + 2 * (1 - t) * t * cx + t * t * pr.x, y: (1 - t) * (1 - t) * top + 2 * (1 - t) * t * ctrl + t * t * top });
+    g.strokeStyle = INK; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(pl.x, top); g.quadraticCurveTo(cx, ctrl, pr.x, top); g.stroke();
+    const n = Math.max(8, Math.round(rx * 2 / (S * 0.42)));
+    for (let i = 1; i < n; i++) {
+      const p = at(i / n), q = at(Math.min(1, (i + 0.6) / n)), fw = S * 0.13, fh = S * 0.3;
+      const ang = Math.atan2(q.y - p.y, q.x - p.x);
+      g.save(); g.translate(p.x, p.y); g.rotate(ang);
+      g.beginPath(); g.moveTo(-fw, 0); g.lineTo(fw, 0); g.lineTo(0, fh); g.closePath();
+      g.fillStyle = RAINBOW[i % 7]; g.fill(); g.lineWidth = 1.4; g.stroke();
+      g.restore();
+    }
+    for (const p of [pl, pr]) {
+      g.strokeStyle = INK; g.lineWidth = 8 * Math.min(1, k); g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x, top); g.stroke();
+      g.strokeStyle = '#c48a55'; g.lineWidth = 4.5 * Math.min(1, k); g.stroke();
+      g.beginPath(); g.arc(p.x, top, 5, 0, TAU); g.fillStyle = '#ff5d73'; g.fill(); g.lineWidth = 1.6; g.strokeStyle = INK; g.stroke();
+    }
+    // the snowbank: lumps in ink, then the bank, then the lumps in snow, so only a lumpy outline shows
+    const lumps = [];
+    for (let i = 0; i < 64; i++) { const a = i / 64 * TAU + rng(-0.02, 0.02); lumps.push([cx + Math.cos(a) * (rx + 12), cy + 5 + Math.sin(a) * (ry + 10), rng(6, 10) * Math.min(1.2, k)]); }
+    g.save(); g.shadowColor = 'rgba(59, 70, 150, 0.3)'; g.shadowBlur = 18; g.shadowOffsetY = 8;
+    ell(g, cx, cy + 5, rx + 14, ry + 12); g.fillStyle = '#fff'; g.fill(); g.restore();
+    g.fillStyle = INK; for (const [x, y, r] of lumps) { g.beginPath(); g.arc(x, y, r + 2.2, 0, TAU); g.fill(); }
+    ell(g, cx, cy + 5, rx + 14, ry + 12); g.fillStyle = '#fff'; g.fill();
+    for (const [x, y, r] of lumps) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = '#fff'; g.fill(); }
+    g.fillStyle = '#e3eefc'; for (const [x, y, r] of lumps) { g.beginPath(); g.arc(x + r * 0.25, y + r * 0.35, r * 0.5, 0, TAU); g.fill(); }
+    // the ice
+    g.save(); ell(g, cx, cy, rx, ry); g.clip();
+    const lg = g.createLinearGradient(0, cy - ry, 0, cy + ry);
+    lg.addColorStop(0, '#a9defb'); lg.addColorStop(0.45, '#cdeefe'); lg.addColorStop(1, '#eefaff');
+    g.fillStyle = lg; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    // a rainbow sheen across it, as ice has in the sun
+    g.globalAlpha = 0.16;
+    for (let i = 0; i < 7; i++) {
+      g.fillStyle = RAINBOW[i];
+      const x0 = cx - rx * 0.05 + i * rx * 0.05;
+      g.beginPath(); g.moveTo(x0, cy - ry); g.lineTo(x0 + rx * 0.05, cy - ry); g.lineTo(x0 + rx * 0.05 - ry * 1.1, cy + ry); g.lineTo(x0 - ry * 1.1, cy + ry); g.fill();
+    }
+    g.globalAlpha = 0.5; g.fillStyle = '#fff';
+    for (let i = 0; i < 3; i++) { g.save(); g.translate(cx - rx * 0.55 + i * rx * 0.5, cy - ry * 0.35 + i * ry * 0.25); g.rotate(-0.5); ell(g, 0, 0, rx * 0.16, ry * 0.05); g.fill(); g.restore(); }
+    g.globalAlpha = 1;
+    // old skate marks
+    g.strokeStyle = 'rgba(255, 255, 255, 0.75)'; g.lineWidth = 1.2;
+    for (let i = 0; i < 16; i++) {
+      const x = cx + rng(-0.7, 0.7) * rx, y = cy + rng(-0.7, 0.7) * ry;
+      g.beginPath(); g.ellipse(x, y, rng(0.1, 0.35) * rx, rng(0.05, 0.18) * ry, rng(-0.3, 0.3), rng(0, TAU), rng(0, TAU) + rng(0.6, 2)); g.stroke();
+    }
+    // the far bank's shadow on the ice
+    const sg = g.createLinearGradient(0, cy - ry, 0, cy - ry * 0.6);
+    sg.addColorStop(0, 'rgba(70, 110, 190, 0.28)'); sg.addColorStop(1, 'rgba(70, 110, 190, 0)');
+    g.fillStyle = sg; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 0.4);
+    g.restore();
+    ell(g, cx, cy, rx, ry); g.strokeStyle = INK; g.lineWidth = 2.6; g.stroke();
+    // the fishing holes
+    for (const h of R.holes) {
+      const a = R.hrx, b = R.hry;
+      ell(g, h.x, h.y + b * 0.1, a * 1.32, b * 1.5); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+      const wg = g.createLinearGradient(0, h.y - b, 0, h.y + b);
+      wg.addColorStop(0, '#0d3168'); wg.addColorStop(1, '#2f86cc');
+      ell(g, h.x, h.y + b * 0.12, a, b); g.fillStyle = wg; g.fill(); g.stroke();
+      for (let i = 0; i < 8; i++) {
+        const t = i / 8 * TAU + 0.3, x = h.x + Math.cos(t) * a * 1.28, y = h.y + b * 0.1 + Math.sin(t) * b * 1.45, s = rng(3, 5.5) * Math.min(1.2, k);
+        g.save(); g.translate(x, y); g.rotate(rng(0, 1));
+        g.beginPath(); g.rect(-s / 2, -s / 2, s, s); g.fillStyle = '#f4fbff'; g.fill(); g.lineWidth = 1.2; g.stroke(); g.restore();
+      }
+    }
+  }
+
+  function sizeCanvases() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    Object.assign(rinkEl.style, { left: R.left + 'px', top: R.top + 'px', width: R.w + 'px', height: R.h + 'px' });
+    for (const [c, d] of [[iceC, dpr], [liveC, dpr], [marksC, 1]]) { c.width = Math.round(R.w * d); c.height = Math.round(R.h * d); }
+    marksG.setTransform(1, 0, 0, 1, -R.left, -R.top);
+    ell(marksG, R.cx, R.cy, R.rx, R.ry); marksG.clip();
+    marksG.lineCap = 'round';
+    drawIce();
+  }
+  function applyLayout() {
+    for (const el of [treeEl, fruitsEl]) Object.assign(el.style, { left: T.x + 'px', top: T.y + 'px', width: T.w + 'px', height: T.h + 'px' });
+    sizeCanvases();
+    Object.assign(hitEl.style, { left: (R.cx - R.rx - 10) + 'px', top: (R.cy - R.ry - S * 0.85) + 'px', width: (R.rx * 2 + 20) + 'px', height: (R.ry * 2 + S * 0.85 + 12) + 'px' });
+    const tl = document.getElementById('tagline'), title = document.getElementById('title');
+    tl.style.top = (title.offsetTop + title.offsetHeight + 2) + 'px';
+    // the rules, on a post in the snow at the front left
+    const sw = rulesEl.offsetWidth, sh = rulesEl.offsetHeight;
+    let px, py;
+    if (portrait) { px = R.cx - R.rx * 0.7; py = R.cy + R.ry * 0.72; }
+    else { px = R.cx - R.rx * 0.8; py = R.cy + R.ry * 0.62; }
+    const left = clamp(px - sw / 2, 8, W - sw - 8);
+    Object.assign(rulesEl.style, { left: left + 'px', top: (py - 24 - sh) + 'px' });
+    fisher.x = R.holes[0].x - R.hrx * 1.95; fisher.y = R.holes[0].y + 2;
+  }
+
+  /* ================= crabs =================
+     Drawn on the canvas, side on: a spiral shell in one colour of the
+     rainbow, a scarf in another, eyes on stalks with googly pupils that lag
+     behind every push, and skates. Units are a hundredth of a crab. */
+  const NAMES = ['shelly', 'pinchy', 'clawdia', 'sir snips', 'crabigail', 'gerald', 'bubbles'];
+  function makeCrab(i) {
+    const shell = RAINBOW[i % 7], scarf = RAINBOW[(i + 3) % 7];
+    return {
+      kind: 'crab', name: NAMES[i % NAMES.length], shell, scarf,
+      shellLight: mix(shell, '#ffffff', 0.55), shellDark: mix(shell, INK, 0.35), boot: mix(scarf, '#ffffff', 0.5),
+      pattern: i % 3, seed: rng(0, 10), mooRate: [1.05, 1.35, 1.2, 0.9, 1.5, 0.8, 1.25][i % 7],
+      x: 0, y: 0, vx: 0, vy: 0, z: 0, vz: 0, face: 1, faceTo: 1, phase: rng(0, 6), push: 0, speed: 0, tilt: 0,
+      flip: 0, flipping: false, airT: 0, airDur: 1,
+      eye: { x: 0.6, y: 0.9, vx: 0, vy: 0 }, blink: rng(1, 4), snipT: 0, sayT: 0, sayDur: 1, say: '',
+      shellT: 0, shellSpin: 0, eatT: 0, spinT: 0, spinFlip: 0, dunkT: 0, hole: null, noDunk: 0,
+      tx: 0, ty: 0, timer: 0, cruise: rng(90, 150), called: false, food: null, driven: false, lx: 0, ly: 0,
+    };
+  }
+  const crabs = [];
+  const fisher = Object.assign(makeCrab(5), { kind: 'fisher', sitting: true, beanie: true, state: 'wait', t: 0, next: rng(4, 7), cheer: false });
+  fisher.shell = '#41c7f2'; fisher.shellLight = mix('#41c7f2', '#ffffff', 0.55); fisher.shellDark = mix('#41c7f2', INK, 0.35); fisher.scarf = '#ff5d73';
+  function newTarget(c) {
+    for (let n = 0; n < 12; n++) {
+      const a = rng(0, TAU), r = Math.sqrt(Math.random()) * 0.82;
+      const x = R.cx + Math.cos(a) * r * R.rx, y = R.cy + Math.sin(a) * r * R.ry;
+      if (R.holes.some(h => inHole(x, y, h, 2.6))) continue;
+      if (Math.hypot(x - fisher.x, (y - fisher.y) * 2.2) < S) continue;
+      c.tx = x; c.ty = y; break;
+    }
+    c.timer = rng(3, 7); c.called = false; c.cruise = rng(90, 150);
+  }
+  function placeCrabs() {
+    const n = W * H > 700000 && !portrait ? 7 : 5;
+    for (let i = 0; i < n; i++) {
+      const c = makeCrab(i);
+      newTarget(c); c.x = c.tx; c.y = c.ty; c.lx = c.x; c.ly = c.y;
+      newTarget(c);
+      c.vx = rng(-60, 60); c.vy = rng(-30, 30);
+      crabs.push(c);
+    }
+  }
+
+  // ---- who's driving
+  const ctl = { crab: null, keyCrab: null, tx: 0, ty: 0, px: -1, py: -1, mouseIn: false, lastInside: -1e9, lastMove: 0, lastKey: -1e9, touchId: null, downAt: 0, dx: 0, dy: 0, moved: false, cand: null, candAt: 0 };
+  const keys = { l: 0, r: 0, u: 0, d: 0 };
+  function crabAt(x, y, prefer) {
+    let best = null;
+    for (const c of crabs) {
+      if (c.dunkT > 0) continue;
+      const s = depth(c.y) * S / 100;
+      if (Math.abs(x - c.x) < 46 * s && y < c.y + 10 * s && y > c.y - c.z - 84 * s) {
+        if (c === prefer) return c;
+        if (!best || c.y > best.y) best = c;
+      }
+    }
+    return best;
+  }
+  function onFisher(x, y) { const s = depth(fisher.y) * S / 100; return Math.abs(x - fisher.x) < 40 * s && y < fisher.y + 6 * s && y > fisher.y - 100 * s; }
+  const zone = (x, y) => inEllipse(x, y, R.cx, R.cy - S * 0.3, R.rx + 24, R.ry + S * 0.65);
+  function take(c) {
+    if (ctl.crab === c) return;
+    ctl.crab = c; ctl.keyCrab = c; ctl.cand = null;
+    c.food = null; c.spinT = 0;
+    if (c.z === 0 && c.shellT <= 0 && c.dunkT <= 0) c.vz = 170 * kS();
+    play('squeak');
+  }
+  function say(c, words, dur = 1.1) { c.say = words; c.sayT = c.sayDur = dur; }
+  function mooCrab(c) {
+    if (!c) return;
+    play('moo', c.mooRate * rng(0.95, 1.05));
+    say(c, pick(['moo!', 'mooo', 'MOO', 'moo?', 'moooo!']));
+    c.snipT = 0.6;
+    if (c.z === 0 && c.shellT <= 0 && c.dunkT <= 0 && !c.sitting) c.vz = 260 * kS();
+  }
+  function jump(c) {
+    if (!c || c.z > 0 || c.shellT > 0 || c.dunkT > 0) return;
+    c.vz = 560 * kS(); c.airDur = 2 * c.vz / (1500 * kS()); c.airT = 0; c.flipping = true;
+    play('whee');
+  }
+  window.addEventListener('pointermove', e => {
+    const now = performance.now();
+    if (ctl.touchId !== null && e.pointerId === ctl.touchId) {
+      // a finger: the crab's body goes under it, so its feet go a little below
+      [ctl.tx, ctl.ty] = clampToIce(e.clientX, e.clientY + 38 * depth(e.clientY) * S / 100);
+      ctl.lastInside = now;
+      if (Math.hypot(e.clientX - ctl.dx, e.clientY - ctl.dy) > 10) ctl.moved = true;
+      return;
+    }
+    if (e.pointerType !== 'mouse') return;
+    ctl.px = e.clientX; ctl.py = e.clientY; ctl.mouseIn = true; ctl.lastMove = now;
+  });
+  // the mouse leaving the window lets go of the crab (or it would follow a pointer that isn't there)
+  document.addEventListener('mouseout', e => { if (!e.relatedTarget) ctl.mouseIn = false; });
+  hitEl.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    const x = e.clientX, y = e.clientY, now = performance.now();
+    if (onFisher(x, y) && !crabAt(x, y)) { fisherMoo(); return; }
+    const c = crabAt(x, y, ctl.crab);
+    if (e.pointerType !== 'mouse') {
+      if (c) {
+        take(c);
+        ctl.touchId = e.pointerId; ctl.dx = x; ctl.dy = y; ctl.downAt = now; ctl.moved = false; ctl.lastInside = now;
+        [ctl.tx, ctl.ty] = clampToIce(x, y + 38 * depth(y) * S / 100);
+        try { hitEl.setPointerCapture(e.pointerId); } catch (err) {}
+      } else iceTap(x, y);
+      return;
+    }
+    if (c) { take(c); mooCrab(c); } else iceTap(x, y);
+  });
+  const endTouch = (e, cancelled) => {
+    if (e.pointerId !== ctl.touchId) return;
+    const now = performance.now();
+    if (!cancelled && !ctl.moved && now - ctl.downAt < 350 && ctl.crab) mooCrab(ctl.crab);
+    ctl.touchId = null; ctl.lastInside = now;
+  };
+  window.addEventListener('pointerup', e => endTouch(e, false));
+  window.addEventListener('pointercancel', e => endTouch(e, true));
+  function iceTap(x, y) {
+    [x, y] = clampToIce(x, y, 0.92);
+    play('tink');
+    for (let i = 0; i < 5; i++) parts.push({ ty: 'spark', x: x + rng(-14, 14), y: y + rng(-6, 6), z: rng(0, 20), vx: 0, vy: 0, vz: rng(10, 40), t: 0, life: rng(0.4, 0.7), color: pick(RAINBOW), r: rng(3, 6) });
+    // the nearest crab that isn't busy comes over to see
+    let best = null, bd = Infinity;
+    for (const c of crabs) {
+      if (c.driven || c.dunkT > 0 || c.shellT > 0) continue;
+      const d = Math.hypot(c.x - x, (c.y - y) * 2);
+      if (d < bd) { bd = d; best = c; }
+    }
+    if (best) { best.food = null; best.tx = x; best.ty = y; best.timer = 5; best.called = true; }
+  }
+  function fisherMoo() {
+    play('moo', 0.78);
+    say(fisher, pick(['shh. fishing', 'moo.', 'not now']), 1.3);
+  }
+  const KEYMAP = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', a: 'l', d: 'r', w: 'u', s: 'd', A: 'l', D: 'r', W: 'u', S: 'd' };
+  window.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey || !credits.hidden) return;
+    const k = KEYMAP[e.key];
+    if (!ctl.keyCrab) ctl.keyCrab = crabs[0];
+    if (k) { e.preventDefault(); keys[k] = 1; ctl.lastKey = performance.now(); return; }
+    if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); if (!e.repeat) jump(ctl.keyCrab); ctl.lastKey = performance.now(); return; }
+    if ((e.key === 'm' || e.key === 'M') && !e.repeat) mooCrab(ctl.keyCrab);
+  });
+  window.addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) { keys[k] = 0; ctl.lastKey = performance.now(); } });
+  window.addEventListener('blur', () => { keys.l = keys.r = keys.u = keys.d = 0; });
+
+  // ---- crabs, one step
+  function stepCrab(c, dt, now) {
+    const k = kS();
+    c.blink -= dt; if (c.blink < -0.13) c.blink = rng(1.8, 5);
+    c.snipT = Math.max(0, c.snipT - dt); c.sayT = Math.max(0, c.sayT - dt);
+    if (c.dunkT > 0) return stepDunk(c, dt, k);
+    let ax = 0, ay = 0, push = 0;
+    const keyed = ctl.keyCrab === c && ctl.lastKey > ctl.lastMove && (keys.l || keys.r || keys.u || keys.d || now - ctl.lastKey < 2500);
+    const followed = !keyed && ctl.crab === c && (ctl.touchId !== null || now - ctl.lastInside < 1200);
+    c.driven = keyed || followed;
+    if (c.shellT > 0) {
+      c.shellT -= dt;
+      c.shellSpin += dt * (5 + c.speed / (18 * k));
+      if (c.shellT <= 0) { c.vz = 200 * k; play('pop'); newTarget(c); }
+    } else if (c.eatT > 0) {
+      c.eatT -= dt; ax = -c.vx * 3; ay = -c.vy * 3;
+    } else if (c.spinT > 0) {              // a little pirouette
+      c.spinT -= dt; ax = -c.vx * 1.5; ay = -c.vy * 1.5;
+      const f = Math.floor(c.spinT * 9); if (f !== c.spinFlip) { c.spinFlip = f; c.faceTo = -c.faceTo; }
+      if (Math.random() < dt * 9) parts.push({ ty: 'spark', x: c.x + rng(-24, 24) * k, y: c.y + rng(-4, 4), z: rng(10, 60) * k, vx: 0, vy: 0, vz: 20, t: 0, life: 0.5, color: pick(RAINBOW), r: rng(3, 5) });
+    } else if (keyed) {
+      const ix = keys.r - keys.l, iy = keys.d - keys.u, m = Math.hypot(ix, iy) || 1;
+      ax = ix / m * 820 * k; ay = iy / m * 820 * k * 0.7;
+      push = (ix || iy) ? 1 : 0;
+    } else if (followed) {
+      const dx = ctl.tx - c.x, dy = ctl.ty - c.y;
+      ax = 10 * dx - 3.4 * c.vx; ay = 10 * dy - 3.4 * c.vy;      // a spring that overshoots a little: it's ice
+      const am = Math.hypot(ax, ay), cap = 1100 * k;
+      if (am > cap) { ax *= cap / am; ay *= cap / am; }
+      push = clamp(Math.hypot(dx, dy) / (40 * k), 0, 1);
+    } else {
+      if (c.food && !foods.includes(c.food)) c.food = null;
+      const tx = c.food ? c.food.x : c.tx, ty = c.food ? c.food.y : c.ty;
+      const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy) || 1;
+      c.timer -= dt;
+      if (!c.food && (d < 26 * k || c.timer <= 0)) { newTarget(c); if (!c.called && Math.random() < 0.14) c.spinT = 1.2; }
+      const vmax = (c.food ? 215 : c.called ? 190 : c.cruise) * k;
+      ax = (dx / d * vmax - c.vx) * 2.4; ay = (dy / d * vmax - c.vy) * 2.4;
+      const am = Math.hypot(ax, ay), cap = (c.food ? 520 : 300) * k;
+      if (am > cap) { ax *= cap / am; ay *= cap / am; }
+      push = clamp(am / cap, 0, 1);
+      for (const h of R.holes) {           // steer round the holes
+        const hx = c.x - h.x, hy = (c.y - h.y) * R.hrx / R.hry, hd = Math.hypot(hx, hy) || 1, reach = R.hrx * 3;
+        if (hd < reach && !(c.food && inHole(c.food.x, c.food.y, h, 1.5))) {
+          const p = (reach - hd) / reach;
+          ax += hx / hd * 1500 * k * p; ay += hy / hd * 1500 * k * p * R.hry / R.hrx;
+        }
+      }
+    }
+    c.vx += ax * dt; c.vy += ay * dt;
+    const fr = Math.exp(-(c.shellT > 0 ? 1.1 : 0.35) * dt);
+    c.vx *= fr; c.vy *= fr;
+    const vm = Math.hypot(c.vx, c.vy), vcap = (c.driven ? 560 : 330) * k;
+    if (vm > vcap) { c.vx *= vcap / vm; c.vy *= vcap / vm; }
+    c.x += c.vx * dt; c.y += c.vy * dt;
+    if (c.z > 0 || c.vz > 0) {
+      c.vz -= 1500 * k * dt; c.z += c.vz * dt;
+      if (c.flipping) { c.airT += dt; c.flip = -TAU * clamp(c.airT / c.airDur, 0, 1) * (c.faceTo || 1); }
+      if (c.z <= 0) {
+        c.z = 0;
+        const hard = c.vz < -380 * k; c.vz = 0;
+        if (c.flipping) { c.flipping = false; c.flip = 0; play('scrape'); spray(c, 9); }
+        else if (hard) spray(c, 4);
+      }
+    }
+    rinkEdge(c, k, 22, true);
+    if (c.driven && c.z < 4 && c.shellT <= 0 && now > c.noDunk) {
+      for (const h of R.holes) if (inHole(c.x, c.y, h, 0.75)) { dunk(c, h); return; }
+    } else if (!c.driven && c.z < 4) {
+      // only a crab you're driving falls in: to the rest a hole is a wall
+      // (steering round them alone still let them glide across the water)
+      for (const h of R.holes) {
+        const m = 1.35, ux = (c.x - h.x) / (R.hrx * m), uy = (c.y - h.y) / (R.hry * m), q = Math.hypot(ux, uy);
+        if (q >= 1 || q === 0) continue;
+        c.x = h.x + ux / q * R.hrx * m; c.y = h.y + uy / q * R.hry * m;
+        const nx = ux / q, ny = uy / q * R.hrx / R.hry, nm = Math.hypot(nx, ny), vn = (c.vx * nx + c.vy * ny) / nm;
+        if (vn < 0) { c.vx -= 1.5 * vn * nx / nm; c.vy -= 1.5 * vn * ny / nm; }
+      }
+    }
+    if (Math.abs(c.vx) > 14 * k && c.spinT <= 0 && c.eatT <= 0) c.faceTo = c.vx > 0 ? 1 : -1;
+    c.face += (c.faceTo - c.face) * Math.min(1, dt * 12);
+    c.speed = Math.hypot(c.vx, c.vy);
+    c.push += (push - c.push) * Math.min(1, dt * 6);
+    c.phase += dt * (c.push > 0.08 ? 3 + 9 * c.push : 0.4);
+    const lean = clamp(ax * c.faceTo / (1400 * k), -0.22, 0.22) * (c.shellT > 0 ? 0 : 1);
+    c.tilt += (lean - c.tilt) * Math.min(1, dt * 7);
+    googly(c, ax, ay, dt, k);
+  }
+  function googly(c, ax, ay, dt, k) {
+    const e = c.eye, m = 1 / (85 * k), lim = 3.7;
+    e.vx += (-(e.x - 0.8 * c.faceTo) * 70 - e.vx * 2.6 - ax * m) * dt;
+    e.vy += (-(e.y - 1) * 70 - e.vy * 2.6 - ay * m - (c.vz > 0 ? 0 : 0)) * dt;
+    e.x += e.vx * dt; e.y += e.vy * dt;
+    const em = Math.hypot(e.x, e.y);
+    if (em > lim) {
+      const nx = e.x / em, ny = e.y / em, vn = e.vx * nx + e.vy * ny;
+      e.x = nx * lim; e.y = ny * lim;
+      if (vn > 0) { e.vx -= 1.7 * vn * nx; e.vy -= 1.7 * vn * ny; }
+    }
+  }
+  function rinkEdge(o, k, margin, loud) {
+    const a = R.rx - margin * k, b = R.ry - margin * 0.3 * k;
+    const ux = (o.x - R.cx) / a, uy = (o.y - R.cy) / b, q = ux * ux + uy * uy;
+    if (q <= 1) return;
+    const m = Math.sqrt(q);
+    o.x = R.cx + (o.x - R.cx) / m; o.y = R.cy + (o.y - R.cy) / m;
+    let nx = (o.x - R.cx) / (a * a), ny = (o.y - R.cy) / (b * b);
+    const nm = Math.hypot(nx, ny); nx /= nm; ny /= nm;
+    const vn = o.vx * nx + o.vy * ny;
+    if (vn > 0) {
+      o.vx -= 1.5 * vn * nx; o.vy -= 1.5 * vn * ny;
+      if (loud && vn > 170 * k) {
+        play('thud'); sprayAt(o.x + nx * 16 * k, o.y + ny * 6 * k, 5);
+        if (vn > 420 * k && o.z < 5) goShell(o, 1);
+      }
+    }
+  }
+  function goShell(c, dur) {
+    if (c.dunkT > 0 || c.sitting) return;
+    c.shellT = dur; c.shellSpin = 0; c.eatT = 0; c.spinT = 0;
+    if (c.flipping) { c.flipping = false; c.flip = 0; }
+  }
+  function dunk(c, h) {
+    c.dunkT = 1.5; c.hole = h; c.vx = c.vy = 0; c.z = c.vz = 0; c.flipping = false; c.flip = 0;
+    play('whoops'); play('splash'); splashAt(h, 12);
+  }
+  function stepDunk(c, dt, k) {
+    const h = c.hole;
+    c.dunkT -= dt;
+    c.x += (h.x - c.x) * Math.min(1, dt * 14); c.y += (h.y - c.y) * Math.min(1, dt * 14);
+    if (c.dunkT < 1.25 && Math.random() < dt * 7) parts.push({ ty: 'ring', x: h.x + rng(-0.4, 0.4) * R.hrx, y: h.y + rng(-0.2, 0.3) * R.hry, z: 0, vx: 0, vy: 0, vz: 0, t: 0, life: 0.6, r: R.hrx * 0.3 });
+    if (c.dunkT > 0) return;
+    // out it comes, the way it was going, with a flip
+    const a = Math.atan2((R.cy - h.y) * 2 + rng(-0.5, 0.5) * R.ry, R.cx - h.x + rng(-0.5, 0.5) * R.rx);
+    c.x = h.x + Math.cos(a) * R.hrx * 1.9; c.y = h.y + Math.sin(a) * R.hry * 1.9;
+    c.vx = Math.cos(a) * 130 * k; c.vy = Math.sin(a) * 70 * k;
+    c.vz = 560 * k; c.airDur = 2 * c.vz / (1500 * k); c.airT = 0; c.flipping = true;
+    c.noDunk = performance.now() + 1600; c.dunkT = 0;
+    play('splash'); play('whee'); splashAt(h, 10);
+    say(c, pick(['brrr', 'cold!!', 'moo?', 'eek']), 1.2);
+  }
+  function collide(k) {
+    const list = crabs.filter(c => c.dunkT <= 0 && c.z < 18 * k);
+    const fx = { x: fisher.x, y: fisher.y, vx: 0, vy: 0, fixed: true };
+    list.push(fx);
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+      const A = list[i], B = list[j];
+      const r = 29 * k * (depth(A.y) + depth(B.y)) / 2;
+      const dx = B.x - A.x, dy = (B.y - A.y) * 2.2, d = Math.hypot(dx, dy);
+      if (d >= 2 * r || d === 0) continue;
+      const nx = dx / d, ny = dy / d, over = 2 * r - d;
+      if (B.fixed) { A.x -= nx * over; A.y -= ny * over / 2.2; }
+      else { A.x -= nx * over / 2; A.y -= ny * over / 4.4; B.x += nx * over / 2; B.y += ny * over / 4.4; }
+      const rv = (B.vx - A.vx) * nx + (B.vy - A.vy) * 2.2 * ny;
+      if (rv >= 0) continue;
+      const jmp = B.fixed ? -1.8 * rv : -1.8 * rv / 2;
+      A.vx -= jmp * nx; A.vy -= jmp * ny / 2.2;
+      if (!B.fixed) { B.vx += jmp * nx; B.vy += jmp * ny / 2.2; }
+      if (-rv > 300 * k) {            // a proper crash: both hide in their shells and spin
+        play('honk'); goShell(A, 1.1); if (!B.fixed) goShell(B, 1.1);
+        sprayAt((A.x + B.x) / 2, (A.y + B.y) / 2, 6);
+        if (B.fixed) say(fisher, pick(['hey!', 'oi', 'my fish!']), 1);
+      } else if (-rv > 80 * k) play('bonk');
+    }
+  }
+
+  // ---- the crab who fishes
+  function stepFisher(dt) {
+    const f = fisher, k = kS();
+    f.t += dt; f.blink -= dt; if (f.blink < -0.13) f.blink = rng(2, 5);
+    f.sayT = Math.max(0, f.sayT - dt); f.snipT = Math.max(0, f.snipT - dt);
+    googly(f, 0, 0, dt, k);
+    if (f.state === 'wait' && f.t > f.next && foods.length < 6) { f.state = 'bite'; f.t = 0; }
+    else if (f.state === 'bite' && f.t > 1.1) {
+      f.state = 'cheer'; f.t = 0; f.cheer = true;
+      const h = R.holes[0], fish = addFood('fish', h.x, h.y, Math.floor(rng(0, FISH.length)));
+      fish.z = 6; fish.vz = 560 * k;
+      fish.vx = (R.cx - h.x) * 0.25 + rng(40, 140) * k; fish.vy = rng(-30, 60) * k;
+      play('splash'); play('yay'); splashAt(h, 10);
+      say(f, pick(['got one!', 'fish!!', 'FISH', 'a big one']), 1.2);
+    } else if (f.state === 'cheer' && f.t > 1.1) { f.state = 'wait'; f.t = 0; f.cheer = false; f.next = rng(7, 13); }
+  }
+
+  /* ================= food on the ice ================= */
+  const foods = [];
+  function addFood(kind, x, y, v) {
+    const f = { kind, v: v || 0, x, y, vx: 0, vy: 0, z: 0, vz: 0, rot: 0, vr: 0, flipX: Math.random() < 0.5 ? -1 : 1, t: 0, life: 30, flopT: rng(0.4, 1) };
+    foods.push(f);
+    if (foods.length > 14) foods.shift();
+    return f;
+  }
+  function stepFood(f, dt, k) {
+    f.t += dt;
+    const fr = Math.exp(-0.9 * dt); f.vx *= fr; f.vy *= fr;
+    f.x += f.vx * dt; f.y += f.vy * dt;
+    if (f.z > 0 || f.vz > 0) {
+      f.vz -= 1500 * k * dt; f.z += f.vz * dt;
+      if (f.z <= 0) { f.z = 0; if (f.vz < -260 * k) { f.vz = -f.vz * 0.3; play(f.kind === 'fish' ? 'flop' : 'thud'); } else f.vz = 0; }
+    }
+    if (f.kind === 'fish') {
+      f.flopT -= dt;
+      if (f.flopT <= 0 && f.z === 0) {
+        f.flopT = rng(0.5, 1.3); f.vz = rng(140, 240) * k;
+        f.vx += rng(-50, 50) * k; f.vy += rng(-25, 25) * k; f.flipX = -f.flipX; f.vr = rng(-7, 7);
+        play('flop');
+      }
+      f.rot += f.vr * dt; f.vr *= Math.exp(-4 * dt);
+      if (f.z === 0) f.rot *= Math.exp(-8 * dt);
+    } else f.rot += f.vx * dt / (12 * k);
+    rinkEdge(f, k, 12, false);
+    if (f.z < 3) for (const h of R.holes) if (inHole(f.x, f.y, h, 0.8)) {
+      play(f.kind === 'fish' ? 'splash' : 'plop'); splashAt(h, 6);
+      return true;                       // gone: back into the water
+    }
+    return f.t > f.life;
+  }
+  function eat(c, f) {
+    foods.splice(foods.indexOf(f), 1);
+    c.eatT = 0.9; c.food = null; c.snipT = 0.9;
+    for (let i = 0; i < 3; i++) parts.push({ ty: 'heart', x: c.x + rng(-12, 12) * kS(), y: c.y, z: rng(55, 75) * kS() * depth(c.y), vx: rng(-15, 15), vy: 0, vz: rng(35, 60), t: -i * 0.12, life: 1.2, r: rng(4, 6.5), color: pick(['#ff5d8a', '#ff5d73', '#c86bfa']) });
+    play('nom');
+    say(c, pick(['nom', 'yum!', 'mmm', 'nom nom']), 0.9);
+  }
+  let assignT = 0;
+  function feed(dt, k) {
+    for (const c of crabs) {
+      if (c.dunkT > 0 || c.shellT > 0 || c.eatT > 0 || c.z > 22 * k) continue;
+      const s = depth(c.y);
+      for (const f of foods) {
+        if (f.z > 22 * k || f.t < 0.25) continue;
+        const dx = f.x - (c.x + c.faceTo * 22 * k * s), dy = (f.y - c.y) * 2.2;
+        if (Math.hypot(dx, dy) < 28 * k * s) { eat(c, f); break; }
+      }
+    }
+    if ((assignT -= dt) > 0) return;
+    assignT = 0.3;
+    for (const f of foods) {        // two crabs go for each one: a race
+      let chasers = crabs.filter(c => c.food === f).length;
+      while (chasers < 2) {
+        let best = null, bd = Infinity;
+        for (const c of crabs) {
+          if (c.driven || c.food || c.shellT > 0 || c.dunkT > 0 || c.eatT > 0) continue;
+          const d = Math.hypot(c.x - f.x, (c.y - f.y) * 2);
+          if (d < bd) { bd = d; best = c; }
+        }
+        if (!best) break;
+        best.food = f; best.spinT = 0; chasers++;
+      }
+    }
+  }
+
+  /* ================= bits: snow, drops, hearts, sparkles ================= */
+  const parts = [];
+  function spray(c, n) { sprayAt(c.x, c.y, n); }
+  function sprayAt(x, y, n) {
+    const k = kS();
+    for (let i = 0; i < n; i++) parts.push({ ty: 'snow', x: x + rng(-16, 16) * k, y: y + rng(-3, 3), z: 2, vx: rng(-110, 110) * k, vy: rng(-25, 25) * k, vz: rng(60, 220) * k, t: 0, life: rng(0.4, 0.75), r: rng(1.6, 3.2) });
+  }
+  function splashAt(h, n) {
+    const k = kS();
+    for (let i = 0; i < n; i++) { const a = rng(0, TAU); parts.push({ ty: 'drop', x: h.x + Math.cos(a) * R.hrx * 0.5, y: h.y + Math.sin(a) * R.hry * 0.5, z: 2, vx: Math.cos(a) * rng(30, 110) * k, vy: Math.sin(a) * rng(15, 50) * k, vz: rng(140, 330) * k, t: 0, life: 0.9, r: rng(2, 3.6) }); }
+    parts.push({ ty: 'ring', x: h.x, y: h.y + R.hry * 0.1, z: 0, vx: 0, vy: 0, vz: 0, t: 0, life: 0.7, r: R.hrx * 0.4 });
+  }
+  function stepParts(dt, k) {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.t += dt;
+      if (p.t > p.life) { parts.splice(i, 1); continue; }
+      if (p.t < 0) continue;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.ty === 'snow' || p.ty === 'drop') { p.vz -= 1100 * k * dt; p.z = Math.max(0, p.z + p.vz * dt); }
+      else p.z += p.vz * dt;
+    }
+    if (parts.length > 260) parts.splice(0, parts.length - 260);
+  }
+
+  /* ================= drawing ================= */
+  function roundRect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+  function whorl(g, x, y, r, c) {
+    const gr = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+    gr.addColorStop(0, c.shellLight); gr.addColorStop(1, c.shell);
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = gr; g.fill();
+    g.strokeStyle = INK; g.lineWidth = 2.6; g.stroke();
+  }
+  function drawShell(g, c, cx, cy) {
+    whorl(g, cx - 22, cy - 28, 6, c);
+    whorl(g, cx - 13, cy - 18, 13, c);
+    whorl(g, cx, cy, 26, c);
+    g.beginPath();
+    for (let a = 0; a <= 13; a += 0.2) { const r = 2.5 + a * 1.78, x = cx + Math.cos(a + 2.4) * r, y = cy + Math.sin(a + 2.4) * r * 0.95; if (a === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+    g.strokeStyle = c.shellDark; g.lineWidth = 2.6; g.stroke();
+    g.fillStyle = c.shellLight;
+    if (c.pattern === 1) for (const [x, y] of [[-12, -8], [4, -16], [12, 4], [-6, 12], [-16, 6]]) { g.beginPath(); g.arc(cx + x, cy + y, 2.4, 0, TAU); g.fill(); }
+    if (c.pattern === 2) { g.strokeStyle = c.shellLight; g.lineWidth = 2; for (const r of [10, 19]) { g.beginPath(); g.arc(cx, cy, r, 3.6, 5.4); g.stroke(); } }
+  }
+  function claw(g, x, y, sc, snip, rot, col) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(sc, sc);
+    g.fillStyle = col; g.strokeStyle = INK; g.lineWidth = 2.2;
+    g.save(); g.translate(7, -2.2); g.rotate(-0.25 - snip); ell(g, 6, 0, 7, 3.2); g.fill(); g.stroke(); g.restore();
+    g.save(); g.translate(7, 2.6); g.rotate(0.2 + snip); ell(g, 5.5, 0, 6, 2.8); g.fill(); g.stroke(); g.restore();
+    ell(g, 0, 0, 8.5, 6.8); g.fill(); g.stroke();
+    g.restore();
+  }
+  function eyeball(g, x, y, r, c, k) {
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.8; g.stroke();
+    if (c.blink < 0) { g.beginPath(); g.moveTo(x - r * 0.7, y + 0.5); g.lineTo(x + r * 0.7, y + 0.5); g.stroke(); return; }
+    const px = c.eye.x * (c.face < 0 ? -1 : 1) * k, py = c.eye.y * k;
+    g.beginPath(); g.arc(x + px, y + py, r * 0.48, 0, TAU); g.fillStyle = INK; g.fill();
+    g.beginPath(); g.arc(x + px - r * 0.15, y + py - r * 0.18, r * 0.14, 0, TAU); g.fillStyle = '#fff'; g.fill();
+  }
+  function drawLegs(g, c) {
+    const pa = c.sitting ? 0 : c.push, stride = 8 * pa;
+    for (const near of [0, 1]) for (let i = 0; i < 3; i++) {
+      const p = c.phase + i * 2.1 + near * 1.05;
+      const hx = -10 + i * 11 + near * 3, hy = -22;
+      const lift = c.sitting ? 4 + i * 1.5 : Math.max(0, Math.cos(p)) * 4 * pa;
+      const fx = hx + (c.sitting ? 9 : 5) + Math.sin(p) * stride, fy = -5 - lift;
+      const kx = (hx + fx) / 2 + 6, ky = -16 - lift * 0.4;
+      g.beginPath(); g.moveTo(hx, hy); g.lineTo(kx, ky); g.lineTo(fx, fy);
+      g.strokeStyle = INK; g.lineWidth = 6.4; g.stroke();
+      g.strokeStyle = near ? BODY : BODY_DARK; g.lineWidth = 3.6; g.stroke();
+      roundRect(g, fx - 4, fy - 3.2, 9.5, 5.6, 2); g.fillStyle = near ? c.boot : mix(c.boot, INK, 0.2); g.fill(); g.lineWidth = 1.4; g.strokeStyle = INK; g.stroke();
+      g.beginPath(); g.moveTo(fx - 6, fy + 4); g.lineTo(fx + 6, fy + 4); g.arc(fx + 6, fy + 1.5, 2.5, Math.PI / 2, -Math.PI / 3, true);
+      g.strokeStyle = INK; g.lineWidth = 3.2; g.stroke(); g.strokeStyle = '#e3e9f5'; g.lineWidth = 1.6; g.stroke();
+    }
+  }
+  function drawCrab(g, c, t) {
+    if (c.dunkT > 0 && c.dunkT <= 1.25) return;
+    const s = depth(c.y) * S / 100;
+    g.save();
+    g.translate(c.x, c.y);
+    if (c.dunkT > 1.25) { const p = (c.dunkT - 1.25) / 0.25; g.translate(0, (1 - p) * 10 * s); g.scale(p, p); }
+    let lift = c.z;
+    if (c.cheer) lift += Math.abs(Math.sin(t * 9)) * 9 * s;
+    g.translate(0, -lift);
+    g.scale(s, s);
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    if (c.sitting) {        // an upturned bucket
+      g.beginPath(); g.moveTo(-20, 0); g.lineTo(16, 0); g.lineTo(11, -20); g.lineTo(-15, -20); g.closePath();
+      g.fillStyle = '#6c7bff'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2.4; g.stroke();
+      g.beginPath(); g.moveTo(-17.5, -7); g.lineTo(14.5, -7); g.strokeStyle = '#fff'; g.lineWidth = 3; g.stroke();
+      g.translate(0, -19);
+    }
+    if (c.shellT > 0) {     // hiding: just a shell spinning on the ice, two eyes in the door
+      g.translate(0, -26); g.rotate(c.shellSpin * (c.faceTo || 1)); g.scale(c.faceTo || 1, 1);
+      drawShell(g, c, 0, 0);
+      ell(g, 17, 5, 6.5, 9); g.fillStyle = c.shellDark; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+      for (const [x, y] of [[15, 2], [19, 7]]) { g.beginPath(); g.arc(x, y, 2.3, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(x + 0.6, y + 0.3, 1.1, 0, TAU); g.fillStyle = INK; g.fill(); }
+      g.restore(); return;
+    }
+    if (c.flip) { g.translate(0, -40); g.rotate(c.flip); g.translate(0, 40); }
+    g.rotate(c.tilt);
+    // turning round squashes it through a third of its width, never to a sliver
+    g.scale((c.face < 0 ? -1 : 1) * (0.35 + 0.65 * Math.abs(c.face)), 1);
+    const w = clamp(c.speed / (230 * kS()), 0, 1);
+    drawLegs(g, c);
+    drawShell(g, c, -8, -44);
+    // where it comes out of the shell
+    ell(g, 11, -37, 7, 13); g.fillStyle = c.shellDark; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    // scarf: round the neck, the ends streaming behind as it goes
+    for (let j = 0; j < 2; j++) {
+      const len = 12 + 18 * w, wave = Math.sin(t * (11 + j * 3) + j + c.seed) * (1.5 + 4 * w), droop = (1 - w) * 16;
+      g.beginPath(); g.moveTo(4, -44 + j * 5);
+      g.quadraticCurveTo(-6 - len * 0.4, -46 + j * 6 + wave * 0.5 + droop * 0.4, -4 - len, -42 + j * 7 + wave + droop);
+      g.strokeStyle = INK; g.lineWidth = 7.6; g.stroke(); g.strokeStyle = c.scarf; g.lineWidth = 4.4; g.stroke();
+    }
+    g.beginPath(); g.moveTo(4, -51); g.quadraticCurveTo(12, -40, 8, -26);
+    g.strokeStyle = INK; g.lineWidth = 9; g.stroke(); g.strokeStyle = c.scarf; g.lineWidth = 5.8; g.stroke();
+    // the small claw, behind
+    const eating = c.eatT > 0, snip = c.snipT > 0 ? 0.35 * Math.abs(Math.sin(t * 16)) : 0.05;
+    claw(g, 27, -15, 0.66, snip, eating ? -0.5 * Math.abs(Math.sin(t * 12 + 1)) : 0.15, BODY_DARK);
+    // the head
+    const hg = g.createRadialGradient(16, -40, 2, 20, -34, 16);
+    hg.addColorStop(0, BODY_LIGHT); hg.addColorStop(1, BODY);
+    ell(g, 20, -34, 15, 12.5); g.fillStyle = hg; g.fill(); g.strokeStyle = INK; g.lineWidth = 2.4; g.stroke();
+    ell(g, 25, -29.5, 3.6, 2.2); g.fillStyle = 'rgba(255, 70, 120, 0.4)'; g.fill();
+    if (c.sayT > 0 || eating) {
+      ell(g, 31, -31, 2.3, 2.8 * (0.5 + 0.5 * Math.abs(Math.sin(t * 14)))); g.fillStyle = INK; g.fill();
+    } else {
+      g.beginPath(); g.arc(30, -33, 3.2, 0.3, 1.9); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke();
+    }
+    // eyes on stalks, leaning back with speed
+    const lean = -w * 5;
+    const e1x = 14 + lean * 0.8, e1y = -61, e2x = 26 + lean, e2y = -63;
+    g.strokeStyle = INK; g.lineWidth = 4.6;
+    g.beginPath(); g.moveTo(16, -43); g.lineTo(e1x, e1y); g.moveTo(24, -44); g.lineTo(e2x, e2y); g.stroke();
+    g.strokeStyle = BODY; g.lineWidth = 2.6; g.stroke();
+    g.beginPath(); g.moveTo(27, -46); g.quadraticCurveTo(40, -58, 48, -64 + Math.sin(t * 3 + c.seed) * 3); g.moveTo(22, -46); g.quadraticCurveTo(30, -64, 40, -74 + Math.sin(t * 2.6 + c.seed) * 3);
+    g.strokeStyle = INK; g.lineWidth = 1.3; g.stroke();
+    eyeball(g, e1x, e1y, 6.2, c, 0.86);
+    eyeball(g, e2x, e2y, 7.2, c, 1);
+    // the big claw, in front: up when cheering, to the mouth when eating
+    const rot = c.cheer ? -1.3 + Math.sin(t * 9) * 0.25 : eating ? -0.7 * Math.abs(Math.sin(t * 12)) : 0.1;
+    claw(g, c.cheer ? 32 : 36, c.cheer ? -34 : -22, 1, snip, rot, BODY);
+    if (c.beanie) {          // a bobble hat, on the shell
+      g.save(); g.translate(-27, -68); g.rotate(-0.45);
+      g.beginPath(); g.ellipse(0, 0, 12, 11, 0, Math.PI, TAU); g.closePath(); g.fillStyle = '#ff5d73'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2.2; g.stroke();
+      roundRect(g, -13.5, -2, 27, 6, 2.5); g.fillStyle = '#fff'; g.fill(); g.stroke();
+      g.beginPath(); g.arc(0, -12, 4.5, 0, TAU); g.fillStyle = '#ffd23f'; g.fill(); g.stroke();
+      g.restore();
+    }
+    g.restore();
+  }
+  function drawRod(g, t) {
+    const f = fisher, h = R.holes[0], s = depth(f.y) * S / 100;
+    const bite = f.state === 'bite' ? Math.abs(Math.sin(t * 16)) : 0;
+    const lift = f.cheer ? Math.abs(Math.sin(t * 9)) * 9 * s : 0;
+    const hx = f.x + 40 * s, hy = f.y - (19 + 24) * s - lift;
+    const tipX = h.x + 2 * s, tipY = h.y - 62 * s + bite * 10 * s - (f.cheer ? 26 * s : 0);
+    g.lineCap = 'round';
+    g.beginPath(); g.moveTo(hx, hy); g.quadraticCurveTo((hx + tipX) / 2, Math.min(hy, tipY) - 14 * s + bite * 6 * s, tipX, tipY);
+    g.strokeStyle = INK; g.lineWidth = 4.4 * s; g.stroke(); g.strokeStyle = '#c48a55'; g.lineWidth = 2.4 * s; g.stroke();
+    if (!f.cheer) {
+      const by = h.y + R.hry * 0.1 + Math.sin(t * 2.2) * 1.5 + bite * 5 * s;
+      g.beginPath(); g.moveTo(tipX, tipY); g.lineTo(h.x, by); g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+      g.beginPath(); g.arc(h.x, by, 3.6 * s, Math.PI, TAU); g.fillStyle = '#ff5d73'; g.fill();
+      g.beginPath(); g.arc(h.x, by, 3.6 * s, 0, Math.PI); g.fillStyle = '#fff'; g.fill();
+      g.beginPath(); g.arc(h.x, by, 3.6 * s, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = INK; g.stroke();
+    }
+  }
+  function drawFood(g, f) {
+    const s = depth(f.y), a = clamp(f.life - f.t, 0, 1);
+    if (a <= 0) return;
+    g.save(); g.globalAlpha = a;
+    g.translate(f.x, f.y - f.z);
+    if (f.kind === 'persimmon') {
+      const d = S * 0.44 * s;
+      g.translate(0, -d * 0.5); g.rotate(f.rot);
+      if (PERSIMMON_IMG.complete) g.drawImage(PERSIMMON_IMG, -d / 2, -d * 0.55, d, d * 1.1);
+    } else {
+      const len = S * 0.72 * s, wd = len * 40 / 83, img = FISH_IMGS[f.v % FISH_IMGS.length];
+      g.translate(0, -wd * 0.45); g.scale(f.flipX, 1); g.rotate(Math.PI / 2 + f.rot);
+      if (img.complete) g.drawImage(img, -wd / 2, -len / 2, wd, len);
+    }
+    g.restore();
+  }
+  function heart(g, x, y, r) {
+    g.beginPath(); g.moveTo(x, y + r * 0.9);
+    g.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.6, y - r * 1.4, x, y - r * 0.45);
+    g.bezierCurveTo(x + r * 0.6, y - r * 1.4, x + r * 1.6, y - r * 0.2, x, y + r * 0.9);
+    g.fill();
+  }
+  function star(g, x, y, r) {
+    g.beginPath();
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, q = i % 2 ? r * 0.32 : r; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); }
+    g.closePath(); g.fill();
+  }
+  function bubble(g, c, t) {
+    const s = depth(c.y) * S / 100, p = 1 - c.sayT / c.sayDur, pop = p < 0.12 ? 0.4 + 0.6 * p / 0.12 : 1;
+    const x = c.x + (c.sitting ? 0 : (c.face || 1) * 12 * s), y = c.y - c.z - (c.sitting ? 120 : 98) * s - (c.cheer ? 8 * s : 0);
+    const fs = Math.round(clamp(15 * s / 0.6, 13, 20));
+    g.save(); g.translate(x, y); g.scale(pop, pop); g.globalAlpha = clamp(c.sayT / 0.2, 0, 1);
+    g.font = `${fs}px "Bagel Fat One", "Unkempt", cursive`;
+    const tw = g.measureText(c.say).width, bw = tw + fs * 0.9, bh = fs * 1.55;
+    roundRect(g, -bw / 2, -bh, bw, bh, bh / 2.2); g.fillStyle = '#fff'; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.moveTo(-5, -1); g.lineTo(-1, 9); g.lineTo(5, -1); g.fillStyle = '#fff'; g.fill();
+    g.beginPath(); g.moveTo(-5, 0); g.lineTo(-1, 9); g.lineTo(5, 0); g.stroke();
+    g.fillStyle = c.shellDark; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(c.say, 0, -bh / 2 + 1);
+    g.restore();
+  }
+  function label(g, c) {
+    const s = depth(c.y) * S / 100;
+    g.save();
+    g.font = `${Math.round(clamp(14 * s / 0.6, 12, 18))}px "Unkempt", cursive`;
+    g.textAlign = 'center'; g.textBaseline = 'bottom';
+    const y = c.y - c.z - 88 * s;
+    g.lineWidth = 4; g.strokeStyle = 'rgba(255, 255, 255, 0.9)'; g.strokeText(c.name, c.x, y);
+    g.fillStyle = INK; g.fillText(c.name, c.x, y);
+    g.restore();
+  }
+  function draw(t) {
+    const g = liveG, k = kS();
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, liveC.width, liveC.height);
+    g.setTransform(dpr, 0, 0, dpr, -R.left * dpr, -R.top * dpr);
+    // the water in the holes moves a little
+    for (const h of R.holes) {
+      g.strokeStyle = 'rgba(255, 255, 255, 0.45)'; g.lineWidth = 1.4;
+      const o = Math.sin(t * 1.7 + h.x) * R.hrx * 0.15;
+      g.beginPath(); g.ellipse(h.x + o, h.y + R.hry * 0.2, R.hrx * 0.5, R.hry * 0.35, 0, Math.PI * 0.15, Math.PI * 0.75); g.stroke();
+    }
+    // shadows, and the ring round whoever you're driving
+    g.fillStyle = 'rgba(52, 74, 150, 0.22)';
+    for (const c of crabs) {
+      if (c.dunkT > 0) continue;
+      const s = depth(c.y) * S / 100, zf = 1 / (1 + c.z / (0.7 * S));
+      ell(g, c.x, c.y, (c.shellT > 0 ? 30 : 40) * s * zf, 8.5 * s * zf); g.fill();
+    }
+    for (const f of foods) { const s = depth(f.y); ell(g, f.x, f.y, S * 0.2 * s / (1 + f.z / 40), S * 0.05 * s); g.fill(); }
+    { const s = depth(fisher.y) * S / 100; ell(g, fisher.x - 2 * s, fisher.y, 26 * s, 7 * s); g.fill(); }
+    const driving = crabs.find(c => c.driven) || (fine && ctl.keyCrab && !ctl.crab ? ctl.keyCrab : null);
+    if (driving && driving.dunkT <= 0) {
+      const s = depth(driving.y) * S / 100;
+      g.save(); g.lineWidth = 3; g.setLineDash([9, 7]); g.lineDashOffset = -t * 40;
+      g.strokeStyle = `hsl(${(t * 90) % 360}, 90%, 60%)`; g.globalAlpha = driving.driven ? 1 : 0.4;
+      ell(g, driving.x, driving.y, 46 * s, 12 * s); g.stroke(); g.restore();
+    }
+    // everything standing on the ice, back to front
+    const list = crabs.concat(foods); list.push(fisher);
+    list.sort((a, b) => a.y - b.y);
+    for (const o of list) {
+      if (o.kind === 'crab') drawCrab(g, o, t);
+      else if (o.kind === 'fisher') { drawCrab(g, o, t); drawRod(g, t); }
+      else drawFood(g, o);
+    }
+    // the little things
+    for (const p of parts) {
+      if (p.t < 0) continue;
+      const a = 1 - p.t / p.life;
+      g.globalAlpha = clamp(a * 1.5, 0, 1);
+      if (p.ty === 'snow') { g.fillStyle = '#fff'; g.strokeStyle = 'rgba(59, 35, 70, 0.35)'; g.lineWidth = 0.8; g.beginPath(); g.arc(p.x, p.y - p.z, p.r, 0, TAU); g.fill(); g.stroke(); }
+      else if (p.ty === 'drop') { g.fillStyle = '#5bb8f5'; g.beginPath(); g.arc(p.x, p.y - p.z, p.r, 0, TAU); g.fill(); }
+      else if (p.ty === 'heart') { g.fillStyle = p.color; heart(g, p.x + Math.sin(p.t * 6) * 4, p.y - p.z, p.r); }
+      else if (p.ty === 'spark') { g.fillStyle = p.color; star(g, p.x, p.y - p.z, p.r * (0.6 + a * 0.6)); }
+      else if (p.ty === 'ring') { g.strokeStyle = 'rgba(255, 255, 255, 0.85)'; g.lineWidth = 1.6; const q = 1 + p.t / p.life * 1.4; ell(g, p.x, p.y, p.r * q, p.r * q * 0.44); g.stroke(); }
+    }
+    g.globalAlpha = 1;
+    if (driving && driving.driven && driving.dunkT <= 0 && driving.sayT <= 0) label(g, driving);
+    for (const c of crabs) if (c.sayT > 0 && c.dunkT <= 0) bubble(g, c, t);
+    if (fisher.sayT > 0) bubble(g, fisher, t);
+    // skate marks: a line behind every crab that's skating
+    marksG.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    for (const c of crabs) {
+      if (c.z === 0 && c.dunkT <= 0 && c.speed > 25 * k) {
+        marksG.lineWidth = c.shellT > 0 ? 2.4 : 1.1;
+        marksG.beginPath(); marksG.moveTo(c.lx, c.ly); marksG.lineTo(c.x, c.y); marksG.stroke();
+      }
+      c.lx = c.x; c.ly = c.y;
+    }
+  }
+  let fadeT = 0;
+  function fadeMarks(dt) {
+    if ((fadeT -= dt) > 0) return;
+    fadeT = 0.3;
+    marksG.save(); marksG.setTransform(1, 0, 0, 1, 0, 0);
+    marksG.globalCompositeOperation = 'destination-out'; marksG.fillStyle = 'rgba(0, 0, 0, 0.07)';
+    marksG.fillRect(0, 0, marksC.width, marksC.height);
+    marksG.restore();
+  }
+
+  /* ================= the loop ================= */
+  function hover(now) {
+    if (!fine || !ctl.mouseIn || dragEl || held || lunge) return;
+    if (!zone(ctl.px, ctl.py)) return;
+    ctl.lastInside = now;
+    [ctl.tx, ctl.ty] = clampToIce(ctl.px, ctl.py + 36 * depth(ctl.py) * S / 100);   // the pointer on its body, not its feet
+    const c = crabAt(ctl.px, ctl.py, ctl.crab);
+    hitEl.style.cursor = c || onFisher(ctl.px, ctl.py) ? 'pointer' : 'default';
+    if (c && c !== ctl.crab) {
+      // a crab skating past the one you're driving doesn't steal you away at once
+      if (!ctl.crab) take(c);
+      else if (ctl.cand !== c) { ctl.cand = c; ctl.candAt = now; }
+      else if (now - ctl.candAt > 120) take(c);
+    } else ctl.cand = null;
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+    const k = kS(), t = now / 1000;
+    hover(now);
+    if (ctl.crab && ctl.touchId === null && now - ctl.lastInside > 1200) { const c = ctl.crab; ctl.crab = null; newTarget(c); }
+    for (const c of crabs) stepCrab(c, dt, now);
+    stepFisher(dt);
+    collide(k);
+    for (let i = foods.length - 1; i >= 0; i--) if (stepFood(foods[i], dt, k)) foods.splice(i, 1);
+    feed(dt, k);
+    for (let i = flyers.length - 1; i >= 0; i--) stepFlyer(flyers[i], dt);
+    stepParts(dt, k);
+    fadeMarks(dt);
+    draw(t);
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= start ================= */
+  const title = document.getElementById('title');
+  [...'hermit crab land'].forEach((ch, i) => {
+    const sp = document.createElement('span');
+    if (ch === ' ') { sp.className = 'gap'; sp.innerHTML = '&nbsp;'; }
+    else sp.textContent = ch;
+    sp.setAttribute('aria-hidden', 'true');
+    sp.style.setProperty('--c', RAINBOW[i % 7]);
+    sp.style.setProperty('--d', (-i * 0.17).toFixed(2) + 's');
+    if (fine && ch !== ' ') sp.addEventListener('pointerenter', () => { sp.classList.remove('hop'); void sp.offsetWidth; sp.classList.add('hop'); play('blip'); });
+    sp.addEventListener('animationend', e => { if (e.animationName === 'hop') sp.classList.remove('hop'); });
+    title.appendChild(sp);
+  });
+
+  const credits = document.getElementById('credits'), list = document.getElementById('creditsList');
+  for (const [file, who, lic, src] of CREDITS) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(src).replace(/%2C/g, ',').replace(/%28/g, '(').replace(/%29/g, ')');
+    a.textContent = file.replace(/-/g, ' ');
+    a.target = '_blank'; a.rel = 'noopener';
+    li.append(a, ` — ${who === 'unknown' ? 'photographer unknown' : who}, ${lic}`);
+    list.appendChild(li);
+  }
+  function closeCredits() { credits.hidden = true; }
+  document.getElementById('creditsBtn').addEventListener('click', () => { credits.hidden = !credits.hidden; });
+  document.getElementById('creditsClose').addEventListener('click', closeCredits);
+
+  computeLayout();
+  applyLayout();
+  placeCrabs();
+  ctl.keyCrab = crabs[0];
+  buildPile();
+  let resizeQueued = false;
+  window.addEventListener('resize', () => {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(() => {
+      resizeQueued = false;
+      const o = { cx: R.cx, cy: R.cy, rx: R.rx, ry: R.ry };
+      computeLayout(); applyLayout();
+      const map = (x, y) => [R.cx + (x - o.cx) / o.rx * R.rx, R.cy + (y - o.cy) / o.ry * R.ry];
+      for (const c of crabs) { [c.x, c.y] = map(c.x, c.y); [c.tx, c.ty] = map(c.tx, c.ty); c.lx = c.x; c.ly = c.y; }
+      for (const f of foods) [f.x, f.y] = map(f.x, f.y);
+    });
+  });
+  document.fonts && document.fonts.ready.then(() => applyLayout());
+  requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+  // /piper?debug: the state, for a test to look at
+  if (/[?&]debug/.test(location.search)) window.__piper = { crabs, foods, flyers, fisher, ctl, R, tally, get mooReady() { return !!mooBuf; }, get audio() { return ac && ac.state; } };
+})();
+</script>
+
+</body>
+</html>
