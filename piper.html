@@ -155,6 +155,15 @@
     }
     .sign b { font-family: 'Bagel Fat One', cursive; font-weight: 400; font-size: 1.1em; color: #6c7bff; letter-spacing: 0.02em; }
     .sign ol { padding-left: 1.15em; }
+    .sign[hidden] { display: none; }
+    .sign-x {
+      position: absolute; top: -0.7em; right: -0.7em;
+      width: 1.6em; height: 1.6em; border-radius: 50%;
+      font: inherit; font-size: 1em; line-height: 1; color: #3b2346;
+      background: #ffd23f; border: 2px solid #3b2346; cursor: pointer;
+      pointer-events: auto;
+    }
+    .sign-x:hover, .sign-x:focus-visible { background: #ff9f43; }
 
     /* ---- the title, a letter of each colour */
     .title {
@@ -186,13 +195,6 @@
       .sign { font-size: 0.66rem; padding: 0.2rem 0.45rem 0.25rem; }
       .sign::after { height: 14px; }
     }
-    .tagline {
-      position: absolute; z-index: 1300; left: 0; right: 0;
-      text-align: center;
-      font-size: clamp(0.85rem, 1.4vw, 1.15rem);
-      text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 12px #fff, 0 0 18px #fff;
-      pointer-events: none;
-    }
 
     /* fruit and fish in the air, and whatever is in your hand */
     .flyers { position: absolute; inset: 0; z-index: 1400; pointer-events: none; }
@@ -212,8 +214,10 @@
     .back { top: 1rem; left: 1.2rem; opacity: 0.9; }
     .back:hover { opacity: 1; }
     .note { top: 1rem; right: 1.2rem; pointer-events: none; }
-    .sound, .credits-btn { bottom: 0.9rem; cursor: pointer; opacity: 0.9; border-bottom: 1px solid rgba(59, 35, 70, 0.35); line-height: 1.3; }
-    .sound { right: 1.2rem; }
+    .sound, .credits-btn, .rules-btn { bottom: 0.9rem; cursor: pointer; opacity: 0.9; border-bottom: 1px solid rgba(59, 35, 70, 0.35); line-height: 1.3; }
+    .switches { position: fixed; z-index: 60; right: 1.2rem; bottom: 0.9rem; display: flex; gap: 1.1rem; }
+    .switches .corner { position: static; }
+    .rules-btn:hover, .rules-btn:focus-visible { opacity: 1; }
     .credits-btn { left: 1.2rem; }
     .sound:hover, .credits-btn:hover, .sound:focus-visible, .credits-btn:focus-visible { opacity: 1; }
 
@@ -359,7 +363,6 @@
   <div class="sign" id="rules"></div>
 
   <h1 class="title" id="title" aria-label="hermit crab land"></h1>
-  <p class="tagline" id="tagline">(the crabs moo. nobody knows why.)</p>
 
   <div class="flyers" id="flyers"></div>
 </div>
@@ -369,7 +372,7 @@
 <a href="/" class="corner back">← back</a>
 <p class="corner note">for piper ♡</p>
 <button class="corner credits-btn" id="creditsBtn" type="button">who took these?</button>
-<button class="corner sound" id="sound" type="button">sound: on</button>
+<div class="switches"><button class="corner rules-btn" id="rulesBtn" type="button">rules: on</button><button class="corner sound" id="sound" type="button">sound: on</button></div>
 
 <div class="credits" id="credits" hidden role="dialog" aria-label="photo credits">
   <button class="credits-close" id="creditsClose" type="button">close ×</button>
@@ -989,9 +992,20 @@
   const rinkEl = document.getElementById('rink'), hitEl = document.getElementById('rinkHit'), rulesEl = document.getElementById('rules');
   const iceC = document.getElementById('ice'), marksC = document.getElementById('marks'), liveC = document.getElementById('live');
   const liveG = liveC.getContext('2d'), marksG = marksC.getContext('2d');
-  rulesEl.innerHTML = fine
-    ? '<b>rink rules</b><ol><li>hover over a crab to drive it</li><li>arrow keys + space work too</li><li>no mooing</li></ol>'
-    : '<b>rink rules</b><ol><li>drag a crab to drive it</li><li>tap one to say hi</li><li>no mooing</li></ol>';
+  rulesEl.innerHTML = (fine
+    ? '<b>rink rules</b><ol><li>hover over a crab to drive it</li><li>arrow keys + space work too</li><li>press f to fly</li><li>no mooing</li></ol>'
+    : '<b>rink rules</b><ol><li>drag a crab to drive it</li><li>tap one to say hi</li><li>no mooing</li></ol>')
+    + '<button class="sign-x" type="button" aria-label="put the rules away">×</button>';
+  // the board can be put away (and brought back from the corner); remembered on this device
+  const rulesBtn = document.getElementById('rulesBtn');
+  function showRules(on) {
+    rulesEl.hidden = !on;
+    rulesBtn.textContent = on ? 'rules: on' : 'rules: off';
+    try { localStorage.setItem('piper-rules', on ? 'on' : 'off'); } catch (e) {}
+  }
+  try { if (localStorage.getItem('piper-rules') === 'off') showRules(false); } catch (e) {}
+  rulesEl.querySelector('.sign-x').addEventListener('click', () => { showRules(false); play('pop'); });
+  rulesBtn.addEventListener('click', () => { showRules(rulesEl.hidden); play('pop'); });
   function ell(g, x, y, rx, ry) { g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, TAU); }
   function drawIce() {
     const g = iceC.getContext('2d');
@@ -1074,7 +1088,10 @@
   function sizeCanvases() {
     dpr = Math.min(2, window.devicePixelRatio || 1);
     Object.assign(rinkEl.style, { left: R.left + 'px', top: R.top + 'px', width: R.w + 'px', height: R.h + 'px' });
-    for (const [c, d] of [[iceC, dpr], [liveC, dpr], [marksC, 1]]) { c.width = Math.round(R.w * d); c.height = Math.round(R.h * d); }
+    for (const [c, d] of [[iceC, dpr], [marksC, 1]]) { c.width = Math.round(R.w * d); c.height = Math.round(R.h * d); }
+    // the moving things' canvas goes on up to the top of the screen: there's sky to fly in
+    liveC.width = Math.round(R.w * dpr); liveC.height = Math.round((R.top + R.h) * dpr);
+    Object.assign(liveC.style, { top: -R.top + 'px', height: (R.top + R.h) + 'px' });
     marksG.setTransform(1, 0, 0, 1, -R.left, -R.top);
     ell(marksG, R.cx, R.cy, R.rx, R.ry); marksG.clip();
     marksG.lineCap = 'round';
@@ -1084,8 +1101,6 @@
     for (const el of [treeEl, fruitsEl]) Object.assign(el.style, { left: T.x + 'px', top: T.y + 'px', width: T.w + 'px', height: T.h + 'px' });
     sizeCanvases();
     Object.assign(hitEl.style, { left: (R.cx - R.rx - 10) + 'px', top: (R.cy - R.ry - S * 0.85) + 'px', width: (R.rx * 2 + 20) + 'px', height: (R.ry * 2 + S * 0.85 + 12) + 'px' });
-    const tl = document.getElementById('tagline'), title = document.getElementById('title');
-    tl.style.top = (title.offsetTop + title.offsetHeight + 2) + 'px';
     // the rules, on a post in the snow at the front left
     const sw = rulesEl.offsetWidth, sh = rulesEl.offsetHeight;
     let px, py;
@@ -1110,7 +1125,7 @@
       x: 0, y: 0, vx: 0, vy: 0, z: 0, vz: 0, face: 1, faceTo: 1, phase: rng(0, 6), push: 0, speed: 0, tilt: 0,
       flip: 0, flipping: false, airT: 0, airDur: 1,
       eye: { x: 0.6, y: 0.9, vx: 0, vy: 0 }, blink: rng(1, 4), snipT: 0, sayT: 0, sayDur: 1, say: '',
-      shellT: 0, shellSpin: 0, eatT: 0, spinT: 0, spinFlip: 0, dunkT: 0, hole: null, noDunk: 0,
+      shellT: 0, shellSpin: 0, wing: 0, flyH: 0, eatT: 0, spinT: 0, spinFlip: 0, dunkT: 0, hole: null, noDunk: 0,
       tx: 0, ty: 0, timer: 0, cruise: rng(90, 150), called: false, food: null, driven: false, lx: 0, ly: 0,
     };
   }
@@ -1171,7 +1186,12 @@
     if (c.z === 0 && c.shellT <= 0 && c.dunkT <= 0 && !c.sitting) c.vz = 260 * kS();
   }
   function jump(c) {
-    if (!c || c.z > 0 || c.shellT > 0 || c.dunkT > 0) return;
+    if (!c || c.shellT > 0 || c.dunkT > 0) return;
+    if (flying && c.z > 0) {             // in the air already: a loop-the-loop
+      if (!c.flipping) { c.flipping = true; c.airT = 0; c.airDur = 0.7; play('whee'); }
+      return;
+    }
+    if (c.z > 0) return;
     c.vz = 560 * kS(); c.airDur = 2 * c.vz / (1500 * kS()); c.airT = 0; c.flipping = true;
     play('whee');
   }
@@ -1239,7 +1259,22 @@
     if (k) { e.preventDefault(); keys[k] = 1; ctl.lastKey = performance.now(); return; }
     if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); if (!e.repeat) jump(ctl.keyCrab); ctl.lastKey = performance.now(); return; }
     if ((e.key === 'm' || e.key === 'M') && !e.repeat) mooCrab(ctl.keyCrab);
+    if ((e.key === 'f' || e.key === 'F') && !e.repeat) { e.preventDefault(); ctl.lastKey = performance.now(); toggleFlight(); }
   });
+  /* f: every crab grows little wings and takes off; the arrow keys fly the
+     one you last drove (left and right, up and down for height), space is
+     a loop-the-loop. f again and they all come down. */
+  let flying = false;
+  function toggleFlight() {
+    flying = !flying;
+    const k = kS();
+    for (const c of crabs) {
+      if (flying) { c.flyH = rng(60, 140) * k; if (c.z === 0) c.vz = 320 * k; }
+      else c.flipping = false;
+    }
+    if (flying) { play('whee'); say(fisher, pick(['show-offs', 'how??', 'moo?!']), 1.3); }
+    else play('whoops');
+  }
   window.addEventListener('keyup', e => { const k = KEYMAP[e.key]; if (k) { keys[k] = 0; ctl.lastKey = performance.now(); } });
   window.addEventListener('blur', () => { keys.l = keys.r = keys.u = keys.d = 0; });
 
@@ -1249,7 +1284,7 @@
     c.blink -= dt; if (c.blink < -0.13) c.blink = rng(1.8, 5);
     c.snipT = Math.max(0, c.snipT - dt); c.sayT = Math.max(0, c.sayT - dt);
     if (c.dunkT > 0) return stepDunk(c, dt, k);
-    let ax = 0, ay = 0, push = 0;
+    let ax = 0, ay = 0, push = 0, lift = 0;
     const keyed = ctl.keyCrab === c && ctl.lastKey > ctl.lastMove && (keys.l || keys.r || keys.u || keys.d || now - ctl.lastKey < 2500);
     const followed = !keyed && ctl.crab === c && (ctl.touchId !== null || now - ctl.lastInside < 1200);
     c.driven = keyed || followed;
@@ -1263,6 +1298,9 @@
       c.spinT -= dt; ax = -c.vx * 1.5; ay = -c.vy * 1.5;
       const f = Math.floor(c.spinT * 9); if (f !== c.spinFlip) { c.spinFlip = f; c.faceTo = -c.faceTo; }
       if (Math.random() < dt * 9) parts.push({ ty: 'spark', x: c.x + rng(-24, 24) * k, y: c.y + rng(-4, 4), z: rng(10, 60) * k, vx: 0, vy: 0, vz: 20, t: 0, life: 0.5, color: pick(RAINBOW), r: rng(3, 5) });
+    } else if (keyed && flying) {          // up and down are height in the air
+      ax = (keys.r - keys.l) * 820 * k; ay = -c.vy * 2;
+      lift = keys.u - keys.d;
     } else if (keyed) {
       const ix = keys.r - keys.l, iy = keys.d - keys.u, m = Math.hypot(ix, iy) || 1;
       ax = ix / m * 820 * k; ay = iy / m * 820 * k * 0.7;
@@ -1298,7 +1336,19 @@
     const vm = Math.hypot(c.vx, c.vy), vcap = (c.driven ? 560 : 330) * k;
     if (vm > vcap) { c.vx *= vcap / vm; c.vy *= vcap / vm; }
     c.x += c.vx * dt; c.y += c.vy * dt;
-    if (c.z > 0 || c.vz > 0) {
+    c.wing += ((flying ? 1 : 0) - c.wing) * Math.min(1, dt * 6);
+    if (flying && c.dunkT <= 0) {
+      // fly: the keyed crab climbs and dives on the arrows and stays where it's left;
+      // the rest bob about at their own heights
+      const top = c.y - 110 * depth(c.y) * S / 100 - 8;          // its head stays on the screen
+      if (c.driven && ctl.keyCrab === c && ctl.lastKey > ctl.lastMove) { c.vz += (lift * 380 * k - c.vz) * Math.min(1, dt * 6); c.flyH = clamp(c.z, 30 * k, top); }
+      else c.vz += ((c.flyH + Math.sin(now / 600 + c.seed) * 10 * k - c.z) * 7 - c.vz * 3.5) * dt;
+      c.z += c.vz * dt;
+      if (c.z > top) { c.z = top; c.vz = Math.min(0, c.vz); }
+      if (c.z < 30 * k && c.vz < 0) { c.z = Math.max(c.z, 30 * k * Math.min(1, c.wing * 2)); c.vz = 0; }
+      if (c.flipping) { c.airT += dt; c.flip = -TAU * clamp(c.airT / c.airDur, 0, 1) * (c.faceTo || 1); if (c.airT >= c.airDur) { c.flipping = false; c.flip = 0; } }
+      c.phase += dt * 4;
+    } else if (c.z > 0 || c.vz > 0) {
       c.vz -= 1500 * k * dt; c.z += c.vz * dt;
       if (c.flipping) { c.airT += dt; c.flip = -TAU * clamp(c.airT / c.airDur, 0, 1) * (c.faceTo || 1); }
       if (c.z <= 0) {
@@ -1569,6 +1619,14 @@
       g.strokeStyle = INK; g.lineWidth = 3.2; g.stroke(); g.strokeStyle = '#e3e9f5'; g.lineWidth = 1.6; g.stroke();
     }
   }
+  function wing(g, c, t, off, col) {     // a little white wing on the shell, flapping
+    const flap = Math.sin(t * 24 + c.seed + off * 2) * 0.55;
+    g.save(); g.translate(-2 + off * 8, -64); g.rotate(-0.7 + off + flap); g.scale(c.wing * 1.4, c.wing * 1.4);
+    g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(-6, -10, -10, -26, -2, -34); g.bezierCurveTo(4, -28, 10, -14, 0, 0);
+    g.fillStyle = col; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.moveTo(-1, -8); g.lineTo(-3, -22); g.moveTo(2, -9); g.lineTo(1, -20); g.lineWidth = 1.2; g.stroke();
+    g.restore();
+  }
   function drawCrab(g, c, t) {
     if (c.dunkT > 0 && c.dunkT <= 1.25) return;
     const s = depth(c.y) * S / 100;
@@ -1599,9 +1657,11 @@
     g.scale((c.face < 0 ? -1 : 1) * (0.35 + 0.65 * Math.abs(c.face)), 1);
     const w = clamp(c.speed / (230 * kS()), 0, 1);
     drawLegs(g, c);
+    if (c.wing > 0.03) wing(g, c, t, -0.55, '#e9e4ff');
     drawShell(g, c, -8, -44);
     // where it comes out of the shell
     ell(g, 11, -37, 7, 13); g.fillStyle = c.shellDark; g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    if (c.wing > 0.03) wing(g, c, t, 0, '#ffffff');
     // scarf: round the neck, the ends streaming behind as it goes
     for (let j = 0; j < 2; j++) {
       const len = 12 + 18 * w, wave = Math.sin(t * (11 + j * 3) + j + c.seed) * (1.5 + 4 * w), droop = (1 - w) * 16;
@@ -1717,7 +1777,7 @@
   function draw(t) {
     const g = liveG, k = kS();
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, liveC.width, liveC.height);
-    g.setTransform(dpr, 0, 0, dpr, -R.left * dpr, -R.top * dpr);
+    g.setTransform(dpr, 0, 0, dpr, -R.left * dpr, 0);
     // the water in the holes moves a little
     for (const h of R.holes) {
       g.strokeStyle = 'rgba(255, 255, 255, 0.45)'; g.lineWidth = 1.4;

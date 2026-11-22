@@ -513,6 +513,16 @@ vercel.json                 routing, headers, proxies
     with a finger and a tap moos. A crab you're driving can fall into a
     fishing hole (and comes out with a flip); to the others the holes are
     solid. Hard crashes honk and both hide in their shells and spin.
+    **F** (November 2026, "when i press the f key, the crabs fly using
+    arrow keys"): every crab grows wings (`wing`) and takes off; the
+    arrows fly the last one driven (left/right, up/down for height),
+    space is a loop-the-loop, F again brings them all down. The moving
+    canvas (`#live`) reaches from the top of the screen to the rink's
+    foot so there's sky to fly in; heads are kept on screen. Flying
+    crabs don't collide, eat or fall in holes.
+  - The rules board has a × and a "rules: on/off" switch beside the
+    sound one, remembered on the device (`piper-rules`). The tagline
+    "(the crabs moo. nobody knows why.)" was taken off at his word.
   - **The tree** is an SVG; the 10 persimmons and 4 fish are buttons laid
     over it in the drawing's units. Picked ones fly as their own elements,
     land on the ice as food (two crabs race for each) or bounce on the
